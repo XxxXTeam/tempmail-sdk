@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Go SDK 构建检查
+  go-build:
+    name: Go SDK 构建检查
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/go
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: 检查代码格式
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "代码格式不正确，请运行 gofmt"
+            gofmt -d .
+            exit 1
+          fi
+      
+      - name: 运行 go vet
+        run: go vet ./...
+      
+      - name: 构建
+        run: go build ./...
+
+  # Node.js SDK 构建检查
+  npm-build:
+    name: Node.js SDK 构建检查
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/npm
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 安装依赖
+        run: npm install
+      
+      - name: 构建
+        run: npm run build
+      
+      - name: 类型检查
+        run: npx tsc --noEmit
