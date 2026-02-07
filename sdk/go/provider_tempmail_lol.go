@@ -22,8 +22,8 @@ type tempmailLolGenerateResponse struct {
 }
 
 type tempmailLolEmailsResponse struct {
-	Emails  []Email `json:"emails"`
-	Expired bool    `json:"expired"`
+	Emails  []json.RawMessage `json:"emails"`
+	Expired bool              `json:"expired"`
 }
 
 func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
@@ -67,7 +67,7 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 	}, nil
 }
 
-func tempmailLolGetEmails(token string) ([]Email, error) {
+func tempmailLolGetEmails(token string, recipientEmail string) ([]Email, error) {
 	encodedToken := url.QueryEscape(token)
 
 	req, err := http.NewRequest("GET", tempmailLolBaseURL+"/inbox?token="+encodedToken, nil)
@@ -96,5 +96,5 @@ func tempmailLolGetEmails(token string) ([]Email, error) {
 		return nil, err
 	}
 
-	return result.Emails, nil
+	return normalizeRawEmails(result.Emails, recipientEmail)
 }

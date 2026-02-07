@@ -19,6 +19,11 @@ func main() {
 		tempemail.ChannelLinshiEmail,
 		tempemail.ChannelTempmailLol,
 		tempemail.ChannelChatgptOrgUk,
+		tempemail.ChannelTempmailLa,
+		tempemail.ChannelTempMailIO,
+		tempemail.ChannelAwamail,
+		tempemail.ChannelMailTm,
+		tempemail.ChannelDropmail,
 	}
 
 	for _, channel := range channels {
@@ -38,6 +43,9 @@ func main() {
 		}
 		if emailInfo.ExpiresAt != nil {
 			fmt.Printf("  Expires: %v\n", emailInfo.ExpiresAt)
+		}
+		if emailInfo.CreatedAt != "" {
+			fmt.Printf("  Created: %s\n", emailInfo.CreatedAt)
 		}
 		fmt.Println()
 	}
@@ -62,4 +70,26 @@ func main() {
 	}
 
 	fmt.Printf("Emails count: %d\n", len(result.Emails))
+
+	// 展示标准化的邮件格式
+	for _, email := range result.Emails {
+		fmt.Printf("  ID: %s\n", email.ID)
+		fmt.Printf("  From: %s\n", email.From)
+		fmt.Printf("  To: %s\n", email.To)
+		fmt.Printf("  Subject: %s\n", email.Subject)
+		fmt.Printf("  Date: %s\n", email.Date)
+		fmt.Printf("  IsRead: %v\n", email.IsRead)
+		text := email.Text
+		if len(text) > 100 {
+			text = text[:100]
+		}
+		fmt.Printf("  Text: %s\n", text)
+		html := email.HTML
+		if len(html) > 100 {
+			html = html[:100]
+		}
+		fmt.Printf("  HTML: %s\n", html)
+		fmt.Printf("  Attachments: %d\n", len(email.Attachments))
+		fmt.Println()
+	}
 }

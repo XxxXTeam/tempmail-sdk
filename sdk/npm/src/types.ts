@@ -1,4 +1,4 @@
-export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk';
+export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk' | 'tempmail-la' | 'temp-mail-io' | 'awamail' | 'mail-tm' | 'dropmail';
 
 export interface EmailInfo {
   channel: Channel;
@@ -8,34 +8,38 @@ export interface EmailInfo {
   createdAt?: string;
 }
 
+/**
+ * 标准化邮件附件
+ */
+export interface EmailAttachment {
+  filename: string;
+  size?: number;
+  contentType?: string;
+  url?: string;
+}
+
+/**
+ * 标准化邮件格式 - 所有提供商返回统一结构
+ */
 export interface Email {
-  id?: string | number;
-  eid?: string;
-  _id?: string;
-  from?: string;
-  from_address?: string;
-  from_name?: string;
-  address_from?: string;
-  name_from?: string;
-  to?: string;
-  name_to?: string;
-  email_address?: string;
-  subject?: string;
-  e_subject?: string;
-  body?: string;
-  text?: string;
-  content?: string;
-  html?: string;
-  html_content?: string;
-  date?: string | number;
-  e_date?: number;
-  timestamp?: number;
-  received_at?: string;
-  created_at?: string;
-  createdAt?: string;
-  is_read?: number;
-  has_html?: boolean;
-  [key: string]: any;
+  /** 邮件唯一标识 */
+  id: string;
+  /** 发件人邮箱地址 */
+  from: string;
+  /** 收件人邮箱地址 */
+  to: string;
+  /** 邮件主题 */
+  subject: string;
+  /** 纯文本内容 */
+  text: string;
+  /** HTML 内容 */
+  html: string;
+  /** ISO 8601 格式的日期字符串 */
+  date: string;
+  /** 是否已读 */
+  isRead: boolean;
+  /** 附件列表 */
+  attachments: EmailAttachment[];
 }
 
 export interface GetEmailsResult {

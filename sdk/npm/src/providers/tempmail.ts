@@ -1,4 +1,5 @@
 import { EmailInfo, Email, Channel } from '../types';
+import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'tempmail';
 const BASE_URL = 'https://api.tempmail.ing/api';
@@ -55,5 +56,6 @@ export async function getEmails(email: string): Promise<Email[]> {
     throw new Error('Failed to get emails');
   }
 
-  return data.emails || [];
+  const rawEmails = data.emails || [];
+  return rawEmails.map((raw: any) => normalizeEmail(raw, email));
 }

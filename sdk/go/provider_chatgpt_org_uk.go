@@ -20,8 +20,8 @@ type chatgptOrgUkGenerateResponse struct {
 type chatgptOrgUkEmailsResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
-		Emails []Email `json:"emails"`
-		Count  int     `json:"count"`
+		Emails []json.RawMessage `json:"emails"`
+		Count  int               `json:"count"`
 	} `json:"data"`
 }
 
@@ -97,5 +97,5 @@ func chatgptOrgUkGetEmails(email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get emails")
 	}
 
-	return result.Data.Emails, nil
+	return normalizeRawEmails(result.Data.Emails, email)
 }

@@ -29,6 +29,39 @@ const (
 	MaxPollCount = 60                        // 最大轮询次数
 )
 
+func printEmail(email tempemail.Email, index int) {
+	fmt.Printf("\n邮件 #%d\n", index+1)
+	fmt.Println(strings.Repeat("━", 50))
+	fmt.Printf("ID: %s\n", email.ID)
+	fmt.Printf("发件人: %s\n", getOrDefault(email.From, "未知"))
+	fmt.Printf("收件人: %s\n", getOrDefault(email.To, "未知"))
+	fmt.Printf("主题: %s\n", getOrDefault(email.Subject, "无主题"))
+	fmt.Printf("时间: %s\n", getOrDefault(email.Date, "未知"))
+	fmt.Printf("已读: %v\n", email.IsRead)
+	if email.Text != "" {
+		text := email.Text
+		if len(text) > 200 {
+			text = text[:200]
+		}
+		fmt.Printf("内容: %s\n", text)
+	}
+	if email.HTML != "" {
+		html := email.HTML
+		if len(html) > 100 {
+			html = html[:100] + "..."
+		}
+		fmt.Printf("HTML: %s\n", html)
+	}
+	if len(email.Attachments) > 0 {
+		names := make([]string, len(email.Attachments))
+		for i, a := range email.Attachments {
+			names[i] = a.Filename
+		}
+		fmt.Printf("附件: %s\n", strings.Join(names, ", "))
+	}
+	fmt.Println(strings.Repeat("━", 50))
+}
+
 func pollEmails(emailInfo *tempemail.EmailInfo) {
 	fmt.Printf("\n开始轮询邮件...（每 %v 检查一次）\n", PollInterval)
 	fmt.Println("按 Ctrl+C 停止轮询")
@@ -75,56 +108,7 @@ func pollEmails(emailInfo *tempemail.EmailInfo) {
 				printJson("返回数据 (GetEmailsResult)", result)
 
 				for i, email := range result.Emails {
-					fmt.Printf("\n邮件 #%d\n", i+1)
-					fmt.Println(strings.Repeat("━", 50))
-					emailID := email.ID
-					if emailID == nil && email.Eid != "" {
-						emailID = email.Eid
-					}
-					if emailID == nil && email.MongoID != "" {
-						emailID = email.MongoID
-					}
-					fmt.Printf("ID: %v\n", emailID)
-					fromAddr := getOrDefault(email.FromAddress, getOrDefault(email.AddressFrom, email.From))
-					fromName := getOrDefault(email.FromName, email.NameFrom)
-					var fromDisplay string
-					if fromName != "" {
-						fromDisplay = fmt.Sprintf("%s <%s>", fromName, fromAddr)
-					} else {
-						fromDisplay = getOrDefault(fromAddr, "未知")
-					}
-					fmt.Printf("发件人: %s\n", fromDisplay)
-					fmt.Printf("收件人: %s\n", getOrDefault(email.To, getOrDefault(email.NameTo, getOrDefault(email.EmailAddress, result.Email))))
-					fmt.Printf("主题: %s\n", getOrDefault(email.Subject, getOrDefault(email.ESubject, "无主题")))
-					var emailDate string
-					if email.ReceivedAt != "" {
-						emailDate = email.ReceivedAt
-					} else if email.CreatedAt != "" {
-						emailDate = email.CreatedAt
-					} else if email.CreatedAtAlt != "" {
-						emailDate = email.CreatedAtAlt
-					} else if email.Timestamp > 0 {
-						emailDate = time.Unix(email.Timestamp, 0).Format(time.RFC3339)
-					} else if email.EDate > 0 {
-						emailDate = time.UnixMilli(email.EDate).Format(time.RFC3339)
-					}
-					fmt.Printf("时间: %s\n", getOrDefault(emailDate, "未知"))
-					fmt.Printf("已读: %v\n", email.IsRead != 0)
-					body := getOrDefault(email.Text, getOrDefault(email.Body, email.Content))
-					if body != "" {
-						if len(body) > 200 {
-							body = body[:200]
-						}
-						fmt.Printf("内容: %s\n", body)
-					}
-					html := getOrDefault(email.HTMLContent, email.HTML)
-					if html != "" {
-						if len(html) > 100 {
-							html = html[:100] + "..."
-						}
-						fmt.Printf("HTML: %s\n", html)
-					}
-					fmt.Println(strings.Repeat("━", 50))
+					printEmail(email, i)
 				}
 				// 收到邮件后可以选择继续轮询或退出
 				// return

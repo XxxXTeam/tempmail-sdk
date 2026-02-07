@@ -6,10 +6,42 @@ on:
       - 'v*'
 
 jobs:
+  # 构建验证
+  verify:
+    name: 构建验证
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Go 构建验证
+        working-directory: sdk/go
+        run: |
+          go vet ./...
+          go build ./...
+      
+      - name: npm 构建验证
+        working-directory: sdk/npm
+        run: |
+          npm install
+          npx tsc --noEmit
+          npm run build
+
   # 发布 npm 包
   publish-npm:
     name: 发布 npm 包
     runs-on: ubuntu-latest
+    needs: [verify]
     defaults:
       run:
         working-directory: sdk/npm
@@ -51,34 +83,64 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: 获取版本号
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          # 获取上一个 tag
+          PREV_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
+          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "${{ steps.version.outputs.VERSION }}" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          # 生成 commit 日志
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          git log ${PREV_TAG}..${{ steps.version.outputs.VERSION }} --pretty=format:"- %s (%h)" --no-merges 2>/dev/null || echo "- 初始发布"
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
       - name: 创建 Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}
           body: |
             ## 临时邮箱 SDK ${{ steps.version.outputs.VERSION }}
             
-            ### npm 安装
+            ### 变更内容
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ### 安装
+            
+            **npm:**
             ```bash
             npm install tempmail-sdk@${{ steps.version.outputs.VERSION }}
             ```
             
-            ### Go 安装
+            **Go:**
             ```bash
             go get github.com/XxxXTeam/tempmail-sdk/sdk/go@${{ steps.version.outputs.VERSION }}
             ```
             
-            ### 支持的渠道
-            - tempmail.ing
-            - linshi-email.com
-            - tempmail.lol
-            - mail.chatgpt.org.uk
+            ### 支持的渠道（9 个）
+            
+            | 渠道 | 服务商 |
+            |------|--------|
+            | `tempmail` | tempmail.ing |
+            | `linshi-email` | linshi-email.com |
+            | `tempmail-lol` | tempmail.lol |
+            | `chatgpt-org-uk` | mail.chatgpt.org.uk |
+            | `tempmail-la` | tempmail.la |
+            | `temp-mail-io` | temp-mail.io |
+            | `awamail` | awamail.com |
+            | `mail-tm` | mail.tm |
+            | `dropmail` | dropmail.me |
           draft: false
           prerelease: false
         env:

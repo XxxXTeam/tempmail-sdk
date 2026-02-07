@@ -1,4 +1,5 @@
 import { EmailInfo, Email, Channel } from '../types';
+import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'tempmail-lol';
 const BASE_URL = 'https://api.tempmail.lol/v2';
@@ -37,7 +38,7 @@ export async function generateEmail(domain: string | null = null): Promise<Email
   };
 }
 
-export async function getEmails(token: string): Promise<Email[]> {
+export async function getEmails(token: string, recipientEmail: string = ''): Promise<Email[]> {
   const response = await fetch(`${BASE_URL}/inbox?token=${encodeURIComponent(token)}`, {
     method: 'GET',
     headers: DEFAULT_HEADERS,
@@ -49,5 +50,6 @@ export async function getEmails(token: string): Promise<Email[]> {
 
   const data = await response.json();
   
-  return data.emails || [];
+  const rawEmails = data.emails || [];
+  return rawEmails.map((raw: any) => normalizeEmail(raw, recipientEmail));
 }

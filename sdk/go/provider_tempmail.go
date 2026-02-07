@@ -26,8 +26,8 @@ type tempmailGenerateResponse struct {
 }
 
 type tempmailEmailsResponse struct {
-	Emails  []Email `json:"emails"`
-	Success bool    `json:"success"`
+	Emails  []json.RawMessage `json:"emails"`
+	Success bool              `json:"success"`
 }
 
 func tempmailGenerate(duration int) (*EmailInfo, error) {
@@ -109,5 +109,5 @@ func tempmailGetEmails(email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get emails")
 	}
 
-	return result.Emails, nil
+	return normalizeRawEmails(result.Emails, email)
 }

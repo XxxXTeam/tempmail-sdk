@@ -1,4 +1,5 @@
 import { EmailInfo, Email, Channel } from '../types';
+import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'linshi-email';
 const BASE_URL = 'https://www.linshi-email.com/api/v1';
@@ -57,5 +58,6 @@ export async function getEmails(email: string): Promise<Email[]> {
     throw new Error('Failed to get emails');
   }
 
-  return data.list || [];
+  const rawEmails = data.list || [];
+  return rawEmails.map((raw: any) => normalizeEmail(raw, email));
 }

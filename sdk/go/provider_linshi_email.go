@@ -24,8 +24,8 @@ type linshiEmailGenerateResponse struct {
 }
 
 type linshiEmailEmailsResponse struct {
-	List   []Email `json:"list"`
-	Status string  `json:"status"`
+	List   []json.RawMessage `json:"list"`
+	Status string            `json:"status"`
 }
 
 func linshiEmailGenerate() (*EmailInfo, error) {
@@ -106,5 +106,5 @@ func linshiEmailGetEmails(email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get emails")
 	}
 
-	return result.List, nil
+	return normalizeRawEmails(result.List, email)
 }

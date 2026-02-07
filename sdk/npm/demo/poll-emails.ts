@@ -6,7 +6,7 @@
  */
 
 import * as readline from 'readline';
-import { generateEmail, getEmails, listChannels, getChannelInfo, Channel, EmailInfo, ChannelInfo } from '../src';
+import { generateEmail, getEmails, listChannels, getChannelInfo, Channel, EmailInfo, ChannelInfo, Email } from '../src';
 
 // 配置
 const POLL_INTERVAL = 5000;           // 轮询间隔（毫秒）
@@ -51,6 +51,29 @@ async function selectChannel(channels: ChannelInfo[]): Promise<Channel> {
   }
 }
 
+function printEmail(email: Email, index: number): void {
+  console.log(`\n邮件 #${index + 1}`);
+  console.log('━'.repeat(50));
+  console.log(`ID: ${email.id || '无'}`);
+  console.log(`发件人: ${email.from || '未知'}`);
+  console.log(`收件人: ${email.to || '未知'}`);
+  console.log(`主题: ${email.subject || '无主题'}`);
+  console.log(`时间: ${email.date || '未知'}`);
+  console.log(`已读: ${email.isRead ? '是' : '否'}`);
+  if (email.text) {
+    const preview = email.text.substring(0, 200);
+    console.log(`内容: ${preview}`);
+  }
+  if (email.html) {
+    const htmlPreview = email.html.replace(/<[^>]*>/g, '').substring(0, 100);
+    console.log(`HTML: ${htmlPreview}...`);
+  }
+  if (email.attachments.length > 0) {
+    console.log(`附件: ${email.attachments.map(a => a.filename).join(', ')}`);
+  }
+  console.log('━'.repeat(50));
+}
+
 async function pollEmails(emailInfo: EmailInfo): Promise<void> {
   console.log(`\n开始轮询邮件...（每 ${POLL_INTERVAL / 1000} 秒检查一次）`);
   console.log('按 Ctrl+C 停止轮询\n');
@@ -76,45 +99,7 @@ async function pollEmails(emailInfo: EmailInfo): Promise<void> {
         printJson('返回数据 (GetEmailsResult)', result);
 
         for (let i = 0; i < result.emails.length; i++) {
-          const email = result.emails[i];
-          console.log(`\n邮件 #${i + 1}`);
-          console.log('━'.repeat(50));
-          console.log(`ID: ${email.id || email.eid || email._id || '无'}`);
-          const fromAddr = email.from_address || email.address_from || email.from || '未知';
-          const fromName = email.from_name || email.name_from || '';
-          const fromDisplay = fromName ? `${fromName} <${fromAddr}>` : fromAddr;
-          console.log(`发件人: ${fromDisplay}`);
-          console.log(`收件人: ${email.to || email.name_to || email.email_address || result.email}`);
-          console.log(`主题: ${email.subject || email.e_subject || '无主题'}`);
-          let emailDate: string = '未知';
-          if (email.received_at) {
-            emailDate = email.received_at;
-          } else if (email.created_at) {
-            emailDate = email.created_at;
-          } else if (email.createdAt) {
-            emailDate = email.createdAt;
-          } else if (email.timestamp) {
-            emailDate = new Date(email.timestamp * 1000).toISOString();
-          } else if (email.e_date) {
-            emailDate = new Date(email.e_date).toISOString();
-          } else if (typeof email.date === 'number') {
-            emailDate = new Date(email.date).toISOString();
-          } else if (email.date) {
-            emailDate = email.date;
-          }
-          console.log(`时间: ${emailDate}`);
-          console.log(`已读: ${email.is_read ? '是' : '否'}`);
-          const body = email.text || email.body || email.content || '';
-          if (body) {
-            const preview = body.replace(/<[^>]*>/g, '').substring(0, 200);
-            console.log(`内容: ${preview}`);
-          }
-          const htmlContent = email.html_content || email.html || '';
-          if (htmlContent) {
-            const htmlPreview = htmlContent.replace(/<[^>]*>/g, '').substring(0, 100);
-            console.log(`HTML: ${htmlPreview}...`);
-          }
-          console.log('━'.repeat(50));
+          printEmail(result.emails[i], i);
         }
         
         // 收到邮件后可以选择继续轮询或退出

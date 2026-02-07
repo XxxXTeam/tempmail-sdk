@@ -11,6 +11,11 @@ var allChannels = []Channel{
 	ChannelLinshiEmail,
 	ChannelTempmailLol,
 	ChannelChatgptOrgUk,
+	ChannelTempmailLa,
+	ChannelTempMailIO,
+	ChannelAwamail,
+	ChannelMailTm,
+	ChannelDropmail,
 }
 
 type ChannelInfo struct {
@@ -24,6 +29,11 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelLinshiEmail:  {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
 	ChannelTempmailLol:  {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
 	ChannelChatgptOrgUk: {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
+	ChannelTempmailLa:   {Channel: ChannelTempmailLa, Name: "TempMail LA", Website: "tempmail.la"},
+	ChannelTempMailIO:   {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
+	ChannelAwamail:      {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
+	ChannelMailTm:       {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
+	ChannelDropmail:     {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 }
 
 func init() {
@@ -72,6 +82,21 @@ func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 	case ChannelChatgptOrgUk:
 		return chatgptOrgUkGenerate()
 
+	case ChannelTempmailLa:
+		return tempmailLaGenerate()
+
+	case ChannelTempMailIO:
+		return tempMailIOGenerate()
+
+	case ChannelAwamail:
+		return awamailGenerate()
+
+	case ChannelMailTm:
+		return mailTmGenerate()
+
+	case ChannelDropmail:
+		return dropmailGenerate()
+
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
 	}
@@ -99,10 +124,34 @@ func GetEmails(opts GetEmailsOptions) (*GetEmailsResult, error) {
 		if opts.Token == "" {
 			return nil, fmt.Errorf("token is required for tempmail-lol channel")
 		}
-		emails, err = tempmailLolGetEmails(opts.Token)
+		emails, err = tempmailLolGetEmails(opts.Token, opts.Email)
 
 	case ChannelChatgptOrgUk:
 		emails, err = chatgptOrgUkGetEmails(opts.Email)
+
+	case ChannelTempmailLa:
+		emails, err = tempmailLaGetEmails(opts.Email)
+
+	case ChannelTempMailIO:
+		emails, err = tempMailIOGetEmails(opts.Email)
+
+	case ChannelAwamail:
+		if opts.Token == "" {
+			return nil, fmt.Errorf("token is required for awamail channel")
+		}
+		emails, err = awamailGetEmails(opts.Token, opts.Email)
+
+	case ChannelMailTm:
+		if opts.Token == "" {
+			return nil, fmt.Errorf("token is required for mail-tm channel")
+		}
+		emails, err = mailTmGetEmails(opts.Token, opts.Email)
+
+	case ChannelDropmail:
+		if opts.Token == "" {
+			return nil, fmt.Errorf("token is required for dropmail channel")
+		}
+		emails, err = dropmailGetEmails(opts.Token, opts.Email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", opts.Channel)

@@ -1,4 +1,5 @@
 import { EmailInfo, Email, Channel } from '../types';
+import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'chatgpt-org-uk';
 const BASE_URL = 'https://mail.chatgpt.org.uk/api';
@@ -53,5 +54,6 @@ export async function getEmails(email: string): Promise<Email[]> {
     throw new Error('Failed to get emails');
   }
 
-  return data.data?.emails || [];
+  const rawEmails = data.data?.emails || [];
+  return rawEmails.map((raw: any) => normalizeEmail(raw, email));
 }
