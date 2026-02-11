@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tempmail-sdk"
+name = "tempemail-sdk"
 version = "1.0.3"
 description = "临时邮箱 SDK，支持 11 个邮箱服务提供商，所有渠道返回统一标准化格式"
 readme = "README.md"

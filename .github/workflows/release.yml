@@ -498,7 +498,7 @@ jobs:
 
             **Python (PyPI):**
             ```bash
-            pip install tempmail-sdk
+            pip install tempemail-sdk
             ```
 
             ### 预编译二进制下载
