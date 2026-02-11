@@ -51,9 +51,6 @@ __pycache__/
 venv/
 
 # C
-build/
+sdk/c/build/
 sdk/c/vendor/cJSON.c
 sdk/c/vendor/cJSON.h
-
-# User data
-*.txt

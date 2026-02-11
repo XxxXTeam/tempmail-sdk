@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust-version: ['stable', '1.75.0']
+        rust-version: ['stable', '1.82.0']
     defaults:
       run:
         working-directory: sdk/rust
