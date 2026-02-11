@@ -1,0 +1,120 @@
+name: Bug 报告
+description: 报告一个 Bug 或异常行为
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你花时间报告 Bug！请尽可能详细地描述问题，以便我们快速定位和修复。
+
+  - type: dropdown
+    id: sdk
+    attributes:
+      label: SDK 类型
+      description: 你使用的是哪个 SDK？
+      options:
+        - Go
+        - npm (TypeScript)
+        - Rust
+        - Python
+        - C
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: SDK 版本
+      description: "SDK 版本号（如 1.1.0）"
+      placeholder: "1.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: channel
+    attributes:
+      label: 相关渠道
+      description: 问题涉及哪个临时邮箱渠道？（如不确定可选"全部/不确定"）
+      options:
+        - 全部/不确定
+        - tempmail
+        - linshi-email
+        - tempmail-lol
+        - chatgpt-org-uk
+        - tempmail-la
+        - temp-mail-io
+        - awamail
+        - mail-tm
+        - dropmail
+        - guerrillamail
+        - maildrop
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 简明扼要地描述 Bug 的表现
+      placeholder: "调用 generateEmail 时返回空地址..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 详细的复现步骤
+      value: |
+        1. 调用 `...`
+        2. 传入参数 `...`
+        3. 观察到 `...`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望的正确行为是什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么？请附上错误信息或日志
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 请提供你的运行环境信息
+      value: |
+        - 操作系统：
+        - 语言/运行时版本：
+        - SDK 版本：
+        - 是否使用代理：
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志输出
+      description: 开启 Debug 日志后的相关输出（可选）
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: 其他可能有助于定位问题的信息，如截图、代码片段等
+    validations:
+      required: false

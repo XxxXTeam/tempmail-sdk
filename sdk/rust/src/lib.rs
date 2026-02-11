@@ -8,6 +8,7 @@ pub mod logger;
 pub mod retry;
 pub mod normalize;
 pub mod providers;
+pub mod config;
 mod client;
 
 pub use types::*;
@@ -15,3 +16,4 @@ pub use client::*;
 pub use logger::{set_log_level, LogLevelFilter};
 pub use retry::with_retry;
 pub use normalize::normalize_email;
+pub use config::{SDKConfig, set_config, get_config, http_client};

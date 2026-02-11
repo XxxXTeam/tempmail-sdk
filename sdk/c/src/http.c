@@ -11,6 +11,36 @@
 #include <strings.h>
 #endif
 
+/* ========== 全局配置 ========== */
+
+static tm_config_t g_config = { NULL, 0, false };
+static char *g_proxy_copy = NULL; /* 内部复制的代理 URL */
+
+void tm_set_config(const tm_config_t *config) {
+    if (g_proxy_copy) { free(g_proxy_copy); g_proxy_copy = NULL; }
+    if (!config) {
+        g_config.proxy = NULL;
+        g_config.timeout_secs = 0;
+        g_config.insecure = false;
+        return;
+    }
+    if (config->proxy) {
+        g_proxy_copy = strdup(config->proxy);
+        g_config.proxy = g_proxy_copy;
+    } else {
+        g_config.proxy = NULL;
+    }
+    g_config.timeout_secs = config->timeout_secs;
+    g_config.insecure = config->insecure;
+    TM_LOG_INF("SDK 配置已更新: proxy=%s timeout=%d insecure=%d",
+        g_config.proxy ? g_config.proxy : "(none)",
+        g_config.timeout_secs, g_config.insecure);
+}
+
+const tm_config_t* tm_get_config(void) {
+    return &g_config;
+}
+
 /* libcurl 写回调 */
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t total = size * nmemb;
@@ -66,13 +96,28 @@ tm_http_response_t* tm_http_request(
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, resp);
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, resp);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)(timeout_secs > 0 ? timeout_secs : 15));
+    /* 超时: 参数 > 全局配置 > 默认 15s */
+    int effective_timeout = timeout_secs > 0 ? timeout_secs
+        : (g_config.timeout_secs > 0 ? g_config.timeout_secs : 15);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)effective_timeout);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+
+    /* SSL 验证 */
+    if (g_config.insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    } else {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 #ifdef _WIN32
-    /* Windows 下使用系统原生证书存储 */
-    curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, (long)CURLSSLOPT_NATIVE_CA);
+        /* Windows 下使用系统原生证书存储 */
+        curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, (long)CURLSSLOPT_NATIVE_CA);
 #endif
+    }
+
+    /* 代理 */
+    if (g_config.proxy) {
+        curl_easy_setopt(curl, CURLOPT_PROXY, g_config.proxy);
+    }
 
     /* 设置请求头 */
     struct curl_slist *header_list = NULL;
@@ -121,8 +166,31 @@ void tm_http_response_free(tm_http_response_t *resp) {
     free(resp);
 }
 
+/*
+ * 从环境变量读取默认配置
+ * TEMPMAIL_PROXY / TEMPMAIL_TIMEOUT / TEMPMAIL_INSECURE
+ */
+static void load_env_config(void) {
+    const char *proxy = getenv("TEMPMAIL_PROXY");
+    if (proxy && proxy[0]) {
+        if (g_proxy_copy) free(g_proxy_copy);
+        g_proxy_copy = strdup(proxy);
+        g_config.proxy = g_proxy_copy;
+    }
+    const char *timeout = getenv("TEMPMAIL_TIMEOUT");
+    if (timeout && timeout[0]) {
+        int t = atoi(timeout);
+        if (t > 0) g_config.timeout_secs = t;
+    }
+    const char *insecure = getenv("TEMPMAIL_INSECURE");
+    if (insecure && (insecure[0] == '1' || strncasecmp(insecure, "true", 4) == 0)) {
+        g_config.insecure = true;
+    }
+}
+
 void tm_init(void) {
     curl_global_init(CURL_GLOBAL_ALL);
+    load_env_config();
 }
 
 void tm_cleanup(void) {

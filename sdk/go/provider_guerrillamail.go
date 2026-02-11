@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 )
 
@@ -25,7 +24,8 @@ const guerrillaMailBaseURL = "https://api.guerrillamail.com/ajax.php"
  * API: GET ajax.php?f=get_email_address
  */
 func guerrillaMailGenerate() (*EmailInfo, error) {
-	resp, err := http.Get(guerrillaMailBaseURL + "?f=get_email_address&lang=en")
+	client := HTTPClient()
+	resp, err := client.Get(guerrillaMailBaseURL + "?f=get_email_address&lang=en")
 	if err != nil {
 		return nil, fmt.Errorf("guerrillamail generate request failed: %w", err)
 	}
@@ -68,7 +68,8 @@ func guerrillaMailGenerate() (*EmailInfo, error) {
  */
 func guerrillaMailGetEmails(token string, email string) ([]Email, error) {
 	u := guerrillaMailBaseURL + "?f=check_email&seq=0&sid_token=" + url.QueryEscape(token)
-	resp, err := http.Get(u)
+	client := HTTPClient()
+	resp, err := client.Get(u)
 	if err != nil {
 		return nil, fmt.Errorf("guerrillamail get emails request failed: %w", err)
 	}

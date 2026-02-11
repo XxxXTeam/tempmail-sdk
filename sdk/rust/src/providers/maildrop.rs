@@ -7,10 +7,10 @@
  * - headerfrom/subject 可能含 RFC 2047 编码，需要解码
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use rand::Rng;
 use crate::types::{Channel, EmailInfo, Email};
+use crate::config::http_client;
 
 const GRAPHQL_URL: &str = "https://api.maildrop.cc/graphql";
 const DOMAIN: &str = "maildrop.cc";
@@ -157,10 +157,7 @@ fn graphql_request(
     query: &str,
     variables: serde_json::Value,
 ) -> Result<Value, String> {
-    let resp = Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
+    let resp = http_client()
         .post(GRAPHQL_URL)
         .header("Content-Type", "application/json")
         .header("Origin", "https://maildrop.cc")

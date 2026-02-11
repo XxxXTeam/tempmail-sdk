@@ -4,8 +4,8 @@ API: https://www.linshi-email.com/api/v1
 """
 
 import time
-import requests
 from urllib.parse import quote
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -27,11 +27,10 @@ DEFAULT_HEADERS = {
 
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/email/{API_KEY}",
         headers=DEFAULT_HEADERS,
         json={},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -49,10 +48,9 @@ def generate_email(**kwargs) -> EmailInfo:
 def get_emails(email: str, **kwargs) -> list:
     """获取邮件列表"""
     ts = int(time.time() * 1000)
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/refreshmessage/{API_KEY}/{quote(email)}?t={ts}",
         headers=DEFAULT_HEADERS,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

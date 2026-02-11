@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 )
 
@@ -56,7 +55,8 @@ func dropmailGraphQLRequest(query string, variables map[string]interface{}) (jso
 		form.Set("variables", string(varsJSON))
 	}
 
-	resp, err := http.PostForm(dropmailBaseURL, form)
+	client := HTTPClient()
+	resp, err := client.PostForm(dropmailBaseURL, form)
 	if err != nil {
 		return nil, err
 	}

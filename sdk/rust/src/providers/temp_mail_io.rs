@@ -3,11 +3,11 @@
  * 需要动态获取 X-CORS-Header
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use std::sync::Mutex;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://api.internal.temp-mail.io/api/v3";
 const PAGE_URL: &str = "https://temp-mail.io/en";
@@ -22,10 +22,7 @@ fn fetch_cors_header() -> String {
     }
 
     let result = (|| -> Option<String> {
-        let resp = Client::builder()
-            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36")
-            .timeout(std::time::Duration::from_secs(10))
-            .build().ok()?
+        let resp = http_client()
             .get(PAGE_URL).send().ok()?;
         let html = resp.text().ok()?;
         let re = regex_lite::Regex::new(r#"mobileTestingHeader\s*:\s*"([^"]+)""#).ok()?;
@@ -39,16 +36,9 @@ fn fetch_cors_header() -> String {
     result
 }
 
-fn api_client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
-
 pub fn generate_email() -> Result<EmailInfo, String> {
     let cors = fetch_cors_header();
-    let resp = api_client()
+    let resp = http_client()
         .post(format!("{}/email/new", BASE_URL))
         .header("Content-Type", "application/json")
         .header("Application-Name", "web")
@@ -79,7 +69,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     let cors = fetch_cors_header();
-    let resp = api_client()
+    let resp = http_client()
         .get(format!("{}/email/{}/messages", BASE_URL, email))
         .header("Application-Name", "web")
         .header("Application-Version", "4.0.0")

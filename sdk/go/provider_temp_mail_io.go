@@ -34,7 +34,7 @@ func fetchTempMailIOCorsHeader() string {
 		}
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-		client := &http.Client{}
+		client := HTTPClient()
 		resp, err := client.Do(req)
 		if err != nil {
 			cachedTempMailIOCorsHeader = "1"
@@ -98,7 +98,7 @@ func tempMailIOGenerate() (*EmailInfo, error) {
 	}
 	setTempMailIOHeaders(req)
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func tempMailIOGetEmails(email string) ([]Email, error) {
 	}
 	setTempMailIOHeaders(req)
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ API: https://tempmail.la/api
 支持分页获取邮件
 """
 
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -35,11 +35,10 @@ DEFAULT_HEADERS = {
 
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/mail/create",
         headers=DEFAULT_HEADERS,
         json={"turnstile": ""},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -62,11 +61,10 @@ def get_emails(email: str, **kwargs) -> list:
     has_more = True
 
     while has_more:
-        resp = requests.post(
+        resp = tm_http.post(
             f"{BASE_URL}/mail/box",
             headers=DEFAULT_HEADERS,
             json={"address": email, "cursor": cursor},
-            timeout=15,
         )
         resp.raise_for_status()
         data = resp.json()

@@ -42,7 +42,7 @@ func linshiEmailGenerate() (*EmailInfo, error) {
 	req.Header.Set("Referer", "https://www.linshi-email.com/")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func linshiEmailGetEmails(email string) ([]Email, error) {
 	req.Header.Set("Referer", "https://www.linshi-email.com/")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

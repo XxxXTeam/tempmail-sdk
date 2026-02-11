@@ -39,7 +39,7 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 	req.Header.Set("Origin", "https://tempmail.lol")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func tempmailLolGetEmails(token string, recipientEmail string) ([]Email, error) 
 	req.Header.Set("Origin", "https://tempmail.lol")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -67,6 +67,43 @@ from tempmail_sdk import set_log_level, LOG_DEBUG
 set_log_level(LOG_DEBUG)  # 开启所有日志
 ```
 
+## 代理与 HTTP 配置
+
+SDK 支持全局配置代理、超时等 HTTP 客户端参数，也可通过环境变量零代码配置：
+
+```python
+from tempmail_sdk import set_config
+
+# 一行跳过 SSL 验证
+set_config(insecure=True)
+
+# 设置代理
+set_config(proxy="http://127.0.0.1:7890")
+
+# 设置代理 + 超时 + 跳过 SSL 验证
+set_config(proxy="socks5://127.0.0.1:1080", timeout=30, insecure=True)
+
+# 添加自定义请求头
+set_config(headers={"X-Custom": "value"})
+```
+
+**配置项：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `proxy` | `str` | 代理 URL（http/https/socks5） |
+| `timeout` | `int` | 全局超时秒数，默认 15 |
+| `insecure` | `bool` | 跳过 SSL 验证（调试用） |
+| `headers` | `dict` | 自定义请求头 |
+
+**环境变量（无需修改代码）：**
+
+```bash
+export TEMPMAIL_PROXY="http://127.0.0.1:7890"
+export TEMPMAIL_INSECURE=1
+export TEMPMAIL_TIMEOUT=30
+```
+
 ## 重试配置
 
 ```python

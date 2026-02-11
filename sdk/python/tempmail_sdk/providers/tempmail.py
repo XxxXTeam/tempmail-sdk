@@ -3,8 +3,8 @@ tempmail.ing 渠道实现
 API: https://api.tempmail.ing/api
 """
 
-import requests
 from urllib.parse import quote
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -24,11 +24,10 @@ DEFAULT_HEADERS = {
 
 def generate_email(duration: int = 30) -> EmailInfo:
     """创建临时邮箱，支持自定义有效期（分钟）"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/generate",
         headers=DEFAULT_HEADERS,
         json={"duration": duration},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -46,10 +45,9 @@ def generate_email(duration: int = 30) -> EmailInfo:
 
 def get_emails(email: str, **kwargs) -> list:
     """获取邮件列表"""
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/emails/{quote(email)}",
         headers=DEFAULT_HEADERS,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

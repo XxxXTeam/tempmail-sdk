@@ -124,6 +124,29 @@ typedef struct {
     const char *website;
 } tm_channel_info_t;
 
+/* ========== SDK 全局配置 ========== */
+
+/**
+ * SDK 全局配置
+ * 包含代理、超时、SSL 等设置，作用于所有 HTTP 请求
+ */
+typedef struct {
+    const char *proxy;     /* 代理 URL，支持 http/https/socks5，如 "http://127.0.0.1:7890"，NULL 不使用代理 */
+    int timeout_secs;      /* 全局默认超时秒数，0 使用默认值 15 */
+    bool insecure;         /* 跳过 SSL 证书验证（调试用） */
+} tm_config_t;
+
+/**
+ * 设置 SDK 全局配置
+ * 内部复制配置内容，调用后原始指针可释放
+ */
+void tm_set_config(const tm_config_t *config);
+
+/**
+ * 获取当前 SDK 全局配置
+ */
+const tm_config_t* tm_get_config(void);
+
 /* ========== API 函数 ========== */
 
 /**

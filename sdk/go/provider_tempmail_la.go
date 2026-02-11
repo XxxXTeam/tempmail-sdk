@@ -77,7 +77,7 @@ func tempmailLaGenerate() (*EmailInfo, error) {
 	}
 	setTempmailLaHeaders(req)
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func tempmailLaGetEmails(email string) ([]Email, error) {
 		}
 		setTempmailLaHeaders(req)
 
-		client := &http.Client{}
+		client := HTTPClient()
 		resp, err := client.Do(req)
 		if err != nil {
 			return nil, err

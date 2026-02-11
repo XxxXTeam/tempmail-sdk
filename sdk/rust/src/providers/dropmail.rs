@@ -2,10 +2,10 @@
  * dropmail.me 渠道实现 (GraphQL)
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://dropmail.me/api/graphql/MY_TOKEN";
 
@@ -15,9 +15,7 @@ fn graphql_request(query: &str, variables: Option<&Value>) -> Result<Value, Stri
         params.push(("variables", vars.to_string()));
     }
 
-    let resp = Client::builder()
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
+    let resp = http_client()
         .post(BASE_URL)
         .form(&params)
         .send().map_err(|e| format!("dropmail request failed: {}", e))?;

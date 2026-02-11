@@ -8,7 +8,7 @@ import string
 import email
 import email.header
 import email.policy
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 
 CHANNEL = "maildrop"
@@ -70,7 +70,7 @@ def _graphql_request(
     发送 GraphQL 请求
     使用 operationName + variables 的标准 GraphQL 格式
     """
-    resp = requests.post(
+    resp = tm_http.post(
         GRAPHQL_URL,
         headers={
             "Content-Type": "application/json",
@@ -83,7 +83,6 @@ def _graphql_request(
             "variables": variables or {},
             "query": query,
         },
-        timeout=15,
     )
     resp.raise_for_status()
     result = resp.json()

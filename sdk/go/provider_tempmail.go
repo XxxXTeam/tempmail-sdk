@@ -47,7 +47,7 @@ func tempmailGenerate(duration int) (*EmailInfo, error) {
 	req.Header.Set("Referer", "https://tempmail.ing/")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func tempmailGetEmails(email string) ([]Email, error) {
 	req.Header.Set("Referer", "https://tempmail.ing/")
 	req.Header.Set("DNT", "1")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

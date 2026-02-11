@@ -4,6 +4,7 @@
  */
 
 import { logger } from './logger';
+import { getConfig } from './config';
 
 /**
  * 重试配置选项
@@ -124,20 +125,25 @@ export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions)
 export async function fetchWithTimeout(
   url: string,
   init?: RequestInit,
-  timeoutMs: number = DEFAULT_RETRY_OPTIONS.timeout,
+  timeoutMs?: number,
 ): Promise<Response> {
+  const config = getConfig();
+  const effectiveTimeout = timeoutMs ?? config.timeout ?? DEFAULT_RETRY_OPTIONS.timeout;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+
+  /* 使用自定义 fetch 或原生 fetch */
+  const fetchFn = config.customFetch || fetch;
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchFn(url, {
       ...init,
       signal: controller.signal,
     });
     return response;
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs}ms: ${url}`);
+      throw new Error(`Request timeout after ${effectiveTimeout}ms: ${url}`);
     }
     throw error;
   } finally {

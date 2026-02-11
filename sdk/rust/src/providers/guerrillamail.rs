@@ -2,22 +2,15 @@
  * guerrillamail.com 渠道实现
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://api.guerrillamail.com/ajax.php";
 
-fn client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
-
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}?f=get_email_address&lang=en", BASE_URL))
         .send().map_err(|e| format!("guerrillamail request failed: {}", e))?;
 
@@ -43,7 +36,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}?f=check_email&seq=0&sid_token={}", BASE_URL, urlencoding::encode(token)))
         .send().map_err(|e| format!("guerrillamail request failed: {}", e))?;
 

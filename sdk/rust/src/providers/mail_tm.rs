@@ -3,20 +3,13 @@
  * 流程: 获取域名 → 生成随机邮箱/密码 → 创建账号 → 获取 Bearer Token
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use rand::Rng;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://api.mail.tm";
-
-fn client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
 
 fn random_string(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
@@ -25,7 +18,7 @@ fn random_string(len: usize) -> String {
 }
 
 fn get_domains() -> Result<Vec<String>, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}/domains", BASE_URL))
         .header("Accept", "application/json")
         .send().map_err(|e| format!("mail-tm domains failed: {}", e))?;
@@ -83,7 +76,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     let password = random_string(16);
 
     // 创建账号
-    let resp = client()
+    let resp = http_client()
         .post(format!("{}/accounts", BASE_URL))
         .header("Content-Type", "application/ld+json")
         .json(&serde_json::json!({"address": &address, "password": &password}))
@@ -97,7 +90,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     let account: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
 
     // 获取 token
-    let resp = client()
+    let resp = http_client()
         .post(format!("{}/token", BASE_URL))
         .header("Content-Type", "application/json")
         .json(&serde_json::json!({"address": &address, "password": &password}))
@@ -119,7 +112,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}/messages", BASE_URL))
         .header("Accept", "application/json")
         .header("Authorization", format!("Bearer {}", token))
@@ -135,7 +128,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
 
     let mut result = Vec::new();
     for msg in &messages {
-        let detail = client()
+        let detail = http_client()
             .get(format!("{}/messages/{}", BASE_URL, msg["id"].as_str().unwrap_or("")))
             .header("Accept", "application/json")
             .header("Authorization", format!("Bearer {}", token))

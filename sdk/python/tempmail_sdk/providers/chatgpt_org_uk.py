@@ -3,8 +3,8 @@ mail.chatgpt.org.uk 渠道实现
 API: https://mail.chatgpt.org.uk/api
 """
 
-import requests
 from urllib.parse import quote
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -25,10 +25,9 @@ DEFAULT_HEADERS = {
 
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱"""
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/generate-email",
         headers=DEFAULT_HEADERS,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -44,10 +43,9 @@ def generate_email(**kwargs) -> EmailInfo:
 
 def get_emails(email: str, **kwargs) -> list:
     """获取邮件列表"""
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/emails?email={quote(email)}",
         headers=DEFAULT_HEADERS,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

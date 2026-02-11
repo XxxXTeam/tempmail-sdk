@@ -12,11 +12,13 @@ import * as maildropProvider from './providers/maildrop';
 import { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
+import { setConfig, getConfig } from './config';
 
 export { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 export { normalizeEmail } from './normalize';
 export { withRetry, fetchWithTimeout, RetryOptions } from './retry';
 export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
+export { SDKConfig, setConfig, getConfig } from './config';
 
 /** 渠道名称到 provider 实现的映射表 */
 const providers = {
@@ -303,4 +305,6 @@ export default {
   generateEmail,
   getEmails,
   TempEmailClient,
+  setConfig,
+  getConfig,
 };

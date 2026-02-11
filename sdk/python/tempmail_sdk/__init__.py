@@ -24,6 +24,7 @@ from .client import (
 from .logger import set_log_level, set_logger, get_logger, LOG_SILENT, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR
 from .retry import with_retry
 from .normalize import normalize_email
+from .config import SDKConfig, set_config, get_config
 
 __all__ = [
     "Channel",
@@ -50,4 +51,7 @@ __all__ = [
     "LOG_ERROR",
     "with_retry",
     "normalize_email",
+    "SDKConfig",
+    "set_config",
+    "get_config",
 ]

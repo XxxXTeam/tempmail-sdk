@@ -6,7 +6,7 @@ API: https://api.mail.tm
 
 import random
 import string
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -25,7 +25,7 @@ def _random_string(length: int) -> str:
 
 def _get_domains() -> list:
     """获取可用域名列表，兼容 Hydra 格式和纯数组"""
-    resp = requests.get(f"{BASE_URL}/domains", headers=DEFAULT_HEADERS, timeout=15)
+    resp = tm_http.get(f"{BASE_URL}/domains", headers=DEFAULT_HEADERS)
     resp.raise_for_status()
     data = resp.json()
     members = data if isinstance(data, list) else (data.get("hydra:member") or [])
@@ -34,11 +34,10 @@ def _get_domains() -> list:
 
 def _create_account(address: str, password: str) -> dict:
     """创建账号"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/accounts",
         headers={**DEFAULT_HEADERS, "Content-Type": "application/ld+json"},
         json={"address": address, "password": password},
-        timeout=15,
     )
     resp.raise_for_status()
     return resp.json()
@@ -46,11 +45,10 @@ def _create_account(address: str, password: str) -> dict:
 
 def _get_token(address: str, password: str) -> str:
     """获取 Bearer Token"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/token",
         headers=DEFAULT_HEADERS,
         json={"address": address, "password": password},
-        timeout=15,
     )
     resp.raise_for_status()
     return resp.json()["token"]
@@ -122,10 +120,9 @@ def generate_email(**kwargs) -> EmailInfo:
 def get_emails(token: str, email: str = "", **kwargs) -> list:
     """获取邮件列表"""
     # 1. 获取邮件列表
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/messages",
         headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {token}"},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -139,10 +136,9 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
     result = []
     for msg in messages:
         try:
-            detail_resp = requests.get(
+            detail_resp = tm_http.get(
                 f"{BASE_URL}/messages/{msg['id']}",
                 headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {token}"},
-                timeout=15,
             )
             if detail_resp.ok:
                 detail = detail_resp.json()

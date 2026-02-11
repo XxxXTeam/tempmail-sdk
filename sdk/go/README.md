@@ -145,6 +145,48 @@ for _, email := range result.Emails {
 }
 ```
 
+## 代理与 HTTP 配置
+
+SDK 支持全局配置代理、超时等 HTTP 客户端参数，也可通过环境变量零代码配置：
+
+```go
+import (
+    "time"
+    tempemail "github.com/XxxXTeam/tempmail-sdk/sdk/go"
+)
+
+// 一行跳过 SSL 验证
+tempemail.SetConfig(tempemail.SDKConfig{Insecure: true})
+
+// 设置代理
+tempemail.SetConfig(tempemail.SDKConfig{
+    Proxy: "http://127.0.0.1:7890",
+})
+
+// 设置代理 + 超时 + 跳过 SSL 验证
+tempemail.SetConfig(tempemail.SDKConfig{
+    Proxy:    "socks5://127.0.0.1:1080",
+    Timeout:  30 * time.Second,
+    Insecure: true,
+})
+```
+
+**配置项：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `Proxy` | `string` | 代理 URL（http/https/socks5） |
+| `Timeout` | `time.Duration` | 全局超时，默认 15s |
+| `Insecure` | `bool` | 跳过 SSL 验证（调试用） |
+
+**环境变量（无需修改代码）：**
+
+```bash
+export TEMPMAIL_PROXY="http://127.0.0.1:7890"
+export TEMPMAIL_INSECURE=1
+export TEMPMAIL_TIMEOUT=30
+```
+
 ## API 参考
 
 ### ListChannels()

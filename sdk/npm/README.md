@@ -241,6 +241,46 @@ await client.getEmails();            // 获取邮件（自动传递 token）
 client.getEmailInfo();               // 获取当前邮箱信息
 ```
 
+## 代理与 HTTP 配置
+
+SDK 支持全局配置代理、超时等 HTTP 客户端参数，也可通过环境变量零代码配置：
+
+```typescript
+import { setConfig } from 'tempmail-sdk';
+
+// 一行跳过 SSL 验证
+setConfig({ insecure: true });
+
+// 设置全局超时
+setConfig({ timeout: 30000 });
+
+// 使用自定义 fetch（如 undici 代理）
+import { ProxyAgent, fetch as undiciFetch } from 'undici';
+const agent = new ProxyAgent('http://127.0.0.1:7890');
+setConfig({
+  customFetch: (url, init) => undiciFetch(url, { ...init, dispatcher: agent }) as any,
+});
+```
+
+**配置项：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `proxy` | `string?` | 代理 URL（http/https/socks5） |
+| `timeout` | `number?` | 全局超时毫秒数，默认 15000 |
+| `insecure` | `boolean?` | 跳过 SSL 验证（调试用） |
+| `customFetch` | `typeof fetch?` | 自定义 fetch 函数，用于代理等高级场景 |
+
+**环境变量（无需修改代码）：**
+
+```bash
+export TEMPMAIL_PROXY="http://127.0.0.1:7890"
+export TEMPMAIL_INSECURE=1
+export TEMPMAIL_TIMEOUT=30000
+```
+
+> **提示：** Node.js 原生 fetch 不支持代理，推荐通过 `customFetch` + `undici` 的 `ProxyAgent` 实现代理支持。
+
 ## 环境要求
 
 - Node.js 18+（需要原生 `fetch` 支持）

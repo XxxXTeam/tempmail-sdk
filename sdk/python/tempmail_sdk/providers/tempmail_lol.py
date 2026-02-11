@@ -3,8 +3,8 @@ tempmail.lol 渠道实现
 API: https://api.tempmail.lol/v2
 """
 
-import requests
 from urllib.parse import quote
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -24,11 +24,10 @@ DEFAULT_HEADERS = {
 
 def generate_email(domain: str = None, **kwargs) -> EmailInfo:
     """创建临时邮箱，支持指定域名"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/inbox/create",
         headers=DEFAULT_HEADERS,
         json={"domain": domain, "captcha": None},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -45,10 +44,9 @@ def generate_email(domain: str = None, **kwargs) -> EmailInfo:
 
 def get_emails(token: str, email: str = "", **kwargs) -> list:
     """获取邮件列表"""
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/inbox?token={quote(token)}",
         headers=DEFAULT_HEADERS,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

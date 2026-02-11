@@ -3,7 +3,7 @@ dropmail.me 渠道实现
 API: GraphQL https://dropmail.me/api/graphql/MY_TOKEN
 """
 
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -29,7 +29,7 @@ def _graphql_request(query: str, variables: dict = None) -> dict:
         import json
         data["variables"] = json.dumps(variables)
 
-    resp = requests.post(BASE_URL, data=data, timeout=15)
+    resp = tm_http.post(BASE_URL, data=data)
     resp.raise_for_status()
     result = resp.json()
 

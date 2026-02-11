@@ -91,6 +91,44 @@ int main(void) {
 }
 ```
 
+## 代理与 HTTP 配置
+
+SDK 支持全局配置代理、超时等 HTTP 客户端参数，也可通过环境变量零代码配置：
+
+```c
+#include "tempmail_sdk.h"
+
+// 一行跳过 SSL 验证
+tm_config_t c1 = {0}; c1.insecure = 1; tm_set_config(&c1);
+
+// 设置代理
+tm_config_t config = {0};
+config.proxy = "http://127.0.0.1:7890";
+tm_set_config(&config);
+
+// 设置代理 + 跳过 SSL 验证
+tm_config_t config2 = {0};
+config2.proxy = "socks5://127.0.0.1:1080";
+config2.insecure = 1;
+tm_set_config(&config2);
+```
+
+**配置项：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `proxy` | `const char*` | 代理 URL（http/https/socks5） |
+| `timeout_secs` | `int` | 全局超时秒数，默认 15 |
+| `insecure` | `bool` | 跳过 SSL 验证（调试用） |
+
+**环境变量（无需修改代码，`tm_init()` 时自动读取）：**
+
+```bash
+export TEMPMAIL_PROXY="http://127.0.0.1:7890"
+export TEMPMAIL_INSECURE=1
+export TEMPMAIL_TIMEOUT=30
+```
+
 ## 内存管理
 
 所有返回的指针需要手动释放：

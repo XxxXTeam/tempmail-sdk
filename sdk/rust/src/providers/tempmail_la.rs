@@ -2,22 +2,15 @@
  * tempmail.la 渠道实现（支持分页）
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://tempmail.la/api";
 
-fn client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
-
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let resp = client()
+    let resp = http_client()
         .post(format!("{}/mail/create", BASE_URL))
         .header("Content-Type", "application/json")
         .header("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
@@ -61,7 +54,7 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     let mut cursor: Option<String> = None;
 
     loop {
-        let resp = client()
+        let resp = http_client()
             .post(format!("{}/mail/box", BASE_URL))
             .header("Content-Type", "application/json")
             .header("dnt", "1")

@@ -5,7 +5,7 @@ API: https://api.internal.temp-mail.io/api/v3
 """
 
 import re
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -23,7 +23,7 @@ def _fetch_cors_header() -> str:
         return _cached_cors_header
 
     try:
-        resp = requests.get(PAGE_URL, headers={
+        resp = tm_http.get(PAGE_URL, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
         }, timeout=10)
         match = re.search(r'mobileTestingHeader\s*:\s*"([^"]+)"', resp.text)
@@ -54,11 +54,10 @@ def _get_api_headers() -> dict:
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱"""
     headers = _get_api_headers()
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/email/new",
         headers=headers,
         json={"min_name_length": 10, "max_name_length": 10},
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -76,10 +75,9 @@ def generate_email(**kwargs) -> EmailInfo:
 def get_emails(email: str, **kwargs) -> list:
     """获取邮件列表"""
     headers = _get_api_headers()
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/email/{email}/messages",
         headers=headers,
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

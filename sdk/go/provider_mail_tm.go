@@ -58,7 +58,7 @@ func mailTmGetDomains() ([]string, error) {
 	}
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func mailTmCreateAccount(address, password string) (*mailTmAccountResponse, erro
 	req.Header.Set("Content-Type", "application/ld+json")
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func mailTmGetToken(address, password string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -266,7 +266,7 @@ func mailTmGetEmails(token string, email string) ([]Email, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ API: https://awamail.com/welcome
 需要保存 session cookie 用于后续获取邮件
 """
 
-import requests
+from .. import http as tm_http
 from ..types import EmailInfo, Email
 from ..normalize import normalize_email
 
@@ -31,10 +31,9 @@ DEFAULT_HEADERS = {
 
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱，从响应中提取 awamail_session cookie"""
-    resp = requests.post(
+    resp = tm_http.post(
         f"{BASE_URL}/change_mailbox",
         headers={**DEFAULT_HEADERS, "Content-Length": "0"},
-        timeout=15,
     )
     resp.raise_for_status()
 
@@ -63,14 +62,13 @@ def generate_email(**kwargs) -> EmailInfo:
 
 def get_emails(token: str, email: str = "", **kwargs) -> list:
     """获取邮件列表，需要传入 session cookie"""
-    resp = requests.get(
+    resp = tm_http.get(
         f"{BASE_URL}/get_emails",
         headers={
             **DEFAULT_HEADERS,
             "Cookie": token,
             "x-requested-with": "XMLHttpRequest",
         },
-        timeout=15,
     )
     resp.raise_for_status()
     data = resp.json()

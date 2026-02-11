@@ -61,10 +61,9 @@ func awamailGenerate() (*EmailInfo, error) {
 	req.Header.Set("Content-Length", "0")
 
 	// 不自动跟踪重定向，以便捕获 Set-Cookie
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+	client := HTTPClient()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -119,7 +118,7 @@ func awamailGetEmails(token string, email string) ([]Email, error) {
 	req.Header.Set("Cookie", token)
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
 
-	client := &http.Client{}
+	client := HTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -3,22 +3,15 @@
  * 需要保存 session cookie
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://awamail.com/welcome";
 
-fn client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
-
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let c = client();
+    let c = http_client();
     let resp = c
         .post(format!("{}/change_mailbox", BASE_URL))
         .header("Content-Length", "0")
@@ -67,7 +60,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}/get_emails", BASE_URL))
         .header("Cookie", token)
         .header("x-requested-with", "XMLHttpRequest")

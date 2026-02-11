@@ -154,7 +154,8 @@ func maildropGraphQL(operationName string, query string, variables map[string]st
 	req.Header.Set("Referer", "https://maildrop.cc/")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := HTTPClient()
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("maildrop graphql request failed: %w", err)
 	}

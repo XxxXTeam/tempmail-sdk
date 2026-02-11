@@ -362,9 +362,26 @@ curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/mas
 cmake -B build -S . && cmake --build build
 ```
 
+## ⭐ Star 历史
+
+<a href="https://star-history.com/#XxxXTeam/tempmail-sdk&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=XxxXTeam/tempmail-sdk&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=XxxXTeam/tempmail-sdk&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=XxxXTeam/tempmail-sdk&type=Date" />
+ </picture>
+</a>
+
 ## 🤝 贡献
 
-欢迎提交 Issue 和 Pull Request！
+欢迎提交 Issue 和 Pull Request！请阅读 [贡献指南](CONTRIBUTING.md) 了解详情。
+
+### 快速开始
+
+1. Fork 本仓库
+2. 创建功能分支：`git checkout -b feat/your-feature`
+3. 提交代码并推送
+4. 创建 Pull Request
 
 ### 添加新的渠道提供商
 
@@ -372,7 +389,10 @@ cmake -B build -S . && cmake --build build
 2. 实现 `generateEmail()` 和 `getEmails()` 两个核心函数
 3. 在各 SDK 的 Channel 类型/枚举中注册新渠道
 4. 使用 `normalizeEmail()` 标准化返回数据
-5. 更新 README 文档
+5. 所有 HTTP 请求使用全局共享客户端（支持代理/TLS 配置）
+6. 更新 README 文档
+
+详见 [CONTRIBUTING.md](CONTRIBUTING.md) 中的完整指南和代码示例。
 
 ## 📄 许可证
 

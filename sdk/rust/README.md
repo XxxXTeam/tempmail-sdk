@@ -71,6 +71,46 @@ let info = client.generate(&GenerateEmailOptions {
 let result = client.get_emails().unwrap();
 ```
 
+## 代理与 HTTP 配置
+
+SDK 支持全局配置代理、超时等 HTTP 客户端参数，也可通过环境变量零代码配置：
+
+```rust
+use tempmail_sdk::{set_config, SDKConfig};
+
+// 一行跳过 SSL 验证
+set_config(SDKConfig { insecure: true, ..Default::default() });
+
+// 设置代理
+set_config(SDKConfig {
+    proxy: Some("http://127.0.0.1:7890".into()),
+    ..Default::default()
+});
+
+// 设置代理 + 超时 + 跳过 SSL 验证
+set_config(SDKConfig {
+    proxy: Some("socks5://127.0.0.1:1080".into()),
+    timeout_secs: 30,
+    insecure: true,
+});
+```
+
+**配置项：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `proxy` | `Option<String>` | 代理 URL（http/https/socks5） |
+| `timeout_secs` | `u64` | 全局超时秒数，默认 15 |
+| `insecure` | `bool` | 跳过 SSL 验证（调试用） |
+
+**环境变量（无需修改代码）：**
+
+```bash
+export TEMPMAIL_PROXY="http://127.0.0.1:7890"
+export TEMPMAIL_INSECURE=1
+export TEMPMAIL_TIMEOUT=30
+```
+
 ## 日志
 
 需要配合 `env_logger` 或其他 `log` 实现：

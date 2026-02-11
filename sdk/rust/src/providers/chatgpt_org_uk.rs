@@ -2,22 +2,15 @@
  * mail.chatgpt.org.uk 渠道实现
  */
 
-use reqwest::blocking::Client;
 use serde_json::Value;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
+use crate::config::http_client;
 
 const BASE_URL: &str = "https://mail.chatgpt.org.uk/api";
 
-fn client() -> Client {
-    Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36")
-        .timeout(std::time::Duration::from_secs(15))
-        .build().unwrap()
-}
-
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}/generate-email", BASE_URL))
         .header("Referer", "https://mail.chatgpt.org.uk/")
         .header("sec-ch-ua", "\"Microsoft Edge\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"")
@@ -43,7 +36,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
-    let resp = client()
+    let resp = http_client()
         .get(format!("{}/emails?email={}", BASE_URL, urlencoding::encode(email)))
         .header("Referer", "https://mail.chatgpt.org.uk/")
         .header("DNT", "1")
