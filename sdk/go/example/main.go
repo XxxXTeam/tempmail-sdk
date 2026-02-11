@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	tempemail "github.com/temp-email/sdk-go"
+	tempemail "github.com/XxxXTeam/tempmail-sdk/sdk/go"
 )
-
-// To run this example, first update go.mod with:
-// replace github.com/temp-email/sdk-go => ../
 
 func main() {
 	fmt.Println("=== Test Generate Email ===")

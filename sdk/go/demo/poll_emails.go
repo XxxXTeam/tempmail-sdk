@@ -1,7 +1,3 @@
-// Demo: 获取指定渠道邮箱，轮询获取邮件
-//
-// 使用方法:
-// cd demo && go run poll_emails.go
 package main
 
 import (

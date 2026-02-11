@@ -6,28 +6,57 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	"regexp"
+	"sync"
 )
 
 const tempMailIOBaseURL = "https://api.internal.temp-mail.io/api/v3"
+const tempMailIOPageURL = "https://temp-mail.io/en"
 
-var tempMailIOHeaders = map[string]string{
-	"User-Agent":          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
-	"Content-Type":        "application/json",
-	"accept-language":     "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-	"application-name":    "web",
-	"application-version": "4.0.0",
-	"cache-control":       "no-cache",
-	"dnt":                 "1",
-	"origin":              "https://temp-mail.io",
-	"pragma":              "no-cache",
-	"referer":             "https://temp-mail.io/",
-	"sec-ch-ua":           `"Not(A:Brand";v="8", "Chromium";v="144", "Microsoft Edge";v="144"`,
-	"sec-ch-ua-mobile":    "?0",
-	"sec-ch-ua-platform":  `"Windows"`,
-	"sec-fetch-dest":      "empty",
-	"sec-fetch-mode":      "cors",
-	"sec-fetch-site":      "same-site",
+/*
+ * 缓存从页面动态获取的 mobileTestingHeader 值（用于 X-CORS-Header）
+ */
+var (
+	cachedTempMailIOCorsHeader string
+	tempMailIOCorsOnce         sync.Once
+)
+
+/*
+ * fetchTempMailIOCorsHeader 从 temp-mail.io 页面的 __NUXT__ 运行时配置中提取 mobileTestingHeader
+ * 该值用于 API 请求的 X-CORS-Header 头，缺少此头会导致 400 错误
+ */
+func fetchTempMailIOCorsHeader() string {
+	tempMailIOCorsOnce.Do(func() {
+		req, err := http.NewRequest("GET", tempMailIOPageURL, nil)
+		if err != nil {
+			cachedTempMailIOCorsHeader = "1"
+			return
+		}
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			cachedTempMailIOCorsHeader = "1"
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			cachedTempMailIOCorsHeader = "1"
+			return
+		}
+
+		re := regexp.MustCompile(`mobileTestingHeader\s*:\s*"([^"]+)"`)
+		matches := re.FindSubmatch(body)
+		if len(matches) >= 2 {
+			cachedTempMailIOCorsHeader = string(matches[1])
+		} else {
+			cachedTempMailIOCorsHeader = "1"
+		}
+	})
+	return cachedTempMailIOCorsHeader
 }
 
 type tempMailIOCreateRequest struct {
@@ -40,18 +69,27 @@ type tempMailIOCreateResponse struct {
 	Token string `json:"token"`
 }
 
+/*
+ * setTempMailIOHeaders 设置 API 请求头
+ * 关键头: Content-Type, Application-Name, Application-Version, X-CORS-Header
+ */
 func setTempMailIOHeaders(req *http.Request) {
-	for k, v := range tempMailIOHeaders {
-		req.Header.Set(k, v)
-	}
+	corsHeader := fetchTempMailIOCorsHeader()
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Application-Name", "web")
+	req.Header.Set("Application-Version", "4.0.0")
+	req.Header.Set("X-CORS-Header", corsHeader)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0")
+	req.Header.Set("Origin", "https://temp-mail.io")
+	req.Header.Set("Referer", "https://temp-mail.io/")
 }
 
 // tempMailIOGenerate 创建临时邮箱
 // API: POST /api/v3/email/new
 func tempMailIOGenerate() (*EmailInfo, error) {
 	reqBody, _ := json.Marshal(tempMailIOCreateRequest{
-		MinNameLength: 100,
-		MaxNameLength: 100,
+		MinNameLength: 10,
+		MaxNameLength: 10,
 	})
 
 	req, err := http.NewRequest("POST", tempMailIOBaseURL+"/email/new", bytes.NewReader(reqBody))
@@ -92,9 +130,7 @@ func tempMailIOGenerate() (*EmailInfo, error) {
 // API: GET /api/v3/email/{email}/messages
 // 返回: 直接返回邮件数组
 func tempMailIOGetEmails(email string) ([]Email, error) {
-	encodedEmail := url.PathEscape(email)
-
-	req, err := http.NewRequest("GET", tempMailIOBaseURL+"/email/"+encodedEmail+"/messages", nil)
+	req, err := http.NewRequest("GET", tempMailIOBaseURL+"/email/"+email+"/messages", nil)
 	if err != nil {
 		return nil, err
 	}

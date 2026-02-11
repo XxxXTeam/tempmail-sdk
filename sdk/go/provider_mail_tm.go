@@ -23,11 +23,13 @@ func randomStr(n int) string {
 	return string(b)
 }
 
+type mailTmDomainItem struct {
+	Domain   string `json:"domain"`
+	IsActive bool   `json:"isActive"`
+}
+
 type mailTmDomainsResponse struct {
-	Members []struct {
-		Domain   string `json:"domain"`
-		IsActive bool   `json:"isActive"`
-	} `json:"hydra:member"`
+	Members []mailTmDomainItem `json:"hydra:member"`
 }
 
 type mailTmAccountResponse struct {
@@ -40,10 +42,12 @@ type mailTmTokenResponse struct {
 	Token string `json:"token"`
 }
 
+type mailTmMessageItem struct {
+	ID string `json:"id"`
+}
+
 type mailTmMessagesResponse struct {
-	Members []struct {
-		ID string `json:"id"`
-	} `json:"hydra:member"`
+	Members []mailTmMessageItem `json:"hydra:member"`
 }
 
 // mailTmGetDomains 获取可用域名列表
@@ -66,13 +70,21 @@ func mailTmGetDomains() ([]string, error) {
 		return nil, err
 	}
 
-	var result mailTmDomainsResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
+	/* 兼容两种响应格式：
+	 * - Accept: application/ld+json → Hydra 格式 { "hydra:member": [...] }
+	 * - Accept: application/json   → 纯数组 [...]
+	 */
+	var items []mailTmDomainItem
+	if err := json.Unmarshal(body, &items); err != nil {
+		var hydra mailTmDomainsResponse
+		if err2 := json.Unmarshal(body, &hydra); err2 != nil {
+			return nil, err2
+		}
+		items = hydra.Members
 	}
 
 	var domains []string
-	for _, d := range result.Members {
+	for _, d := range items {
 		if d.IsActive {
 			domains = append(domains, d.Domain)
 		}
@@ -270,12 +282,17 @@ func mailTmGetEmails(token string, email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get messages: %d", resp.StatusCode)
 	}
 
-	var listResult mailTmMessagesResponse
-	if err := json.Unmarshal(body, &listResult); err != nil {
-		return nil, err
+	/* 兼容 Hydra 格式和纯数组格式 */
+	var msgItems []mailTmMessageItem
+	if err := json.Unmarshal(body, &msgItems); err != nil {
+		var listResult mailTmMessagesResponse
+		if err2 := json.Unmarshal(body, &listResult); err2 != nil {
+			return nil, err2
+		}
+		msgItems = listResult.Members
 	}
 
-	if len(listResult.Members) == 0 {
+	if len(msgItems) == 0 {
 		return []Email{}, nil
 	}
 
@@ -286,10 +303,10 @@ func mailTmGetEmails(token string, email string) ([]Email, error) {
 		err   error
 	}
 
-	results := make([]detailResult, len(listResult.Members))
+	results := make([]detailResult, len(msgItems))
 	var wg sync.WaitGroup
 
-	for i, msg := range listResult.Members {
+	for i, msg := range msgItems {
 		wg.Add(1)
 		go func(idx int, msgID string) {
 			defer wg.Done()

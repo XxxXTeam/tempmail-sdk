@@ -36,7 +36,11 @@ async function getDomains(): Promise<string[]> {
   }
 
   const data = await response.json();
-  const members = data['hydra:member'] || [];
+  /* 兼容两种响应格式：
+   * - Accept: application/ld+json → Hydra 格式 { "hydra:member": [...] }
+   * - Accept: application/json   → 纯数组 [...]
+   */
+  const members = Array.isArray(data) ? data : (data['hydra:member'] || []);
   return members
     .filter((d: any) => d.isActive)
     .map((d: any) => d.domain);
@@ -153,7 +157,8 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   }
 
   const listData = await listResponse.json();
-  const messages = listData['hydra:member'] || [];
+  /* 兼容 Hydra 格式和纯数组格式 */
+  const messages = Array.isArray(listData) ? listData : (listData['hydra:member'] || []);
 
   if (messages.length === 0) {
     return [];

@@ -8,10 +8,15 @@ import * as awamail from './providers/awamail';
 import * as mailTm from './providers/mail-tm';
 import * as dropmail from './providers/dropmail';
 import { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
+import { withRetry, RetryOptions } from './retry';
+import { logger } from './logger';
 
 export { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 export { normalizeEmail } from './normalize';
+export { withRetry, fetchWithTimeout, RetryOptions } from './retry';
+export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
 
+/** 渠道名称到 provider 实现的映射表 */
 const providers = {
   'tempmail': tempmail,
   'linshi-email': linshiEmail,
@@ -24,14 +29,22 @@ const providers = {
   'dropmail': dropmail,
 };
 
+/** 所有支持的渠道列表，用于随机选择和遍历 */
 const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail'];
 
+/**
+ * 渠道信息，包含渠道标识、显示名称和对应网站
+ */
 export interface ChannelInfo {
+  /** 渠道标识 */
   channel: Channel;
+  /** 渠道显示名称 */
   name: string;
+  /** 对应的临时邮箱服务网站 */
   website: string;
 }
 
+/** 渠道信息映射表 */
 const channelInfoMap: Record<Channel, ChannelInfo> = {
   'tempmail': { channel: 'tempmail', name: 'TempMail', website: 'tempmail.ing' },
   'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
@@ -46,21 +59,60 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
 
 /**
  * 获取所有支持的渠道列表
+ *
+ * @returns 所有渠道的信息数组
+ *
+ * @example
+ * ```ts
+ * const channels = listChannels();
+ * channels.forEach(ch => console.log(`${ch.name} (${ch.website})`));
+ * ```
  */
 export function listChannels(): ChannelInfo[] {
   return allChannels.map(ch => channelInfoMap[ch]);
 }
 
 /**
- * 获取指定渠道信息
+ * 获取指定渠道的详细信息
+ *
+ * @param channel - 渠道标识
+ * @returns 渠道信息，不存在时返回 undefined
  */
 export function getChannelInfo(channel: Channel): ChannelInfo | undefined {
   return channelInfoMap[channel];
 }
 
+/**
+ * 创建临时邮箱
+ *
+ * 错误处理策略：
+ * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次，指数退避）
+ * - 4xx 客户端错误、参数错误 → 直接抛出异常
+ *
+ * @param options - 创建选项，可指定渠道、有效时长、域名等
+ * @returns 邮箱信息，包含地址、令牌等
+ * @throws 重试耗尽后仍失败时抛出异常
+ *
+ * @example
+ * ```ts
+ * const emailInfo = await generateEmail({ channel: 'temp-mail-io' });
+ * console.log(emailInfo.email); // 临时邮箱地址
+ * ```
+ */
 export async function generateEmail(options: GenerateEmailOptions = {}): Promise<EmailInfo> {
   const channel = options.channel || allChannels[Math.floor(Math.random() * allChannels.length)];
-  
+
+  logger.info(`创建临时邮箱, 渠道: ${channel}`);
+  const result = await withRetry(() => generateEmailOnce(channel, options), options.retry);
+  logger.info(`邮箱创建成功: ${result.email}`);
+  return result;
+}
+
+/**
+ * 单次创建邮箱（不含重试逻辑）
+ * 根据渠道类型分发到对应的 provider 实现
+ */
+async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions): Promise<EmailInfo> {
   switch (channel) {
     case 'tempmail':
       return tempmail.generateEmail(options.duration || 30);
@@ -85,9 +137,35 @@ export async function generateEmail(options: GenerateEmailOptions = {}): Promise
   }
 }
 
+/**
+ * 获取邮件列表
+ *
+ * 错误处理策略：
+ * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次）
+ * - 重试耗尽后返回 { success: false, emails: [] }，不抛异常
+ * - 参数校验错误（缺少 channel / token）直接抛出
+ *
+ * 这种设计让调用方在轮询场景下不会因网络波动而中断整个流程，
+ * 只需检查 success 字段即可判断本次请求是否成功。
+ *
+ * @param options - 获取选项，包含渠道、邮箱地址、令牌
+ * @returns 邮件结果，包含 success 标记和邮件列表
+ *
+ * @example
+ * ```ts
+ * const result = await getEmails({
+ *   channel: emailInfo.channel,
+ *   email: emailInfo.email,
+ *   token: emailInfo.token,
+ * });
+ * if (result.success && result.emails.length > 0) {
+ *   console.log('收到邮件:', result.emails[0].subject);
+ * }
+ * ```
+ */
 export async function getEmails(options: GetEmailsOptions): Promise<GetEmailsResult> {
   const { channel, email, token } = options;
-  
+
   if (!channel) {
     throw new Error('Channel is required');
   }
@@ -95,68 +173,93 @@ export async function getEmails(options: GetEmailsOptions): Promise<GetEmailsRes
     throw new Error('Email is required');
   }
 
-  let emails: Email[] = [];
+  logger.debug(`获取邮件, 渠道: ${channel}, 邮箱: ${email}`);
+  try {
+    const emails = await withRetry(() => getEmailsOnce(channel, email, token), options.retry);
+    if (emails.length > 0) {
+      logger.info(`获取到 ${emails.length} 封邮件, 渠道: ${channel}`);
+    } else {
+      logger.debug(`暂无邮件, 渠道: ${channel}`);
+    }
+    return { channel, email, emails, success: true };
+  } catch (err: any) {
+    /*
+     * 重试耗尽后仍然失败 → 返回空结果而非抛异常
+     * 这样调用方在轮询场景下不会因为一次网络波动而中断整个流程
+     */
+    logger.error(`获取邮件失败, 渠道: ${channel}, 错误: ${err.message || err}`);
+    return { channel, email, emails: [], success: false };
+  }
+}
 
+/**
+ * 单次获取邮件（不含重试逻辑）
+ * 根据渠道类型分发到对应的 provider 实现，并校验必需的 token 参数
+ */
+async function getEmailsOnce(channel: Channel, email: string, token?: string): Promise<Email[]> {
   switch (channel) {
     case 'tempmail':
-      emails = await tempmail.getEmails(email);
-      break;
+      return tempmail.getEmails(email);
     case 'linshi-email':
-      emails = await linshiEmail.getEmails(email);
-      break;
+      return linshiEmail.getEmails(email);
     case 'tempmail-lol':
-      if (!token) {
-        throw new Error('Token is required for tempmail-lol channel');
-      }
-      emails = await tempmailLol.getEmails(token, email);
-      break;
+      if (!token) throw new Error('Token is required for tempmail-lol channel');
+      return tempmailLol.getEmails(token, email);
     case 'chatgpt-org-uk':
-      emails = await chatgptOrgUk.getEmails(email);
-      break;
+      return chatgptOrgUk.getEmails(email);
     case 'tempmail-la':
-      emails = await tempmailLa.getEmails(email);
-      break;
+      return tempmailLa.getEmails(email);
     case 'temp-mail-io':
-      emails = await tempMailIO.getEmails(email);
-      break;
+      return tempMailIO.getEmails(email);
     case 'awamail':
-      if (!token) {
-        throw new Error('Token is required for awamail channel');
-      }
-      emails = await awamail.getEmails(token, email);
-      break;
+      if (!token) throw new Error('Token is required for awamail channel');
+      return awamail.getEmails(token, email);
     case 'mail-tm':
-      if (!token) {
-        throw new Error('Token is required for mail-tm channel');
-      }
-      emails = await mailTm.getEmails(token, email);
-      break;
+      if (!token) throw new Error('Token is required for mail-tm channel');
+      return mailTm.getEmails(token, email);
     case 'dropmail':
-      if (!token) {
-        throw new Error('Token is required for dropmail channel');
-      }
-      emails = await dropmail.getEmails(token, email);
-      break;
+      if (!token) throw new Error('Token is required for dropmail channel');
+      return dropmail.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
-
-  return {
-    channel,
-    email,
-    emails,
-    success: true,
-  };
 }
 
+/**
+ * 临时邮箱客户端
+ * 封装了邮箱创建和邮件获取的完整流程，自动管理邮箱信息和认证令牌
+ *
+ * @example
+ * ```ts
+ * const client = new TempEmailClient();
+ * const emailInfo = await client.generate({ channel: 'mail-tm' });
+ * console.log('邮箱:', emailInfo.email);
+ *
+ * // 轮询获取邮件
+ * const result = await client.getEmails();
+ * if (result.success) {
+ *   console.log('邮件数:', result.emails.length);
+ * }
+ * ```
+ */
 export class TempEmailClient {
   private emailInfo: EmailInfo | null = null;
 
+  /**
+   * 创建临时邮箱并缓存邮箱信息
+   * 后续调用 getEmails() 时自动使用此邮箱的渠道、地址和令牌
+   */
   async generate(options: GenerateEmailOptions = {}): Promise<EmailInfo> {
     this.emailInfo = await generateEmail(options);
     return this.emailInfo;
   }
 
+  /**
+   * 获取当前邮箱的邮件列表
+   * 必须先调用 generate() 创建邮箱
+   *
+   * @throws 未调用 generate() 时抛出异常
+   */
   async getEmails(): Promise<GetEmailsResult> {
     if (!this.emailInfo) {
       throw new Error('No email generated. Call generate() first.');
@@ -169,6 +272,10 @@ export class TempEmailClient {
     });
   }
 
+  /**
+   * 获取当前缓存的邮箱信息
+   * 未调用 generate() 时返回 null
+   */
   getEmailInfo(): EmailInfo | null {
     return this.emailInfo;
   }
