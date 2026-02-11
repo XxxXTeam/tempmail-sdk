@@ -62,9 +62,25 @@ interface Email {
 }
 ```
 
-## 📦 安装
+## 📦 包获取渠道
 
-每个 SDK 均提供**第三方注册表**和 **GitHub 托管**两种安装方式，按需选择。
+每个 SDK 均有多种获取方式，下表汇总所有可用渠道：
+
+| SDK | 渠道 | 安装方式 | 认证 |
+|-----|------|---------|:----:|
+| **Go** | GitHub (git tag) | `go get github.com/XxxXTeam/tempmail-sdk/sdk/go` | - |
+| **npm** | [npmjs.org](https://www.npmjs.com/package/tempmail-sdk) | `npm install tempmail-sdk` | - |
+| **npm** | [GitHub Packages](https://github.com/XxxXTeam/tempmail-sdk/pkgs/npm/tempmail-sdk) | `npm install @XxxXTeam/tempmail-sdk` | 🔑 |
+| **Rust** | [crates.io](https://crates.io/crates/tempmail-sdk) | `tempmail-sdk = "1.1.0"` | - |
+| **Rust** | GitHub (git) | `tempmail-sdk = { git = "...", subdirectory = "sdk/rust" }` | - |
+| **Python** | [PyPI](https://pypi.org/project/tempemail-sdk/) | `pip install tempemail-sdk` | - |
+| **Python** | [GitHub Release](https://github.com/XxxXTeam/tempmail-sdk/releases) | `pip install <wheel URL>` | - |
+| **C** | [GitHub Release](https://github.com/XxxXTeam/tempmail-sdk/releases) | 下载预编译 zip 包 | - |
+| **C** | 源码编译 | CMake 构建 | - |
+
+> 🔑 = 需要认证。GitHub Packages (npm) 需要配置 GitHub PAT，详见下方说明。
+
+## 📦 安装
 
 ### Go
 
@@ -75,20 +91,34 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 ### npm / TypeScript
 
 ```bash
-# 从 npmjs.org
+# 从 npmjs.org（推荐，无需认证）
 npm install tempmail-sdk
-# 从 GitHub Packages
-npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 ```
+
+<details>
+<summary>从 GitHub Packages 安装（需认证）</summary>
+
+GitHub Packages 的 npm 包即使是公开仓库也需要认证：
+
+```bash
+# 1. 创建 GitHub PAT: Settings → Developer settings → Personal access tokens → 勾选 read:packages
+# 2. 配置 .npmrc
+echo "@XxxXTeam:registry=https://npm.pkg.github.com" >> ~/.npmrc
+echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc
+# 3. 安装
+npm install @XxxXTeam/tempmail-sdk
+```
+
+</details>
 
 ### Rust
 
 ```toml
-# 从 crates.io
+# 从 crates.io（推荐）
 [dependencies]
 tempmail-sdk = "1.1.0"
 
-# 从 GitHub
+# 从 GitHub（始终获取最新代码）
 [dependencies]
 tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory = "sdk/rust" }
 ```
@@ -96,15 +126,24 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 ### Python
 
 ```bash
-# 从 PyPI
+# 从 PyPI（推荐）
 pip install tempemail-sdk
-# 从 GitHub Release（wheel）
+
+# 从 GitHub Release（wheel 直链）
 pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/tempemail_sdk-1.1.0-py3-none-any.whl
 ```
 
 ### C
 
-从 [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases) 下载预编译包，或源码编译：
+从 [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases) 下载预编译包：
+
+| 包名 | 平台 |
+|------|------|
+| `c-sdk-linux-amd64.zip` | Linux x64 |
+| `c-sdk-darwin-arm64.zip` | macOS ARM64 |
+| `c-sdk-windows-amd64.zip` | Windows x64 |
+
+或源码编译：
 
 ```bash
 cd sdk/c
