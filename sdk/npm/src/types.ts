@@ -2,7 +2,7 @@
  * 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商
  */
-export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk' | 'tempmail-la' | 'temp-mail-io' | 'awamail' | 'mail-tm' | 'dropmail';
+export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk' | 'tempmail-la' | 'temp-mail-io' | 'awamail' | 'mail-tm' | 'dropmail' | 'guerrillamail' | 'maildrop';
 
 /**
  * 创建临时邮箱后返回的邮箱信息

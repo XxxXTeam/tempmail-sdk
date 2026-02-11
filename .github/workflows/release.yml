@@ -18,11 +18,20 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+          cache: false
       
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: 设置 Rust 环境
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       
       - name: Go 构建验证
         working-directory: sdk/go
@@ -36,6 +45,25 @@ jobs:
           npm install
           npx tsc --noEmit
           npm run build
+
+      - name: Rust 构建验证
+        working-directory: sdk/rust
+        run: cargo build
+
+      - name: Python 构建验证
+        working-directory: sdk/python
+        run: |
+          pip install build
+          python -m build
+
+      - name: C 构建验证
+        working-directory: sdk/c
+        run: |
+          sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+          curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+          cmake -B build -S .
+          cmake --build build
 
   # 发布 npm 包
   publish-npm:
@@ -73,11 +101,330 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  # 发布 npm 包到 GitHub Packages
+  publish-github-packages:
+    name: 发布到 GitHub Packages
+    runs-on: ubuntu-latest
+    needs: [verify]
+    permissions:
+      packages: write
+      contents: read
+    defaults:
+      run:
+        working-directory: sdk/npm
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@XxxXTeam'
+      
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: 更新 package.json 版本与 scope
+        run: |
+          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version --allow-same-version
+          node -e "
+            const pkg = require('./package.json');
+            pkg.name = '@XxxXTeam/tempmail-sdk';
+            pkg.publishConfig = { registry: 'https://npm.pkg.github.com' };
+            require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+      
+      - name: 安装依赖
+        run: npm install
+      
+      - name: 构建
+        run: npm run build
+      
+      - name: 发布到 GitHub Packages
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish-crates:
+    name: 发布到 crates.io
+    runs-on: ubuntu-latest
+    needs: [verify]
+    defaults:
+      run:
+        working-directory: sdk/rust
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Rust 环境
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 更新 Cargo.toml 版本
+        run: sed -i "s/^version = .*/version = \"${{ steps.version.outputs.VERSION }}\"/" Cargo.toml
+
+      - name: 发布到 crates.io
+        run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # 发布 Python 包到 PyPI
+  publish-pypi:
+    name: 发布到 PyPI
+    runs-on: ubuntu-latest
+    needs: [verify]
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 更新 pyproject.toml 版本
+        run: sed -i "s/^version = .*/version = \"${{ steps.version.outputs.VERSION }}\"/" pyproject.toml
+
+      - name: 安装构建工具
+        run: pip install build twine
+
+      - name: 构建
+        run: python -m build
+
+      - name: 发布到 PyPI
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  # Go SDK 多平台二进制构建
+  build-go-binaries:
+    name: 构建 Go 二进制
+    runs-on: ubuntu-latest
+    needs: [verify]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: false
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 交叉编译多平台二进制
+        working-directory: sdk/go/example
+        run: |
+          platforms=(
+            "linux/amd64"
+            "linux/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+            "windows/amd64"
+            "windows/arm64"
+          )
+          for platform in "${platforms[@]}"; do
+            GOOS="${platform%/*}"
+            GOARCH="${platform#*/}"
+            output="tempmail-example-${GOOS}-${GOARCH}"
+            if [ "$GOOS" = "windows" ]; then
+              output="${output}.exe"
+            fi
+            echo "构建 ${GOOS}/${GOARCH}..."
+            CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="-s -w" -o "$output" .
+          done
+
+      - name: 打包 zip
+        working-directory: sdk/go/example
+        run: |
+          mkdir -p dist
+          for bin in tempmail-example-*; do
+            name="${bin%.*}"
+            if [[ "$bin" == *.exe ]]; then
+              name="${bin%.exe}"
+            fi
+            zip "dist/${name}.zip" "$bin" ../README.md
+          done
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-binaries
+          path: sdk/go/example/dist/*.zip
+
+  # Rust SDK 多平台二进制构建
+  build-rust-binaries:
+    name: 构建 Rust 二进制 (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    needs: [verify]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: tempmail-example-linux-amd64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact: tempmail-example-linux-arm64
+            cross: true
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: tempmail-example-darwin-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: tempmail-example-darwin-amd64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: tempmail-example-windows-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Rust 环境
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: 安装交叉编译工具 (Linux ARM64)
+        if: matrix.cross == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - name: 缓存 Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            sdk/rust/target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('sdk/rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.target }}-cargo-release-
+
+      - name: 构建 Release 二进制
+        working-directory: sdk/rust
+        run: cargo build --release --example main --target ${{ matrix.target }}
+
+      - name: 打包 (Unix)
+        if: runner.os != 'Windows'
+        working-directory: sdk/rust
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/examples/main dist/tempmail-example
+          chmod +x dist/tempmail-example
+          cd dist && zip ${{ matrix.artifact }}.zip tempmail-example ../README.md
+
+      - name: 打包 (Windows)
+        if: runner.os == 'Windows'
+        working-directory: sdk/rust
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/examples/main.exe dist/tempmail-example.exe
+          cd dist && 7z a ${{ matrix.artifact }}.zip tempmail-example.exe ../README.md
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-${{ matrix.artifact }}
+          path: sdk/rust/dist/${{ matrix.artifact }}.zip
+
+  # C SDK 多平台构建（静态库 + 示例二进制）
+  build-c-sdk:
+    name: 构建 C SDK (${{ matrix.artifact }})
+    runs-on: ${{ matrix.os }}
+    needs: [verify]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: c-sdk-linux-amd64
+          - os: macos-latest
+            artifact: c-sdk-darwin-arm64
+          - os: windows-latest
+            artifact: c-sdk-windows-amd64
+    defaults:
+      run:
+        working-directory: sdk/c
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装依赖 (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: 安装依赖 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install curl
+
+      - name: 下载 cJSON
+        run: |
+          curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+
+      - name: CMake 配置与构建 (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: CMake 配置与构建 (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cmake -B build -S .
+          cmake --build build --config Release
+
+      - name: 打包产物 (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p pkg/include pkg/lib pkg/bin
+          cp include/*.h pkg/include/
+          cp build/libtempmail_sdk.a pkg/lib/
+          cp build/tempmail_example pkg/bin/
+          chmod +x pkg/bin/tempmail_example
+          cp README.md pkg/
+          cd pkg && zip -r ../${{ matrix.artifact }}.zip .
+
+      - name: 打包产物 (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p pkg/include pkg/lib pkg/bin
+          cp include/*.h pkg/include/
+          cp build/Release/tempmail_sdk.lib pkg/lib/ 2>/dev/null || cp build/tempmail_sdk.lib pkg/lib/ 2>/dev/null || true
+          cp build/Release/tempmail_example.exe pkg/bin/ 2>/dev/null || cp build/tempmail_example.exe pkg/bin/ 2>/dev/null || true
+          cp README.md pkg/
+          cd pkg && 7z a ../${{ matrix.artifact }}.zip .
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: sdk/c/${{ matrix.artifact }}.zip
+
   # 创建 GitHub Release
   create-release:
     name: 创建 GitHub Release
     runs-on: ubuntu-latest
-    needs: [publish-npm]
+    needs: [publish-npm, publish-github-packages, publish-crates, publish-pypi, build-go-binaries, build-rust-binaries, build-c-sdk]
     permissions:
       contents: write
     
@@ -85,7 +432,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
       
+      - name: 整理发布文件
+        run: |
+          mkdir -p final-assets
+          find release-assets -name "*.zip" -exec cp {} final-assets/ \;
+          ls -la final-assets/
+
       - name: 获取版本号
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -93,13 +452,10 @@ jobs:
       - name: 生成变更日志
         id: changelog
         run: |
-          # 获取上一个 tag
           PREV_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
           if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "${{ steps.version.outputs.VERSION }}" ]; then
             PREV_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
-          
-          # 生成 commit 日志
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
           git log ${PREV_TAG}..${{ steps.version.outputs.VERSION }} --pretty=format:"- %s (%h)" --no-merges 2>/dev/null || echo "- 初始发布"
           echo "" >> $GITHUB_OUTPUT
@@ -110,25 +466,57 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}
+          files: final-assets/*.zip
           body: |
             ## 临时邮箱 SDK ${{ steps.version.outputs.VERSION }}
             
             ### 变更内容
             ${{ steps.changelog.outputs.CHANGELOG }}
             
-            ### 安装
-            
-            **npm:**
-            ```bash
-            npm install tempmail-sdk@${{ steps.version.outputs.VERSION }}
-            ```
-            
+            ### 安装方式
+
             **Go:**
             ```bash
             go get github.com/XxxXTeam/tempmail-sdk/sdk/go@${{ steps.version.outputs.VERSION }}
             ```
+
+            **npm (npmjs.org):**
+            ```bash
+            npm install tempmail-sdk
+            ```
+
+            **npm (GitHub Packages):**
+            ```bash
+            npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
+            ```
+
+            **Rust (crates.io):**
+            ```toml
+            [dependencies]
+            tempmail-sdk = "${{ steps.version.outputs.VERSION }}"
+            ```
+
+            **Python (PyPI):**
+            ```bash
+            pip install tempmail-sdk
+            ```
+
+            ### 预编译二进制下载
+
+            从下方 Assets 下载对应平台的 zip 包，解压即可运行：
+
+            | 包名 | 说明 |
+            |------|------|
+            | `tempmail-example-linux-amd64.zip` | Go 示例 - Linux x64 |
+            | `tempmail-example-linux-arm64.zip` | Go 示例 - Linux ARM64 |
+            | `tempmail-example-darwin-amd64.zip` | Go 示例 - macOS x64 |
+            | `tempmail-example-darwin-arm64.zip` | Go 示例 - macOS ARM64 |
+            | `tempmail-example-windows-amd64.zip` | Go 示例 - Windows x64 |
+            | `tempmail-example-windows-arm64.zip` | Go 示例 - Windows ARM64 |
+            | `rust-tempmail-example-*.zip` | Rust 示例 - 各平台 |
+            | `c-sdk-*.zip` | C SDK 静态库 + 示例二进制 - 各平台 |
             
-            ### 支持的渠道（9 个）
+            ### 支持的渠道（11 个）
             
             | 渠道 | 服务商 |
             |------|--------|
@@ -141,6 +529,8 @@ jobs:
             | `awamail` | awamail.com |
             | `mail-tm` | mail.tm |
             | `dropmail` | dropmail.me |
+            | `guerrillamail` | guerrillamail.com |
+            | `maildrop` | maildrop.cc |
           draft: false
           prerelease: false
         env:

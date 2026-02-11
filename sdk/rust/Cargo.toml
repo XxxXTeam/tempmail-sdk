@@ -1,0 +1,23 @@
+[package]
+name = "tempmail-sdk"
+version = "1.0.3"
+edition = "2021"
+description = "临时邮箱 SDK，支持 11 个邮箱服务提供商，所有渠道返回统一标准化格式"
+license = "GPL-3.0"
+repository = "https://github.com/XxxXTeam/tempmail-sdk"
+homepage = "https://github.com/XxxXTeam/tempmail-sdk"
+readme = "README.md"
+keywords = ["tempmail", "email", "temporary-email", "disposable-email"]
+categories = ["api-bindings", "email"]
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"
+log = "0.4"
+chrono = "0.4"
+urlencoding = "2"
+regex-lite = "0.1"
+regex = "1"
+base64 = "0.22"

@@ -36,8 +36,24 @@ Thumbs.db
 coverage/
 *.lcov
 
-# Build outputs
+# Rust
+target/
+Cargo.lock
+
+# Python
+*.egg-info/
+*.egg
+.eggs/
+dist/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# C
 build/
+sdk/c/vendor/cJSON.c
+sdk/c/vendor/cJSON.h
 
 # User data
 *.txt

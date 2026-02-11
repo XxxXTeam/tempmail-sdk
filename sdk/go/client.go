@@ -17,6 +17,8 @@ var allChannels = []Channel{
 	ChannelAwamail,
 	ChannelMailTm,
 	ChannelDropmail,
+	ChannelGuerrillaMail,
+	ChannelMaildrop,
 }
 
 /*
@@ -33,15 +35,17 @@ type ChannelInfo struct {
 
 /* 渠道信息映射表 */
 var channelInfoMap = map[Channel]ChannelInfo{
-	ChannelTempmail:     {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
-	ChannelLinshiEmail:  {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
-	ChannelTempmailLol:  {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
-	ChannelChatgptOrgUk: {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
-	ChannelTempmailLa:   {Channel: ChannelTempmailLa, Name: "TempMail LA", Website: "tempmail.la"},
-	ChannelTempMailIO:   {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
-	ChannelAwamail:      {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
-	ChannelMailTm:       {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
-	ChannelDropmail:     {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
+	ChannelTempmail:      {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
+	ChannelLinshiEmail:   {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
+	ChannelTempmailLol:   {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
+	ChannelChatgptOrgUk:  {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
+	ChannelTempmailLa:    {Channel: ChannelTempmailLa, Name: "TempMail LA", Website: "tempmail.la"},
+	ChannelTempMailIO:    {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
+	ChannelAwamail:       {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
+	ChannelMailTm:        {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
+	ChannelDropmail:      {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
+	ChannelGuerrillaMail: {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
+	ChannelMaildrop:      {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
 }
 
 func init() {
@@ -140,6 +144,12 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelDropmail:
 		return dropmailGenerate()
+
+	case ChannelGuerrillaMail:
+		return guerrillaMailGenerate()
+
+	case ChannelMaildrop:
+		return maildropGenerate()
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -242,6 +252,18 @@ func getEmailsOnce(opts GetEmailsOptions) ([]Email, error) {
 			return nil, fmt.Errorf("token is required for dropmail channel")
 		}
 		return dropmailGetEmails(opts.Token, opts.Email)
+
+	case ChannelGuerrillaMail:
+		if opts.Token == "" {
+			return nil, fmt.Errorf("token is required for guerrillamail channel")
+		}
+		return guerrillaMailGetEmails(opts.Token, opts.Email)
+
+	case ChannelMaildrop:
+		if opts.Token == "" {
+			return nil, fmt.Errorf("token is required for maildrop channel")
+		}
+		return maildropGetEmails(opts.Token, opts.Email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", opts.Channel)

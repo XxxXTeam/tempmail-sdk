@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 9 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -24,6 +24,8 @@ npm install tempmail-sdk
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
+| `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
+| `maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 
@@ -74,7 +76,9 @@ console.log(channels);
 //   { channel: 'temp-mail-io', name: 'Temp Mail IO', website: 'temp-mail.io' },
 //   { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
 //   { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
-//   { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' }
+//   { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
+//   { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
+//   { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' }
 // ]
 
 const info = getChannelInfo('tempmail');
@@ -186,7 +190,7 @@ for (const email of result2.emails) {
 |------|------|:----:|------|
 | `channel` | `Channel` | ✅ | 渠道标识 |
 | `email` | `string` | ✅ | 邮箱地址 |
-| `token` | `string` | 部分 | 访问令牌（`tempmail-lol`、`awamail`、`mail-tm`、`dropmail` 必填） |
+| `token` | `string` | 部分 | 访问令牌（`tempmail-lol`、`awamail`、`mail-tm`、`dropmail`、`guerrillamail`、`maildrop` 必填） |
 
 **返回值:** `GetEmailsResult`
 

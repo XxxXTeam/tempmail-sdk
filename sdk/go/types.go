@@ -7,15 +7,17 @@ package tempemail
 type Channel string
 
 const (
-	ChannelTempmail     Channel = "tempmail"       // tempmail.ing
-	ChannelLinshiEmail  Channel = "linshi-email"   // linshi-email.com
-	ChannelTempmailLol  Channel = "tempmail-lol"   // tempmail.lol
-	ChannelChatgptOrgUk Channel = "chatgpt-org-uk" // mail.chatgpt.org.uk
-	ChannelTempmailLa   Channel = "tempmail-la"    // tempmail.la
-	ChannelTempMailIO   Channel = "temp-mail-io"   // temp-mail.io
-	ChannelAwamail      Channel = "awamail"        // awamail.com
-	ChannelMailTm       Channel = "mail-tm"        // mail.tm
-	ChannelDropmail     Channel = "dropmail"       // dropmail.me
+	ChannelTempmail      Channel = "tempmail"       // tempmail.ing
+	ChannelLinshiEmail   Channel = "linshi-email"   // linshi-email.com
+	ChannelTempmailLol   Channel = "tempmail-lol"   // tempmail.lol
+	ChannelChatgptOrgUk  Channel = "chatgpt-org-uk" // mail.chatgpt.org.uk
+	ChannelTempmailLa    Channel = "tempmail-la"    // tempmail.la
+	ChannelTempMailIO    Channel = "temp-mail-io"   // temp-mail.io
+	ChannelAwamail       Channel = "awamail"        // awamail.com
+	ChannelMailTm        Channel = "mail-tm"        // mail.tm
+	ChannelDropmail      Channel = "dropmail"       // dropmail.me
+	ChannelGuerrillaMail Channel = "guerrillamail"  // guerrillamail.com
+	ChannelMaildrop      Channel = "maildrop"       // maildrop.cc
 )
 
 /*

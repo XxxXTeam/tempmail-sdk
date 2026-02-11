@@ -25,6 +25,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
+          cache: false
       
       - name: 检查代码格式
         run: |
@@ -80,3 +81,102 @@ jobs:
           fi
           echo "构建产物验证通过"
           ls -la dist/
+
+  # Rust SDK 构建检查
+  rust-build:
+    name: Rust SDK (Rust ${{ matrix.rust-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust-version: ['stable', '1.70.0']
+    defaults:
+      run:
+        working-directory: sdk/rust
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Rust 环境
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-version }}
+          components: clippy
+
+      - name: 缓存 Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            sdk/rust/target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust-version }}-${{ hashFiles('sdk/rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-${{ matrix.rust-version }}-
+
+      - name: 代码检查
+        run: cargo clippy -- -D warnings
+        continue-on-error: true
+
+      - name: 构建
+        run: cargo build
+
+      - name: 运行测试
+        run: cargo test
+        continue-on-error: true
+
+  # Python SDK 构建检查
+  python-build:
+    name: Python SDK (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.10', '3.12']
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+          pip install -e ".[dev]"
+
+      - name: 构建验证
+        run: python -m build
+
+      - name: 验证构建产物
+        run: |
+          ls -la dist/
+          echo "构建产物验证通过"
+
+  # C SDK 构建检查
+  c-build:
+    name: C SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/c
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装依赖
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: 下载 cJSON
+        run: |
+          curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+
+      - name: CMake 配置
+        run: cmake -B build -S .
+
+      - name: 构建
+        run: cmake --build build

@@ -7,6 +7,8 @@ import * as tempMailIO from './providers/temp-mail-io';
 import * as awamail from './providers/awamail';
 import * as mailTm from './providers/mail-tm';
 import * as dropmail from './providers/dropmail';
+import * as guerrillamail from './providers/guerrillamail';
+import * as maildropProvider from './providers/maildrop';
 import { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
@@ -27,10 +29,12 @@ const providers = {
   'awamail': awamail,
   'mail-tm': mailTm,
   'dropmail': dropmail,
+  'guerrillamail': guerrillamail,
+  'maildrop': maildropProvider,
 };
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -55,6 +59,8 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'awamail': { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
   'mail-tm': { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
+  'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
+  'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
 };
 
 /**
@@ -132,6 +138,10 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return mailTm.generateEmail();
     case 'dropmail':
       return dropmail.generateEmail();
+    case 'guerrillamail':
+      return guerrillamail.generateEmail();
+    case 'maildrop':
+      return maildropProvider.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -220,6 +230,12 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'dropmail':
       if (!token) throw new Error('Token is required for dropmail channel');
       return dropmail.getEmails(token, email);
+    case 'guerrillamail':
+      if (!token) throw new Error('Token is required for guerrillamail channel');
+      return guerrillamail.getEmails(token, email);
+    case 'maildrop':
+      if (!token) throw new Error('Token is required for maildrop channel');
+      return maildropProvider.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
