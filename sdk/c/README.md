@@ -9,7 +9,21 @@
 - **libcurl** - HTTP 请求
 - **cJSON** - JSON 解析（需下载到 `vendor/` 目录）
 
-## 构建
+## 安装
+
+### 预编译包（推荐）
+
+从 [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases) 下载对应平台的 zip 包：
+
+| 包名 | 平台 |
+|------|------|
+| `c-sdk-linux-amd64.zip` | Linux x64 |
+| `c-sdk-darwin-arm64.zip` | macOS ARM64 |
+| `c-sdk-windows-amd64.zip` | Windows x64 |
+
+解压后包含 `include/`、`lib/`、`bin/` 目录，可直接链接使用。
+
+### 源码构建
 
 ```bash
 # 1. 下载 cJSON
@@ -19,9 +33,8 @@ curl -L -o cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJS
 cd ..
 
 # 2. CMake 构建
-mkdir build && cd build
-cmake ..
-make
+cmake -B build -S .
+cmake --build build
 ```
 
 ## 支持的渠道

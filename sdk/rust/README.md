@@ -1,5 +1,6 @@
 # tempmail-sdk (Rust)
 
+[![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 临时邮箱 SDK（Rust），支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
@@ -7,8 +8,13 @@
 ## 安装
 
 ```toml
+# 从 crates.io
 [dependencies]
-tempmail-sdk = "1.0.3"
+tempmail-sdk = "1.1.0"
+
+# 从 GitHub
+[dependencies]
+tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory = "sdk/rust" }
 ```
 
 ## 支持的渠道

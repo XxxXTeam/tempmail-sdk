@@ -8,7 +8,11 @@
 ## 安装
 
 ```bash
+# 从 npmjs.org
 npm install tempmail-sdk
+
+# 从 GitHub Packages
+npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 ```
 
 ## 支持的渠道

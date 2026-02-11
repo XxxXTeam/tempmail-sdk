@@ -7,7 +7,11 @@
 ## 安装
 
 ```bash
-pip install tempmail-sdk
+# 从 PyPI
+pip install tempemail-sdk
+
+# 从 GitHub Release（wheel）
+pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/tempemail_sdk-1.1.0-py3-none-any.whl
 ```
 
 ## 支持的渠道

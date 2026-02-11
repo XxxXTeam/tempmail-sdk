@@ -213,6 +213,12 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
+      - name: 上传 Python wheel 到构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheel
+          path: sdk/python/dist/*.whl
+
   # Go SDK 多平台二进制构建
   build-go-binaries:
     name: 构建 Go 二进制
@@ -451,6 +457,7 @@ jobs:
         run: |
           mkdir -p final-assets
           find release-assets -name "*.zip" -exec cp {} final-assets/ \;
+          find release-assets -name "*.whl" -exec cp {} final-assets/ \;
           ls -la final-assets/
 
       - name: 获取版本号
@@ -474,7 +481,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}
-          files: final-assets/*.zip
+          files: final-assets/*
           body: |
             ## 临时邮箱 SDK ${{ steps.version.outputs.VERSION }}
             
@@ -483,38 +490,46 @@ jobs:
             
             ### 安装方式
 
-            **Go:**
+            #### Go
             ```bash
             go get github.com/XxxXTeam/tempmail-sdk/sdk/go@${{ steps.version.outputs.VERSION }}
             ```
 
-            **npm (npmjs.org):**
+            #### npm
             ```bash
+            # 从 npmjs.org 安装
             npm install tempmail-sdk
-            ```
-
-            **npm (GitHub Packages):**
-            ```bash
+            # 从 GitHub Packages 安装
             npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
             ```
 
-            **Rust (crates.io):**
+            #### Rust
             ```toml
+            # 从 crates.io
             [dependencies]
             tempmail-sdk = "${{ steps.version.outputs.VERSION }}"
+
+            # 从 GitHub
+            [dependencies]
+            tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", tag = "${{ steps.version.outputs.VERSION }}", subdirectory = "sdk/rust" }
             ```
 
-            **Python (PyPI):**
+            #### Python
             ```bash
+            # 从 PyPI 安装
             pip install tempemail-sdk
+            # 从 GitHub Release 安装 wheel
+            pip install https://github.com/XxxXTeam/tempmail-sdk/releases/download/${{ steps.version.outputs.VERSION }}/tempemail_sdk-${GITHUB_REF#refs/tags/v}-py3-none-any.whl
             ```
 
-            ### 预编译二进制下载
+            #### C SDK
+            从下方 Assets 下载对应平台的 zip 包，解压即可使用。
 
-            从下方 Assets 下载对应平台的 zip 包，解压即可运行：
+            ### 预编译二进制 / 构建产物
 
             | 包名 | 说明 |
             |------|------|
+            | `tempemail_sdk-*-py3-none-any.whl` | Python wheel 包 |
             | `tempmail-example-linux-amd64.zip` | Go 示例 - Linux x64 |
             | `tempmail-example-linux-arm64.zip` | Go 示例 - Linux ARM64 |
             | `tempmail-example-darwin-amd64.zip` | Go 示例 - macOS x64 |

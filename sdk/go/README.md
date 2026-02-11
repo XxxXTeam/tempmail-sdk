@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 9 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+Go 语言临时邮箱 SDK，支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -24,6 +24,8 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `awamail` | awamail.com | `ChannelAwamail` | ✅ | Session Cookie 自动管理 |
 | `mail-tm` | mail.tm | `ChannelMailTm` | ✅ | 自动注册账号 |
 | `dropmail` | dropmail.me | `ChannelDropmail` | ✅ | GraphQL API |
+| `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | ✅ | 公开 JSON API |
+| `maildrop` | maildrop.cc | `ChannelMaildrop` | - | GraphQL API，自带反垃圾 |
 
 > **提示：** 使用 `Client` 时无需手动处理 Token，SDK 自动管理。
 
