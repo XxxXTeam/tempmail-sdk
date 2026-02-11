@@ -60,13 +60,13 @@ tm_email_t* tm_provider_guerrillamail_get_emails(const char *token, const char *
         cJSON *flat = cJSON_CreateObject();
         cJSON *mid = cJSON_GetObjectItemCaseSensitive(item, "mail_id");
         if (mid) cJSON_AddNumberToObject(flat, "id", mid->valuedouble);
-        cJSON_AddStringToObject(flat, "from", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(item, "mail_from")) ?: "");
+        cJSON_AddStringToObject(flat, "from", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(item, "mail_from"), ""));
         cJSON_AddStringToObject(flat, "to", email);
-        cJSON_AddStringToObject(flat, "subject", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(item, "mail_subject")) ?: "");
+        cJSON_AddStringToObject(flat, "subject", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(item, "mail_subject"), ""));
         const char *body_str = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(item, "mail_body"));
         if (!body_str) body_str = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(item, "mail_excerpt"));
-        cJSON_AddStringToObject(flat, "text", body_str ?: "");
-        cJSON_AddStringToObject(flat, "date", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(item, "mail_date")) ?: "");
+        cJSON_AddStringToObject(flat, "text", body_str ? body_str : "");
+        cJSON_AddStringToObject(flat, "date", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(item, "mail_date"), ""));
         cJSON *mr = cJSON_GetObjectItemCaseSensitive(item, "mail_read");
         if (mr) cJSON_AddBoolToObject(flat, "isRead", mr->valueint == 1);
 

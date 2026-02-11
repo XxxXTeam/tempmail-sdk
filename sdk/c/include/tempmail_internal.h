@@ -11,6 +11,10 @@
 #include <string.h>
 #include <stdio.h>
 
+/* 安全获取 cJSON 字符串值，NULL 时返回默认值 */
+#define TM_JSON_STR(item, def) \
+    (cJSON_GetStringValue(item) ? cJSON_GetStringValue(item) : (def))
+
 /* ========== 内部日志宏 ========== */
 
 void tm_log(tm_log_level_t level, const char *fmt, ...);

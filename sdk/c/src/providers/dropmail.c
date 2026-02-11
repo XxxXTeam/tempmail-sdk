@@ -59,13 +59,13 @@ tm_email_t* tm_provider_dropmail_get_emails(const char *token, const char *email
         cJSON *m = cJSON_GetArrayItem(mails, i);
         /* 扁平化字段名 */
         cJSON *flat = cJSON_CreateObject();
-        cJSON_AddStringToObject(flat, "id", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "id")) ?: "");
-        cJSON_AddStringToObject(flat, "from", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "fromAddr")) ?: "");
-        cJSON_AddStringToObject(flat, "to", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "toAddr")) ?: email);
-        cJSON_AddStringToObject(flat, "subject", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "headerSubject")) ?: "");
-        cJSON_AddStringToObject(flat, "text", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "text")) ?: "");
-        cJSON_AddStringToObject(flat, "html", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "html")) ?: "");
-        cJSON_AddStringToObject(flat, "received_at", cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(m, "receivedAt")) ?: "");
+        cJSON_AddStringToObject(flat, "id", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "id"), ""));
+        cJSON_AddStringToObject(flat, "from", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "fromAddr"), ""));
+        cJSON_AddStringToObject(flat, "to", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "toAddr"), email));
+        cJSON_AddStringToObject(flat, "subject", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "headerSubject"), ""));
+        cJSON_AddStringToObject(flat, "text", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "text"), ""));
+        cJSON_AddStringToObject(flat, "html", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "html"), ""));
+        cJSON_AddStringToObject(flat, "received_at", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(m, "receivedAt"), ""));
         emails[i] = tm_normalize_email(flat, email);
         cJSON_Delete(flat);
     }

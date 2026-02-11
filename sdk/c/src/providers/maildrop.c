@@ -99,13 +99,13 @@ tm_email_t* tm_provider_maildrop_get_emails(const char *token, const char *email
         cJSON *msg = cJSON_GetObjectItemCaseSensitive(msg_data, "message");
         if (msg) {
             /* 构建标准化邮件 */
-            emails[actual].id = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "id")) ?: id);
-            emails[actual].from_addr = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "headerfrom")) ?: "");
+            emails[actual].id = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "id"), id));
+            emails[actual].from_addr = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "headerfrom"), ""));
             emails[actual].to = tm_strdup(email);
-            emails[actual].subject = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "subject")) ?: "");
-            emails[actual].text = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "body")) ?: "");
-            emails[actual].html = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "html")) ?: "");
-            emails[actual].date = tm_strdup(cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "date")) ?: "");
+            emails[actual].subject = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "subject"), ""));
+            emails[actual].text = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "body"), ""));
+            emails[actual].html = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "html"), ""));
+            emails[actual].date = tm_strdup(TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "date"), ""));
             emails[actual].is_read = false;
             emails[actual].attachments = NULL;
             emails[actual].attachment_count = 0;
