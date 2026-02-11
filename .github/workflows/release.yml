@@ -98,6 +98,7 @@ jobs:
       
       - name: 发布到 npm
         run: npm publish --access public
+        continue-on-error: true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -145,6 +146,7 @@ jobs:
       
       - name: 发布到 GitHub Packages
         run: npm publish --access public
+        continue-on-error: true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish-crates:
@@ -170,6 +172,7 @@ jobs:
 
       - name: 发布到 crates.io
         run: cargo publish --allow-dirty
+        continue-on-error: true
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -204,7 +207,8 @@ jobs:
         run: python -m build
 
       - name: 发布到 PyPI
-        run: twine upload dist/*
+        run: twine upload dist/* --skip-existing
+        continue-on-error: true
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -375,6 +379,10 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install curl
 
+      - name: 安装依赖 (Windows)
+        if: runner.os == 'Windows'
+        run: vcpkg install curl:x64-windows
+
       - name: 下载 cJSON
         run: |
           curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
@@ -389,7 +397,7 @@ jobs:
       - name: CMake 配置与构建 (Windows)
         if: runner.os == 'Windows'
         run: |
-          cmake -B build -S .
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           cmake --build build --config Release
 
       - name: 打包产物 (Unix)
