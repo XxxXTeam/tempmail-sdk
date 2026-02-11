@@ -87,8 +87,9 @@ jobs:
     name: Rust SDK (Rust ${{ matrix.rust-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        rust-version: ['stable', '1.70.0']
+        rust-version: ['stable', '1.75.0']
     defaults:
       run:
         working-directory: sdk/rust

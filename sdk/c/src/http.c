@@ -7,6 +7,8 @@
 
 #ifdef _WIN32
 #define strncasecmp _strnicmp
+#else
+#include <strings.h>
 #endif
 
 /* libcurl 写回调 */
