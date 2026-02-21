@@ -94,26 +94,52 @@ export function getChannelInfo(channel: Channel): ChannelInfo | undefined {
  * 创建临时邮箱
  *
  * 错误处理策略：
- * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次，指数退避）
- * - 4xx 客户端错误、参数错误 → 直接抛出异常
+ * - 指定渠道失败时，自动尝试其他可用渠道（打乱顺序逐个尝试）
+ * - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
+ * - 所有渠道均不可用时返回 null（不抛出异常）
  *
  * @param options - 创建选项，可指定渠道、有效时长、域名等
- * @returns 邮箱信息，包含地址、令牌等
- * @throws 重试耗尽后仍失败时抛出异常
+ * @returns 邮箱信息，所有渠道均不可用时返回 null
  *
  * @example
  * ```ts
  * const emailInfo = await generateEmail({ channel: 'temp-mail-io' });
- * console.log(emailInfo.email); // 临时邮箱地址
+ * if (emailInfo) console.log(emailInfo.email);
  * ```
  */
-export async function generateEmail(options: GenerateEmailOptions = {}): Promise<EmailInfo> {
-  const channel = options.channel || allChannels[Math.floor(Math.random() * allChannels.length)];
+export async function generateEmail(options: GenerateEmailOptions = {}): Promise<EmailInfo | null> {
+  /*
+   * 构建尝试顺序：
+   * - 指定渠道 → 优先尝试该渠道，失败后随机尝试其他渠道
+   * - 未指定 → 打乱全部渠道逐个尝试
+   */
+  const tryOrder = buildChannelOrder(options.channel);
 
-  logger.info(`创建临时邮箱, 渠道: ${channel}`);
-  const result = await withRetry(() => generateEmailOnce(channel, options), options.retry);
-  logger.info(`邮箱创建成功: ${result.email}`);
-  return result;
+  for (const ch of tryOrder) {
+    logger.info(`创建临时邮箱, 渠道: ${ch}`);
+    try {
+      const result = await withRetry(() => generateEmailOnce(ch, options), options.retry);
+      logger.info(`邮箱创建成功: ${result.email} (渠道: ${ch})`);
+      return result;
+    } catch (err: any) {
+      logger.warn(`渠道 ${ch} 不可用: ${err.message || err}，尝试下一个渠道`);
+    }
+  }
+
+  logger.error('所有渠道均不可用，创建邮箱失败');
+  return null;
+}
+
+/**
+ * 构建渠道尝试顺序
+ * 指定渠道时优先尝试该渠道，其余渠道打乱追加
+ * 未指定时打乱全部渠道
+ */
+function buildChannelOrder(preferred?: Channel): Channel[] {
+  const shuffled = [...allChannels].sort(() => Math.random() - 0.5);
+  if (!preferred) return shuffled;
+  const rest = shuffled.filter(ch => ch !== preferred);
+  return [preferred, ...rest];
 }
 
 /**
@@ -266,8 +292,9 @@ export class TempEmailClient {
   /**
    * 创建临时邮箱并缓存邮箱信息
    * 后续调用 getEmails() 时自动使用此邮箱的渠道、地址和令牌
+   * 所有渠道均不可用时返回 null
    */
-  async generate(options: GenerateEmailOptions = {}): Promise<EmailInfo> {
+  async generate(options: GenerateEmailOptions = {}): Promise<EmailInfo | null> {
     this.emailInfo = await generateEmail(options);
     return this.emailInfo;
   }

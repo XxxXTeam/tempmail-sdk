@@ -3,7 +3,6 @@
  * 聚合所有渠道的逻辑，提供统一的 API
  */
 
-use rand::Rng;
 use crate::types::*;
 use crate::retry::with_retry;
 use crate::providers;
@@ -41,26 +40,51 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
 /// 创建临时邮箱
 ///
 /// 错误处理策略:
-/// - 网络错误、超时、HTTP 4xx/5xx → 自动重试（默认 2 次，指数退避）
-/// - 重试耗尽后仍失败时返回 Err
-pub fn generate_email(options: &GenerateEmailOptions) -> Result<EmailInfo, String> {
-    let channel = options.channel.clone().unwrap_or_else(|| {
-        let mut rng = rand::thread_rng();
-        ALL_CHANNELS[rng.gen_range(0..ALL_CHANNELS.len())].clone()
-    });
-
-    log::info!("创建临时邮箱, 渠道: {}", channel);
-
-    let ch = channel.clone();
+/// - 指定渠道失败时，自动尝试其他可用渠道（打乱顺序逐个尝试）
+/// - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
+/// - 所有渠道均不可用时返回 None（不返回 Err）
+pub fn generate_email(options: &GenerateEmailOptions) -> Option<EmailInfo> {
+    let try_order = build_channel_order(options.channel.as_ref());
     let dur = options.duration.unwrap_or(30);
     let dom = options.domain.clone();
 
-    let result = with_retry(|| {
-        generate_email_once(&ch, dur, dom.as_deref())
-    }, options.retry.as_ref())?;
+    for ch in &try_order {
+        log::info!("创建临时邮箱, 渠道: {}", ch);
+        let c = ch.clone();
+        let d = dom.clone();
+        match with_retry(|| {
+            generate_email_once(&c, dur, d.as_deref())
+        }, options.retry.as_ref()) {
+            Ok(result) => {
+                log::info!("邮箱创建成功: {} (渠道: {})", result.email, ch);
+                return Some(result);
+            }
+            Err(e) => {
+                log::warn!("渠道 {} 不可用: {}，尝试下一个渠道", ch, e);
+            }
+        }
+    }
 
-    log::info!("邮箱创建成功: {}", result.email);
-    Ok(result)
+    log::error!("所有渠道均不可用，创建邮箱失败");
+    None
+}
+
+/// 构建渠道尝试顺序
+/// 指定渠道时优先尝试该渠道，其余渠道打乱追加
+/// 未指定时打乱全部渠道
+fn build_channel_order(preferred: Option<&Channel>) -> Vec<Channel> {
+    use rand::seq::SliceRandom;
+    let mut shuffled: Vec<Channel> = ALL_CHANNELS.to_vec();
+    shuffled.shuffle(&mut rand::thread_rng());
+    match preferred {
+        Some(pref) => {
+            let rest: Vec<Channel> = shuffled.into_iter().filter(|ch| ch != pref).collect();
+            let mut result = vec![pref.clone()];
+            result.extend(rest);
+            result
+        }
+        None => shuffled,
+    }
 }
 
 fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -> Result<EmailInfo, String> {
@@ -158,10 +182,11 @@ impl TempEmailClient {
     }
 
     /// 创建临时邮箱并缓存邮箱信息
-    pub fn generate(&mut self, options: &GenerateEmailOptions) -> Result<&EmailInfo, String> {
+    /// 所有渠道均不可用时返回 None
+    pub fn generate(&mut self, options: &GenerateEmailOptions) -> Option<&EmailInfo> {
         let info = generate_email(options)?;
         self.email_info = Some(info);
-        Ok(self.email_info.as_ref().unwrap())
+        self.email_info.as_ref()
     }
 
     /// 获取当前邮箱的邮件列表

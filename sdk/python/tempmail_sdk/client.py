@@ -51,33 +51,56 @@ def get_channel_info(channel: str) -> Optional[ChannelInfo]:
     return CHANNEL_INFO_MAP.get(channel)
 
 
-def generate_email(options: Optional[GenerateEmailOptions] = None) -> EmailInfo:
+def generate_email(options: Optional[GenerateEmailOptions] = None) -> Optional[EmailInfo]:
     """
     创建临时邮箱
 
     错误处理策略:
-    - 网络错误、超时、HTTP 4xx/5xx → 自动重试（默认 2 次，指数退避）
-    - 重试耗尽后仍失败时抛出异常
+    - 指定渠道失败时，自动尝试其他可用渠道（打乱顺序逐个尝试）
+    - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
+    - 所有渠道均不可用时返回 None（不抛出异常）
 
     示例:
         info = generate_email(GenerateEmailOptions(channel="guerrillamail"))
-        print(info.email)
+        if info:
+            print(info.email)
     """
     if options is None:
         options = GenerateEmailOptions()
 
-    channel = options.channel or random.choice(ALL_CHANNELS)
     logger = get_logger()
 
-    logger.info(f"创建临时邮箱, 渠道: {channel}")
+    # 构建尝试顺序：指定渠道优先尝试，失败后随机尝试其他渠道；未指定则打乱全部逐个尝试
+    try_order = _build_channel_order(options.channel)
 
-    result = with_retry(
-        lambda: _generate_email_once(channel, options),
-        options.retry,
-    )
+    for ch in try_order:
+        logger.info(f"创建临时邮箱, 渠道: {ch}")
+        try:
+            result = with_retry(
+                lambda c=ch: _generate_email_once(c, options),
+                options.retry,
+            )
+            logger.info(f"邮箱创建成功: {result.email} (渠道: {ch})")
+            return result
+        except Exception as e:
+            logger.warning(f"渠道 {ch} 不可用: {e}，尝试下一个渠道")
 
-    logger.info(f"邮箱创建成功: {result.email}")
-    return result
+    logger.error("所有渠道均不可用，创建邮箱失败")
+    return None
+
+
+def _build_channel_order(preferred: Optional[str] = None) -> list:
+    """
+    构建渠道尝试顺序
+    指定渠道时优先尝试该渠道，其余渠道打乱追加
+    未指定时打乱全部渠道
+    """
+    shuffled = ALL_CHANNELS[:]
+    random.shuffle(shuffled)
+    if not preferred:
+        return shuffled
+    rest = [ch for ch in shuffled if ch != preferred]
+    return [preferred] + rest
 
 
 def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailInfo:

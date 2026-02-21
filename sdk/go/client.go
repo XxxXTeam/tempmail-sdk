@@ -77,35 +77,67 @@ func GetChannelInfo(channel Channel) (ChannelInfo, bool) {
  * GenerateEmail 创建临时邮箱
  *
  * 错误处理策略:
- * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次，指数退避）
- * - 4xx 客户端错误、参数错误 → 直接返回 error
- * - 重试耗尽后仍失败时返回 error
+ * - 指定渠道失败时，自动尝试其他可用渠道（打乱顺序逐个尝试）
+ * - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
+ * - 所有渠道均不可用时返回 nil（不返回 error）
  *
  * 示例:
- *   info, err := GenerateEmail(&GenerateEmailOptions{Channel: ChannelTempMailIO})
- *   if err != nil { log.Fatal(err) }
- *   fmt.Println(info.Email)
+ *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelTempMailIO})
+ *   if info != nil { fmt.Println(info.Email) }
  */
 func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 	if opts == nil {
 		opts = &GenerateEmailOptions{}
 	}
 
-	channel := opts.Channel
-	if channel == "" {
-		channel = allChannels[rand.Intn(len(allChannels))]
+	/*
+	 * 构建尝试顺序：
+	 * - 指定渠道 → 优先尝试该渠道，失败后随机尝试其他渠道
+	 * - 未指定 → 打乱全部渠道逐个尝试
+	 */
+	tryOrder := buildChannelOrder(opts.Channel)
+
+	for _, ch := range tryOrder {
+		sdkLogger.Info("创建临时邮箱", "channel", string(ch))
+		result, err := WithRetry(func() (*EmailInfo, error) {
+			return generateEmailOnce(ch, opts)
+		}, opts.Retry)
+		if err == nil && result != nil {
+			sdkLogger.Info("邮箱创建成功", "channel", string(ch), "email", result.Email)
+			return result, nil
+		}
+		errMsg := "unknown error"
+		if err != nil {
+			errMsg = err.Error()
+		}
+		sdkLogger.Warn("渠道不可用，尝试下一个", "channel", string(ch), "error", errMsg)
 	}
 
-	sdkLogger.Info("创建临时邮箱", "channel", string(channel))
-	result, err := WithRetry(func() (*EmailInfo, error) {
-		return generateEmailOnce(channel, opts)
-	}, opts.Retry)
-	if err != nil {
-		sdkLogger.Error("创建邮箱失败", "channel", string(channel), "error", err.Error())
-		return nil, err
+	sdkLogger.Error("所有渠道均不可用，创建邮箱失败")
+	return nil, nil
+}
+
+/*
+ * buildChannelOrder 构建渠道尝试顺序
+ * 指定渠道时优先尝试该渠道，其余渠道打乱追加
+ * 未指定时打乱全部渠道
+ */
+func buildChannelOrder(preferred Channel) []Channel {
+	shuffled := make([]Channel, len(allChannels))
+	copy(shuffled, allChannels)
+	rand.Shuffle(len(shuffled), func(i, j int) {
+		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+	})
+	if preferred == "" {
+		return shuffled
 	}
-	sdkLogger.Info("邮箱创建成功", "channel", string(channel), "email", result.Email)
-	return result, nil
+	result := []Channel{preferred}
+	for _, ch := range shuffled {
+		if ch != preferred {
+			result = append(result, ch)
+		}
+	}
+	return result
 }
 
 /*
