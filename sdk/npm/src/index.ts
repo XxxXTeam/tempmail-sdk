@@ -9,6 +9,9 @@ import * as mailTm from './providers/mail-tm';
 import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
+import * as mailGw from './providers/mail-gw';
+import * as emailnator from './providers/emailnator';
+import * as mailCx from './providers/mail-cx';
 import { Channel, EmailInfo, InternalEmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
@@ -41,10 +44,13 @@ const providers = {
   'dropmail': dropmail,
   'guerrillamail': guerrillamail,
   'maildrop': maildropProvider,
+  'mail-gw': mailGw,
+  'emailnator': emailnator,
+  'mail-cx': mailCx,
 };
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'mail-gw', 'emailnator', 'mail-cx'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -71,6 +77,9 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
   'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
+  'mail-gw': { channel: 'mail-gw', name: 'Mail.gw', website: 'mail.gw' },
+  'emailnator': { channel: 'emailnator', name: 'Emailnator', website: 'emailnator.com' },
+  'mail-cx': { channel: 'mail-cx', name: 'Mail.cx', website: 'mail.cx' },
 };
 
 /**
@@ -189,6 +198,12 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return guerrillamail.generateEmail();
     case 'maildrop':
       return maildropProvider.generateEmail();
+    case 'mail-gw':
+      return mailGw.generateEmail();
+    case 'emailnator':
+      return emailnator.generateEmail();
+    case 'mail-cx':
+      return mailCx.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -284,6 +299,15 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'maildrop':
       if (!token) throw new Error('internal error: token missing for maildrop');
       return maildropProvider.getEmails(token, email);
+    case 'mail-gw':
+      if (!token) throw new Error('internal error: token missing for mail-gw');
+      return mailGw.getEmails(token, email);
+    case 'emailnator':
+      if (!token) throw new Error('internal error: token missing for emailnator');
+      return emailnator.getEmails(token, email);
+    case 'mail-cx':
+      if (!token) throw new Error('internal error: token missing for mail-cx');
+      return mailCx.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

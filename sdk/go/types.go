@@ -18,6 +18,9 @@ const (
 	ChannelDropmail      Channel = "dropmail"       // dropmail.me
 	ChannelGuerrillaMail Channel = "guerrillamail"  // guerrillamail.com
 	ChannelMaildrop      Channel = "maildrop"       // maildrop.cc
+	ChannelMailGw        Channel = "mail-gw"        // mail.gw
+	ChannelEmailnator    Channel = "emailnator"     // emailnator.com
+	ChannelMailCx        Channel = "mail-cx"        // mail.cx
 )
 
 /*

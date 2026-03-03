@@ -18,6 +18,9 @@ var allChannels = []Channel{
 	ChannelDropmail,
 	ChannelGuerrillaMail,
 	ChannelMaildrop,
+	ChannelMailGw,
+	ChannelEmailnator,
+	ChannelMailCx,
 }
 
 /*
@@ -45,6 +48,9 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelDropmail:      {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail: {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:      {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
+	ChannelMailGw:        {Channel: ChannelMailGw, Name: "Mail.gw", Website: "mail.gw"},
+	ChannelEmailnator:    {Channel: ChannelEmailnator, Name: "Emailnator", Website: "emailnator.com"},
+	ChannelMailCx:        {Channel: ChannelMailCx, Name: "Mail.cx", Website: "mail.cx"},
 }
 
 /*
@@ -178,6 +184,15 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelMaildrop:
 		return maildropGenerate()
 
+	case ChannelMailGw:
+		return mailGwGenerate()
+
+	case ChannelEmailnator:
+		return emailnatorGenerate()
+
+	case ChannelMailCx:
+		return mailCxGenerate()
+
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
 	}
@@ -305,6 +320,24 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for maildrop channel")
 		}
 		return maildropGetEmails(token, email)
+
+	case ChannelMailGw:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-gw channel")
+		}
+		return mailGwGetEmails(token, email)
+
+	case ChannelEmailnator:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for emailnator channel")
+		}
+		return emailnatorGetEmails(token, email)
+
+	case ChannelMailCx:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-cx channel")
+		}
+		return mailCxGetEmails(token, email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

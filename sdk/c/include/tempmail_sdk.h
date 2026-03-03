@@ -27,6 +27,9 @@ typedef enum {
     CHANNEL_DROPMAIL,
     CHANNEL_GUERRILLAMAIL,
     CHANNEL_MAILDROP,
+    CHANNEL_MAIL_GW,
+    CHANNEL_EMAILNATOR,
+    CHANNEL_MAIL_CX,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;

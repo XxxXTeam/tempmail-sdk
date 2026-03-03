@@ -25,6 +25,9 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_DROPMAIL,       "DropMail",        "dropmail.me" },
     { CHANNEL_GUERRILLAMAIL,  "Guerrilla Mail",  "guerrillamail.com" },
     { CHANNEL_MAILDROP,       "Maildrop",        "maildrop.cc" },
+    { CHANNEL_MAIL_GW,        "Mail.gw",         "mail.gw" },
+    { CHANNEL_EMAILNATOR,     "Emailnator",      "emailnator.com" },
+    { CHANNEL_MAIL_CX,        "Mail.cx",          "mail.cx" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -54,6 +57,9 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_DROPMAIL:       result = tm_provider_dropmail_generate(); break;
             case CHANNEL_GUERRILLAMAIL:  result = tm_provider_guerrillamail_generate(); break;
             case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(); break;
+            case CHANNEL_MAIL_GW:        result = tm_provider_mail_gw_generate(); break;
+            case CHANNEL_EMAILNATOR:     result = tm_provider_emailnator_generate(); break;
+            case CHANNEL_MAIL_CX:        result = tm_provider_mail_cx_generate(); break;
             default: return NULL;
         }
         if (result) return result;
@@ -166,6 +172,9 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_DROPMAIL:       emails = tm_provider_dropmail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_GUERRILLAMAIL:  emails = tm_provider_guerrillamail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_MAILDROP:       emails = tm_provider_maildrop_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_MAIL_GW:        emails = tm_provider_mail_gw_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_EMAILNATOR:     emails = tm_provider_emailnator_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_MAIL_CX:        emails = tm_provider_mail_cx_get_emails(email_info->token, email_info->email, &count); break;
             default: break;
         }
 

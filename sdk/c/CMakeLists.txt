@@ -25,6 +25,9 @@ add_library(tempmail_sdk STATIC
     src/providers/dropmail.c
     src/providers/guerrillamail.c
     src/providers/maildrop.c
+    src/providers/mail_gw.c
+    src/providers/emailnator.c
+    src/providers/mail_cx.c
     vendor/cJSON.c
 )
 

@@ -29,6 +29,12 @@ pub enum Channel {
     GuerrillaMail,
     #[serde(rename = "maildrop")]
     Maildrop,
+    #[serde(rename = "mail-gw")]
+    MailGw,
+    #[serde(rename = "emailnator")]
+    Emailnator,
+    #[serde(rename = "mail-cx")]
+    MailCx,
 }
 
 impl std::fmt::Display for Channel {
@@ -45,6 +51,9 @@ impl std::fmt::Display for Channel {
             Channel::Dropmail => write!(f, "dropmail"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::Maildrop => write!(f, "maildrop"),
+            Channel::MailGw => write!(f, "mail-gw"),
+            Channel::Emailnator => write!(f, "emailnator"),
+            Channel::MailCx => write!(f, "mail-cx"),
         }
     }
 }
