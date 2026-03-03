@@ -8,8 +8,26 @@
 
 #define MCX_BASE "https://api.mail.cx/api/v1"
 
-static const char* mcx_domains[] = {"qabq.com", "nqmo.com"};
-static const int mcx_domain_count = 2;
+static const char* mcx_domains[] = {"qabq.com", "nqmo.com", "end.tw", "uuf.me", "6n9.net"};
+static const int mcx_domain_count = 5;
+
+/*
+ * 从 "name <email>" 格式中提取邮箱地址
+ * 如 "openel <openel@foxmail.com>" → "openel@foxmail.com"
+ */
+static char* mcx_extract_email(const char *s) {
+    if (!s) return tm_strdup("");
+    const char *start = strchr(s, '<');
+    const char *end = strchr(s, '>');
+    if (start && end && end > start) {
+        size_t len = end - start - 1;
+        char *result = (char*)malloc(len + 1);
+        memcpy(result, start + 1, len);
+        result[len] = '\0';
+        return result;
+    }
+    return tm_strdup(s);
+}
 
 static void mcx_random_username(char *buf, int len) {
     const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -66,8 +84,14 @@ tm_email_info_t* tm_provider_mail_cx_generate(void) {
 
 tm_email_t* tm_provider_mail_cx_get_emails(const char *token, const char *email, int *count) {
     *count = -1;
+
+    /* mail.cx token 有效期很短（~5分钟），每次请求前刷新 */
+    char *fresh_token = mcx_get_token();
+    if (!fresh_token) return NULL;
+
     char auth[512];
-    snprintf(auth, sizeof(auth), "Authorization: Bearer %s", token);
+    snprintf(auth, sizeof(auth), "Authorization: Bearer %s", fresh_token);
+    free(fresh_token);
     const char* headers[] = { auth, "Accept: application/json", NULL };
 
     char url[512];
@@ -87,7 +111,35 @@ tm_email_t* tm_provider_mail_cx_get_emails(const char *token, const char *email,
     tm_email_t *emails = tm_emails_new(n);
     for (int i = 0; i < n; i++) {
         cJSON *msg = cJSON_GetArrayItem(json, i);
-        emails[i] = tm_normalize_email(msg, email);
+
+        /* 扁平化 from/to 格式 */
+        cJSON *from_item = cJSON_GetObjectItemCaseSensitive(msg, "from");
+        char *from_email = mcx_extract_email(cJSON_GetStringValue(from_item));
+
+        cJSON *to_arr = cJSON_GetObjectItemCaseSensitive(msg, "to");
+        char *to_email = NULL;
+        if (cJSON_IsArray(to_arr) && cJSON_GetArraySize(to_arr) > 0) {
+            to_email = mcx_extract_email(cJSON_GetStringValue(cJSON_GetArrayItem(to_arr, 0)));
+        } else {
+            to_email = tm_strdup(email);
+        }
+
+        /* 构建扁平化的 JSON 对象 */
+        cJSON *flat = cJSON_CreateObject();
+        cJSON_AddStringToObject(flat, "id", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "id"), ""));
+        cJSON_AddStringToObject(flat, "from", from_email);
+        cJSON_AddStringToObject(flat, "to", to_email);
+        cJSON_AddStringToObject(flat, "subject", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "subject"), ""));
+        cJSON_AddStringToObject(flat, "text", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "text"), ""));
+        cJSON_AddStringToObject(flat, "html", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "html"), ""));
+        cJSON_AddStringToObject(flat, "date", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "date"), ""));
+        cJSON *seen = cJSON_GetObjectItemCaseSensitive(msg, "seen");
+        cJSON_AddBoolToObject(flat, "seen", cJSON_IsTrue(seen));
+
+        emails[i] = tm_normalize_email(flat, email);
+        cJSON_Delete(flat);
+        free(from_email);
+        free(to_email);
     }
     cJSON_Delete(json);
     return emails;

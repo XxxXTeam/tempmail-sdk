@@ -8,6 +8,15 @@ use crate::types::{Email, EmailAttachment};
 
 /// 将原始 JSON 数据标准化为统一的 Email 格式
 pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
+    let mut text = get_str(raw, &["text", "body", "content", "body_text", "text_content"]);
+    let mut html = get_str(raw, &["html", "html_content", "body_html"]);
+
+    /* 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中 */
+    if !text.is_empty() && html.is_empty() && is_html_content(&text) {
+        html = text;
+        text = String::new();
+    }
+
     Email {
         id: get_str(raw, &["id", "eid", "_id", "mailboxId", "messageId", "mail_id"]),
         from_addr: get_str(raw, &["from_address", "address_from", "from", "messageFrom", "sender"]),
@@ -16,12 +25,30 @@ pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
             if t.is_empty() { recipient_email.to_string() } else { t }
         },
         subject: get_str(raw, &["subject", "e_subject"]),
-        text: get_str(raw, &["text", "body", "content", "body_text", "text_content"]),
-        html: get_str(raw, &["html", "html_content", "body_html"]),
+        text,
+        html,
         date: normalize_date(raw),
         is_read: normalize_is_read(raw),
         attachments: normalize_attachments(raw),
     }
+}
+
+/// 检测内容是否为 HTML
+fn is_html_content(content: &str) -> bool {
+    let trimmed = content.trim().to_lowercase();
+    if trimmed.starts_with("<!doctype html") || trimmed.starts_with("<html") || trimmed.starts_with("<body") {
+        return true;
+    }
+    if trimmed.contains("<div") && trimmed.contains("</div>") {
+        return true;
+    }
+    if trimmed.contains("<table") && trimmed.contains("</table>") {
+        return true;
+    }
+    if trimmed.contains("<p") && trimmed.contains("</p>") {
+        return true;
+    }
+    false
 }
 
 /// 从 JSON 中按优先级提取字符串值

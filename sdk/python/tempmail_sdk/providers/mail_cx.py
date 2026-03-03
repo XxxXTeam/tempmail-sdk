@@ -13,7 +13,7 @@ from .. import http as tm_http
 
 CHANNEL = "mail-cx"
 BASE_URL = "https://api.mail.cx/api/v1"
-DOMAINS = ["qabq.com", "nqmo.com"]
+DOMAINS = ["qabq.com", "nqmo.com", "end.tw", "uuf.me", "6n9.net"]
 
 DEFAULT_HEADERS = {
     "Content-Type": "application/json",
@@ -52,12 +52,45 @@ def generate_email():
     )
 
 
+def _extract_email(s):
+    """
+    从 "name <email>" 格式中提取邮箱地址
+    如 "openel <openel@foxmail.com>" → "openel@foxmail.com"
+    """
+    import re
+    if not s:
+        return ""
+    match = re.search(r"<([^>]+)>", s)
+    return match.group(1) if match else s
+
+
+def _flatten_message(msg, recipient_email):
+    """
+    将 mail.cx 响应扁平化为 normalize_email 可处理的格式
+    mail.cx 的 from 是 "name <email>" 格式，to 是字符串数组
+    """
+    to_list = msg.get("to", [])
+    to_addr = _extract_email(to_list[0]) if isinstance(to_list, list) and to_list else recipient_email
+
+    return {
+        "id": msg.get("id", ""),
+        "from": _extract_email(msg.get("from", "")),
+        "to": to_addr,
+        "subject": msg.get("subject", ""),
+        "text": msg.get("text", "") or msg.get("body", ""),
+        "html": msg.get("html", ""),
+        "date": msg.get("date", ""),
+        "seen": msg.get("seen", False),
+        "attachments": msg.get("attachments", []),
+    }
+
+
 def get_emails(token, email="", **kwargs):
-    """获取邮件列表"""
-    from urllib.parse import quote
+    """获取邮件列表（每次刷新token，mail.cx token有效期仅~5分钟）"""
+    fresh_token = _get_token()
     resp = tm_http.get(
-        f"{BASE_URL}/mailbox/{quote(email, safe='')}",
-        headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {token}"},
+        f"{BASE_URL}/mailbox/{email}",
+        headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {fresh_token}"},
     )
     resp.raise_for_status()
     messages = resp.json()
@@ -69,13 +102,13 @@ def get_emails(token, email="", **kwargs):
     for msg in messages:
         try:
             detail_resp = tm_http.get(
-                f"{BASE_URL}/mailbox/{quote(email, safe='')}/{msg['id']}",
-                headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {token}"},
+                f"{BASE_URL}/mailbox/{email}/{msg['id']}",
+                headers={**DEFAULT_HEADERS, "Authorization": f"Bearer {fresh_token}"},
             )
             detail_resp.raise_for_status()
             detail = detail_resp.json()
-            emails.append(normalize_email(detail, email))
+            emails.append(normalize_email(_flatten_message(detail, email), email))
         except Exception:
-            emails.append(normalize_email(msg, email))
+            emails.append(normalize_email(_flatten_message(msg, email), email))
 
     return emails

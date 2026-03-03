@@ -11,17 +11,45 @@ import { Email, EmailAttachment } from './types';
  * @returns 标准化的 Email 对象
  */
 export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
+  let text = normalizeText(raw);
+  let html = normalizeHtml(raw);
+
+  /*
+   * 修正 text/html 错配：
+   * 部分渠道将 HTML 内容放在 body/text 等字段中，
+   * 导致 normalizeText 提取到 HTML 内容而 normalizeHtml 为空。
+   * 检测 text 中是否包含 HTML 标签，如果是则移动到 html 字段。
+   */
+  if (text && !html && isHtmlContent(text)) {
+    html = text;
+    text = '';
+  }
+
   return {
     id: normalizeId(raw),
     from: normalizeFrom(raw),
     to: normalizeTo(raw, recipientEmail),
     subject: normalizeSubject(raw),
-    text: normalizeText(raw),
-    html: normalizeHtml(raw),
+    text,
+    html,
     date: normalizeDate(raw),
     isRead: normalizeIsRead(raw),
     attachments: normalizeAttachments(raw.attachments),
   };
+}
+
+/**
+ * 检测内容是否为 HTML
+ * 通过检查是否包含常见的 HTML 标签来判断
+ */
+function isHtmlContent(content: string): boolean {
+  const trimmed = content.trim().toLowerCase();
+  return trimmed.startsWith('<!doctype html') ||
+    trimmed.startsWith('<html') ||
+    trimmed.startsWith('<body') ||
+    (trimmed.includes('<div') && trimmed.includes('</div>')) ||
+    (trimmed.includes('<table') && trimmed.includes('</table>')) ||
+    (trimmed.includes('<p') && trimmed.includes('</p>') && trimmed.includes('<'));
 }
 
 /**

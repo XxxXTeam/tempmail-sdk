@@ -15,17 +15,39 @@ def normalize_email(raw: Dict[str, Any], recipient_email: str = "") -> Email:
     不同渠道的 API 返回字段名各不相同，此函数通过多字段候选策略
     将它们统一映射为标准的 Email 结构，保证 SDK 输出一致性。
     """
+    text = _normalize_text(raw)
+    html = _normalize_html(raw)
+
+    # 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中
+    if text and not html and _is_html_content(text):
+        html = text
+        text = ""
+
     return Email(
         id=_normalize_id(raw),
         from_addr=_normalize_from(raw),
         to=_normalize_to(raw, recipient_email),
         subject=_normalize_subject(raw),
-        text=_normalize_text(raw),
-        html=_normalize_html(raw),
+        text=text,
+        html=html,
         date=_normalize_date(raw),
         is_read=_normalize_is_read(raw),
         attachments=_normalize_attachments(raw.get("attachments")),
     )
+
+
+def _is_html_content(content: str) -> bool:
+    """检测内容是否为 HTML"""
+    trimmed = content.strip().lower()
+    if trimmed.startswith("<!doctype html") or trimmed.startswith("<html") or trimmed.startswith("<body"):
+        return True
+    if "<div" in trimmed and "</div>" in trimmed:
+        return True
+    if "<table" in trimmed and "</table>" in trimmed:
+        return True
+    if "<p" in trimmed and "</p>" in trimmed and "<" in trimmed:
+        return True
+    return False
 
 
 def _get_str(raw: Dict[str, Any], *keys: str) -> str:

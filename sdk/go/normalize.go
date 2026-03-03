@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -28,17 +29,54 @@ func normalizeRawEmails(rawMessages []json.RawMessage, recipientEmail string) ([
  * 不同渠道的 API 返回字段名各不相同，通过多字段候选策略统一映射
  */
 func normalizeRawEmail(raw map[string]interface{}, recipientEmail string) Email {
+	text := normalizeText(raw)
+	html := normalizeHTML(raw)
+
+	/*
+	 * 修正 text/html 错配：
+	 * 部分渠道将 HTML 内容放在 body/text 等字段中，
+	 * 导致 normalizeText 提取到 HTML 内容而 normalizeHTML 为空。
+	 * 检测 text 中是否包含 HTML 标签，如果是则移动到 html 字段。
+	 */
+	if text != "" && html == "" && isHTMLContent(text) {
+		html = text
+		text = ""
+	}
+
 	return Email{
 		ID:          normalizeID(raw),
 		From:        normalizeFrom(raw),
 		To:          normalizeTo(raw, recipientEmail),
 		Subject:     normalizeSubject(raw),
-		Text:        normalizeText(raw),
-		HTML:        normalizeHTML(raw),
+		Text:        text,
+		HTML:        html,
 		Date:        normalizeDate(raw),
 		IsRead:      normalizeIsRead(raw),
 		Attachments: normalizeAttachments(raw),
 	}
+}
+
+/*
+ * isHTMLContent 检测内容是否为 HTML
+ * 通过检查是否包含常见的 HTML 标签来判断
+ */
+func isHTMLContent(content string) bool {
+	trimmed := strings.TrimSpace(strings.ToLower(content))
+	if strings.HasPrefix(trimmed, "<!doctype html") ||
+		strings.HasPrefix(trimmed, "<html") ||
+		strings.HasPrefix(trimmed, "<body") {
+		return true
+	}
+	if strings.Contains(trimmed, "<div") && strings.Contains(trimmed, "</div>") {
+		return true
+	}
+	if strings.Contains(trimmed, "<table") && strings.Contains(trimmed, "</table>") {
+		return true
+	}
+	if strings.Contains(trimmed, "<p") && strings.Contains(trimmed, "</p>") && strings.Contains(trimmed, "<") {
+		return true
+	}
+	return false
 }
 
 /*

@@ -104,13 +104,4 @@ tm_email_t* tm_provider_guerrillamail_get_emails(const char *token, const char *
 tm_email_info_t* tm_provider_maildrop_generate(void);
 tm_email_t* tm_provider_maildrop_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_mail_gw_generate(void);
-tm_email_t* tm_provider_mail_gw_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_emailnator_generate(void);
-tm_email_t* tm_provider_emailnator_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_mail_cx_generate(void);
-tm_email_t* tm_provider_mail_cx_get_emails(const char *token, const char *email, int *count);
-
 #endif /* TEMPMAIL_INTERNAL_H */

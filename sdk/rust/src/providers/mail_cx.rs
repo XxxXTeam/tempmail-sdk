@@ -11,7 +11,38 @@ use crate::normalize::normalize_email;
 use crate::config::http_client;
 
 const BASE_URL: &str = "https://api.mail.cx/api/v1";
-const DOMAINS: &[&str] = &["qabq.com", "nqmo.com"];
+const DOMAINS: &[&str] = &["qabq.com", "nqmo.com", "end.tw", "uuf.me", "6n9.net"];
+
+/// 从 "name <email>" 格式中提取邮箱地址
+fn extract_email(s: &str) -> String {
+    if let Some(start) = s.find('<') {
+        if let Some(end) = s.find('>') {
+            return s[start + 1..end].to_string();
+        }
+    }
+    s.to_string()
+}
+
+/// 将 mail.cx 响应扁平化为 normalize_email 可处理的格式
+fn flatten_message(msg: &Value, recipient: &str) -> Value {
+    let from = msg["from"].as_str().map(|s| extract_email(s)).unwrap_or_default();
+    let to = msg["to"].as_array()
+        .and_then(|arr| arr.first())
+        .and_then(|v| v.as_str())
+        .map(|s| extract_email(s))
+        .unwrap_or_else(|| recipient.to_string());
+
+    serde_json::json!({
+        "id": msg["id"].as_str().unwrap_or(""),
+        "from": from,
+        "to": to,
+        "subject": msg["subject"].as_str().unwrap_or(""),
+        "text": msg["text"].as_str().or_else(|| msg["body"].as_str()).unwrap_or(""),
+        "html": msg["html"].as_str().unwrap_or(""),
+        "date": msg["date"].as_str().unwrap_or(""),
+        "seen": msg["seen"].as_bool().unwrap_or(false),
+    })
+}
 
 fn random_username(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
@@ -51,12 +82,14 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     })
 }
 
-pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
-    let encoded = urlencoding::encode(email);
+pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
+    /* mail.cx token 有效期很短（~5分钟），每次请求前刷新 */
+    let fresh_token = get_token()?;
+
     let resp = http_client()
-        .get(format!("{}/mailbox/{}", BASE_URL, encoded))
+        .get(format!("{}/mailbox/{}", BASE_URL, email))
         .header("Accept", "application/json")
-        .header("Authorization", format!("Bearer {}", token))
+        .header("Authorization", format!("Bearer {}", fresh_token))
         .send().map_err(|e| format!("mail-cx request failed: {}", e))?;
 
     if !resp.status().is_success() {
@@ -73,13 +106,14 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
     let mut result = Vec::new();
     for msg in &messages {
         let detail = http_client()
-            .get(format!("{}/mailbox/{}/{}", BASE_URL, encoded, msg["id"].as_str().unwrap_or("")))
+            .get(format!("{}/mailbox/{}/{}", BASE_URL, email, msg["id"].as_str().unwrap_or("")))
             .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", token))
+            .header("Authorization", format!("Bearer {}", fresh_token))
             .send().ok()
             .and_then(|r| if r.status().is_success() { r.json::<Value>().ok() } else { None });
 
-        result.push(normalize_email(detail.as_ref().unwrap_or(msg), email));
+        let flat = flatten_message(detail.as_ref().unwrap_or(msg), email);
+        result.push(normalize_email(&flat, email));
     }
 
     Ok(result)

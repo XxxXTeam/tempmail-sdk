@@ -13,7 +13,6 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::ChatgptOrgUk, Channel::TempmailLa, Channel::TempMailIO,
     Channel::Awamail, Channel::MailTm, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop,
-    Channel::MailGw, Channel::Emailnator, Channel::MailCx,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -35,9 +34,6 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Dropmail => ChannelInfo { channel: Channel::Dropmail, name: "DropMail", website: "dropmail.me" },
         Channel::GuerrillaMail => ChannelInfo { channel: Channel::GuerrillaMail, name: "Guerrilla Mail", website: "guerrillamail.com" },
         Channel::Maildrop => ChannelInfo { channel: Channel::Maildrop, name: "Maildrop", website: "maildrop.cc" },
-        Channel::MailGw => ChannelInfo { channel: Channel::MailGw, name: "Mail.gw", website: "mail.gw" },
-        Channel::Emailnator => ChannelInfo { channel: Channel::Emailnator, name: "Emailnator", website: "emailnator.com" },
-        Channel::MailCx => ChannelInfo { channel: Channel::MailCx, name: "Mail.cx", website: "mail.cx" },
     })
 }
 
@@ -104,9 +100,6 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::Dropmail => providers::dropmail::generate_email(),
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::Maildrop => providers::maildrop::generate_email(),
-        Channel::MailGw => providers::mail_gw::generate_email(),
-        Channel::Emailnator => providers::emailnator::generate_email(),
-        Channel::MailCx => providers::mail_cx::generate_email(),
     }
 }
 
@@ -176,18 +169,6 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::Maildrop => {
             let t = token.ok_or("token is required for maildrop")?;
             providers::maildrop::get_emails(t, email)
-        }
-        Channel::MailGw => {
-            let t = token.ok_or("token is required for mail-gw")?;
-            providers::mail_gw::get_emails(t, email)
-        }
-        Channel::Emailnator => {
-            let t = token.ok_or("token is required for emailnator")?;
-            providers::emailnator::get_emails(t, email)
-        }
-        Channel::MailCx => {
-            let t = token.ok_or("token is required for mail-cx")?;
-            providers::mail_cx::get_emails(t, email)
         }
     }
 }

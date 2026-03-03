@@ -36,6 +36,29 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     const char *html_keys[] = {"html", "html_content", "body_html"};
     email.html = tm_json_get_str(raw, html_keys, 3);
 
+    /*
+     * 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中
+     * 检测 text 是否包含 HTML 标签，如果是则移动到 html 字段
+     */
+    if (email.text && email.text[0] != '\0' &&
+        (!email.html || email.html[0] == '\0')) {
+        const char *lower = email.text;
+        int is_html = 0;
+        if (strstr(lower, "<!DOCTYPE") || strstr(lower, "<!doctype") ||
+            strstr(lower, "<html") || strstr(lower, "<HTML") ||
+            strstr(lower, "<body") || strstr(lower, "<BODY") ||
+            (strstr(lower, "<div") && strstr(lower, "</div>")) ||
+            (strstr(lower, "<table") && strstr(lower, "</table>")) ||
+            (strstr(lower, "<p") && strstr(lower, "</p>"))) {
+            is_html = 1;
+        }
+        if (is_html) {
+            free(email.html);
+            email.html = email.text;
+            email.text = tm_strdup("");
+        }
+    }
+
     /* Date */
     const char *date_keys[] = {"received_at", "created_at", "createdAt", "date", "timestamp", "e_date"};
     email.date = tm_json_get_str(raw, date_keys, 6);

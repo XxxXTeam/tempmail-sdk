@@ -16,7 +16,6 @@ from .providers import (
     tempmail, linshi_email, tempmail_lol, chatgpt_org_uk,
     tempmail_la, temp_mail_io, awamail, mail_tm,
     dropmail, guerrillamail, maildrop,
-    mail_gw, emailnator, mail_cx,
 )
 
 # 所有支持的渠道列表
@@ -24,7 +23,6 @@ ALL_CHANNELS = [
     "tempmail", "linshi-email", "tempmail-lol", "chatgpt-org-uk",
     "tempmail-la", "temp-mail-io", "awamail", "mail-tm",
     "dropmail", "guerrillamail", "maildrop",
-    "mail-gw", "emailnator", "mail-cx",
 ]
 
 # 渠道信息映射表
@@ -40,9 +38,6 @@ CHANNEL_INFO_MAP = {
     "dropmail": ChannelInfo(channel="dropmail", name="DropMail", website="dropmail.me"),
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
     "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cc"),
-    "mail-gw": ChannelInfo(channel="mail-gw", name="Mail.gw", website="mail.gw"),
-    "emailnator": ChannelInfo(channel="emailnator", name="Emailnator", website="emailnator.com"),
-    "mail-cx": ChannelInfo(channel="mail-cx", name="Mail.cx", website="mail.cx"),
 }
 
 
@@ -132,12 +127,6 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return guerrillamail.generate_email()
     elif channel == "maildrop":
         return maildrop.generate_email()
-    elif channel == "mail-gw":
-        return mail_gw.generate_email()
-    elif channel == "emailnator":
-        return emailnator.generate_email()
-    elif channel == "mail-cx":
-        return mail_cx.generate_email()
     else:
         raise ValueError(f"Unknown channel: {channel}")
 
@@ -226,18 +215,6 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for maildrop channel")
         return maildrop.get_emails(token, email)
-    elif channel == "mail-gw":
-        if not token:
-            raise ValueError("token is required for mail-gw channel")
-        return mail_gw.get_emails(token, email)
-    elif channel == "emailnator":
-        if not token:
-            raise ValueError("token is required for emailnator channel")
-        return emailnator.get_emails(token, email)
-    elif channel == "mail-cx":
-        if not token:
-            raise ValueError("token is required for mail-cx channel")
-        return mail_cx.get_emails(token, email)
     else:
         raise ValueError(f"Unknown channel: {channel}")
 

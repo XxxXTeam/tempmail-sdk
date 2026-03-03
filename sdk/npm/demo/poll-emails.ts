@@ -84,11 +84,7 @@ async function pollEmails(emailInfo: EmailInfo): Promise<void> {
     pollCount++;
     
     try {
-      const result = await getEmails({
-        channel: emailInfo.channel,
-        email: emailInfo.email,
-        token: emailInfo.token,
-      });
+      const result = await getEmails(emailInfo);
 
       const timestamp = new Date().toLocaleTimeString();
       
@@ -142,15 +138,18 @@ async function main(): Promise<void> {
   try {
     const emailInfo = await generateEmail({ channel: selectedChannel });
     
+    if (!emailInfo) {
+      console.error('\n❌ 所有渠道均不可用');
+      process.exit(1);
+      return;
+    }
+
     console.log('\n✅ 获取邮箱成功！');
     printJson('返回数据 (EmailInfo)', emailInfo);
     
     console.log('\n📋 邮箱信息:');
     console.log(`   渠道: ${emailInfo.channel}`);
     console.log(`   邮箱: ${emailInfo.email}`);
-    if (emailInfo.token) {
-      console.log(`   Token: ${emailInfo.token}`);
-    }
     if (emailInfo.expiresAt) {
       console.log(`   过期时间: ${emailInfo.expiresAt}`);
     }

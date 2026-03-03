@@ -13,6 +13,3 @@ pub mod mail_tm;
 pub mod dropmail;
 pub mod guerrillamail;
 pub mod maildrop;
-pub mod mail_gw;
-pub mod emailnator;
-pub mod mail_cx;
