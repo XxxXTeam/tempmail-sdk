@@ -78,7 +78,7 @@ typedef struct {
 typedef struct {
     tm_channel_t channel; /* 渠道 */
     char *email;          /* 邮箱地址 */
-    char *token;          /* 认证令牌 */
+    char *token;          /* 认证令牌（SDK 内部维护，用户不应直接访问） */
     long long expires_at; /* 过期时间（毫秒时间戳），0 表示未知 */
     char *created_at;     /* 创建时间 */
 } tm_email_info_t;
@@ -109,11 +109,8 @@ typedef struct {
     tm_retry_config_t *retry;    /* 重试配置，NULL 使用默认 */
 } tm_generate_options_t;
 
-/* 获取邮件选项 */
+/* 获取邮件选项（Channel/Email/Token 由 SDK 从 tm_email_info_t 中自动获取） */
 typedef struct {
-    tm_channel_t channel;        /* 渠道 */
-    const char *email;           /* 邮箱地址 */
-    const char *token;           /* 认证令牌 */
     tm_retry_config_t *retry;    /* 重试配置，NULL 使用默认 */
 } tm_get_emails_options_t;
 
@@ -180,10 +177,14 @@ tm_email_info_t* tm_generate_email(const tm_generate_options_t *options);
 
 /**
  * 获取邮件列表
+ * Channel/Email/Token 等由 SDK 从 email_info 中自动获取
  * 始终返回结果（即使失败也返回 success=false 的结果）
  * 调用者需使用 tm_free_get_emails_result() 释放
+ *
+ * @param email_info  tm_generate_email() 返回的邮箱信息
+ * @param options     可选配置，NULL 使用默认值
  */
-tm_get_emails_result_t* tm_get_emails(const tm_get_emails_options_t *options);
+tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const tm_get_emails_options_t *options);
 
 /* ========== 内存释放函数 ========== */
 

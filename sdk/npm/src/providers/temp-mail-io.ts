@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'temp-mail-io';
@@ -59,7 +59,7 @@ async function getApiHeaders(): Promise<Record<string, string>> {
  * API: POST /api/v3/email/new
  * 返回: { email, token }
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const headers = await getApiHeaders();
   const response = await fetch(`${BASE_URL}/email/new`, {
     method: 'POST',

@@ -54,7 +54,7 @@ def generate_email(**kwargs) -> EmailInfo:
     return EmailInfo(
         channel=CHANNEL,
         email=data["data"]["email_address"],
-        token=session_cookie,
+        _token=session_cookie,
         expires_at=data["data"].get("expired_at"),
         created_at=data["data"].get("created_at"),
     )

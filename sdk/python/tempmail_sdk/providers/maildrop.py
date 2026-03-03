@@ -108,7 +108,7 @@ def generate_email(**kwargs) -> EmailInfo:
     return EmailInfo(
         channel=CHANNEL,
         email=email,
-        token=username,
+        _token=username,
     )
 
 

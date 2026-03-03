@@ -131,27 +131,29 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         raise ValueError(f"Unknown channel: {channel}")
 
 
-def get_emails(options: GetEmailsOptions) -> GetEmailsResult:
+def get_emails(info: EmailInfo, options: Optional[GetEmailsOptions] = None) -> GetEmailsResult:
     """
     获取邮件列表
+    Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
 
     错误处理策略:
-    - 网络错误、超时、HTTP 4xx/5xx → 自动重试（默认 2 次）
+    - 网络错误、超时、429、HTTP 5xx → 自动重试（默认 2 次）
     - 重试耗尽后返回 GetEmailsResult(success=False, emails=[])
     - 参数校验错误直接抛出异常
 
     示例:
-        result = get_emails(GetEmailsOptions(
-            channel="guerrillamail",
-            email="xxx@guerrillamailblock.com",
-            token="sid_token_value",
-        ))
+        info = generate_email(GenerateEmailOptions(channel="mail-tm"))
+        result = get_emails(info)
         if result.success:
             print(f"收到 {len(result.emails)} 封邮件")
     """
-    channel = options.channel
-    email = options.email
-    token = options.token
+    if info is None:
+        raise ValueError("EmailInfo is required, call generate_email() first")
+
+    channel = info.channel
+    email = info.email
+    token = info._token
+    retry = options.retry if options else None
     logger = get_logger()
 
     if not channel:
@@ -164,7 +166,7 @@ def get_emails(options: GetEmailsOptions) -> GetEmailsResult:
     try:
         emails = with_retry(
             lambda: _get_emails_once(channel, email, token),
-            options.retry,
+            retry,
         )
         if emails:
             logger.info(f"获取到 {len(emails)} 封邮件, 渠道: {channel}")
@@ -243,14 +245,7 @@ class TempEmailClient:
         if self._email_info is None:
             raise RuntimeError("No email generated. Call generate() first")
 
-        if options is None:
-            options = GetEmailsOptions(
-                channel=self._email_info.channel,
-                email=self._email_info.email,
-                token=self._email_info.token,
-            )
-
-        return get_emails(options)
+        return get_emails(self._email_info, options)
 
     @property
     def email_info(self) -> Optional[EmailInfo]:

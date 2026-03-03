@@ -35,9 +35,6 @@ func main() {
 
 		fmt.Printf("  Channel: %s\n", emailInfo.Channel)
 		fmt.Printf("  Email: %s\n", emailInfo.Email)
-		if emailInfo.Token != "" {
-			fmt.Printf("  Token: %s\n", emailInfo.Token)
-		}
 		if emailInfo.ExpiresAt != nil {
 			fmt.Printf("  Expires: %v\n", emailInfo.ExpiresAt)
 		}
@@ -61,7 +58,7 @@ func main() {
 
 	fmt.Printf("Generated: %s - %s\n", emailInfo.Channel, emailInfo.Email)
 
-	result, err := client.GetEmails()
+	result, err := client.GetEmails(nil)
 	if err != nil {
 		log.Fatalf("Failed to get emails: %v", err)
 	}

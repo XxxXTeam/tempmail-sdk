@@ -21,15 +21,29 @@ Channel = Literal[
 ]
 
 
-@dataclass
 class EmailInfo:
-    """创建临时邮箱后返回的邮箱信息"""
+    """
+    创建临时邮箱后返回的邮箱信息
+    Token 等认证信息由 SDK 内部维护，不对外暴露
+    """
 
-    channel: str      # 创建该邮箱所使用的渠道
-    email: str        # 临时邮箱地址
-    token: Optional[str] = None       # 认证令牌，部分渠道获取邮件时需要
-    expires_at: Optional[int] = None  # 邮箱过期时间（毫秒时间戳）
-    created_at: Optional[Any] = None  # 邮箱创建时间
+    def __init__(
+        self,
+        channel: str,
+        email: str,
+        *,
+        _token: Optional[str] = None,
+        expires_at: Optional[int] = None,
+        created_at: Optional[Any] = None,
+    ):
+        self.channel = channel        # 创建该邮箱所使用的渠道
+        self.email = email            # 临时邮箱地址
+        self._token = _token          # 认证令牌，SDK 内部维护，不对外暴露
+        self.expires_at = expires_at  # 邮箱过期时间（毫秒时间戳）
+        self.created_at = created_at  # 邮箱创建时间
+
+    def __repr__(self):
+        return f"EmailInfo(channel={self.channel!r}, email={self.email!r}, expires_at={self.expires_at!r}, created_at={self.created_at!r})"
 
 
 @dataclass
@@ -89,11 +103,11 @@ class GenerateEmailOptions:
 
 @dataclass
 class GetEmailsOptions:
-    """获取邮件的选项"""
+    """
+    获取邮件的选项
+    Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
+    """
 
-    channel: str = ""                       # 渠道标识（必需）
-    email: str = ""                         # 邮箱地址（必需）
-    token: Optional[str] = None             # 认证令牌（部分渠道必需）
     retry: Optional[RetryConfig] = None     # 重试配置
 
 

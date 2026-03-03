@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'awamail';
@@ -36,7 +36,7 @@ function extractSessionCookie(response: Response): string {
  * 返回: { success, data: { email_address, expired_at, created_at, ... } }
  * 需要保存响应中的 Set-Cookie (awamail_session) 用于后续获取邮件
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetch(`${BASE_URL}/change_mailbox`, {
     method: 'POST',
     headers: {

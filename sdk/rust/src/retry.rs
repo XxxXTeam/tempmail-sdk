@@ -23,6 +23,11 @@ fn should_retry(err: &str) -> bool {
         }
     }
 
+    // HTTP 429 限流
+    if msg.contains("429") || msg.contains("too many requests") || msg.contains("rate limit") {
+        return true;
+    }
+
     // HTTP 4xx/5xx 错误
     if msg.contains(": 4") || msg.contains(": 5") {
         return true;

@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'dropmail';
@@ -53,7 +53,7 @@ async function graphqlRequest(query: string, variables?: Record<string, any>): P
  * GraphQL mutation: introduceSession
  * 返回 session ID (存入 token) 和邮箱地址
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const data = await graphqlRequest(CREATE_SESSION_QUERY);
 
   const session = data?.introduceSession;

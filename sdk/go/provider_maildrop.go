@@ -209,7 +209,7 @@ func maildropGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel: ChannelMaildrop,
 		Email:   email,
-		Token:   username,
+		token:   username,
 	}, nil
 }
 

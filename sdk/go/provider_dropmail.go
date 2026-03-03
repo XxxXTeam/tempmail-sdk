@@ -104,7 +104,7 @@ func dropmailGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel:   ChannelDropmail,
 		Email:     session.Addresses[0].Address,
-		Token:     session.ID,
+		token:     session.ID,
 		ExpiresAt: session.ExpiresAt,
 	}, nil
 }

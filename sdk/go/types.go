@@ -22,15 +22,15 @@ const (
 
 /*
  * EmailInfo 创建临时邮箱后返回的邮箱信息
- * 包含邮箱地址、认证令牌和生命周期信息
+ * 包含邮箱地址和生命周期信息，认证令牌由 SDK 内部维护，不对外暴露
  */
 type EmailInfo struct {
 	/* 创建该邮箱所使用的渠道 */
 	Channel Channel `json:"channel"`
 	/* 临时邮箱地址 */
 	Email string `json:"email"`
-	/* 认证令牌，部分渠道在获取邮件时需要此令牌 */
-	Token string `json:"token,omitempty"`
+	/* 认证令牌，由 SDK 内部维护，不对外暴露 */
+	token string
 	/* 邮箱过期时间（ISO 8601 字符串或 Unix 时间戳） */
 	ExpiresAt any `json:"expiresAt,omitempty"`
 	/* 邮箱创建时间（ISO 8601 字符串） */
@@ -114,24 +114,16 @@ type GenerateEmailOptions struct {
 
 /*
  * GetEmailsOptions 获取邮件列表的选项
+ * Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
  *
  * 示例:
- *   result, err := GetEmails(GetEmailsOptions{
- *       Channel: info.Channel,
- *       Email:   info.Email,
- *       Token:   info.Token,
- *   })
+ *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelMailTm})
+ *   result, _ := GetEmails(info, nil) // nil 表示使用默认配置
  *   if result.Success && len(result.Emails) > 0 {
  *       fmt.Println("收到邮件:", result.Emails[0].Subject)
  *   }
  */
 type GetEmailsOptions struct {
-	/* 渠道标识，必填 */
-	Channel Channel
-	/* 邮箱地址，必填 */
-	Email string
-	/* 认证令牌，mail-tm / awamail / dropmail / tempmail-lol 渠道必填 */
-	Token string
 	/* 重试配置，nil 则使用默认值（最多重试 2 次） */
 	Retry *RetryOptions
 }

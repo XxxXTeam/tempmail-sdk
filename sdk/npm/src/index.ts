@@ -9,12 +9,20 @@ import * as mailTm from './providers/mail-tm';
 import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
-import { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
+import { Channel, EmailInfo, InternalEmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
 import { setConfig, getConfig } from './config';
 
 export { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
+
+/**
+ * SDK 内部 token 存储
+ * 使用 WeakMap 将 EmailInfo 对象映射到对应的 token
+ * 用户无法直接访问 token，由 SDK 自动管理
+ * @internal
+ */
+const tokenStore = new WeakMap<EmailInfo, string>();
 export { normalizeEmail } from './normalize';
 export { withRetry, fetchWithTimeout, RetryOptions } from './retry';
 export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
@@ -118,9 +126,20 @@ export async function generateEmail(options: GenerateEmailOptions = {}): Promise
   for (const ch of tryOrder) {
     logger.info(`创建临时邮箱, 渠道: ${ch}`);
     try {
-      const result = await withRetry(() => generateEmailOnce(ch, options), options.retry);
-      logger.info(`邮箱创建成功: ${result.email} (渠道: ${ch})`);
-      return result;
+      const internal: InternalEmailInfo = await withRetry(() => generateEmailOnce(ch, options), options.retry);
+      logger.info(`邮箱创建成功: ${internal.email} (渠道: ${ch})`);
+
+      /* 将 token 存入内部存储，不暴露给用户 */
+      const publicInfo: EmailInfo = {
+        channel: internal.channel,
+        email: internal.email,
+        expiresAt: internal.expiresAt,
+        createdAt: internal.createdAt,
+      };
+      if (internal.token) {
+        tokenStore.set(publicInfo, internal.token);
+      }
+      return publicInfo;
     } catch (err: any) {
       logger.warn(`渠道 ${ch} 不可用: ${err.message || err}，尝试下一个渠道`);
     }
@@ -146,7 +165,7 @@ function buildChannelOrder(preferred?: Channel): Channel[] {
  * 单次创建邮箱（不含重试逻辑）
  * 根据渠道类型分发到对应的 provider 实现
  */
-async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions): Promise<EmailInfo> {
+async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions): Promise<InternalEmailInfo> {
   switch (channel) {
     case 'tempmail':
       return tempmail.generateEmail(options.duration || 30);
@@ -177,32 +196,33 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
 
 /**
  * 获取邮件列表
+ * Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
  *
  * 错误处理策略：
- * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次）
+ * - 网络错误、超时、429、服务端 5xx 错误 → 自动重试（默认 2 次）
  * - 重试耗尽后返回 { success: false, emails: [] }，不抛异常
- * - 参数校验错误（缺少 channel / token）直接抛出
+ * - 参数校验错误（缺少 EmailInfo）直接抛出
  *
- * 这种设计让调用方在轮询场景下不会因网络波动而中断整个流程，
- * 只需检查 success 字段即可判断本次请求是否成功。
- *
- * @param options - 获取选项，包含渠道、邮箱地址、令牌
+ * @param info - GenerateEmail() 返回的邮箱信息
+ * @param options - 可选配置（重试等）
  * @returns 邮件结果，包含 success 标记和邮件列表
  *
  * @example
  * ```ts
- * const result = await getEmails({
- *   channel: emailInfo.channel,
- *   email: emailInfo.email,
- *   token: emailInfo.token,
- * });
+ * const info = await generateEmail({ channel: 'mail-tm' });
+ * const result = await getEmails(info);
  * if (result.success && result.emails.length > 0) {
  *   console.log('收到邮件:', result.emails[0].subject);
  * }
  * ```
  */
-export async function getEmails(options: GetEmailsOptions): Promise<GetEmailsResult> {
-  const { channel, email, token } = options;
+export async function getEmails(info: EmailInfo, options?: GetEmailsOptions): Promise<GetEmailsResult> {
+  if (!info) {
+    throw new Error('EmailInfo is required, call generateEmail() first');
+  }
+
+  const { channel, email } = info;
+  const token = tokenStore.get(info);
 
   if (!channel) {
     throw new Error('Channel is required');
@@ -213,7 +233,7 @@ export async function getEmails(options: GetEmailsOptions): Promise<GetEmailsRes
 
   logger.debug(`获取邮件, 渠道: ${channel}, 邮箱: ${email}`);
   try {
-    const emails = await withRetry(() => getEmailsOnce(channel, email, token), options.retry);
+    const emails = await withRetry(() => getEmailsOnce(channel, email, token), options?.retry);
     if (emails.length > 0) {
       logger.info(`获取到 ${emails.length} 封邮件, 渠道: ${channel}`);
     } else {
@@ -241,7 +261,7 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'linshi-email':
       return linshiEmail.getEmails(email);
     case 'tempmail-lol':
-      if (!token) throw new Error('Token is required for tempmail-lol channel');
+      if (!token) throw new Error('internal error: token missing for tempmail-lol');
       return tempmailLol.getEmails(token, email);
     case 'chatgpt-org-uk':
       return chatgptOrgUk.getEmails(email);
@@ -250,19 +270,19 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'temp-mail-io':
       return tempMailIO.getEmails(email);
     case 'awamail':
-      if (!token) throw new Error('Token is required for awamail channel');
+      if (!token) throw new Error('internal error: token missing for awamail');
       return awamail.getEmails(token, email);
     case 'mail-tm':
-      if (!token) throw new Error('Token is required for mail-tm channel');
+      if (!token) throw new Error('internal error: token missing for mail-tm');
       return mailTm.getEmails(token, email);
     case 'dropmail':
-      if (!token) throw new Error('Token is required for dropmail channel');
+      if (!token) throw new Error('internal error: token missing for dropmail');
       return dropmail.getEmails(token, email);
     case 'guerrillamail':
-      if (!token) throw new Error('Token is required for guerrillamail channel');
+      if (!token) throw new Error('internal error: token missing for guerrillamail');
       return guerrillamail.getEmails(token, email);
     case 'maildrop':
-      if (!token) throw new Error('Token is required for maildrop channel');
+      if (!token) throw new Error('internal error: token missing for maildrop');
       return maildropProvider.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
@@ -305,16 +325,12 @@ export class TempEmailClient {
    *
    * @throws 未调用 generate() 时抛出异常
    */
-  async getEmails(): Promise<GetEmailsResult> {
+  async getEmails(options?: GetEmailsOptions): Promise<GetEmailsResult> {
     if (!this.emailInfo) {
       throw new Error('No email generated. Call generate() first.');
     }
 
-    return getEmails({
-      channel: this.emailInfo.channel,
-      email: this.emailInfo.email,
-      token: this.emailInfo.token,
-    });
+    return getEmails(this.emailInfo, options);
   }
 
   /**

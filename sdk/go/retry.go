@@ -94,6 +94,11 @@ func shouldRetry(err error) bool {
 		}
 	}
 
+	/* HTTP 429 限流 → 重试 */
+	if strings.Contains(msg, "429") || strings.Contains(msg, "too many requests") || strings.Contains(msg, "rate limit") {
+		return true
+	}
+
 	/* HTTP 4xx/5xx 错误 → 重试 */
 	if strings.Contains(msg, ": 4") || strings.Contains(msg, ": 5") {
 		return true

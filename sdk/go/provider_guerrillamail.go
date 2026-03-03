@@ -57,7 +57,7 @@ func guerrillaMailGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel:   ChannelGuerrillaMail,
 		Email:     result.EmailAddr,
-		Token:     result.SidToken,
+		token:     result.SidToken,
 		ExpiresAt: (result.EmailTimestamp + 3600) * 1000,
 	}, nil
 }

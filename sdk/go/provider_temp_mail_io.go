@@ -122,7 +122,7 @@ func tempMailIOGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel: ChannelTempMailIO,
 		Email:   result.Email,
-		Token:   result.Token,
+		token:   result.Token,
 	}, nil
 }
 

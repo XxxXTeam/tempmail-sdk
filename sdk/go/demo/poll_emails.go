@@ -84,11 +84,7 @@ func pollEmails(emailInfo *tempemail.EmailInfo) {
 				return
 			}
 
-			result, err := tempemail.GetEmails(tempemail.GetEmailsOptions{
-				Channel: emailInfo.Channel,
-				Email:   emailInfo.Email,
-				Token:   emailInfo.Token,
-			})
+			result, err := emailInfo.GetEmails(nil)
 
 			timestamp := time.Now().Format("15:04:05")
 
@@ -154,9 +150,6 @@ func main() {
 	fmt.Println("\n📋 邮箱信息:")
 	fmt.Printf("   渠道: %s\n", emailInfo.Channel)
 	fmt.Printf("   邮箱: %s\n", emailInfo.Email)
-	if emailInfo.Token != "" {
-		fmt.Printf("   Token: %s\n", emailInfo.Token)
-	}
 	if emailInfo.ExpiresAt != nil {
 		fmt.Printf("   过期时间: %v\n", emailInfo.ExpiresAt)
 	}

@@ -138,34 +138,34 @@ tm_email_info_t* tm_generate_email(const tm_generate_options_t *options) {
     return NULL;
 }
 
-tm_get_emails_result_t* tm_get_emails(const tm_get_emails_options_t *options) {
-    if (!options) return NULL;
+tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const tm_get_emails_options_t *options) {
+    if (!email_info) return NULL;
 
     tm_get_emails_result_t *result = (tm_get_emails_result_t*)calloc(1, sizeof(tm_get_emails_result_t));
     if (!result) return NULL;
 
-    result->channel = options->channel;
-    result->email = tm_strdup(options->email);
+    result->channel = email_info->channel;
+    result->email = tm_strdup(email_info->email);
 
-    TM_LOG_DBG("获取邮件, 渠道: %s, 邮箱: %s", tm_channel_name(options->channel), options->email);
+    TM_LOG_DBG("获取邮件, 渠道: %s, 邮箱: %s", tm_channel_name(email_info->channel), email_info->email);
 
-    tm_retry_config_t cfg = (options->retry) ? *options->retry : tm_default_retry_config();
+    tm_retry_config_t cfg = (options && options->retry) ? *options->retry : tm_default_retry_config();
     int count = 0;
     tm_email_t *emails = NULL;
 
     for (int attempt = 0; attempt <= cfg.max_retries; attempt++) {
-        switch (options->channel) {
-            case CHANNEL_TEMPMAIL:       emails = tm_provider_tempmail_get_emails(options->email, &count); break;
-            case CHANNEL_LINSHI_EMAIL:   emails = tm_provider_linshi_email_get_emails(options->email, &count); break;
-            case CHANNEL_TEMPMAIL_LOL:   emails = tm_provider_tempmail_lol_get_emails(options->token, options->email, &count); break;
-            case CHANNEL_CHATGPT_ORG_UK: emails = tm_provider_chatgpt_org_uk_get_emails(options->email, &count); break;
-            case CHANNEL_TEMPMAIL_LA:    emails = tm_provider_tempmail_la_get_emails(options->email, &count); break;
-            case CHANNEL_TEMP_MAIL_IO:   emails = tm_provider_temp_mail_io_get_emails(options->email, &count); break;
-            case CHANNEL_AWAMAIL:        emails = tm_provider_awamail_get_emails(options->token, options->email, &count); break;
-            case CHANNEL_MAIL_TM:        emails = tm_provider_mail_tm_get_emails(options->token, options->email, &count); break;
-            case CHANNEL_DROPMAIL:       emails = tm_provider_dropmail_get_emails(options->token, options->email, &count); break;
-            case CHANNEL_GUERRILLAMAIL:  emails = tm_provider_guerrillamail_get_emails(options->token, options->email, &count); break;
-            case CHANNEL_MAILDROP:       emails = tm_provider_maildrop_get_emails(options->token, options->email, &count); break;
+        switch (email_info->channel) {
+            case CHANNEL_TEMPMAIL:       emails = tm_provider_tempmail_get_emails(email_info->email, &count); break;
+            case CHANNEL_LINSHI_EMAIL:   emails = tm_provider_linshi_email_get_emails(email_info->email, &count); break;
+            case CHANNEL_TEMPMAIL_LOL:   emails = tm_provider_tempmail_lol_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_CHATGPT_ORG_UK: emails = tm_provider_chatgpt_org_uk_get_emails(email_info->email, &count); break;
+            case CHANNEL_TEMPMAIL_LA:    emails = tm_provider_tempmail_la_get_emails(email_info->email, &count); break;
+            case CHANNEL_TEMP_MAIL_IO:   emails = tm_provider_temp_mail_io_get_emails(email_info->email, &count); break;
+            case CHANNEL_AWAMAIL:        emails = tm_provider_awamail_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_MAIL_TM:        emails = tm_provider_mail_tm_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_DROPMAIL:       emails = tm_provider_dropmail_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_GUERRILLAMAIL:  emails = tm_provider_guerrillamail_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_MAILDROP:       emails = tm_provider_maildrop_get_emails(email_info->token, email_info->email, &count); break;
             default: break;
         }
 
@@ -176,9 +176,9 @@ tm_get_emails_result_t* tm_get_emails(const tm_get_emails_options_t *options) {
             result->email_count = count;
             result->success = true;
             if (count > 0) {
-                TM_LOG_INF("获取到 %d 封邮件, 渠道: %s", count, tm_channel_name(options->channel));
+                TM_LOG_INF("获取到 %d 封邮件, 渠道: %s", count, tm_channel_name(email_info->channel));
             } else {
-                TM_LOG_DBG("暂无邮件, 渠道: %s", tm_channel_name(options->channel));
+                TM_LOG_DBG("暂无邮件, 渠道: %s", tm_channel_name(email_info->channel));
             }
             return result;
         }
@@ -191,7 +191,7 @@ tm_get_emails_result_t* tm_get_emails(const tm_get_emails_options_t *options) {
         }
     }
 
-    TM_LOG_ERR("获取邮件失败, 渠道: %s", tm_channel_name(options->channel));
+    TM_LOG_ERR("获取邮件失败, 渠道: %s", tm_channel_name(email_info->channel));
     result->success = false;
     result->error = tm_strdup("重试耗尽后仍失败");
     return result;

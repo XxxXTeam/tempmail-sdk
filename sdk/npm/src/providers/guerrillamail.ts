@@ -8,7 +8,7 @@
  * - 邮箱有效期 60 分钟
  */
 
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'guerrillamail';
@@ -19,7 +19,7 @@ const BASE_URL = 'https://api.guerrillamail.com/ajax.php';
  * API: GET ajax.php?f=get_email_address
  * 返回 email_addr + sid_token（用于后续获取邮件）
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetch(`${BASE_URL}?f=get_email_address&lang=en`, {
     method: 'GET',
     headers: {

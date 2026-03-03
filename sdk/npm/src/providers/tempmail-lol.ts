@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'tempmail-lol';
@@ -14,7 +14,7 @@ const DEFAULT_HEADERS = {
   'DNT': '1',
 };
 
-export async function generateEmail(domain: string | null = null): Promise<EmailInfo> {
+export async function generateEmail(domain: string | null = null): Promise<InternalEmailInfo> {
   const response = await fetch(`${BASE_URL}/inbox/create`, {
     method: 'POST',
     headers: DEFAULT_HEADERS,

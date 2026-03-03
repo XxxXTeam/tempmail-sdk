@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'chatgpt-org-uk';
@@ -15,7 +15,7 @@ const DEFAULT_HEADERS = {
   'DNT': '1',
 };
 
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetch(`${BASE_URL}/generate-email`, {
     method: 'GET',
     headers: DEFAULT_HEADERS,

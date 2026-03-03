@@ -33,6 +33,10 @@ def _should_retry(error: Exception) -> bool:
         if kw in msg:
             return True
 
+    # HTTP 429 限流
+    if "429" in msg or "too many requests" in msg or "rate limit" in msg:
+        return True
+
     # HTTP 4xx/5xx 错误
     if ": 4" in msg or ": 5" in msg:
         return True

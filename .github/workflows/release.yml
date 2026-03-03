@@ -6,10 +6,36 @@ on:
       - 'v*'
 
 jobs:
+  # 创建 Go 子目录模块标签
+  # Go modules 要求子目录模块使用 sdk/go/vX.X.X 格式的标签
+  # 否则 go get / go mod tidy 无法正确解析版本
+  create-go-module-tag:
+    name: 创建 Go 模块标签
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 创建 Go 子目录模块标签
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          GO_TAG="sdk/go/${{ steps.version.outputs.VERSION }}"
+          echo "创建 Go 模块标签: ${GO_TAG}"
+          git tag "${GO_TAG}" || true
+          git push origin "${GO_TAG}" || true
+
   # 构建验证
   verify:
     name: 构建验证
     runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
     
     steps:
       - uses: actions/checkout@v4
@@ -492,7 +518,7 @@ jobs:
 
             #### Go
             ```bash
-            go get github.com/XxxXTeam/tempmail-sdk/sdk/go@${{ steps.version.outputs.VERSION }}
+            go get github.com/XxxXTeam/tempmail-sdk/sdk/go@sdk/go/${{ steps.version.outputs.VERSION }}
             ```
 
             #### npm

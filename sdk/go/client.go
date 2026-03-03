@@ -3,7 +3,6 @@ package tempemail
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 /* 所有支持的渠道列表，用于随机选择和遍历 */
@@ -46,10 +45,6 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelDropmail:      {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail: {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:      {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 /*
@@ -190,51 +185,64 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 /*
  * GetEmails 获取邮件列表
+ * Channel/Email/Token 等信息由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
  *
  * 错误处理策略:
  * - 网络错误、超时、服务端 5xx 错误 → 自动重试（默认 2 次）
  * - 重试耗尽后返回 { Success: false, Emails: [] }，不返回 error
- * - 参数校验错误（缺少 Channel/Token）直接返回 error
+ * - 参数校验错误（缺少 EmailInfo）直接返回 error
  *
  * 这种设计让调用方在轮询场景下不会因网络波动而中断整个流程，
  * 只需检查 Success 字段即可判断本次请求是否成功。
+ *
+ * 示例:
+ *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelMailTm})
+ *   result, _ := GetEmails(info, nil)
  */
-func GetEmails(opts GetEmailsOptions) (*GetEmailsResult, error) {
-	if opts.Channel == "" {
+func GetEmails(info *EmailInfo, opts *GetEmailsOptions) (*GetEmailsResult, error) {
+	if info == nil {
+		return nil, fmt.Errorf("EmailInfo is required, call GenerateEmail() first")
+	}
+	if info.Channel == "" {
 		return nil, fmt.Errorf("channel is required")
 	}
-	if opts.Email == "" && opts.Channel != ChannelTempmailLol {
+	if info.Email == "" && info.Channel != ChannelTempmailLol {
 		return nil, fmt.Errorf("email is required")
 	}
 
-	sdkLogger.Debug("获取邮件", "channel", string(opts.Channel), "email", opts.Email)
+	var retry *RetryOptions
+	if opts != nil {
+		retry = opts.Retry
+	}
+
+	sdkLogger.Debug("获取邮件", "channel", string(info.Channel), "email", info.Email)
 	emails, err := WithRetry(func() ([]Email, error) {
-		return getEmailsOnce(opts)
-	}, opts.Retry)
+		return getEmailsOnce(info.Channel, info.Email, info.token)
+	}, retry)
 
 	if err != nil {
 		/*
 		 * 重试耗尽后仍然失败 → 返回空结果而非 error
 		 * 这样调用方在轮询场景下不会因为一次网络波动而中断整个流程
 		 */
-		sdkLogger.Error("获取邮件失败", "channel", string(opts.Channel), "error", err.Error())
+		sdkLogger.Error("获取邮件失败", "channel", string(info.Channel), "error", err.Error())
 		return &GetEmailsResult{
-			Channel: opts.Channel,
-			Email:   opts.Email,
+			Channel: info.Channel,
+			Email:   info.Email,
 			Emails:  []Email{},
 			Success: false,
 		}, nil
 	}
 
 	if len(emails) > 0 {
-		sdkLogger.Info("获取到邮件", "channel", string(opts.Channel), "count", len(emails))
+		sdkLogger.Info("获取到邮件", "channel", string(info.Channel), "count", len(emails))
 	} else {
-		sdkLogger.Debug("暂无邮件", "channel", string(opts.Channel))
+		sdkLogger.Debug("暂无邮件", "channel", string(info.Channel))
 	}
 
 	return &GetEmailsResult{
-		Channel: opts.Channel,
-		Email:   opts.Email,
+		Channel: info.Channel,
+		Email:   info.Email,
 		Emails:  emails,
 		Success: true,
 	}, nil
@@ -242,64 +250,77 @@ func GetEmails(opts GetEmailsOptions) (*GetEmailsResult, error) {
 
 /*
  * getEmailsOnce 单次获取邮件（不含重试逻辑）
- * 根据渠道类型分发到对应的 provider 实现，并校验必需的 Token 参数
+ * 根据渠道类型分发到对应的 provider 实现
+ * token 由 SDK 内部从 EmailInfo 中获取，用户无感知
  */
-func getEmailsOnce(opts GetEmailsOptions) ([]Email, error) {
-	switch opts.Channel {
+func getEmailsOnce(channel Channel, email string, token string) ([]Email, error) {
+	switch channel {
 	case ChannelTempmail:
-		return tempmailGetEmails(opts.Email)
+		return tempmailGetEmails(email)
 
 	case ChannelLinshiEmail:
-		return linshiEmailGetEmails(opts.Email)
+		return linshiEmailGetEmails(email)
 
 	case ChannelTempmailLol:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for tempmail-lol channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempmail-lol channel")
 		}
-		return tempmailLolGetEmails(opts.Token, opts.Email)
+		return tempmailLolGetEmails(token, email)
 
 	case ChannelChatgptOrgUk:
-		return chatgptOrgUkGetEmails(opts.Email)
+		return chatgptOrgUkGetEmails(email)
 
 	case ChannelTempmailLa:
-		return tempmailLaGetEmails(opts.Email)
+		return tempmailLaGetEmails(email)
 
 	case ChannelTempMailIO:
-		return tempMailIOGetEmails(opts.Email)
+		return tempMailIOGetEmails(email)
 
 	case ChannelAwamail:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for awamail channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for awamail channel")
 		}
-		return awamailGetEmails(opts.Token, opts.Email)
+		return awamailGetEmails(token, email)
 
 	case ChannelMailTm:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for mail-tm channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-tm channel")
 		}
-		return mailTmGetEmails(opts.Token, opts.Email)
+		return mailTmGetEmails(token, email)
 
 	case ChannelDropmail:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for dropmail channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for dropmail channel")
 		}
-		return dropmailGetEmails(opts.Token, opts.Email)
+		return dropmailGetEmails(token, email)
 
 	case ChannelGuerrillaMail:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for guerrillamail channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail channel")
 		}
-		return guerrillaMailGetEmails(opts.Token, opts.Email)
+		return guerrillaMailGetEmails(token, email)
 
 	case ChannelMaildrop:
-		if opts.Token == "" {
-			return nil, fmt.Errorf("token is required for maildrop channel")
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for maildrop channel")
 		}
-		return maildropGetEmails(opts.Token, opts.Email)
+		return maildropGetEmails(token, email)
 
 	default:
-		return nil, fmt.Errorf("unknown channel: %s", opts.Channel)
+		return nil, fmt.Errorf("unknown channel: %s", channel)
 	}
+}
+
+/*
+ * EmailInfo.GetEmails 获取当前邮箱的邮件列表
+ * Token 等内部信息由 SDK 自动维护，用户无需关心
+ *
+ * 示例:
+ *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelMailTm})
+ *   result, _ := info.GetEmails(nil)
+ */
+func (info *EmailInfo) GetEmails(opts *GetEmailsOptions) (*GetEmailsResult, error) {
+	return GetEmails(info, opts)
 }
 
 /*
@@ -309,7 +330,7 @@ func getEmailsOnce(opts GetEmailsOptions) ([]Email, error) {
  * 示例:
  *   client := NewClient()
  *   info, _ := client.Generate(&GenerateEmailOptions{Channel: ChannelMailTm})
- *   result, _ := client.GetEmails()
+ *   result, _ := client.GetEmails(nil)
  *   if result.Success {
  *       fmt.Println("邮件数:", len(result.Emails))
  *   }
@@ -340,16 +361,12 @@ func (c *Client) Generate(opts *GenerateEmailOptions) (*EmailInfo, error) {
  * GetEmails 获取当前邮箱的邮件列表
  * 必须先调用 Generate() 创建邮箱
  */
-func (c *Client) GetEmails() (*GetEmailsResult, error) {
+func (c *Client) GetEmails(opts *GetEmailsOptions) (*GetEmailsResult, error) {
 	if c.emailInfo == nil {
 		return nil, fmt.Errorf("no email generated. Call Generate() first")
 	}
 
-	return GetEmails(GetEmailsOptions{
-		Channel: c.emailInfo.Channel,
-		Email:   c.emailInfo.Email,
-		Token:   c.emailInfo.Token,
-	})
+	return GetEmails(c.emailInfo, opts)
 }
 
 /* GetEmailInfo 获取当前缓存的邮箱信息，未调用 Generate() 时返回 nil */

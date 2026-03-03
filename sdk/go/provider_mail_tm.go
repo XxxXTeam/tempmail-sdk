@@ -199,7 +199,7 @@ func mailTmGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel:   ChannelMailTm,
 		Email:     address,
-		Token:     token,
+		token:     token,
 		CreatedAt: account.CreatedAt,
 	}, nil
 }

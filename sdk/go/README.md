@@ -13,21 +13,21 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 
 ## 支持的渠道
 
-| 渠道 | 服务商 | 常量 | 需要 Token | 说明 |
-|------|--------|------|:----------:|------|
-| `tempmail` | tempmail.ing | `ChannelTempmail` | - | 支持自定义有效期 |
-| `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | - | |
-| `tempmail-lol` | tempmail.lol | `ChannelTempmailLol` | ✅ | 支持指定域名 |
-| `chatgpt-org-uk` | mail.chatgpt.org.uk | `ChannelChatgptOrgUk` | - | |
-| `tempmail-la` | tempmail.la | `ChannelTempmailLa` | - | 支持分页 |
-| `temp-mail-io` | temp-mail.io | `ChannelTempMailIO` | - | |
-| `awamail` | awamail.com | `ChannelAwamail` | ✅ | Session Cookie 自动管理 |
-| `mail-tm` | mail.tm | `ChannelMailTm` | ✅ | 自动注册账号 |
-| `dropmail` | dropmail.me | `ChannelDropmail` | ✅ | GraphQL API |
-| `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | ✅ | 公开 JSON API |
-| `maildrop` | maildrop.cc | `ChannelMaildrop` | - | GraphQL API，自带反垃圾 |
+| 渠道 | 服务商 | 常量 | 说明 |
+|------|--------|------|------|
+| `tempmail` | tempmail.ing | `ChannelTempmail` | 支持自定义有效期 |
+| `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
+| `tempmail-lol` | tempmail.lol | `ChannelTempmailLol` | 支持指定域名 |
+| `chatgpt-org-uk` | mail.chatgpt.org.uk | `ChannelChatgptOrgUk` | |
+| `tempmail-la` | tempmail.la | `ChannelTempmailLa` | 支持分页 |
+| `temp-mail-io` | temp-mail.io | `ChannelTempMailIO` | |
+| `awamail` | awamail.com | `ChannelAwamail` | Session Cookie 自动管理 |
+| `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册账号 |
+| `dropmail` | dropmail.me | `ChannelDropmail` | GraphQL API |
+| `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | 公开 JSON API |
+| `maildrop` | maildrop.cc | `ChannelMaildrop` | GraphQL API，自带反垃圾 |
 
-> **提示：** 使用 `Client` 时无需手动处理 Token，SDK 自动管理。
+> **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 
 ## 快速开始
 
@@ -54,8 +54,8 @@ func main() {
     fmt.Printf("渠道: %s\n", emailInfo.Channel)
     fmt.Printf("邮箱: %s\n", emailInfo.Email)
 
-    // 获取邮件（Token 自动传递，无需手动处理）
-    result, err := client.GetEmails()
+    // 获取邮件（Token 等由 SDK 内部自动维护）
+    result, err := client.GetEmails(nil)
     if err != nil {
         panic(err)
     }
@@ -118,17 +118,18 @@ emailInfo, err := tempemail.GenerateEmail(&tempemail.GenerateEmailOptions{
 #### 获取邮件
 
 ```go
-// 不需要 Token 的渠道
-result, err := tempemail.GetEmails(tempemail.GetEmailsOptions{
-    Channel: tempemail.ChannelTempmail,
-    Email:   "xxx@ibymail.com",
-})
-
-// 需要 Token 的渠道（Token 由 GenerateEmail 返回）
-result, err := tempemail.GetEmails(tempemail.GetEmailsOptions{
+// 方式1：通过 EmailInfo 方法获取（推荐）
+emailInfo, _ := tempemail.GenerateEmail(&tempemail.GenerateEmailOptions{
     Channel: tempemail.ChannelMailTm,
-    Email:   emailInfo.Email,
-    Token:   emailInfo.Token,
+})
+result, err := emailInfo.GetEmails(nil)
+
+// 方式2：通过函数式 API 获取
+result, err := tempemail.GetEmails(emailInfo, nil)
+
+// 方式3：自定义重试配置
+result, err := tempemail.GetEmails(emailInfo, &tempemail.GetEmailsOptions{
+    Retry: &tempemail.RetryOptions{MaxRetries: 3},
 })
 
 // 所有邮件使用统一格式
@@ -219,21 +220,27 @@ export TEMPMAIL_TIMEOUT=30
 |------|------|------|
 | `Channel` | `Channel` | 渠道标识 |
 | `Email` | `string` | 邮箱地址 |
-| `Token` | `string` | 访问令牌（部分渠道返回） |
 | `ExpiresAt` | `any` | 过期时间 |
 | `CreatedAt` | `string` | 创建时间 |
 
-### GetEmails(opts)
+> Token 等认证信息由 SDK 内部维护，不对外暴露。
 
-获取邮件列表。
+### GetEmails(info, opts)
 
-**参数 (`GetEmailsOptions`):**
+获取邮件列表。Channel/Email/Token 等由 SDK 从 `EmailInfo` 中自动获取。
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|:----:|------|
-| `Channel` | `Channel` | ✅ | 渠道标识 |
-| `Email` | `string` | ✅ | 邮箱地址 |
-| `Token` | `string` | 部分 | 访问令牌（`ChannelTempmailLol`、`ChannelAwamail`、`ChannelMailTm`、`ChannelDropmail` 必填） |
+**参数:**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `info` | `*EmailInfo` | `GenerateEmail()` 返回的邮箱信息（必填） |
+| `opts` | `*GetEmailsOptions` | 可选配置，`nil` 使用默认值 |
+
+**`GetEmailsOptions` 字段:**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `Retry` | `*RetryOptions` | 重试配置，nil 使用默认值 |
 
 **返回值:** `*GetEmailsResult`
 

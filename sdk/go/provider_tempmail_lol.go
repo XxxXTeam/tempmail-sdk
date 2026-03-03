@@ -63,7 +63,7 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel: ChannelTempmailLol,
 		Email:   result.Address,
-		Token:   result.Token,
+		token:   result.Token,
 	}, nil
 }
 

@@ -9,7 +9,7 @@
  * - 无过期时间限制
  */
 
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 
 const CHANNEL: Channel = 'maildrop';
 const GRAPHQL_URL = 'https://api.maildrop.cc/graphql';
@@ -140,7 +140,7 @@ async function graphqlRequest(
  * 创建临时邮箱
  * Maildrop 无需注册，任意用户名即可接收邮件
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const username = randomUsername();
   const email = `${username}@${DOMAIN}`;
 

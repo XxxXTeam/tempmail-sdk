@@ -104,14 +104,16 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
 }
 
 /// 获取邮件列表
+/// Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
 ///
 /// 错误处理策略:
-/// - 网络错误、超时、HTTP 4xx/5xx → 自动重试（默认 2 次）
+/// - 网络错误、超时、429、HTTP 5xx → 自动重试（默认 2 次）
 /// - 重试耗尽后返回 GetEmailsResult { success: false, emails: [] }
-pub fn get_emails(options: &GetEmailsOptions) -> GetEmailsResult {
-    let channel = options.channel.clone();
-    let email = options.email.clone();
-    let token = options.token.clone();
+pub fn get_emails(info: &EmailInfo, options: Option<&GetEmailsOptions>) -> GetEmailsResult {
+    let channel = info.channel.clone();
+    let email = info.email.clone();
+    let token = info.token.clone();
+    let retry = options.and_then(|o| o.retry.as_ref());
 
     log::debug!("获取邮件, 渠道: {}, 邮箱: {}", channel, email);
 
@@ -121,7 +123,7 @@ pub fn get_emails(options: &GetEmailsOptions) -> GetEmailsResult {
 
     match with_retry(|| {
         get_emails_once(&ch, &em, tk.as_deref())
-    }, options.retry.as_ref()) {
+    }, retry) {
         Ok(emails) => {
             if !emails.is_empty() {
                 log::info!("获取到 {} 封邮件, 渠道: {}", emails.len(), channel);
@@ -190,14 +192,9 @@ impl TempEmailClient {
     }
 
     /// 获取当前邮箱的邮件列表
-    pub fn get_emails(&self) -> Result<GetEmailsResult, String> {
+    pub fn get_emails(&self, options: Option<&GetEmailsOptions>) -> Result<GetEmailsResult, String> {
         let info = self.email_info.as_ref().ok_or("No email generated. Call generate() first")?;
-        Ok(get_emails(&GetEmailsOptions {
-            channel: info.channel.clone(),
-            email: info.email.clone(),
-            token: info.token.clone(),
-            retry: None,
-        }))
+        Ok(get_emails(info, options))
     }
 
     /// 获取当前缓存的邮箱信息

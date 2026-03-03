@@ -23,15 +23,9 @@ int main(void) {
     }
 
     printf("创建成功: %s\n", info->email);
-    printf("Token: %s\n", info->token ? info->token : "(none)");
 
-    /* 获取邮件 */
-    tm_get_emails_options_t get_opts = {0};
-    get_opts.channel = info->channel;
-    get_opts.email = info->email;
-    get_opts.token = info->token;
-
-    tm_get_emails_result_t *result = tm_get_emails(&get_opts);
+    /* 获取邮件（Token 等由 SDK 内部自动维护） */
+    tm_get_emails_result_t *result = tm_get_emails(info, NULL);
     if (result) {
         printf("获取邮件 success=%s count=%d\n",
             result->success ? "true" : "false",

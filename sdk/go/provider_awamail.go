@@ -100,7 +100,7 @@ func awamailGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel:   ChannelAwamail,
 		Email:     result.Data.EmailAddress,
-		Token:     sessionCookie,
+		token:     sessionCookie,
 		ExpiresAt: result.Data.ExpiredAt,
 		CreatedAt: result.Data.CreatedAt,
 	}, nil

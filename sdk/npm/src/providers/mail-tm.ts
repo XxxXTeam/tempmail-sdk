@@ -1,4 +1,4 @@
-import { EmailInfo, Email, Channel } from '../types';
+import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 
 const CHANNEL: Channel = 'mail-tm';
@@ -88,7 +88,7 @@ async function getToken(address: string, password: string): Promise<string> {
  * 创建临时邮箱
  * 流程: 获取域名 → 生成随机邮箱/密码 → 创建账号 → 获取 Token
  */
-export async function generateEmail(): Promise<EmailInfo> {
+export async function generateEmail(): Promise<InternalEmailInfo> {
   // 1. 获取可用域名
   const domains = await getDomains();
   if (domains.length === 0) {

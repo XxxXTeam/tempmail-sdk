@@ -112,7 +112,7 @@ def generate_email(**kwargs) -> EmailInfo:
     return EmailInfo(
         channel=CHANNEL,
         email=address,
-        token=token,
+        _token=token,
         created_at=account.get("createdAt"),
     )
 

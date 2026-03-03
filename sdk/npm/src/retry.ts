@@ -53,6 +53,11 @@ function defaultShouldRetry(error: any): boolean {
     return true;
   }
 
+  /* HTTP 429 限流 → 重试 */
+  if (message.includes('429') || message.includes('too many requests') || message.includes('rate limit')) {
+    return true;
+  }
+
   /* HTTP 4xx/5xx 错误 → 重试 */
   const statusMatch = message.match(/:\s*(\d{3})/);
   if (statusMatch) {

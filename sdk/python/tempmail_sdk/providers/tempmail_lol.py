@@ -38,7 +38,7 @@ def generate_email(domain: str = None, **kwargs) -> EmailInfo:
     return EmailInfo(
         channel=CHANNEL,
         email=data["address"],
-        token=data["token"],
+        _token=data["token"],
     )
 
 

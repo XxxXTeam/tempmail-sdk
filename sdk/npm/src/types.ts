@@ -6,19 +6,27 @@ export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-or
 
 /**
  * 创建临时邮箱后返回的邮箱信息
- * 包含邮箱地址、认证令牌和生命周期信息
+ * Token 等认证信息由 SDK 内部维护，不对外暴露
  */
 export interface EmailInfo {
   /** 创建该邮箱所使用的渠道 */
   channel: Channel;
   /** 临时邮箱地址 */
   email: string;
-  /** 认证令牌，部分渠道在获取邮件时需要此令牌 */
-  token?: string;
   /** 邮箱过期时间（ISO 8601 字符串或 Unix 时间戳） */
   expiresAt?: string | number;
   /** 邮箱创建时间（ISO 8601 字符串） */
   createdAt?: string;
+}
+
+/**
+ * SDK 内部使用的邮箱信息，包含 token 等认证数据
+ * 不对外导出，用户无法访问
+ * @internal
+ */
+export interface InternalEmailInfo extends EmailInfo {
+  /** 认证令牌，由 SDK 内部维护 */
+  token?: string;
 }
 
 /**
@@ -125,26 +133,18 @@ export interface GenerateEmailOptions {
 
 /**
  * 获取邮件列表的选项
+ * Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
  *
  * @example
  * ```ts
- * const result = await getEmails({
- *   channel: emailInfo.channel,
- *   email: emailInfo.email,
- *   token: emailInfo.token,
- * });
+ * const info = await generateEmail({ channel: 'mail-tm' });
+ * const result = await getEmails(info);
  * if (result.success && result.emails.length > 0) {
  *   console.log('收到邮件:', result.emails);
  * }
  * ```
  */
 export interface GetEmailsOptions {
-  /** 渠道标识，必填 */
-  channel: Channel;
-  /** 邮箱地址，必填 */
-  email: string;
-  /** 认证令牌 */
-  token?: string;
   /** 重试配置，不传则使用默认值（最多重试 2 次） */
   retry?: RetryConfig;
 }

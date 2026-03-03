@@ -50,14 +50,16 @@ impl std::fmt::Display for Channel {
 }
 
 /// 创建临时邮箱后返回的邮箱信息
+/// Token 等认证信息由 SDK 内部维护，不对外暴露
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmailInfo {
     /// 创建该邮箱所使用的渠道
     pub channel: Channel,
     /// 临时邮箱地址
     pub email: String,
-    /// 认证令牌，部分渠道获取邮件时需要
-    pub token: Option<String>,
+    /// 认证令牌，由 SDK 内部维护，不对外暴露
+    #[serde(skip_serializing)]
+    pub(crate) token: Option<String>,
     /// 邮箱过期时间（毫秒时间戳）
     pub expires_at: Option<i64>,
     /// 邮箱创建时间
@@ -151,14 +153,9 @@ pub struct GenerateEmailOptions {
 }
 
 /// 获取邮件的选项
-#[derive(Debug, Clone)]
+/// Channel/Email/Token 等由 SDK 从 EmailInfo 中自动获取，用户无需手动传递
+#[derive(Debug, Clone, Default)]
 pub struct GetEmailsOptions {
-    /// 渠道标识（必需）
-    pub channel: Channel,
-    /// 邮箱地址（必需）
-    pub email: String,
-    /// 认证令牌（部分渠道必需）
-    pub token: Option<String>,
     /// 重试配置
     pub retry: Option<RetryConfig>,
 }
