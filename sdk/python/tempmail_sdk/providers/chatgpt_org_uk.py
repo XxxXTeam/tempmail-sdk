@@ -3,7 +3,10 @@ mail.chatgpt.org.uk 渠道实现
 API: https://mail.chatgpt.org.uk/api
 """
 
+import json
+import re
 from urllib.parse import quote
+
 from .. import http as tm_http
 from ..types import EmailInfo
 from ..normalize import normalize_email
@@ -20,6 +23,11 @@ DEFAULT_HEADERS = {
     "DNT": "1",
 }
 
+_BROWSER_AUTH_RE = re.compile(
+    r"__BROWSER_AUTH\s*=\s*(\{[\s\S]*?\})\s*;",
+    re.MULTILINE,
+)
+
 
 def _extract_gm_sid(resp) -> str:
     for name, value in resp.cookies.items():
@@ -28,26 +36,40 @@ def _extract_gm_sid(resp) -> str:
     return ""
 
 
-def _fetch_gm_sid_once() -> str:
+def _extract_browser_auth(html: str) -> str:
+    m = _BROWSER_AUTH_RE.search(html)
+    if not m:
+        return ""
+    try:
+        o = json.loads(m.group(1))
+        t = o.get("token")
+        return t if isinstance(t, str) else ""
+    except Exception:
+        return ""
+
+
+def _fetch_home_session_once():
     resp = tm_http.get(
         HOME_URL,
         headers=DEFAULT_HEADERS,
     )
     resp.raise_for_status()
-
     gm_sid = _extract_gm_sid(resp)
+    browser = _extract_browser_auth(resp.text or "")
     if not gm_sid:
         raise Exception("Failed to extract gm_sid cookie")
-    return gm_sid
+    if not browser:
+        raise Exception("Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)")
+    return gm_sid, browser
 
 
-def _fetch_gm_sid() -> str:
+def _fetch_home_session():
     try:
-        return _fetch_gm_sid_once()
+        return _fetch_home_session_once()
     except Exception as exc:
         msg = str(exc).lower()
-        if "401" in msg or "gm_sid" in msg:
-            return _fetch_gm_sid_once()
+        if "401" in msg or "extract" in msg or "gm_sid" in msg:
+            return _fetch_home_session_once()
         raise
 
 
@@ -69,23 +91,41 @@ def _fetch_inbox_token_once(email: str, gm_sid: str) -> str:
     return token
 
 
-def _fetch_inbox_token(email: str) -> str:
-    gm_sid = _fetch_gm_sid()
+def _fetch_inbox_token(email: str, gm_sid: str) -> str:
     try:
         return _fetch_inbox_token_once(email, gm_sid)
     except Exception as exc:
         if "401" in str(exc):
-            gm_sid = _fetch_gm_sid()
-            return _fetch_inbox_token_once(email, gm_sid)
+            gm_sid2, _browser = _fetch_home_session()
+            return _fetch_inbox_token_once(email, gm_sid2)
         raise
 
+
+def _parse_packed_token(packed: str) -> tuple[str, str]:
+    t = packed.strip()
+    if t.startswith("{"):
+        try:
+            o = json.loads(t)
+            gs = o.get("gmSid")
+            ib = o.get("inbox")
+            if isinstance(gs, str) and isinstance(ib, str):
+                return gs, ib
+        except Exception:
+            pass
+    return "", packed
 
 
 def generate_email(**kwargs) -> EmailInfo:
     """创建临时邮箱"""
+    gm_sid, browser_token = _fetch_home_session()
+
     resp = tm_http.get(
         f"{BASE_URL}/generate-email",
-        headers=DEFAULT_HEADERS,
+        headers={
+            **DEFAULT_HEADERS,
+            "Cookie": f"gm_sid={gm_sid}",
+            "X-Inbox-Token": browser_token,
+        },
     )
     resp.raise_for_status()
     data = resp.json()
@@ -94,14 +134,14 @@ def generate_email(**kwargs) -> EmailInfo:
         raise Exception("Failed to generate email")
 
     email = data["data"]["email"]
-    token = _fetch_inbox_token(email)
+    inbox = (data.get("auth") or {}).get("token") or _fetch_inbox_token(email, gm_sid)
+    packed = json.dumps({"gmSid": gm_sid, "inbox": inbox}, separators=(",", ":"))
 
     return EmailInfo(
         channel=CHANNEL,
         email=email,
-        _token=token,
+        _token=packed,
     )
-
 
 
 def get_emails(token: str, email: str, **kwargs) -> list:
@@ -109,12 +149,17 @@ def get_emails(token: str, email: str, **kwargs) -> list:
     if not token:
         raise Exception("internal error: token missing for chatgpt-org-uk")
 
-    def _fetch_emails(token_value: str) -> list:
+    gm_sid, inbox = _parse_packed_token(token)
+    if not gm_sid:
+        gm_sid = _fetch_home_session()[0]
+
+    def _fetch_emails(inbox_value: str, gm_sid_value: str) -> list:
         resp = tm_http.get(
             f"{BASE_URL}/emails?email={quote(email)}",
             headers={
                 **DEFAULT_HEADERS,
-                "x-inbox-token": token_value,
+                "Cookie": f"gm_sid={gm_sid_value}",
+                "x-inbox-token": inbox_value,
             },
         )
         resp.raise_for_status()
@@ -126,9 +171,10 @@ def get_emails(token: str, email: str, **kwargs) -> list:
         return [normalize_email(raw, email) for raw in (data.get("data", {}).get("emails") or [])]
 
     try:
-        return _fetch_emails(token)
+        return _fetch_emails(inbox, gm_sid)
     except Exception as exc:
         if "401" in str(exc):
-            refreshed_token = _fetch_inbox_token(email)
-            return _fetch_emails(refreshed_token)
+            gm_sid2, _b = _fetch_home_session()
+            refreshed = _fetch_inbox_token(email, gm_sid2)
+            return _fetch_emails(refreshed, gm_sid2)
         raise

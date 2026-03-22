@@ -7,6 +7,9 @@
  *   TEMPMAIL_PROXY    - 代理 URL
  *   TEMPMAIL_TIMEOUT  - 超时秒数
  *   TEMPMAIL_INSECURE - 设为 "1" 或 "true" 跳过 SSL 验证
+ *   DROPMAIL_AUTH_TOKEN / DROPMAIL_API_TOKEN - DropMail af_ 令牌（可选；未设置则自动 generate/renew）
+ *   DROPMAIL_NO_AUTO_TOKEN - 禁止自动拉取/续期
+ *   DROPMAIL_RENEW_LIFETIME - renew 的 lifetime，默认 1d
  */
 
 use std::sync::{RwLock, OnceLock, atomic::{AtomicU64, Ordering}};
@@ -24,6 +27,12 @@ pub struct SDKConfig {
     pub timeout_secs: u64,
     /// 跳过 SSL 证书验证（调试用）
     pub insecure: bool,
+    /// DropMail GraphQL 路径中的 af_ 令牌
+    pub dropmail_auth_token: Option<String>,
+    /// 为 true 时不自动 generate/renew
+    pub dropmail_disable_auto_token: bool,
+    /// /api/token/renew 的 lifetime，如 Some("1d")
+    pub dropmail_renew_lifetime: Option<String>,
 }
 
 impl Default for SDKConfig {
@@ -100,7 +109,25 @@ fn load_env_config() -> SDKConfig {
     let insecure = std::env::var("TEMPMAIL_INSECURE").ok()
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
-    SDKConfig { proxy, timeout_secs, insecure }
+    let dropmail_auth_token = std::env::var("DROPMAIL_AUTH_TOKEN").ok()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| std::env::var("DROPMAIL_API_TOKEN").ok().filter(|s| !s.trim().is_empty()));
+    let dropmail_disable_auto_token = std::env::var("DROPMAIL_NO_AUTO_TOKEN").ok()
+        .map(|v| {
+            let v = v.trim().to_ascii_lowercase();
+            v == "1" || v == "true" || v == "yes"
+        })
+        .unwrap_or(false);
+    let dropmail_renew_lifetime = std::env::var("DROPMAIL_RENEW_LIFETIME").ok()
+        .filter(|s| !s.trim().is_empty());
+    SDKConfig {
+        proxy,
+        timeout_secs,
+        insecure,
+        dropmail_auth_token,
+        dropmail_disable_auto_token,
+        dropmail_renew_lifetime,
+    }
 }
 
 static GLOBAL_CONFIG: RwLock<Option<SDKConfig>> = RwLock::new(None);
@@ -131,8 +158,8 @@ pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
 /// 设置后自动使已缓存的 HTTP 客户端失效，下次请求时按新配置重建
 pub fn set_config(config: SDKConfig) {
     log::info!(
-        "SDK 配置已更新: proxy={:?} timeout={}s insecure={}",
-        config.proxy, config.timeout_secs, config.insecure
+        "SDK 配置已更新: proxy={:?} timeout={}s insecure={} dropmail_auto_disabled={}",
+        config.proxy, config.timeout_secs, config.insecure, config.dropmail_disable_auto_token
     );
     let mut guard = GLOBAL_CONFIG.write().unwrap();
     *guard = Some(config);

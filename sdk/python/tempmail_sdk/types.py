@@ -11,13 +11,13 @@ Channel = Literal[
     "linshi-email",
     "tempmail-lol",
     "chatgpt-org-uk",
-    "tempmail-la",
     "temp-mail-io",
     "awamail",
     "mail-tm",
     "dropmail",
     "guerrillamail",
     "maildrop",
+    "smail-pw",
 ]
 
 

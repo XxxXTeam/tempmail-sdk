@@ -28,11 +28,11 @@
 | `tempmail` | [tempmail.ing](https://tempmail.ing) | 邮箱地址 | 支持自定义有效期 |
 | `linshi-email` | [linshi-email.com](https://linshi-email.com) | 邮箱地址 | |
 | `tempmail-lol` | [tempmail.lol](https://tempmail.lol) | Token | 支持指定域名 |
-| `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | 邮箱地址 | |
-| `tempmail-la` | [tempmail.la](https://tempmail.la) | 邮箱地址 | 支持分页 |
+| `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | Inbox Token | 官网在 HTML 注入 `__BROWSER_AUTH`；npm 已随首页一并解析并用于创建邮箱 |
 | `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | |
 | `awamail` | [awamail.com](https://awamail.com) | Session Cookie | 自动提取 Cookie |
-| `mail-tm` | [mail.tm](https://mail.tm) | Bearer Token | REST API，自动注册账号 |
+| `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
+| `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
 | `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
 | `maildrop` | [maildrop.cc](https://maildrop.cc) | - | GraphQL API，自带反垃圾 |
@@ -184,16 +184,30 @@ import { generateEmail, getEmails } from 'tempmail-sdk';
 
 // 1. 获取临时邮箱
 const emailInfo = await generateEmail({ channel: 'mail-tm' });
+if (!emailInfo) {
+  // 未指定 channel 时可能多渠道路径全部失败
+  throw new Error('创建失败');
+}
 console.log('邮箱:', emailInfo.email);
 
-// 2. 获取邮件（token 由 generateEmail 返回，部分渠道需要传递）
-const result = await getEmails({
-  channel: emailInfo.channel,
-  email: emailInfo.email,
-  token: emailInfo.token,
-});
-console.log(`收到 ${result.emails.length} 封邮件`);
+// 2. 获取邮件（Token 由 SDK 内部与 EmailInfo 绑定，勿自行传 token）
+const result = await getEmails(emailInfo);
+console.log(`收到 ${result.emails.length} 封邮件`, result.success);
+
+// 仅探测某一渠道、失败时不 Fallback 到其他渠道：
+const only = await generateEmail({ channel: 'smail-pw', channelFallback: false });
 ```
+
+### npm — 仓库内示例脚本
+
+在 `sdk/npm` 目录下（需先 `npm install`，部分 demo 另需 `nodemailer`）：
+
+| 脚本 | 说明 |
+|------|------|
+| `demo/poll-emails.ts` | 交互或 **SMTP 自动探针**（设置 `SMTP_HOST` 等）；可用 `POLL_CHANNELS=smail-pw` 限定渠道 |
+| `demo/internxt-tempmail-probe.ts` | 探测 Internxt 页面与 **Mail.tm（经 SDK `mail-tm`）**；`npm run demo:internxt` |
+
+常用环境变量：`TEMPMAIL_PROXY`、`TEMPMAIL_TIMEOUT`、`TEMPMAIL_INSECURE`；DropMail 见各 SDK 文档中的 `DROPMAIL_*` 说明。
 
 ### Go — 使用 Client
 
@@ -258,6 +272,7 @@ tempmail-sdk/
 │   │   │   ├── index.ts        # 入口文件
 │   │   │   ├── types.ts        # 类型定义
 │   │   │   └── providers/      # 各渠道实现
+│   │   ├── demo/               # 示例与探针脚本
 │   │   └── test/               # 测试代码
 │   ├── rust/                   # Rust SDK
 │   │   ├── src/

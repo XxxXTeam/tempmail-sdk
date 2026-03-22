@@ -10,9 +10,9 @@ use crate::providers;
 /// 所有支持的渠道列表
 pub const ALL_CHANNELS: &[Channel] = &[
     Channel::Tempmail, Channel::LinshiEmail, Channel::TempmailLol,
-    Channel::ChatgptOrgUk, Channel::TempmailLa, Channel::TempMailIO,
+    Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::MailTm, Channel::Dropmail,
-    Channel::GuerrillaMail, Channel::Maildrop,
+    Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -27,13 +27,13 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::LinshiEmail => ChannelInfo { channel: Channel::LinshiEmail, name: "临时邮箱", website: "linshi-email.com" },
         Channel::TempmailLol => ChannelInfo { channel: Channel::TempmailLol, name: "TempMail LOL", website: "tempmail.lol" },
         Channel::ChatgptOrgUk => ChannelInfo { channel: Channel::ChatgptOrgUk, name: "ChatGPT Mail", website: "mail.chatgpt.org.uk" },
-        Channel::TempmailLa => ChannelInfo { channel: Channel::TempmailLa, name: "TempMail LA", website: "tempmail.la" },
         Channel::TempMailIO => ChannelInfo { channel: Channel::TempMailIO, name: "Temp Mail IO", website: "temp-mail.io" },
         Channel::Awamail => ChannelInfo { channel: Channel::Awamail, name: "AwaMail", website: "awamail.com" },
         Channel::MailTm => ChannelInfo { channel: Channel::MailTm, name: "Mail.tm", website: "mail.tm" },
         Channel::Dropmail => ChannelInfo { channel: Channel::Dropmail, name: "DropMail", website: "dropmail.me" },
         Channel::GuerrillaMail => ChannelInfo { channel: Channel::GuerrillaMail, name: "Guerrilla Mail", website: "guerrillamail.com" },
         Channel::Maildrop => ChannelInfo { channel: Channel::Maildrop, name: "Maildrop", website: "maildrop.cc" },
+        Channel::SmailPw => ChannelInfo { channel: Channel::SmailPw, name: "Smail.pw", website: "smail.pw" },
     })
 }
 
@@ -93,13 +93,13 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::LinshiEmail => providers::linshi_email::generate_email(),
         Channel::TempmailLol => providers::tempmail_lol::generate_email(domain),
         Channel::ChatgptOrgUk => providers::chatgpt_org_uk::generate_email(),
-        Channel::TempmailLa => providers::tempmail_la::generate_email(),
         Channel::TempMailIO => providers::temp_mail_io::generate_email(),
         Channel::Awamail => providers::awamail::generate_email(),
         Channel::MailTm => providers::mail_tm::generate_email(),
         Channel::Dropmail => providers::dropmail::generate_email(),
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::Maildrop => providers::maildrop::generate_email(),
+        Channel::SmailPw => providers::smail_pw::generate_email(),
     }
 }
 
@@ -142,7 +142,10 @@ pub fn get_emails(info: &EmailInfo, options: Option<&GetEmailsOptions>) -> GetEm
 fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Result<Vec<Email>, String> {
     match channel {
         Channel::Tempmail => providers::tempmail::get_emails(email),
-        Channel::LinshiEmail => providers::linshi_email::get_emails(email),
+        Channel::LinshiEmail => {
+            let t = token.ok_or("token is required for linshi-email")?;
+            providers::linshi_email::get_emails(t, email)
+        }
         Channel::TempmailLol => {
             let t = token.ok_or("token is required for tempmail-lol")?;
             providers::tempmail_lol::get_emails(t, email)
@@ -151,7 +154,6 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
             let t = token.ok_or("token is required for chatgpt-org-uk")?;
             providers::chatgpt_org_uk::get_emails(t, email)
         }
-        Channel::TempmailLa => providers::tempmail_la::get_emails(email),
         Channel::TempMailIO => providers::temp_mail_io::get_emails(email),
         Channel::Awamail => {
             let t = token.ok_or("token is required for awamail")?;
@@ -172,6 +174,10 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::Maildrop => {
             let t = token.ok_or("token is required for maildrop")?;
             providers::maildrop::get_emails(t, email)
+        }
+        Channel::SmailPw => {
+            let t = token.ok_or("token is required for smail-pw")?;
+            providers::smail_pw::get_emails(t, email)
         }
     }
 }

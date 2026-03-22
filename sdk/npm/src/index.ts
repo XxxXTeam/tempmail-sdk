@@ -2,13 +2,13 @@ import * as tempmail from './providers/tempmail';
 import * as linshiEmail from './providers/linshi-email';
 import * as tempmailLol from './providers/tempmail-lol';
 import * as chatgptOrgUk from './providers/chatgpt-org-uk';
-import * as tempmailLa from './providers/tempmail-la';
 import * as tempMailIO from './providers/temp-mail-io';
 import * as awamail from './providers/awamail';
 import * as mailTm from './providers/mail-tm';
 import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
+import * as smailPw from './providers/smail-pw';
 import { Channel, EmailInfo, InternalEmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
@@ -27,6 +27,13 @@ export { normalizeEmail } from './normalize';
 export { withRetry, fetchWithTimeout, RetryOptions } from './retry';
 export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
 export { SDKConfig, setConfig, getConfig } from './config';
+export type { SyntheticBrowserProfile } from './providers/linshi-token';
+export {
+  deriveLinshiApiPathKey,
+  randomSyntheticLinshiKey,
+  randomBrowserLikeProfile,
+  syntheticVisitorIdFromProfile,
+} from './providers/linshi-token';
 
 /** 渠道名称到 provider 实现的映射表 */
 const providers = {
@@ -34,17 +41,17 @@ const providers = {
   'linshi-email': linshiEmail,
   'tempmail-lol': tempmailLol,
   'chatgpt-org-uk': chatgptOrgUk,
-  'tempmail-la': tempmailLa,
   'temp-mail-io': tempMailIO,
   'awamail': awamail,
   'mail-tm': mailTm,
   'dropmail': dropmail,
   'guerrillamail': guerrillamail,
   'maildrop': maildropProvider,
+  'smail-pw': smailPw,
 };
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'tempmail-la', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -64,13 +71,13 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
   'tempmail-lol': { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
   'chatgpt-org-uk': { channel: 'chatgpt-org-uk', name: 'ChatGPT Mail', website: 'mail.chatgpt.org.uk' },
-  'tempmail-la': { channel: 'tempmail-la', name: 'TempMail LA', website: 'tempmail.la' },
   'temp-mail-io': { channel: 'temp-mail-io', name: 'Temp Mail IO', website: 'temp-mail.io' },
   'awamail': { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
   'mail-tm': { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
   'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
+  'smail-pw': { channel: 'smail-pw', name: 'Smail.pw', website: 'smail.pw' },
 };
 
 /**
@@ -102,7 +109,8 @@ export function getChannelInfo(channel: Channel): ChannelInfo | undefined {
  * 创建临时邮箱
  *
  * 错误处理策略：
- * - 指定渠道失败时，自动尝试其他可用渠道（打乱顺序逐个尝试）
+ * - 指定渠道失败时，默认自动尝试其他可用渠道（打乱顺序逐个尝试）
+ * - `channelFallback: false` 且指定了 `channel` 时，仅尝试该渠道，失败即返回 null
  * - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
  * - 所有渠道均不可用时返回 null（不抛出异常）
  *
@@ -121,7 +129,8 @@ export async function generateEmail(options: GenerateEmailOptions = {}): Promise
    * - 指定渠道 → 优先尝试该渠道，失败后随机尝试其他渠道
    * - 未指定 → 打乱全部渠道逐个尝试
    */
-  const tryOrder = buildChannelOrder(options.channel);
+  const allowFallback = options.channelFallback !== false;
+  const tryOrder = buildChannelOrder(options.channel, allowFallback);
 
   for (const ch of tryOrder) {
     logger.info(`创建临时邮箱, 渠道: ${ch}`);
@@ -154,9 +163,14 @@ export async function generateEmail(options: GenerateEmailOptions = {}): Promise
  * 指定渠道时优先尝试该渠道，其余渠道打乱追加
  * 未指定时打乱全部渠道
  */
-function buildChannelOrder(preferred?: Channel): Channel[] {
+function buildChannelOrder(preferred?: Channel, allowFallback = true): Channel[] {
   const shuffled = [...allChannels].sort(() => Math.random() - 0.5);
-  if (!preferred) return shuffled;
+  if (!preferred) {
+    return shuffled;
+  }
+  if (!allowFallback) {
+    return [preferred];
+  }
   const rest = shuffled.filter(ch => ch !== preferred);
   return [preferred, ...rest];
 }
@@ -175,8 +189,6 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return tempmailLol.generateEmail(options.domain || null);
     case 'chatgpt-org-uk':
       return chatgptOrgUk.generateEmail();
-    case 'tempmail-la':
-      return tempmailLa.generateEmail();
     case 'temp-mail-io':
       return tempMailIO.generateEmail();
     case 'awamail':
@@ -189,6 +201,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return guerrillamail.generateEmail();
     case 'maildrop':
       return maildropProvider.generateEmail();
+    case 'smail-pw':
+      return smailPw.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -259,15 +273,14 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'tempmail':
       return tempmail.getEmails(email);
     case 'linshi-email':
-      return linshiEmail.getEmails(email);
+      if (!token) throw new Error('internal error: token missing for linshi-email');
+      return linshiEmail.getEmails(email, token);
     case 'tempmail-lol':
       if (!token) throw new Error('internal error: token missing for tempmail-lol');
       return tempmailLol.getEmails(token, email);
     case 'chatgpt-org-uk':
       if (!token) throw new Error('internal error: token missing for chatgpt-org-uk');
       return chatgptOrgUk.getEmails(token, email);
-    case 'tempmail-la':
-      return tempmailLa.getEmails(email);
     case 'temp-mail-io':
       return tempMailIO.getEmails(email);
     case 'awamail':
@@ -285,6 +298,9 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'maildrop':
       if (!token) throw new Error('internal error: token missing for maildrop');
       return maildropProvider.getEmails(token, email);
+    case 'smail-pw':
+      if (!token) throw new Error('internal error: token missing for smail-pw');
+      return smailPw.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

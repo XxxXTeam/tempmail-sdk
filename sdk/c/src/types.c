@@ -10,13 +10,13 @@ static const char* channel_names[] = {
     "linshi-email",
     "tempmail-lol",
     "chatgpt-org-uk",
-    "tempmail-la",
     "temp-mail-io",
     "awamail",
     "mail-tm",
     "dropmail",
     "guerrillamail",
     "maildrop",
+    "smail-pw",
 };
 
 const char* tm_channel_name(tm_channel_t channel) {

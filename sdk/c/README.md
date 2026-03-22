@@ -45,10 +45,10 @@ cmake --build build
 | linshi-email | `CHANNEL_LINSHI_EMAIL` | linshi-email.com | - |
 | tempmail-lol | `CHANNEL_TEMPMAIL_LOL` | tempmail.lol | ✅ |
 | chatgpt-org-uk | `CHANNEL_CHATGPT_ORG_UK` | mail.chatgpt.org.uk | - |
-| tempmail-la | `CHANNEL_TEMPMAIL_LA` | tempmail.la | - |
 | temp-mail-io | `CHANNEL_TEMP_MAIL_IO` | temp-mail.io | - |
 | awamail | `CHANNEL_AWAMAIL` | awamail.com | ✅ |
 | mail-tm | `CHANNEL_MAIL_TM` | mail.tm | ✅ |
+| smail-pw | `CHANNEL_SMAIL_PW` | smail.pw | ✅ |
 | dropmail | `CHANNEL_DROPMAIL` | dropmail.me | ✅ |
 | guerrillamail | `CHANNEL_GUERRILLAMAIL` | guerrillamail.com | ✅ |
 | maildrop | `CHANNEL_MAILDROP` | maildrop.cc | ✅ |

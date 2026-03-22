@@ -25,10 +25,10 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `LinshiEmail` | linshi-email.com | - | |
 | `TempmailLol` | tempmail.lol | ✅ | 支持指定域名 |
 | `ChatgptOrgUk` | mail.chatgpt.org.uk | - | |
-| `TempmailLa` | tempmail.la | - | 支持分页 |
 | `TempMailIO` | temp-mail.io | - | |
 | `Awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `MailTm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
+| `SmailPw` | smail.pw | ✅ | `_root.data` + `__session`；解析以正则为主 |
 | `Dropmail` | dropmail.me | ✅ | GraphQL API |
 | `GuerrillaMail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `Maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |

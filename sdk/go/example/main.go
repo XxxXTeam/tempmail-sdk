@@ -16,7 +16,6 @@ func main() {
 		tempemail.ChannelLinshiEmail,
 		tempemail.ChannelTempmailLol,
 		tempemail.ChannelChatgptOrgUk,
-		tempemail.ChannelTempmailLa,
 		tempemail.ChannelTempMailIO,
 		tempemail.ChannelAwamail,
 		tempemail.ChannelMailTm,

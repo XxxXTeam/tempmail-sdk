@@ -11,13 +11,13 @@ var allChannels = []Channel{
 	ChannelLinshiEmail,
 	ChannelTempmailLol,
 	ChannelChatgptOrgUk,
-	ChannelTempmailLa,
 	ChannelTempMailIO,
 	ChannelAwamail,
 	ChannelMailTm,
 	ChannelDropmail,
 	ChannelGuerrillaMail,
 	ChannelMaildrop,
+	ChannelSmailPw,
 }
 
 /*
@@ -38,13 +38,13 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelLinshiEmail:   {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
 	ChannelTempmailLol:   {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
 	ChannelChatgptOrgUk:  {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
-	ChannelTempmailLa:    {Channel: ChannelTempmailLa, Name: "TempMail LA", Website: "tempmail.la"},
 	ChannelTempMailIO:    {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
 	ChannelAwamail:       {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
 	ChannelMailTm:        {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
 	ChannelDropmail:      {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail: {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:      {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
+	ChannelSmailPw:       {Channel: ChannelSmailPw, Name: "Smail.pw", Website: "smail.pw"},
 }
 
 /*
@@ -157,9 +157,6 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelChatgptOrgUk:
 		return chatgptOrgUkGenerate()
 
-	case ChannelTempmailLa:
-		return tempmailLaGenerate()
-
 	case ChannelTempMailIO:
 		return tempMailIOGenerate()
 
@@ -177,6 +174,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelMaildrop:
 		return maildropGenerate()
+
+	case ChannelSmailPw:
+		return smailPwGenerate()
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -259,7 +259,10 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		return tempmailGetEmails(email)
 
 	case ChannelLinshiEmail:
-		return linshiEmailGetEmails(email)
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for linshi-email channel")
+		}
+		return linshiEmailGetEmails(token, email)
 
 	case ChannelTempmailLol:
 		if token == "" {
@@ -272,9 +275,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for chatgpt-org-uk channel")
 		}
 		return chatgptOrgUkGetEmails(email, token)
-
-	case ChannelTempmailLa:
-		return tempmailLaGetEmails(email)
 
 	case ChannelTempMailIO:
 		return tempMailIOGetEmails(email)
@@ -308,6 +308,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for maildrop channel")
 		}
 		return maildropGetEmails(token, email)
+
+	case ChannelSmailPw:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for smail-pw channel")
+		}
+		return smailPwGetEmails(token, email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

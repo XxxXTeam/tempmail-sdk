@@ -11,10 +11,7 @@ import (
 	http "github.com/bogdanfinn/fhttp"
 )
 
-const (
-	linshiEmailBaseURL = "https://www.linshi-email.com/api/v1"
-	linshiEmailAPIKey  = "552562b8524879814776e52bc8de5c9f"
-)
+const linshiEmailBaseURL = "https://www.linshi-email.com/api/v1"
 
 type linshiEmailGenerateResponse struct {
 	Data struct {
@@ -30,9 +27,10 @@ type linshiEmailEmailsResponse struct {
 }
 
 func linshiEmailGenerate() (*EmailInfo, error) {
+	apiKey := RandomSyntheticLinshiAPIPathKey()
 	reqBody := []byte("{}")
 
-	req, err := http.NewRequest("POST", linshiEmailBaseURL+"/email/"+linshiEmailAPIKey, bytes.NewReader(reqBody))
+	req, err := http.NewRequest("POST", linshiEmailBaseURL+"/email/"+apiKey, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +69,19 @@ func linshiEmailGenerate() (*EmailInfo, error) {
 	return &EmailInfo{
 		Channel:   ChannelLinshiEmail,
 		Email:     result.Data.Email,
+		token:     apiKey,
 		ExpiresAt: result.Data.Expired,
 	}, nil
 }
 
-func linshiEmailGetEmails(email string) ([]Email, error) {
+func linshiEmailGetEmails(apiPathKey string, email string) ([]Email, error) {
+	if apiPathKey == "" {
+		return nil, fmt.Errorf("internal error: api path key missing for linshi-email")
+	}
 	encodedEmail := url.QueryEscape(email)
 	timestamp := time.Now().UnixMilli()
 
-	reqURL := fmt.Sprintf("%s/refreshmessage/%s/%s?t=%d", linshiEmailBaseURL, linshiEmailAPIKey, encodedEmail, timestamp)
+	reqURL := fmt.Sprintf("%s/refreshmessage/%s/%s?t=%d", linshiEmailBaseURL, apiPathKey, encodedEmail, timestamp)
 
 	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {

@@ -19,10 +19,10 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
 | `tempmail-lol` | tempmail.lol | `ChannelTempmailLol` | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | `ChannelChatgptOrgUk` | |
-| `tempmail-la` | tempmail.la | `ChannelTempmailLa` | 支持分页 |
 | `temp-mail-io` | temp-mail.io | `ChannelTempMailIO` | |
 | `awamail` | awamail.com | `ChannelAwamail` | Session Cookie 自动管理 |
-| `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册账号 |
+| `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册账号（`api.mail.tm`） |
+| `smail-pw` | smail.pw | `ChannelSmailPw` | `_root.data` + `__session`；解析以正则为主 |
 | `dropmail` | dropmail.me | `ChannelDropmail` | GraphQL API |
 | `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | 公开 JSON API |
 | `maildrop` | maildrop.cc | `ChannelMaildrop` | GraphQL API，自带反垃圾 |

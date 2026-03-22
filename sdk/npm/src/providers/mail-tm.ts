@@ -5,10 +5,38 @@ import { fetchWithTimeout } from '../retry';
 const CHANNEL: Channel = 'mail-tm';
 const BASE_URL = 'https://api.mail.tm';
 
+/**
+ * 与 Internxt 临时邮箱页（https://internxt.com/temporary-email）前端一致：
+ * 同源 cross-site 请求 api.mail.tm 时常带 Origin/Referer；domains 可为空 Bearer。
+ */
 const DEFAULT_HEADERS: Record<string, string> = {
-  'Content-Type': 'application/json',
   'Accept': 'application/json',
+  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+  'Cache-Control': 'no-cache',
+  'Pragma': 'no-cache',
+  'Origin': 'https://internxt.com',
+  'Referer': 'https://internxt.com/',
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
 };
+
+function jsonHeaders(extra?: Record<string, string>): Record<string, string> {
+  return { ...DEFAULT_HEADERS, 'Content-Type': 'application/json', ...extra };
+}
+
+function bearerHeaders(token: string, extra?: Record<string, string>): Record<string, string> {
+  return { ...jsonHeaders(extra), Authorization: `Bearer ${token}` };
+}
+
+function parseHydraMember(data: unknown): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object') {
+    const o = data as Record<string, unknown>;
+    if (Array.isArray(o['hydra:member'])) return o['hydra:member'];
+    if (Array.isArray(o['data'])) return o['data'];
+  }
+  return [];
+}
 
 /**
  * 生成随机字符串
@@ -27,7 +55,7 @@ function randomString(length: number): string {
  * API: GET /domains
  */
 async function getDomains(): Promise<string[]> {
-  const response = await fetchWithTimeout(`${BASE_URL}/domains`, {
+  const response = await fetchWithTimeout(`${BASE_URL}/domains?page=1`, {
     method: 'GET',
     headers: DEFAULT_HEADERS,
   });
@@ -37,14 +65,11 @@ async function getDomains(): Promise<string[]> {
   }
 
   const data = await response.json();
-  /* 兼容两种响应格式：
-   * - Accept: application/ld+json → Hydra 格式 { "hydra:member": [...] }
-   * - Accept: application/json   → 纯数组 [...]
-   */
-  const members = Array.isArray(data) ? data : (data['hydra:member'] || []);
+  const members = parseHydraMember(data);
   return members
-    .filter((d: any) => d.isActive)
-    .map((d: any) => d.domain);
+    .filter((d: any) => d && d.isActive !== false)
+    .map((d: any) => d.domain)
+    .filter(Boolean);
 }
 
 /**
@@ -73,7 +98,7 @@ async function createAccount(address: string, password: string): Promise<any> {
 async function getToken(address: string, password: string): Promise<string> {
   const response = await fetchWithTimeout(`${BASE_URL}/token`, {
     method: 'POST',
-    headers: DEFAULT_HEADERS,
+    headers: jsonHeaders(),
     body: JSON.stringify({ address, password }),
   });
 
@@ -145,12 +170,9 @@ function flattenMessage(msg: any, recipientEmail: string): any {
  */
 export async function getEmails(token: string, email: string): Promise<Email[]> {
   // 1. 获取邮件列表
-  const listResponse = await fetchWithTimeout(`${BASE_URL}/messages`, {
+  const listResponse = await fetchWithTimeout(`${BASE_URL}/messages?page=1`, {
     method: 'GET',
-    headers: {
-      ...DEFAULT_HEADERS,
-      'Authorization': `Bearer ${token}`,
-    },
+    headers: bearerHeaders(token),
   });
 
   if (!listResponse.ok) {
@@ -158,8 +180,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   }
 
   const listData = await listResponse.json();
-  /* 兼容 Hydra 格式和纯数组格式 */
-  const messages = Array.isArray(listData) ? listData : (listData['hydra:member'] || []);
+  const messages = parseHydraMember(listData);
 
   if (messages.length === 0) {
     return [];
@@ -170,10 +191,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
     try {
       const detailResponse = await fetchWithTimeout(`${BASE_URL}/messages/${msg.id}`, {
         method: 'GET',
-        headers: {
-          ...DEFAULT_HEADERS,
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: bearerHeaders(token),
       });
 
       if (!detailResponse.ok) {

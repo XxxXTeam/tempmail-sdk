@@ -22,11 +22,11 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `linshi-email` | linshi-email.com | - | |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
-| `chatgpt-org-uk` | mail.chatgpt.org.uk | - | |
-| `tempmail-la` | tempmail.la | - | 支持分页 |
+| `chatgpt-org-uk` | mail.chatgpt.org.uk | ✅ | 首页注入 `__BROWSER_AUTH`，创建邮箱时须带 `X-Inbox-Token` + `gm_sid`（已自动处理） |
 | `temp-mail-io` | temp-mail.io | - | |
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
-| `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
+| `mail-tm` | mail.tm / api.mail.tm | ✅ | 自动注册账号；请求与 **Internxt** 等站点前端一致（`GET /domains?page=1`、`GET /messages?page=1` 及常见浏览器头） |
+| `smail-pw` | smail.pw | ✅ | `POST/GET https://smail.pw/_root.data`，`__session` Cookie；解析 RSC/Flight 中的 **D1 邮件行对象**（`subject`/`time` 等） |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |
@@ -76,13 +76,13 @@ console.log(channels);
 //   { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
 //   { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
 //   { channel: 'chatgpt-org-uk', name: 'ChatGPT Mail', website: 'mail.chatgpt.org.uk' },
-//   { channel: 'tempmail-la', name: 'TempMail LA', website: 'tempmail.la' },
 //   { channel: 'temp-mail-io', name: 'Temp Mail IO', website: 'temp-mail.io' },
 //   { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
 //   { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
 //   { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
 //   { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
-//   { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' }
+//   { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
+//   { channel: 'smail-pw', name: 'Smail.pw', website: 'smail.pw' }
 // ]
 
 const info = getChannelInfo('tempmail');
@@ -107,38 +107,29 @@ const emailInfo3 = await generateEmail({ channel: 'tempmail', duration: 60 });
 
 // tempmail-lol 渠道支持指定域名
 const emailInfo4 = await generateEmail({ channel: 'tempmail-lol', domain: 'example.com' });
+
+// 只尝试指定渠道（探测可用性、写自动化时用）
+const probe = await generateEmail({ channel: 'smail-pw', channelFallback: false });
 ```
 
 #### 获取邮件
 
+`getEmails` 的第一个参数必须是 **`generateEmail` 返回的 `EmailInfo`**（或与 `TempEmailClient` 缓存的相同结构）。Token / Session 由 SDK 内部绑定到该对象，**不要**再手动传入 `token` 字段。
+
 ```typescript
-import { getEmails } from 'tempmail-sdk';
+import { generateEmail, getEmails } from 'tempmail-sdk';
 
-// 不需要 Token 的渠道
-const result = await getEmails({
-  channel: 'tempmail',
-  email: 'xxx@ibymail.com',
-});
-console.log(result.emails); // 标准化邮件数组
+const emailInfo = await generateEmail({ channel: 'tempmail' });
+if (!emailInfo) throw new Error('创建失败');
+const result = await getEmails(emailInfo);
+console.log(result.success, result.emails.length);
 
-// 需要 Token 的渠道（token 由 generateEmail 返回）
-const result2 = await getEmails({
-  channel: 'mail-tm',
-  email: emailInfo.email,
-  token: emailInfo.token,    // Bearer Token
-});
-
-// 所有邮件使用统一格式，无需关心渠道差异
-for (const email of result2.emails) {
-  console.log(email.id);          // 邮件 ID
-  console.log(email.from);        // 发件人
-  console.log(email.to);          // 收件人
-  console.log(email.subject);     // 主题
-  console.log(email.text);        // 纯文本
-  console.log(email.html);        // HTML
-  console.log(email.date);        // ISO 日期
-  console.log(email.isRead);      // 是否已读
-  console.log(email.attachments); // 附件列表
+const mailTm = await generateEmail({ channel: 'mail-tm' });
+if (mailTm) {
+  const r2 = await getEmails(mailTm, { retry: { maxRetries: 3, timeout: 20000 } });
+  for (const email of r2.emails) {
+    console.log(email.id, email.from, email.subject, email.date);
+  }
 }
 ```
 
@@ -171,8 +162,10 @@ for (const email of result2.emails) {
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `channel` | `Channel` | 指定渠道（可选，不指定则随机） |
+| `channelFallback` | `boolean` | 默认 `true`：指定渠道失败会继续尝试其他渠道；设为 `false` 时仅尝试 `channel` |
 | `duration` | `number` | 有效期分钟数（仅 `tempmail` 渠道） |
 | `domain` | `string` | 指定域名（仅 `tempmail-lol` 渠道） |
+| `retry` | `RetryConfig` | 创建邮箱时的重试（超时、5xx、网络错误等） |
 
 **返回值:** `EmailInfo`
 
@@ -184,17 +177,16 @@ for (const email of result2.emails) {
 | `expiresAt` | `string \| number?` | 过期时间 |
 | `createdAt` | `string?` | 创建时间 |
 
-### getEmails(options)
+### getEmails(info, options?)
 
 获取邮件列表。
 
 **参数:**
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|:----:|------|
-| `channel` | `Channel` | ✅ | 渠道标识 |
-| `email` | `string` | ✅ | 邮箱地址 |
-| `token` | `string` | 部分 | 访问令牌（`tempmail-lol`、`awamail`、`mail-tm`、`dropmail`、`guerrillamail`、`maildrop` 必填） |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `info` | `EmailInfo` | 由 `generateEmail()` 或 `TempEmailClient.generate()` 返回；SDK 从中读取 `channel`、`email` 及内部 Token |
+| `options?.retry` | `RetryConfig` | 拉取邮件时的重试配置（可选） |
 
 **返回值:** `GetEmailsResult`
 
@@ -280,6 +272,19 @@ export TEMPMAIL_TIMEOUT=30000
 ```
 
 > **提示：** Node.js 原生 fetch 不支持代理，推荐通过 `customFetch` + `undici` 的 `ProxyAgent` 实现代理支持。
+
+DropMail 自动令牌等更多配置见源码 `src/config.ts` 注释（`DROPMAIL_*` 环境变量）。
+
+## 示例脚本（本仓库）
+
+在 `sdk/npm` 目录执行：
+
+| 命令 / 文件 | 说明 |
+|-------------|------|
+| `npx ts-node demo/poll-emails.ts` | 未配置 SMTP 时为交互式选渠道并轮询；配置 `SMTP_HOST` 等后可自动向各渠道发探针并轮询（`POLL_CHANNELS`、`POLL_INTERVAL_MS`、`POLL_MAX_ROUNDS`） |
+| `npm run demo:internxt` | `demo/internxt-tempmail-probe.ts`：检查 Internxt 页面与 **Mail.tm（SDK `mail-tm`）** 全流程 |
+
+`poll-emails` 使用 SMTP 时需安装：`npm install nodemailer @types/nodemailer`（若尚未加入 devDependencies）。
 
 ## 环境要求
 

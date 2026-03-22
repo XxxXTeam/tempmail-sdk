@@ -19,6 +19,9 @@ import (
  *   TEMPMAIL_PROXY    - 代理 URL
  *   TEMPMAIL_TIMEOUT  - 超时秒数
  *   TEMPMAIL_INSECURE - 设为 "1" 或 "true" 跳过 SSL 验证
+ *   DROPMAIL_AUTH_TOKEN / DROPMAIL_API_TOKEN - DropMail GraphQL 路径中的 af_ 令牌（可选；未设置则自动 generate/renew）
+ *   DROPMAIL_NO_AUTO_TOKEN - 禁止自动拉取/续期
+ *   DROPMAIL_RENEW_LIFETIME - renew 请求的 lifetime，默认 1d
  */
 type SDKConfig struct {
 	/* 代理 URL，支持 http/https/socks5，如 "http://127.0.0.1:7890"，空字符串不使用代理 */
@@ -27,6 +30,12 @@ type SDKConfig struct {
 	Timeout time.Duration
 	/* 跳过 SSL 证书验证（调试用） */
 	Insecure bool
+	/* DropMail：GraphQL https://dropmail.me/api/graphql/{token} 的 af_ 令牌，空则自动申请 */
+	DropmailAuthToken string
+	/* 为 true 时不自动请求令牌（须配置 DropmailAuthToken 或环境变量） */
+	DropmailDisableAutoToken bool
+	/* 自动续期时传给 /api/token/renew 的 lifetime，如 1d */
+	DropmailRenewLifetime string
 }
 
 var (
@@ -60,6 +69,17 @@ func loadEnvConfig() {
 	}
 	if v := os.Getenv("TEMPMAIL_INSECURE"); v != "" {
 		globalConfig.Insecure = v == "1" || strings.EqualFold(v, "true")
+	}
+	if v := strings.TrimSpace(os.Getenv("DROPMAIL_AUTH_TOKEN")); v != "" {
+		globalConfig.DropmailAuthToken = v
+	} else if v := strings.TrimSpace(os.Getenv("DROPMAIL_API_TOKEN")); v != "" {
+		globalConfig.DropmailAuthToken = v
+	}
+	if v := strings.TrimSpace(os.Getenv("DROPMAIL_NO_AUTO_TOKEN")); v != "" {
+		globalConfig.DropmailDisableAutoToken = v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes")
+	}
+	if v := strings.TrimSpace(os.Getenv("DROPMAIL_RENEW_LIFETIME")); v != "" {
+		globalConfig.DropmailRenewLifetime = v
 	}
 }
 

@@ -22,10 +22,10 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `linshi-email` | linshi-email.com | - | |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | - | |
-| `tempmail-la` | tempmail.la | - | 支持分页 |
 | `temp-mail-io` | temp-mail.io | - | |
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
+| `smail-pw` | smail.pw | ✅ | `__session` Cookie；正则 + JSON 遍历解析 Flight 中的邮件行对象 |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |

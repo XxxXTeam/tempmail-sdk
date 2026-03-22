@@ -15,8 +15,6 @@ pub enum Channel {
     TempmailLol,
     #[serde(rename = "chatgpt-org-uk")]
     ChatgptOrgUk,
-    #[serde(rename = "tempmail-la")]
-    TempmailLa,
     #[serde(rename = "temp-mail-io")]
     TempMailIO,
     #[serde(rename = "awamail")]
@@ -29,6 +27,8 @@ pub enum Channel {
     GuerrillaMail,
     #[serde(rename = "maildrop")]
     Maildrop,
+    #[serde(rename = "smail-pw")]
+    SmailPw,
 }
 
 impl std::fmt::Display for Channel {
@@ -38,13 +38,13 @@ impl std::fmt::Display for Channel {
             Channel::LinshiEmail => write!(f, "linshi-email"),
             Channel::TempmailLol => write!(f, "tempmail-lol"),
             Channel::ChatgptOrgUk => write!(f, "chatgpt-org-uk"),
-            Channel::TempmailLa => write!(f, "tempmail-la"),
             Channel::TempMailIO => write!(f, "temp-mail-io"),
             Channel::Awamail => write!(f, "awamail"),
             Channel::MailTm => write!(f, "mail-tm"),
             Channel::Dropmail => write!(f, "dropmail"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::Maildrop => write!(f, "maildrop"),
+            Channel::SmailPw => write!(f, "smail-pw"),
         }
     }
 }

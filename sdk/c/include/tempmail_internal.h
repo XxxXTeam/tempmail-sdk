@@ -1,17 +1,12 @@
-/**
- * SDK 内部头文件，不对外暴露
- */
-
 #ifndef TEMPMAIL_INTERNAL_H
 #define TEMPMAIL_INTERNAL_H
 
 #include "tempmail_sdk.h"
 #include "cJSON.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-/* 安全获取 cJSON 字符串值，NULL 时返回默认值 */
 #define TM_JSON_STR(item, def) \
     (cJSON_GetStringValue(item) ? cJSON_GetStringValue(item) : (def))
 
@@ -23,8 +18,6 @@ void tm_log(tm_log_level_t level, const char *fmt, ...);
 #define TM_LOG_WARN(...) tm_log(TM_LOG_WARN, __VA_ARGS__)
 #define TM_LOG_INF(...)  tm_log(TM_LOG_INFO, __VA_ARGS__)
 #define TM_LOG_DBG(...)  tm_log(TM_LOG_DEBUG, __VA_ARGS__)
-
-/* ========== HTTP 工具 ========== */
 
 /* HTTP 响应 */
 typedef struct {
@@ -74,17 +67,17 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient);
 tm_email_info_t* tm_provider_tempmail_generate(int duration);
 tm_email_t* tm_provider_tempmail_get_emails(const char *email, int *count);
 
+int tm_linshi_random_api_path_key(char *out, size_t out_cap);
+void tm_linshi_derive_path_key(const char *visitor_id, char *out, size_t cap);
+
 tm_email_info_t* tm_provider_linshi_email_generate(void);
-tm_email_t* tm_provider_linshi_email_get_emails(const char *email, int *count);
+tm_email_t* tm_provider_linshi_email_get_emails(const char *api_path_key, const char *email, int *count);
 
 tm_email_info_t* tm_provider_tempmail_lol_generate(const char *domain);
 tm_email_t* tm_provider_tempmail_lol_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_chatgpt_org_uk_generate(void);
 tm_email_t* tm_provider_chatgpt_org_uk_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_tempmail_la_generate(void);
-tm_email_t* tm_provider_tempmail_la_get_emails(const char *email, int *count);
 
 tm_email_info_t* tm_provider_temp_mail_io_generate(void);
 tm_email_t* tm_provider_temp_mail_io_get_emails(const char *email, int *count);
@@ -103,5 +96,8 @@ tm_email_t* tm_provider_guerrillamail_get_emails(const char *token, const char *
 
 tm_email_info_t* tm_provider_maildrop_generate(void);
 tm_email_t* tm_provider_maildrop_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_smail_pw_generate(void);
+tm_email_t* tm_provider_smail_pw_get_emails(const char *token, const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

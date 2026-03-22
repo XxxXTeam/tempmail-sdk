@@ -2,7 +2,7 @@
  * 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商
  */
-export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk' | 'tempmail-la' | 'temp-mail-io' | 'awamail' | 'mail-tm' | 'dropmail' | 'guerrillamail' | 'maildrop';
+export type Channel = 'tempmail' | 'linshi-email' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'awamail' | 'mail-tm' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw';
 
 /**
  * 创建临时邮箱后返回的邮箱信息
@@ -123,6 +123,11 @@ export interface RetryConfig {
 export interface GenerateEmailOptions {
   /** 指定渠道，不传则随机选择 */
   channel?: Channel;
+  /**
+   * 为 false 时仅尝试 `channel` 指定的渠道，失败即返回 null，不 Fallback 到其他渠道。
+   * 用于按渠道探测可用性。默认 true（保持原有「优先指定渠道、失败后试其他」行为）。
+   */
+  channelFallback?: boolean;
   /** 邮箱有效时长 */
   duration?: number;
   /** 指定邮箱域名 */

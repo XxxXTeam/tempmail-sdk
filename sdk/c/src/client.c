@@ -18,13 +18,13 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_LINSHI_EMAIL,   "临时邮箱",       "linshi-email.com" },
     { CHANNEL_TEMPMAIL_LOL,   "TempMail LOL",   "tempmail.lol" },
     { CHANNEL_CHATGPT_ORG_UK, "ChatGPT Mail",   "mail.chatgpt.org.uk" },
-    { CHANNEL_TEMPMAIL_LA,    "TempMail LA",     "tempmail.la" },
     { CHANNEL_TEMP_MAIL_IO,   "Temp Mail IO",    "temp-mail.io" },
     { CHANNEL_AWAMAIL,        "AwaMail",         "awamail.com" },
     { CHANNEL_MAIL_TM,        "Mail.tm",         "mail.tm" },
     { CHANNEL_DROPMAIL,       "DropMail",        "dropmail.me" },
     { CHANNEL_GUERRILLAMAIL,  "Guerrilla Mail",  "guerrillamail.com" },
     { CHANNEL_MAILDROP,       "Maildrop",        "maildrop.cc" },
+    { CHANNEL_SMAIL_PW,       "Smail.pw",        "smail.pw" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -47,13 +47,13 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_LINSHI_EMAIL:   result = tm_provider_linshi_email_generate(); break;
             case CHANNEL_TEMPMAIL_LOL:   result = tm_provider_tempmail_lol_generate(domain); break;
             case CHANNEL_CHATGPT_ORG_UK: result = tm_provider_chatgpt_org_uk_generate(); break;
-            case CHANNEL_TEMPMAIL_LA:    result = tm_provider_tempmail_la_generate(); break;
             case CHANNEL_TEMP_MAIL_IO:   result = tm_provider_temp_mail_io_generate(); break;
             case CHANNEL_AWAMAIL:        result = tm_provider_awamail_generate(); break;
             case CHANNEL_MAIL_TM:        result = tm_provider_mail_tm_generate(); break;
             case CHANNEL_DROPMAIL:       result = tm_provider_dropmail_generate(); break;
             case CHANNEL_GUERRILLAMAIL:  result = tm_provider_guerrillamail_generate(); break;
             case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(); break;
+            case CHANNEL_SMAIL_PW:       result = tm_provider_smail_pw_generate(); break;
             default: return NULL;
         }
         if (result) return result;
@@ -156,16 +156,22 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
     for (int attempt = 0; attempt <= cfg.max_retries; attempt++) {
         switch (email_info->channel) {
             case CHANNEL_TEMPMAIL:       emails = tm_provider_tempmail_get_emails(email_info->email, &count); break;
-            case CHANNEL_LINSHI_EMAIL:   emails = tm_provider_linshi_email_get_emails(email_info->email, &count); break;
+            case CHANNEL_LINSHI_EMAIL:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_linshi_email_get_emails(email_info->token, email_info->email, &count);
+                break;
             case CHANNEL_TEMPMAIL_LOL:   emails = tm_provider_tempmail_lol_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_CHATGPT_ORG_UK: emails = tm_provider_chatgpt_org_uk_get_emails(email_info->token, email_info->email, &count); break;
-            case CHANNEL_TEMPMAIL_LA:    emails = tm_provider_tempmail_la_get_emails(email_info->email, &count); break;
             case CHANNEL_TEMP_MAIL_IO:   emails = tm_provider_temp_mail_io_get_emails(email_info->email, &count); break;
             case CHANNEL_AWAMAIL:        emails = tm_provider_awamail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_MAIL_TM:        emails = tm_provider_mail_tm_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_DROPMAIL:       emails = tm_provider_dropmail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_GUERRILLAMAIL:  emails = tm_provider_guerrillamail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_MAILDROP:       emails = tm_provider_maildrop_get_emails(email_info->token, email_info->email, &count); break;
+            case CHANNEL_SMAIL_PW:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_smail_pw_get_emails(email_info->token, email_info->email, &count);
+                break;
             default: break;
         }
 

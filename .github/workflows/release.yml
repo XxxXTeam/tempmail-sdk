@@ -569,13 +569,13 @@ jobs:
             | `linshi-email` | linshi-email.com |
             | `tempmail-lol` | tempmail.lol |
             | `chatgpt-org-uk` | mail.chatgpt.org.uk |
-            | `tempmail-la` | tempmail.la |
             | `temp-mail-io` | temp-mail.io |
             | `awamail` | awamail.com |
             | `mail-tm` | mail.tm |
             | `dropmail` | dropmail.me |
             | `guerrillamail` | guerrillamail.com |
             | `maildrop` | maildrop.cc |
+            | `smail-pw` | smail.pw |
           draft: false
           prerelease: false
         env:

@@ -16,15 +16,17 @@ add_library(tempmail_sdk STATIC
     src/http.c
     src/providers/tempmail.c
     src/providers/linshi_email.c
+    src/providers/linshi_token.c
+    vendor/tm_sha256.c
     src/providers/tempmail_lol.c
     src/providers/chatgpt_org_uk.c
-    src/providers/tempmail_la.c
     src/providers/temp_mail_io.c
     src/providers/awamail.c
     src/providers/mail_tm.c
     src/providers/dropmail.c
     src/providers/guerrillamail.c
     src/providers/maildrop.c
+    src/providers/smail_pw.c
     vendor/cJSON.c
 )
 
