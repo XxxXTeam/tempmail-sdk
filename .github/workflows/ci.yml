@@ -47,6 +47,10 @@ jobs:
       - name: 构建
         run: go build ./...
 
+      - name: 构建 example
+        working-directory: sdk/go/example
+        run: go build -o /dev/null .
+
   # Node.js SDK 构建检查
   npm-build:
     name: Node.js SDK (Node ${{ matrix.node-version }})

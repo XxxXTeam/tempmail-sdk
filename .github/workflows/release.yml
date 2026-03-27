@@ -296,6 +296,7 @@ jobs:
       - name: 交叉编译多平台二进制
         working-directory: sdk/go/example
         run: |
+          go mod tidy
           platforms=(
             "linux/amd64"
             "linux/arm64"
