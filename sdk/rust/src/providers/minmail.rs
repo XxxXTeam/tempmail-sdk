@@ -19,6 +19,8 @@ struct MinmailToken {
     visitor_id: String,
     #[serde(default)]
     ck: String,
+    #[serde(default)]
+    cookie: String,
 }
 
 fn random_seg(n: usize) -> String {
@@ -48,7 +50,12 @@ fn cookie_header() -> String {
     format!("_ga={ga}; _ga_DFGB8WF1WG=GS2.1.s{now}$o1$g0$t{now}$j60$l0$h0")
 }
 
-fn base_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
+fn base_headers(b: wreq::RequestBuilder, cookie_line: &str) -> wreq::RequestBuilder {
+    let cookie = if cookie_line.trim().is_empty() {
+        cookie_header()
+    } else {
+        cookie_line.to_string()
+    };
     b.header("Accept", "*/*")
         .header(
             "Accept-Language",
@@ -67,43 +74,78 @@ fn base_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
         .header("sec-fetch-dest", "empty")
         .header("sec-fetch-mode", "cors")
         .header("sec-fetch-site", "same-origin")
-        .header("Cookie", cookie_header())
+        .header("Cookie", cookie)
 }
 
-fn build_address_req(client: &wreq::Client, path: &str) -> wreq::RequestBuilder {
+fn build_address_req(client: &wreq::Client, path: &str, cookie_line: &str) -> wreq::RequestBuilder {
     let url = format!("{}{}", BASE, path);
-    base_headers(client.get(&url))
+    base_headers(client.get(&url), cookie_line)
 }
 
-fn build_list_req(client: &wreq::Client, path: &str, vid: &str, ck: &str) -> wreq::RequestBuilder {
+fn build_list_req(
+    client: &wreq::Client,
+    path: &str,
+    vid: &str,
+    ck: &str,
+    cookie_line: &str,
+) -> wreq::RequestBuilder {
     let url = format!("{}{}", BASE, path);
-    let mut b = base_headers(client.get(&url)).header("visitor-id", vid);
+    let mut b = base_headers(client.get(&url), cookie_line).header("visitor-id", vid);
     if !ck.is_empty() {
         b = b.header("ck", ck);
     }
     b
 }
 
-fn parse_minmail_token(s: &str) -> (String, String) {
+fn parse_minmail_token(s: &str) -> (String, String, String) {
     let t = s.trim();
     if t.starts_with('{') {
         if let Ok(tok) = serde_json::from_str::<MinmailToken>(t) {
-            return (tok.visitor_id, tok.ck);
+            return (tok.visitor_id, tok.ck, tok.cookie);
         }
     }
-    (t.to_string(), String::new())
+    (t.to_string(), String::new(), String::new())
 }
 
-fn encode_minmail_token(visitor_id: &str, ck: &str) -> Result<String, serde_json::Error> {
+fn encode_minmail_token(visitor_id: &str, ck: &str, cookie_line: &str) -> Result<String, serde_json::Error> {
     serde_json::to_string(&MinmailToken {
         visitor_id: visitor_id.to_string(),
         ck: ck.to_string(),
+        cookie: cookie_line.to_string(),
     })
 }
 
+fn minmail_to_matches(header: &str, want: &str) -> bool {
+    let w = want.trim().to_lowercase();
+    if w.is_empty() {
+        return true;
+    }
+    let h = header.trim().to_lowercase();
+    if h.is_empty() {
+        return true;
+    }
+    if h == w {
+        return true;
+    }
+    if let (Some(i), Some(j)) = (h.find('<'), h.find('>')) {
+        if j > i {
+            let inner = h[i + 1..j].trim();
+            if inner == w {
+                return true;
+            }
+        }
+    }
+    h.contains(&w)
+}
+
 pub fn generate_email() -> Result<EmailInfo, String> {
+    let cook = cookie_header();
     block_on(async {
-        let resp = build_address_req(&http_client(), "/mail/address?refresh=true&expire=1440&part=main")
+        let resp = build_address_req(
+            &http_client(),
+            "/mail/address?refresh=true&expire=1440&part=main",
+            &cook,
+        )
             .send()
             .await
             .map_err(|e| e.to_string())?;
@@ -127,7 +169,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             server_vid
         };
         let ck = data["ck"].as_str().unwrap_or("");
-        let token = encode_minmail_token(&vid, ck).map_err(|e| e.to_string())?;
+        let token = encode_minmail_token(&vid, ck, &cook).map_err(|e| e.to_string())?;
         let expire_min = data["expire"].as_i64().unwrap_or(0);
         let expires_at = if expire_min > 0 {
             let now = SystemTime::now()
@@ -149,15 +191,15 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(email: &str, token: Option<&str>) -> Result<Vec<Email>, String> {
-    let (mut vid, ck) = token
+    let (mut vid, ck, cook) = token
         .map(|s| parse_minmail_token(s))
-        .unwrap_or_else(|| (String::new(), String::new()));
+        .unwrap_or_else(|| (String::new(), String::new(), String::new()));
     if vid.is_empty() {
         vid = visitor_id();
     }
     let email = email.to_string();
     block_on(async {
-        let resp = build_list_req(&http_client(), "/mail/list?part=main", &vid, &ck)
+        let resp = build_list_req(&http_client(), "/mail/list?part=main", &vid, &ck, &cook)
             .send()
             .await
             .map_err(|e| e.to_string())?;
@@ -169,7 +211,7 @@ pub fn get_emails(email: &str, token: Option<&str>) -> Result<Vec<Email>, String
         let mut out = Vec::new();
         for raw in messages {
             let to = raw["to"].as_str().unwrap_or("");
-            if !to.is_empty() && to != email.as_str() {
+            if !to.is_empty() && !minmail_to_matches(to, email.as_str()) {
                 continue;
             }
             let to_s = raw["to"].as_str().unwrap_or(email.as_str());

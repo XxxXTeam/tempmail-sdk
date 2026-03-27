@@ -8,7 +8,7 @@ from typing import Optional, List
 from .types import (
     EmailInfo, Email, GetEmailsResult,
     GenerateEmailOptions, GetEmailsOptions,
-    ChannelInfo, RetryConfig,
+    ChannelInfo,
 )
 from .retry import with_retry
 from .logger import get_logger

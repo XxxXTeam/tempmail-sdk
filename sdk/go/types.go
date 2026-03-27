@@ -2,7 +2,7 @@ package tempemail
 
 /*
  * Channel 支持的临时邮箱渠道标识
- * 每个渠道对应一个第三方临时邮箱服务商
+ * 每个渠道对应一个第三方临时邮箱服务商。
  */
 type Channel string
 

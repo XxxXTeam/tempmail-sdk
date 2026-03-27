@@ -22,7 +22,7 @@ const DOMAIN = 'maildrop.cc';
  */
 function decodeRfc2047(str: string): string {
   if (!str) return '';
-  return str.replace(/=\?([^?]+)\?(B|Q)\?([^?]*)\?=/gi, (_, charset, encoding, encoded) => {
+  return str.replace(/=\?([^?]+)\?(B|Q)\?([^?]*)\?=/gi, (_, _charset, encoding, encoded) => {
     try {
       if (encoding.toUpperCase() === 'B') {
         return Buffer.from(encoded, 'base64').toString('utf-8');
@@ -42,15 +42,37 @@ function decodeRfc2047(str: string): string {
  * 从原始 MIME 邮件源码中提取纯文本正文
  * maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
  */
+function splitMimeHeaderBody(raw: string): { headers: string; body: string } | null {
+  if (!raw) return null;
+  let idx = raw.indexOf('\r\n\r\n');
+  if (idx === -1) idx = raw.indexOf('\n\n');
+  if (idx === -1) return null;
+  const sep = raw[idx] === '\r' ? 4 : 2;
+  return { headers: raw.substring(0, idx), body: raw.substring(idx + sep) };
+}
+
+function splitPartHeadersContent(part: string): { headers: string; content: string } | null {
+  let pe = part.indexOf('\r\n\r\n');
+  let off = 4;
+  if (pe === -1) {
+    pe = part.indexOf('\n\n');
+    off = 2;
+  }
+  if (pe === -1) return null;
+  return {
+    headers: part.substring(0, pe),
+    content: part.substring(pe + off).replace(/\r\n$/, '').replace(/\n$/, '').replace(/--$/, '').trim(),
+  };
+}
+
 function extractTextFromMime(raw: string): string {
   if (!raw) return '';
 
-  /* 分离邮件头和正文（双换行分隔） */
-  const headerBodySplit = raw.indexOf('\r\n\r\n');
-  if (headerBodySplit === -1) return raw;
+  const hb = splitMimeHeaderBody(raw);
+  if (!hb) return raw.trim();
 
-  const headers = raw.substring(0, headerBodySplit);
-  const body = raw.substring(headerBodySplit + 4);
+  const headers = hb.headers;
+  const body = hb.body;
 
   /* 检查是否为 multipart 邮件 */
   const boundaryMatch = headers.match(/boundary="?([^";\r\n]+)"?/i);
@@ -91,6 +113,61 @@ function extractTextFromMime(raw: string): string {
   }
 
   return body.trim();
+}
+
+/** 提取 text/html 部分（multipart 或单段） */
+function extractHtmlFromMime(raw: string): string {
+  if (!raw) return '';
+
+  const hb = splitMimeHeaderBody(raw);
+  if (!hb) return '';
+
+  const headers = hb.headers;
+  const body = hb.body;
+
+  const boundaryMatch = headers.match(/boundary="?([^";\r\n]+)"?/i);
+  if (boundaryMatch) {
+    const boundary = boundaryMatch[1];
+    const parts = body.split('--' + boundary);
+
+    for (const part of parts) {
+      if (part.match(/Content-Type:\s*text\/html/i)) {
+        const sp = splitPartHeadersContent(part);
+        if (!sp) continue;
+
+        const partHeaders = sp.headers;
+        let content = sp.content;
+
+        if (partHeaders.match(/Content-Transfer-Encoding:\s*base64/i)) {
+          try {
+            content = Buffer.from(content.replace(/\s/g, ''), 'base64').toString('utf-8');
+          } catch { /* keep */ }
+        } else if (partHeaders.match(/Content-Transfer-Encoding:\s*quoted-printable/i)) {
+          content = content
+            .replace(/=\r?\n/g, '')
+            .replace(/=([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+        }
+
+        return content.trim();
+      }
+    }
+  }
+
+  if (headers.match(/Content-Type:\s*text\/html/i)) {
+    if (headers.match(/Content-Transfer-Encoding:\s*base64/i)) {
+      try {
+        return Buffer.from(body.replace(/\s/g, ''), 'base64').toString('utf-8').trim();
+      } catch { /* fallthrough */ }
+    }
+    return body.trim();
+  }
+
+  return '';
+}
+
+function stripHtmlToText(html: string): string {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -190,13 +267,18 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
 
       const msg = msgData?.message;
       if (msg) {
+        const raw = msg.data || '';
+        const plain = extractTextFromMime(raw);
+        const fromMimeHtml = extractHtmlFromMime(raw);
+        const htmlOut = (msg.html && String(msg.html).trim()) ? String(msg.html) : fromMimeHtml;
+        const textOut = plain || stripHtmlToText(htmlOut);
         emails.push({
           id: msg.id || item.id,
           from: decodeRfc2047(msg.headerfrom || item.headerfrom || ''),
           to: email,
           subject: decodeRfc2047(msg.subject || item.subject || ''),
-          text: extractTextFromMime(msg.data || ''),
-          html: msg.html || '',
+          text: textOut,
+          html: htmlOut,
           date: msg.date || item.date || '',
           isRead: false,
           attachments: [],

@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **14** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -26,10 +26,13 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `temp-mail-io` | temp-mail.io | - | |
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `mail-tm` | mail.tm / api.mail.tm | ✅ | 自动注册账号；请求与 **Internxt** 等站点前端一致（`GET /domains?page=1`、`GET /messages?page=1` 及常见浏览器头） |
-| `smail-pw` | smail.pw | ✅ | `POST/GET https://smail.pw/_root.data`，`__session` Cookie；解析 RSC/Flight 中的 **D1 邮件行对象**（`subject`/`time` 等） |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
-| `maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |
+| `maildrop` | maildrop.cc | ✅ | GraphQL；`data` 为 MIME 源码，解析 plain/multipart/Base64/QP，HTML 兜底 `text` |
+| `smail-pw` | smail.pw | ✅ | `POST/GET https://smail.pw/_root.data`，`__session` Cookie；解析 RSC/Flight 中的 **D1 邮件行对象**（`subject`/`time` 等） |
+| `boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
+| `minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
+| `vip-215` | vip.215.im | ✅ | `POST` 建箱 + `wss`；无正文时 synthetic 兜底 |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 

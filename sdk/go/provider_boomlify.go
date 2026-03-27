@@ -1,11 +1,14 @@
 package tempemail
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/url"
+	"regexp"
+	"strings"
 
 	http "github.com/bogdanfinn/fhttp"
 )
@@ -38,16 +41,14 @@ func boomlifyDefaultHeaders(req *http.Request) {
 	req.Header.Set("x-user-language", "zh")
 }
 
-func boomlifyRandomLocal(n int) string {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
-	}
-	return string(b)
+type boomlifyDomainEntry struct {
+	ID     string
+	Domain string
 }
 
-func boomlifyGetDomains() ([]string, error) {
+var boomlifyInboxUUID = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+
+func boomlifyGetDomains() ([]boomlifyDomainEntry, error) {
 	req, err := http.NewRequest("GET", boomlifyBaseURL+"/domains/public", nil)
 	if err != nil {
 		return nil, err
@@ -72,10 +73,11 @@ func boomlifyGetDomains() ([]string, error) {
 	if err := json.Unmarshal(body, &items); err != nil {
 		return nil, err
 	}
-	var out []string
+	var out []boomlifyDomainEntry
 	for _, m := range items {
 		dom, _ := m["domain"].(string)
-		if dom == "" {
+		id, _ := m["id"].(string)
+		if dom == "" || id == "" {
 			continue
 		}
 		active := false
@@ -94,10 +96,61 @@ func boomlifyGetDomains() ([]string, error) {
 			}
 		}
 		if active {
-			out = append(out, dom)
+			out = append(out, boomlifyDomainEntry{ID: id, Domain: dom})
 		}
 	}
 	return out, nil
+}
+
+func boomlifyCreatePublicInbox(domainID string) (string, error) {
+	payload := map[string]string{"domainId": domainID}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	req, err := http.NewRequest("POST", boomlifyBaseURL+"/emails/public/create", bytes.NewReader(raw))
+	if err != nil {
+		return "", err
+	}
+	boomlifyDefaultHeaders(req)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("boomlify public create: %d", resp.StatusCode)
+	}
+	var cr struct {
+		ID              string `json:"id"`
+		Error           string `json:"error"`
+		Message         string `json:"message"`
+		CaptchaRequired bool   `json:"captchaRequired"`
+	}
+	if err := json.Unmarshal(body, &cr); err != nil {
+		return "", err
+	}
+	if cr.Error != "" {
+		msg := cr.Error
+		if cr.Message != "" {
+			msg = msg + " — " + cr.Message
+		}
+		if cr.CaptchaRequired {
+			msg = msg + "（服务端限流/需验证码，请稍后重试）"
+		}
+		return "", fmt.Errorf("boomlify: %s", msg)
+	}
+	if cr.ID == "" {
+		return "", fmt.Errorf("boomlify: public create returned no inbox id")
+	}
+	return cr.ID, nil
 }
 
 func boomlifyGenerate() (*EmailInfo, error) {
@@ -108,18 +161,35 @@ func boomlifyGenerate() (*EmailInfo, error) {
 	if len(domains) == 0 {
 		return nil, fmt.Errorf("boomlify: no domains")
 	}
-	domain := domains[rand.Intn(len(domains))]
-	local := boomlifyRandomLocal(8)
-	addr := fmt.Sprintf("%s@%s", local, domain)
+	pick := domains[rand.Intn(len(domains))]
+	boxID, err := boomlifyCreatePublicInbox(pick.ID)
+	if err != nil {
+		return nil, err
+	}
+	addr := fmt.Sprintf("%s@%s", boxID, pick.Domain)
 
 	return &EmailInfo{
 		Channel: ChannelBoomlify,
 		Email:   addr,
+		token:   boxID,
 	}, nil
 }
 
+func boomlifyInboxPathSegment(email string) string {
+	at := strings.LastIndex(email, "@")
+	local := email
+	if at > 0 {
+		local = email[:at]
+	}
+	if boomlifyInboxUUID.MatchString(local) {
+		return local
+	}
+	return email
+}
+
 func boomlifyGetEmails(email string) ([]Email, error) {
-	u := fmt.Sprintf("%s/emails/public/%s", boomlifyBaseURL, url.PathEscape(email))
+	seg := boomlifyInboxPathSegment(email)
+	u := fmt.Sprintf("%s/emails/public/%s", boomlifyBaseURL, url.PathEscape(seg))
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, err

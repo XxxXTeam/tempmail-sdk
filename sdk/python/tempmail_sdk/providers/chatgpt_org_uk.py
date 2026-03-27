@@ -8,6 +8,7 @@ import re
 from urllib.parse import quote
 
 from .. import http as tm_http
+from ..logger import get_logger
 from ..types import EmailInfo
 from ..normalize import normalize_email
 
@@ -111,7 +112,7 @@ def _parse_packed_token(packed: str) -> tuple[str, str]:
             if isinstance(gs, str) and isinstance(ib, str):
                 return gs, ib
         except Exception:
-            pass
+            get_logger().debug("chatgpt-org-uk: packed token JSON parse failed", exc_info=True)
     return "", packed
 
 

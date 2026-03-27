@@ -1,12 +1,13 @@
 {
   "name": "tempmail-sdk",
-  "version": "1.0.1",
-  "description": "临时邮箱 SDK - 支持多个临时邮箱服务商",
+  "version": "1.1.5",
+  "description": "临时邮箱 SDK - 支持 14 个临时邮箱服务商",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "ts-node test/example.ts"
+    "test": "ts-node test/example.ts",
+    "demo:poll": "ts-node demo/poll-emails.ts"
   },
   "keywords": [
     "temp-email",
@@ -27,8 +28,10 @@
   },
   "homepage": "https://github.com/XxxXTeam/tempmail-sdk#readme",
   "devDependencies": {
+    "@types/nodemailer": "^6.4.17",
     "@types/ws": "^8.5.13",
     "@types/node": "^20.0.0",
+    "nodemailer": "^6.9.16",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   },

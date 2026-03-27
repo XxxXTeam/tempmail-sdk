@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（Rust），支持 **14** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -19,19 +19,22 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 
 ## 支持的渠道
 
-| 渠道 | 服务商 | 需要 Token | 说明 |
+| 渠道（`Channel`） | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `Tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `LinshiEmail` | linshi-email.com | - | |
 | `TempmailLol` | tempmail.lol | ✅ | 支持指定域名 |
-| `ChatgptOrgUk` | mail.chatgpt.org.uk | - | |
+| `ChatgptOrgUk` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
 | `TempMailIO` | temp-mail.io | - | |
 | `Awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `MailTm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
-| `SmailPw` | smail.pw | ✅ | `_root.data` + `__session`；解析以正则为主 |
 | `Dropmail` | dropmail.me | ✅ | GraphQL API |
 | `GuerrillaMail` | guerrillamail.com | ✅ | 公开 JSON API |
-| `Maildrop` | maildrop.cc | ✅ | GraphQL API，自带反垃圾 |
+| `Maildrop` | maildrop.cc | ✅ | GraphQL；`data` 为 MIME 源码，解析 plain/multipart/Base64/QP，HTML 兜底 `text` |
+| `SmailPw` | smail.pw | ✅ | `_root.data` + `__session`；解析以正则为主 |
+| `Boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
+| `Minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
+| `Vip215` | vip.215.im | ✅ | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
 
 ## 快速开始
 

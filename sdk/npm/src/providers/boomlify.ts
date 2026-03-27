@@ -30,6 +30,13 @@ interface BoomlifyDomain {
   is_active: number;
 }
 
+interface BoomlifyPublicCreateResponse {
+  id?: string;
+  error?: string;
+  message?: string;
+  captchaRequired?: boolean;
+}
+
 interface BoomlifyEmail {
   id: string;
   temp_email_id: string;
@@ -42,16 +49,7 @@ interface BoomlifyEmail {
   temp_email: string;
 }
 
-function randomString(length: number): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
-}
-
-async function getDomains(): Promise<string[]> {
+async function getDomains(): Promise<BoomlifyDomain[]> {
   const response = await fetchWithTimeout(`${BASE_URL}/domains/public`, {
     method: 'GET',
     headers: DEFAULT_HEADERS,
@@ -62,9 +60,39 @@ async function getDomains(): Promise<string[]> {
   }
 
   const data: BoomlifyDomain[] = await response.json();
-  return data
-    .filter(d => d.is_active === 1)
-    .map(d => d.domain);
+  return data.filter(d => d.is_active === 1 && d.id && d.domain);
+}
+
+/**
+ * 在服务端登记公开收件箱（需 domain 的 UUID）。
+ * 仅随机 local@domain 不会入库，SMTP 邮件无法与列表 API 对应。
+ */
+async function createPublicInbox(domainId: string): Promise<string> {
+  const response = await fetchWithTimeout(`${BASE_URL}/emails/public/create`, {
+    method: 'POST',
+    headers: {
+      ...DEFAULT_HEADERS,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ domainId }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create boomlify inbox: ${response.status}`);
+  }
+
+  const data: BoomlifyPublicCreateResponse = await response.json();
+  if (data.error) {
+    const extra = data.message ? ` — ${data.message}` : '';
+    if (data.captchaRequired) {
+      throw new Error(`boomlify: ${data.error}${extra}（服务端限流/需验证码，请稍后重试）`);
+    }
+    throw new Error(`boomlify: ${data.error}${extra}`);
+  }
+  if (!data.id) {
+    throw new Error('boomlify: public create returned no inbox id');
+  }
+  return data.id;
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
@@ -74,17 +102,29 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error('Failed to generate email: no domains available');
   }
 
-  const domain = domains[Math.floor(Math.random() * domains.length)];
-  const localPart = randomString(8);
+  const pick = domains[Math.floor(Math.random() * domains.length)];
+  const boxId = await createPublicInbox(pick.id);
+  /* 收件地址与列表 API 一致：inboxId@域名（与官网 public create 行为一致） */
+  const email = `${boxId}@${pick.domain}`;
 
   return {
     channel: CHANNEL,
-    email: `${localPart}@${domain}`,
+    email,
+    token: boxId,
   };
 }
 
+function boomlifyInboxPathSegment(email: string): string {
+  const at = email.indexOf('@');
+  const local = at > 0 ? email.slice(0, at) : email;
+  /* public create 返回的 inbox id 为 UUID；列表接口路径为 /emails/public/{id}，非完整地址 */
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRe.test(local) ? local : email;
+}
+
 export async function getEmails(email: string): Promise<Email[]> {
-  const response = await fetchWithTimeout(`${BASE_URL}/emails/public/${encodeURIComponent(email)}`, {
+  const pathSeg = boomlifyInboxPathSegment(email);
+  const response = await fetchWithTimeout(`${BASE_URL}/emails/public/${encodeURIComponent(pathSeg)}`, {
     method: 'GET',
     headers: DEFAULT_HEADERS,
   });

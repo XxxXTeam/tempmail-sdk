@@ -4,7 +4,7 @@
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from .types import Email, EmailAttachment
 
 
@@ -110,7 +110,7 @@ def _normalize_date(raw: Dict[str, Any]) -> str:
                         return datetime.fromtimestamp(val / 1000, tz=timezone.utc).isoformat()
                     return datetime.fromtimestamp(val, tz=timezone.utc).isoformat()
                 except (ValueError, OSError):
-                    pass
+                    continue
 
     for key in ("timestamp", "e_date"):
         val = raw.get(key)
@@ -120,7 +120,7 @@ def _normalize_date(raw: Dict[str, Any]) -> str:
                     return datetime.fromtimestamp(val, tz=timezone.utc).isoformat()
                 return datetime.fromtimestamp(val / 1000, tz=timezone.utc).isoformat()
             except (ValueError, OSError):
-                pass
+                continue
 
     return ""
 

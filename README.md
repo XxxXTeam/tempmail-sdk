@@ -34,9 +34,9 @@
 | `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
 | `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
-| `maildrop` | [maildrop.cc](https://maildrop.cc) | - | GraphQL API，自带反垃圾 |
+| `maildrop` | [maildrop.cc](https://maildrop.cc) | - | GraphQL API；`message.data` 为 MIME 源码，各 SDK 解析 `text/plain`、multipart、Base64/QP，并用 `text/html` 与去标签结果兜底 `text` |
 | `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
-| `boomlify` | [boomlify.com](https://boomlify.com) | - | 拉取公开域名列表并随机本地部；REST 收件，无额外 token |
+| `boomlify` | [boomlify.com](https://boomlify.com) | - | `GET /domains/public` 取域名后 `POST /emails/public/create`（`domainId`）登记收件箱；地址为 `{邮箱 UUID}@{域名}`，REST 拉信，无额外 token |
 | `minmail` | [minmail.app](https://minmail.app) | 内部 Token（JSON） | `GET /api/mail/address` 返回 `visitorId` 与 `ck`；收信需请求头 `visitor-id` 与 `ck`。SDK 将二者序列化为 JSON 存入 token，兼容旧版仅 UUID |
 | `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 

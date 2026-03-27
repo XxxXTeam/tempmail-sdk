@@ -66,29 +66,40 @@ function minmailCookie(): string {
   return `_ga=${ga}; _ga_DFGB8WF1WG=GS2.1.s${now}$o1$g0$t${now}$j60$l0$h0`;
 }
 
-/** token：JSON {"visitorId","ck"} 或旧版仅 UUID */
-function parseMinmailToken(token: string | undefined): { visitorId: string; ck: string } {
+/** token：JSON {"visitorId","ck","cookie"} 或旧版仅 UUID；cookie 须与建箱时一致，否则列表会话对不上 */
+function parseMinmailToken(token: string | undefined): { visitorId: string; ck: string; cookie: string } {
   const t = (token ?? '').trim();
   if (t.startsWith('{')) {
     try {
-      const o = JSON.parse(t) as { visitorId?: string; visitor_id?: string; ck?: string };
+      const o = JSON.parse(t) as { visitorId?: string; visitor_id?: string; ck?: string; cookie?: string };
       const vid = o.visitorId ?? o.visitor_id ?? '';
-      return { visitorId: vid, ck: o.ck ?? '' };
+      return { visitorId: vid, ck: o.ck ?? '', cookie: o.cookie ?? '' };
     } catch {
       /* fallthrough */
     }
   }
-  return { visitorId: t, ck: '' };
+  return { visitorId: t, ck: '', cookie: '' };
 }
 
-function encodeMinmailToken(visitorId: string, ck: string): string {
-  return JSON.stringify({ visitorId, ck });
+function encodeMinmailToken(visitorId: string, ck: string, cookie: string): string {
+  return JSON.stringify({ visitorId, ck, cookie });
+}
+
+function minmailAddrInHeader(h: string, want: string): boolean {
+  if (!h) return true;
+  const w = want.trim().toLowerCase();
+  const t = h.trim().toLowerCase();
+  if (t === w) return true;
+  const m = t.match(/<([^>]+@[^>]+)>/);
+  if (m && m[1].trim() === w) return true;
+  return t.includes(w);
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
+  const cookieStr = minmailCookie();
   const headers = {
     ...DEFAULT_HEADERS,
-    'Cookie': minmailCookie(),
+    'Cookie': cookieStr,
   };
 
   const response = await fetchWithTimeout(`${BASE_URL}/mail/address?refresh=true&expire=1440&part=main`, {
@@ -108,19 +119,19 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   return {
     channel: CHANNEL,
     email: data.address,
-    token: encodeMinmailToken(visitorId, ck),
+    token: encodeMinmailToken(visitorId, ck, cookieStr),
     expiresAt: Date.now() + (data.expire * 60 * 1000),
   };
 }
 
 export async function getEmails(email: string, token?: string): Promise<Email[]> {
-  const { visitorId, ck } = parseMinmailToken(token);
+  const { visitorId, ck, cookie } = parseMinmailToken(token);
   const vid = visitorId || generateVisitorId();
 
   const headers: Record<string, string> = {
     ...DEFAULT_HEADERS,
     'visitor-id': vid,
-    'Cookie': minmailCookie(),
+    'Cookie': cookie || minmailCookie(),
   };
   if (ck) headers['ck'] = ck;
 
@@ -137,7 +148,7 @@ export async function getEmails(email: string, token?: string): Promise<Email[]>
   const messages = data.message || [];
 
   return messages
-    .filter((m: MinmailMessage) => m.to === email)
+    .filter((m: MinmailMessage) => minmailAddrInHeader(m.to || '', email))
     .map((raw: MinmailMessage) => normalizeEmail({
       id: raw.id,
       from: raw.from || '',

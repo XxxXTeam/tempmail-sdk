@@ -6,6 +6,7 @@ API: https://api.internal.temp-mail.io/api/v3
 
 import re
 from .. import http as tm_http
+from ..logger import get_logger
 from ..types import EmailInfo
 from ..normalize import normalize_email
 
@@ -31,7 +32,7 @@ def _fetch_cors_header() -> str:
             _cached_cors_header = match.group(1)
             return _cached_cors_header
     except Exception:
-        pass
+        get_logger().debug("temp-mail-io: fetch CORS header failed", exc_info=True)
 
     _cached_cors_header = "1"
     return _cached_cors_header

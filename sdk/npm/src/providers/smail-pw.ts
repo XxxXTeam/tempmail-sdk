@@ -173,7 +173,8 @@ function mergeMailsById(lists: any[][]): any[] {
     for (const mail of list) {
       let id = String(mail?.id || '');
       if (!id) {
-        id = `__smail_${anon++}_${mail?.date ?? ''}_${String(mail?.subject ?? '').slice(0, 48)}`;
+        id = `__smail_${anon}_${mail?.date ?? ''}_${String(mail?.subject ?? '').slice(0, 48)}`;
+        anon += 1;
         mail.id = id;
       }
       if (!map.has(id)) {

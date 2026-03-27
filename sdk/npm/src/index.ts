@@ -12,8 +12,8 @@ import * as smailPw from './providers/smail-pw';
 import * as boomlify from './providers/boomlify';
 import * as minmail from './providers/minmail';
 import * as vip215 from './providers/vip-215';
-import { Channel, EmailInfo, InternalEmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
-import { withRetry, RetryOptions } from './retry';
+import { Channel, EmailInfo, InternalEmailInfo, Email, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
+import { withRetry } from './retry';
 import { logger } from './logger';
 import { setConfig, getConfig } from './config';
 
@@ -37,24 +37,6 @@ export {
   randomBrowserLikeProfile,
   syntheticVisitorIdFromProfile,
 } from './providers/linshi-token';
-
-/** 渠道名称到 provider 实现的映射表 */
-const providers = {
-  'tempmail': tempmail,
-  'linshi-email': linshiEmail,
-  'tempmail-lol': tempmailLol,
-  'chatgpt-org-uk': chatgptOrgUk,
-  'temp-mail-io': tempMailIO,
-  'awamail': awamail,
-  'mail-tm': mailTm,
-  'dropmail': dropmail,
-  'guerrillamail': guerrillamail,
-  'maildrop': maildropProvider,
-  'smail-pw': smailPw,
-  'boomlify': boomlify,
-  'minmail': minmail,
-  'vip-215': vip215,
-};
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
 const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];

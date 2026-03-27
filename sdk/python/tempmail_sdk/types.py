@@ -5,7 +5,7 @@ SDK 类型定义
 from dataclasses import dataclass, field
 from typing import Optional, List, Literal, Any
 
-# 支持的临时邮箱渠道标识，每个渠道对应一个第三方临时邮箱服务商
+# 支持的临时邮箱渠道标识
 Channel = Literal[
     "tempmail",
     "linshi-email",

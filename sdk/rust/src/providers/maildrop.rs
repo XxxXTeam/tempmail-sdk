@@ -7,13 +7,21 @@
  * - headerfrom/subject 可能含 RFC 2047 编码，需要解码
  */
 
+use std::sync::LazyLock;
+
 use serde_json::Value;
 use rand::Rng;
+use regex::Regex;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::config::{http_client, block_on, get_current_ua};
 
 const GRAPHQL_URL: &str = "https://api.maildrop.cc/graphql";
 const DOMAIN: &str = "maildrop.cc";
+
+static MAILDROP_STRIP_TAG_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"<[^>]*>").expect("tag strip regex"));
+static MAILDROP_STRIP_WS_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\s+").expect("ws strip regex"));
 
 fn random_username(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
@@ -70,58 +78,78 @@ fn decode_rfc2047(s: &str) -> String {
     result.to_string()
 }
 
-/**
- * 从原始 MIME 邮件源码中提取纯文本正文
- * maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
- */
-fn extract_text_from_mime(raw: &str) -> String {
-    use base64::Engine;
-    if raw.is_empty() {
-        return String::new();
+fn split_mime_header_body(raw: &str) -> Option<(&str, &str)> {
+    if let Some(pos) = raw.find("\r\n\r\n") {
+        return Some((&raw[..pos], &raw[pos + 4..]));
     }
+    raw.find("\n\n").map(|pos| (&raw[..pos], &raw[pos + 2..]))
+}
 
-    /* 分离邮件头和正文 */
-    let split_pos = match raw.find("\r\n\r\n") {
-        Some(pos) => pos,
-        None => return raw.to_string(),
-    };
-    let headers = &raw[..split_pos];
-    let body = &raw[split_pos + 4..];
+fn split_part_header_content(part: &str) -> Option<(&str, &str)> {
+    if let Some(p) = part.find("\r\n\r\n") {
+        return Some((&part[..p], &part[p + 4..]));
+    }
+    part.find("\n\n").map(|p| (&part[..p], &part[p + 2..]))
+}
 
-    /* 检查是否为 multipart，提取 boundary */
-    let headers_lower = headers.to_lowercase();
-    let boundary = extract_boundary(&headers_lower, headers);
+fn hex_qp(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
+    }
+}
 
-    if let Some(boundary) = boundary {
-        let delimiter = format!("--{}", boundary);
-        let parts: Vec<&str> = body.split(&delimiter).collect();
-        for part in &parts {
-            let part_lower = part.to_lowercase();
-            if part_lower.contains("content-type:") && part_lower.contains("text/plain") {
-                if let Some(part_body_start) = part.find("\r\n\r\n") {
-                    let content = part[part_body_start + 4..].trim_end_matches("--").trim();
-                    /* 检查 base64 编码 */
-                    if part_lower.contains("content-transfer-encoding:") && part_lower.contains("base64") {
-                        let clean = content.replace("\r\n", "").replace("\n", "");
-                        if let Ok(decoded) = base64::engine::general_purpose::STANDARD.decode(&clean) {
-                            return String::from_utf8_lossy(&decoded).trim().to_string();
-                        }
-                    }
-                    return content.trim().to_string();
+fn decode_quoted_printable(input: &str) -> String {
+    let bytes = input.as_bytes();
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'=' && i + 1 < bytes.len() {
+            if bytes[i + 1] == b'\r' && i + 2 < bytes.len() && bytes[i + 2] == b'\n' {
+                i += 3;
+                continue;
+            }
+            if bytes[i + 1] == b'\n' {
+                i += 2;
+                continue;
+            }
+            if i + 2 < bytes.len() {
+                if let (Some(a), Some(b)) = (hex_qp(bytes[i + 1]), hex_qp(bytes[i + 2])) {
+                    out.push(a << 4 | b);
+                    i += 3;
+                    continue;
                 }
             }
         }
+        out.push(bytes[i]);
+        i += 1;
     }
+    String::from_utf8_lossy(&out).into_owned()
+}
 
-    /* 非 multipart：检查整体 base64 编码 */
-    if headers_lower.contains("content-transfer-encoding:") && headers_lower.contains("base64") {
-        let clean = body.replace("\r\n", "").replace("\n", "");
+fn part_decode_body(content: &str, part_head_lower: &str) -> String {
+    use base64::Engine;
+    let l = part_head_lower.to_lowercase();
+    if l.contains("content-transfer-encoding:") && l.contains("base64") {
+        let clean: String = content.chars().filter(|c| !c.is_whitespace()).collect();
         if let Ok(decoded) = base64::engine::general_purpose::STANDARD.decode(&clean) {
-            return String::from_utf8_lossy(&decoded).trim().to_string();
+            return String::from_utf8_lossy(&decoded).into_owned();
         }
     }
+    if l.contains("content-transfer-encoding:") && l.contains("quoted-printable") {
+        return decode_quoted_printable(content);
+    }
+    content.to_string()
+}
 
-    body.trim().to_string()
+fn strip_html_to_text(html: &str) -> String {
+    if html.is_empty() {
+        return String::new();
+    }
+    let s = MAILDROP_STRIP_TAG_RE.replace_all(html, " ");
+    MAILDROP_STRIP_WS_RE.replace_all(&s, " ").trim().to_string()
 }
 
 /* 从邮件头中提取 boundary 参数 */
@@ -146,6 +174,97 @@ fn extract_boundary<'a>(headers_lower: &str, headers_orig: &'a str) -> Option<St
         }
     }
     None
+}
+
+fn extract_text_from_mime(raw: &str) -> String {
+    use base64::Engine;
+    if raw.is_empty() {
+        return String::new();
+    }
+    let (headers, body) = match split_mime_header_body(raw) {
+        Some(hb) => hb,
+        None => return raw.trim().to_string(),
+    };
+    let headers_lower = headers.to_lowercase();
+    if let Some(boundary) = extract_boundary(&headers_lower, headers) {
+        let delimiter = format!("--{}", boundary);
+        for part in body.split(&delimiter) {
+            let pl = part.to_lowercase();
+            if pl.contains("content-type:") && pl.contains("text/plain") {
+                if let Some((ph, pc)) = split_part_header_content(part) {
+                    let phl = ph.to_lowercase();
+                    let content = pc
+                        .trim_end_matches('\r')
+                        .trim_end_matches('\n')
+                        .trim_end_matches('-')
+                        .trim();
+                    let decoded = part_decode_body(content, &phl);
+                    return decoded.trim().to_string();
+                }
+            }
+        }
+    }
+
+    if headers_lower.contains("content-transfer-encoding:") && headers_lower.contains("base64") {
+        let clean: String = body.chars().filter(|c| !c.is_whitespace()).collect();
+        if let Ok(decoded) = base64::engine::general_purpose::STANDARD.decode(&clean) {
+            return String::from_utf8_lossy(&decoded).trim().to_string();
+        }
+    }
+    if headers_lower.contains("content-transfer-encoding:") && headers_lower.contains("quoted-printable") {
+        return decode_quoted_printable(body).trim().to_string();
+    }
+
+    body.trim().to_string()
+}
+
+fn extract_html_from_mime(raw: &str) -> String {
+    use base64::Engine;
+    if raw.is_empty() {
+        return String::new();
+    }
+    let (headers, body) = match split_mime_header_body(raw) {
+        Some(hb) => hb,
+        None => return String::new(),
+    };
+    let headers_lower = headers.to_lowercase();
+    if let Some(boundary) = extract_boundary(&headers_lower, headers) {
+        let delimiter = format!("--{}", boundary);
+        for part in body.split(&delimiter) {
+            let pl = part.to_lowercase();
+            if pl.contains("content-type:") && pl.contains("text/html") {
+                if let Some((ph, pc)) = split_part_header_content(part) {
+                    let phl = ph.to_lowercase();
+                    let content = pc
+                        .trim_end_matches('\r')
+                        .trim_end_matches('\n')
+                        .trim_end_matches('-')
+                        .trim();
+                    let decoded = part_decode_body(content, &phl);
+                    return decoded.trim().to_string();
+                }
+            }
+        }
+    }
+
+    if headers_lower.contains("content-type:") && headers_lower.contains("text/html") {
+        let decoded = if headers_lower.contains("content-transfer-encoding:") && headers_lower.contains("base64") {
+            let clean: String = body.chars().filter(|c| !c.is_whitespace()).collect();
+            base64::engine::general_purpose::STANDARD
+                .decode(&clean)
+                .map(|d| String::from_utf8_lossy(&d).into_owned())
+                .unwrap_or_else(|_| body.to_string())
+        } else if headers_lower.contains("content-transfer-encoding:")
+            && headers_lower.contains("quoted-printable")
+        {
+            decode_quoted_printable(body)
+        } else {
+            body.to_string()
+        };
+        return decoded.trim().to_string();
+    }
+
+    String::new()
 }
 
 /**
@@ -231,13 +350,27 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
 
         if let Ok(data) = msg_data {
             let msg = &data["message"];
+            let raw = msg["data"].as_str().unwrap_or("");
+            let plain = extract_text_from_mime(raw);
+            let from_mime = extract_html_from_mime(raw);
+            let api_html = msg["html"].as_str().unwrap_or("").trim();
+            let html_out = if !api_html.is_empty() {
+                api_html.to_string()
+            } else {
+                from_mime
+            };
+            let text_out = if !plain.is_empty() {
+                plain
+            } else {
+                strip_html_to_text(&html_out)
+            };
             emails.push(Email {
                 id: msg["id"].as_str().unwrap_or(id).to_string(),
                 from_addr: decode_rfc2047(msg["headerfrom"].as_str().unwrap_or("")),
                 to: email.to_string(),
                 subject: decode_rfc2047(msg["subject"].as_str().unwrap_or("")),
-                text: extract_text_from_mime(msg["data"].as_str().unwrap_or("")),
-                html: msg["html"].as_str().unwrap_or("").to_string(),
+                text: text_out,
+                html: html_out,
                 date: msg["date"].as_str().unwrap_or("").to_string(),
                 is_read: false,
                 attachments: vec![],

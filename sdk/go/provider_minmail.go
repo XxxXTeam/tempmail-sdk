@@ -23,6 +23,7 @@ type minmailAddressResp struct {
 type minmailStoredToken struct {
 	VisitorID string `json:"visitorId"`
 	Ck        string `json:"ck"`
+	Cookie    string `json:"cookie"`
 }
 
 type minmailListResp struct {
@@ -61,7 +62,7 @@ func minmailCookieHeader() string {
 	return fmt.Sprintf("_ga=%s; _ga_DFGB8WF1WG=GS2.1.s%d$o1$g0$t%d$j60$l0$h0", ga, now, now)
 }
 
-func minmailBaseHeaders(req *http.Request) {
+func minmailBaseHeaders(req *http.Request, cookie string) {
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
 	req.Header.Set("Origin", "https://minmail.app")
@@ -77,42 +78,69 @@ func minmailBaseHeaders(req *http.Request) {
 	req.Header.Set("sec-fetch-dest", "empty")
 	req.Header.Set("sec-fetch-mode", "cors")
 	req.Header.Set("sec-fetch-site", "same-origin")
-	req.Header.Set("Cookie", minmailCookieHeader())
+	if strings.TrimSpace(cookie) == "" {
+		cookie = minmailCookieHeader()
+	}
+	req.Header.Set("Cookie", cookie)
 }
 
-func minmailListHeaders(req *http.Request, visitorID, ck string) {
-	minmailBaseHeaders(req)
+func minmailListHeaders(req *http.Request, visitorID, ck, cookie string) {
+	minmailBaseHeaders(req, cookie)
 	req.Header.Set("visitor-id", visitorID)
 	if ck != "" {
 		req.Header.Set("ck", ck)
 	}
 }
 
-func minmailEncodeToken(visitorID, ck string) (string, error) {
-	b, err := json.Marshal(minmailStoredToken{VisitorID: visitorID, Ck: ck})
+func minmailEncodeToken(visitorID, ck, cookie string) (string, error) {
+	b, err := json.Marshal(minmailStoredToken{VisitorID: visitorID, Ck: ck, Cookie: cookie})
 	if err != nil {
 		return "", err
 	}
 	return string(b), nil
 }
 
-func minmailParseToken(token string) (visitorID, ck string) {
+func minmailParseToken(token string) (visitorID, ck, cookie string) {
 	t := strings.TrimSpace(token)
 	if strings.HasPrefix(t, "{") {
 		var st minmailStoredToken
 		if json.Unmarshal([]byte(t), &st) == nil {
-			return st.VisitorID, st.Ck
+			return st.VisitorID, st.Ck, st.Cookie
 		}
 	}
-	return t, ""
+	return t, "", ""
+}
+
+func minmailToMatches(header, want string) bool {
+	want = strings.TrimSpace(strings.ToLower(want))
+	if want == "" {
+		return true
+	}
+	h := strings.TrimSpace(strings.ToLower(header))
+	if h == "" {
+		return true
+	}
+	if h == want {
+		return true
+	}
+	if i := strings.Index(h, "<"); i >= 0 {
+		if j := strings.Index(h, ">"); j > i {
+			inner := strings.TrimSpace(h[i+1 : j])
+			if inner == want {
+				return true
+			}
+		}
+	}
+	return strings.Contains(h, want)
 }
 
 func minmailGenerate() (*EmailInfo, error) {
+	cook := minmailCookieHeader()
 	req, err := http.NewRequest("GET", minmailAPIBase+"/mail/address?refresh=true&expire=1440&part=main", nil)
 	if err != nil {
 		return nil, err
 	}
-	minmailBaseHeaders(req)
+	minmailBaseHeaders(req, cook)
 
 	resp, err := HTTPClient().Do(req)
 	if err != nil {
@@ -140,7 +168,7 @@ func minmailGenerate() (*EmailInfo, error) {
 	if vid == "" {
 		vid = minmailVisitorID()
 	}
-	tok, err := minmailEncodeToken(vid, data.Ck)
+	tok, err := minmailEncodeToken(vid, data.Ck, cook)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +183,7 @@ func minmailGenerate() (*EmailInfo, error) {
 }
 
 func minmailGetEmails(email, token string) ([]Email, error) {
-	vid, ck := minmailParseToken(token)
+	vid, ck, cook := minmailParseToken(token)
 	if vid == "" {
 		vid = minmailVisitorID()
 	}
@@ -163,7 +191,7 @@ func minmailGetEmails(email, token string) ([]Email, error) {
 	if err != nil {
 		return nil, err
 	}
-	minmailListHeaders(req, vid, ck)
+	minmailListHeaders(req, vid, ck, cook)
 
 	resp, err := HTTPClient().Do(req)
 	if err != nil {
@@ -186,7 +214,7 @@ func minmailGetEmails(email, token string) ([]Email, error) {
 
 	var emails []Email
 	for _, raw := range data.Message {
-		if raw.To != "" && raw.To != email {
+		if raw.To != "" && !minmailToMatches(raw.To, email) {
 			continue
 		}
 		flat := map[string]interface{}{

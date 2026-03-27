@@ -1,6 +1,8 @@
 import json
+import math
 import re
 from .. import http as tm_http
+from ..logger import get_logger
 from ..types import EmailInfo
 from ..normalize import normalize_email
 
@@ -48,7 +50,9 @@ def _walk_plain_row_emails(node, recipient: str, out: list, seen: set) -> None:
     subj = node.get("subject")
     if isinstance(subj, str):
         tr = node.get("time")
-        if isinstance(tr, (int, float)) and tr == tr:
+        if isinstance(tr, int):
+            time_ms = int(tr)
+        elif isinstance(tr, float) and not math.isnan(tr):
             time_ms = int(tr)
         elif isinstance(tr, str) and tr.isdigit():
             time_ms = int(tr)
@@ -147,7 +151,7 @@ def _parse_mails(text: str, recipient: str) -> list:
         if plain:
             chunks.append(plain)
     except Exception:
-        pass
+        get_logger().debug("smail-pw: json parse in _parse_mails failed", exc_info=True)
     flat = [row for part in chunks for row in part]
     return _merge_by_id(flat)
 

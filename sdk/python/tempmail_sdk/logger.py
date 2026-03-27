@@ -22,6 +22,9 @@ _handler.setFormatter(logging.Formatter("%(levelname)s %(message)s"))
 _logger.addHandler(_handler)
 _logger.propagate = False
 
+# 在模块内引用公共级别常量，避免静态分析将仅再导出的名字判为「未使用」
+assert LOG_DEBUG < LOG_INFO < LOG_WARNING < LOG_ERROR < LOG_SILENT
+
 
 def set_log_level(level: int) -> None:
     """

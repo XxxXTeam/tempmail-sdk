@@ -4,11 +4,13 @@ API: GraphQL https://api.maildrop.cc/graphql
 """
 
 import random
+import re
 import string
 import email
 import email.header
 import email.policy
 from .. import http as tm_http
+from ..logger import get_logger
 from ..types import EmailInfo, Email
 
 CHANNEL = "maildrop"
@@ -33,30 +35,50 @@ def _decode_rfc2047(s: str) -> str:
     return " ".join(result)
 
 
-def _extract_text_from_mime(raw: str) -> str:
-    """
-    从原始 MIME 邮件源码中提取纯文本正文
-    maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
-    """
+def _strip_html_to_text(html: str) -> str:
+    if not html:
+        return ""
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]*>", " ", html)).strip()
+
+
+def _part_content_str(body) -> str:
+    content = body.get_content()
+    if isinstance(content, str):
+        return content.strip()
+    return content.decode("utf-8", errors="replace").strip()
+
+
+def _extract_plain_from_mime(raw: str) -> str:
+    """仅提取 text/plain（与 npm 行为一致：无 plain 时不从 html 填 text）。"""
     if not raw:
         return ""
     try:
         msg = email.message_from_string(raw, policy=email.policy.default)
-        # 优先提取 text/plain 部分
         body = msg.get_body(preferencelist=("plain",))
         if body:
-            content = body.get_content()
-            return content.strip() if isinstance(content, str) else content.decode("utf-8", errors="replace").strip()
-        # 回退到 text/html 并去除标签
+            return _part_content_str(body)
+    except Exception:
+        idx = raw.find("\r\n\r\n")
+        if idx >= 0:
+            return raw[idx + 4 :].strip()
+        idx = raw.find("\n\n")
+        if idx >= 0:
+            return raw[idx + 2 :].strip()
+        return raw.strip()
+    return ""
+
+
+def _extract_html_from_mime(raw: str) -> str:
+    if not raw:
+        return ""
+    try:
+        msg = email.message_from_string(raw, policy=email.policy.default)
         body = msg.get_body(preferencelist=("html",))
         if body:
-            content = body.get_content()
-            return content.strip() if isinstance(content, str) else content.decode("utf-8", errors="replace").strip()
+            return _part_content_str(body)
     except Exception:
-        pass
-    # 解析失败则尝试跳过邮件头返回正文
-    idx = raw.find("\r\n\r\n")
-    return raw[idx + 4:].strip() if idx >= 0 else raw
+        get_logger().debug("maildrop: extract html from mime failed", exc_info=True)
+    return ""
 
 
 def _random_username(length: int = 10) -> str:
@@ -137,18 +159,24 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
             )
             msg = msg_data.get("message")
             if msg:
+                raw_data = msg.get("data", "") or ""
+                plain = _extract_plain_from_mime(raw_data)
+                from_mime = _extract_html_from_mime(raw_data)
+                api_html = (msg.get("html") or "").strip()
+                html_out = api_html if api_html else from_mime
+                text_out = plain if plain else _strip_html_to_text(html_out)
                 emails.append(Email(
                     id=msg.get("id") or item.get("id", ""),
                     from_addr=_decode_rfc2047(msg.get("headerfrom") or item.get("headerfrom", "")),
                     to=email,
                     subject=_decode_rfc2047(msg.get("subject") or item.get("subject", "")),
-                    text=_extract_text_from_mime(msg.get("data", "")),
-                    html=msg.get("html", ""),
+                    text=text_out,
+                    html=html_out,
                     date=msg.get("date") or item.get("date", ""),
                     is_read=False,
                     attachments=[],
                 ))
         except Exception:
-            pass
+            get_logger().debug("maildrop: get_emails single message failed", exc_info=True)
 
     return emails

@@ -7,7 +7,7 @@ API 文档: https://api.mail.cx/
 
 import random
 import string
-from ..types import EmailInfo, Email
+from ..types import EmailInfo
 from ..normalize import normalize_email
 from .. import http as tm_http
 

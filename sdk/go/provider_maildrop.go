@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"mime"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"strings"
 
 	http "github.com/bogdanfinn/fhttp"
@@ -40,24 +41,39 @@ func maildropDecodeRfc2047(s string) string {
 	return result
 }
 
-/*
- * maildropExtractText 从原始 MIME 邮件源码中提取纯文本正文
- * maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
- */
-func maildropExtractText(raw string) string {
+func maildropSplitHeaderBody(raw string) (headerPart, bodyPart string, ok bool) {
 	if raw == "" {
-		return ""
+		return "", "", false
 	}
-
-	/* 分离邮件头和正文 */
-	splitIdx := strings.Index(raw, "\r\n\r\n")
-	if splitIdx == -1 {
-		return raw
+	if i := strings.Index(raw, "\r\n\r\n"); i >= 0 {
+		return raw[:i], raw[i+4:], true
 	}
-	headerPart := raw[:splitIdx]
-	bodyPart := raw[splitIdx+4:]
+	if i := strings.Index(raw, "\n\n"); i >= 0 {
+		return raw[:i], raw[i+2:], true
+	}
+	return "", raw, false
+}
 
-	/* 检查是否为 multipart */
+func maildropDecodeCTE(content, cte string) string {
+	l := strings.ToLower(cte)
+	if strings.Contains(l, "base64") {
+		clean := strings.ReplaceAll(strings.ReplaceAll(content, "\r\n", ""), "\n", "")
+		decoded, err := base64.StdEncoding.DecodeString(clean)
+		if err == nil {
+			return string(decoded)
+		}
+		return content
+	}
+	if strings.Contains(l, "quoted-printable") {
+		b, err := io.ReadAll(quotedprintable.NewReader(strings.NewReader(content)))
+		if err == nil {
+			return string(b)
+		}
+	}
+	return content
+}
+
+func maildropFindBoundary(headerPart string) string {
 	var boundary string
 	for _, line := range strings.Split(headerPart, "\r\n") {
 		lower := strings.ToLower(line)
@@ -68,8 +84,6 @@ func maildropExtractText(raw string) string {
 			}
 		}
 	}
-
-	/* 如果找不到 boundary，尝试从原始头中提取 */
 	if boundary == "" {
 		ctIdx := strings.Index(strings.ToLower(headerPart), "content-type:")
 		if ctIdx >= 0 {
@@ -78,7 +92,6 @@ func maildropExtractText(raw string) string {
 			if endIdx == -1 {
 				endIdx = len(ctLine)
 			}
-			/* 合并多行头 */
 			ctFull := strings.ReplaceAll(ctLine[:endIdx], "\r\n\t", " ")
 			ctFull = strings.ReplaceAll(ctFull, "\r\n ", " ")
 			colonIdx := strings.Index(ctFull, ":")
@@ -90,7 +103,33 @@ func maildropExtractText(raw string) string {
 			}
 		}
 	}
+	return boundary
+}
 
+func maildropHeaderValueCI(headers, field string) string {
+	prefixLower := strings.ToLower(field) + ":"
+	for _, line := range strings.Split(strings.ReplaceAll(headers, "\r\n", "\n"), "\n") {
+		t := strings.TrimSpace(line)
+		if strings.HasPrefix(strings.ToLower(t), prefixLower) {
+			if colon := strings.Index(t, ":"); colon >= 0 {
+				return strings.TrimSpace(t[colon+1:])
+			}
+		}
+	}
+	return ""
+}
+
+/*
+ * maildropExtractText 从原始 MIME 邮件源码中提取纯文本正文
+ * maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
+ */
+func maildropExtractText(raw string) string {
+	headerPart, bodyPart, ok := maildropSplitHeaderBody(raw)
+	if !ok {
+		return strings.TrimSpace(raw)
+	}
+
+	boundary := maildropFindBoundary(headerPart)
 	if boundary != "" {
 		reader := multipart.NewReader(strings.NewReader(bodyPart), boundary)
 		for {
@@ -101,28 +140,87 @@ func maildropExtractText(raw string) string {
 			ct := part.Header.Get("Content-Type")
 			if strings.Contains(strings.ToLower(ct), "text/plain") {
 				content, _ := io.ReadAll(part)
-				cte := strings.ToLower(part.Header.Get("Content-Transfer-Encoding"))
-				if cte == "base64" {
-					decoded, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(string(content), "\r\n", ""))
-					if err == nil {
-						return strings.TrimSpace(string(decoded))
-					}
-				}
-				return strings.TrimSpace(string(content))
+				cte := part.Header.Get("Content-Transfer-Encoding")
+				out := maildropDecodeCTE(string(content), cte)
+				part.Close()
+				return strings.TrimSpace(out)
 			}
 			part.Close()
 		}
 	}
 
-	/* 非 multipart：检查整体编码 */
-	if strings.Contains(strings.ToLower(headerPart), "content-transfer-encoding: base64") {
-		decoded, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(bodyPart, "\r\n", ""))
+	hl := strings.ToLower(headerPart)
+	if strings.Contains(hl, "content-transfer-encoding:") && strings.Contains(hl, "base64") {
+		clean := strings.ReplaceAll(strings.ReplaceAll(bodyPart, "\r\n", ""), "\n", "")
+		decoded, err := base64.StdEncoding.DecodeString(clean)
 		if err == nil {
 			return strings.TrimSpace(string(decoded))
 		}
 	}
+	if strings.Contains(hl, "content-transfer-encoding:") && strings.Contains(hl, "quoted-printable") {
+		b, err := io.ReadAll(quotedprintable.NewReader(strings.NewReader(bodyPart)))
+		if err == nil {
+			return strings.TrimSpace(string(b))
+		}
+	}
 
 	return strings.TrimSpace(bodyPart)
+}
+
+func maildropExtractHtmlFromMime(raw string) string {
+	headerPart, bodyPart, ok := maildropSplitHeaderBody(raw)
+	if !ok {
+		return ""
+	}
+
+	boundary := maildropFindBoundary(headerPart)
+	if boundary != "" {
+		reader := multipart.NewReader(strings.NewReader(bodyPart), boundary)
+		for {
+			part, err := reader.NextPart()
+			if err != nil {
+				break
+			}
+			ct := part.Header.Get("Content-Type")
+			if strings.Contains(strings.ToLower(ct), "text/html") {
+				content, _ := io.ReadAll(part)
+				cte := part.Header.Get("Content-Transfer-Encoding")
+				out := maildropDecodeCTE(string(content), cte)
+				part.Close()
+				return strings.TrimSpace(out)
+			}
+			part.Close()
+		}
+	}
+
+	hl := strings.ToLower(headerPart)
+	if strings.Contains(hl, "content-type:") && strings.Contains(hl, "text/html") {
+		cte := maildropHeaderValueCI(headerPart, "Content-Transfer-Encoding")
+		return strings.TrimSpace(maildropDecodeCTE(bodyPart, cte))
+	}
+
+	return ""
+}
+
+func maildropStripHtmlToText(html string) string {
+	if html == "" {
+		return ""
+	}
+	var b strings.Builder
+	inTag := false
+	for _, r := range html {
+		switch {
+		case r == '<':
+			inTag = true
+		case r == '>':
+			inTag = false
+			b.WriteByte(' ')
+		case !inTag:
+			b.WriteRune(r)
+		}
+	}
+	s := strings.Join(strings.Fields(b.String()), " ")
+	return strings.TrimSpace(s)
 }
 
 /* maildropRandomUsername 生成随机用户名 */
@@ -276,13 +374,23 @@ func maildropGetEmails(token string, email string) ([]Email, error) {
 		}
 
 		msg := msgResult.Message
+		plain := maildropExtractText(msg.Data)
+		fromMime := maildropExtractHtmlFromMime(msg.Data)
+		htmlOut := strings.TrimSpace(msg.HTML)
+		if htmlOut == "" {
+			htmlOut = fromMime
+		}
+		textOut := plain
+		if textOut == "" {
+			textOut = maildropStripHtmlToText(htmlOut)
+		}
 		emails = append(emails, Email{
 			ID:          msg.ID,
 			From:        maildropDecodeRfc2047(msg.HeaderFrom),
 			To:          email,
 			Subject:     maildropDecodeRfc2047(msg.Subject),
-			Text:        maildropExtractText(msg.Data),
-			HTML:        msg.HTML,
+			Text:        textOut,
+			HTML:        htmlOut,
 			Date:        msg.Date,
 			IsRead:      false,
 			Attachments: []EmailAttachment{},

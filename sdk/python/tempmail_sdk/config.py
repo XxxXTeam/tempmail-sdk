@@ -12,7 +12,7 @@ SDK 全局配置
 """
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Dict
 
 

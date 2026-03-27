@@ -1,8 +1,10 @@
 /**
  * Boomlify — https://v1.boomlify.com
+ * 先 POST /emails/public/create 登记收件箱，地址为 inboxId@域名。
  */
 #include "tempmail_internal.h"
 #include <curl/curl.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +28,22 @@ static const char *bl_headers[] = {
     NULL
 };
 
-static void bl_random_local(char *buf, int len) {
-    static const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-    for (int i = 0; i < len; i++) buf[i] = chars[rand() % (int)(sizeof(chars) - 1)];
-    buf[len] = '\0';
-}
+static const char *bl_post_headers[] = {
+    "Accept: application/json, text/plain, */*",
+    "Content-Type: application/json",
+    "Accept-Language: zh",
+    "Origin: https://boomlify.com",
+    "Referer: https://boomlify.com/",
+    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua: \"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile: ?0",
+    "sec-ch-ua-platform: \"Windows\"",
+    "sec-fetch-dest: empty",
+    "sec-fetch-mode: cors",
+    "sec-fetch-site: same-site",
+    "x-user-language: zh",
+    NULL
+};
 
 static int bl_json_active(const cJSON *obj) {
     const cJSON *a = cJSON_GetObjectItemCaseSensitive(obj, "is_active");
@@ -40,41 +53,41 @@ static int bl_json_active(const cJSON *obj) {
     return 0;
 }
 
-tm_email_info_t* tm_provider_boomlify_generate(void) {
-    srand((unsigned)time(NULL));
-    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, BL_BASE "/domains/public", bl_headers, NULL, 15);
-    if (!resp || resp->status < 200 || resp->status >= 300) { tm_http_response_free(resp); return NULL; }
+static int bl_hexnybble(int c) {
+    if (c >= '0' && c <= '9') return 1;
+    if (c >= 'a' && c <= 'f') return 1;
+    if (c >= 'A' && c <= 'F') return 1;
+    return 0;
+}
 
-    cJSON *arr = cJSON_Parse(resp->body);
-    tm_http_response_free(resp);
-    if (!arr || !cJSON_IsArray(arr)) { cJSON_Delete(arr); return NULL; }
-
-    char domains[32][256];
-    int nd = 0;
-    int n = cJSON_GetArraySize(arr);
-    for (int i = 0; i < n && nd < 32; i++) {
-        cJSON *d = cJSON_GetArrayItem(arr, i);
-        if (!cJSON_IsObject(d)) continue;
-        if (!bl_json_active(d)) continue;
-        const char *dom = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(d, "domain"));
-        if (dom && dom[0]) {
-            strncpy(domains[nd], dom, sizeof(domains[0]) - 1);
-            domains[nd][sizeof(domains[0]) - 1] = '\0';
-            nd++;
-        }
+/* RFC inbox UUID 本地部：8-4-4-4-12 */
+static int bl_local_is_inbox_uuid(const char *local) {
+    if (!local) return 0;
+    size_t n = strlen(local);
+    if (n != 36) return 0;
+    if (local[8] != '-' || local[13] != '-' || local[18] != '-' || local[23] != '-') return 0;
+    for (size_t i = 0; i < n; i++) {
+        if (local[i] == '-') continue;
+        if (!bl_hexnybble((unsigned char)local[i])) return 0;
     }
-    cJSON_Delete(arr);
-    if (nd == 0) return NULL;
+    return 1;
+}
 
-    char local[16];
-    bl_random_local(local, 8);
-    char address[320];
-    snprintf(address, sizeof(address), "%s@%s", local, domains[rand() % nd]);
-
-    tm_email_info_t *info = tm_email_info_new();
-    info->channel = CHANNEL_BOOMLIFY;
-    info->email = tm_strdup(address);
-    return info;
+static void bl_inbox_path_segment(const char *email, char *out, size_t cap) {
+    if (!email || cap < 2) {
+        if (cap) out[0] = '\0';
+        return;
+    }
+    const char *at = strrchr(email, '@');
+    if (at && at > email) {
+        size_t ll = (size_t)(at - email);
+        size_t cpy = ll < cap - 1 ? ll : cap - 1;
+        memcpy(out, email, cpy);
+        out[cpy] = '\0';
+        if (bl_local_is_inbox_uuid(out)) return;
+    }
+    strncpy(out, email, cap - 1);
+    out[cap - 1] = '\0';
 }
 
 static char *bl_escape_path(const char *email) {
@@ -88,12 +101,77 @@ static char *bl_escape_path(const char *email) {
     return d;
 }
 
+tm_email_info_t* tm_provider_boomlify_generate(void) {
+    srand((unsigned)time(NULL));
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, BL_BASE "/domains/public", bl_headers, NULL, 15);
+    if (!resp || resp->status < 200 || resp->status >= 300) { tm_http_response_free(resp); return NULL; }
+
+    cJSON *arr = cJSON_Parse(resp->body);
+    tm_http_response_free(resp);
+    if (!arr || !cJSON_IsArray(arr)) { cJSON_Delete(arr); return NULL; }
+
+    char did[64][48];
+    char domains[64][256];
+    int nd = 0;
+    int n = cJSON_GetArraySize(arr);
+    for (int i = 0; i < n && nd < 64; i++) {
+        cJSON *d = cJSON_GetArrayItem(arr, i);
+        if (!cJSON_IsObject(d)) continue;
+        if (!bl_json_active(d)) continue;
+        const char *id = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(d, "id"));
+        const char *dom = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(d, "domain"));
+        if (id && id[0] && dom && dom[0]) {
+            strncpy(did[nd], id, sizeof(did[0]) - 1);
+            did[nd][sizeof(did[0]) - 1] = '\0';
+            strncpy(domains[nd], dom, sizeof(domains[0]) - 1);
+            domains[nd][sizeof(domains[0]) - 1] = '\0';
+            nd++;
+        }
+    }
+    cJSON_Delete(arr);
+    if (nd == 0) return NULL;
+
+    int pick = rand() % nd;
+    cJSON *payload = cJSON_CreateObject();
+    cJSON_AddStringToObject(payload, "domainId", did[pick]);
+    char *body = cJSON_PrintUnformatted(payload);
+    cJSON_Delete(payload);
+    if (!body) return NULL;
+
+    tm_http_response_t *r2 = tm_http_request(TM_HTTP_POST, BL_BASE "/emails/public/create", bl_post_headers, body, 15);
+    cJSON_free(body);
+    if (!r2 || r2->status < 200 || r2->status >= 300) { tm_http_response_free(r2); return NULL; }
+
+    cJSON *cj = cJSON_Parse(r2->body);
+    tm_http_response_free(r2);
+    if (!cj) return NULL;
+    const char *err = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(cj, "error"));
+    if (err && err[0]) {
+        cJSON_Delete(cj);
+        return NULL;
+    }
+    const char *box = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(cj, "id"));
+    if (!box || !box[0]) { cJSON_Delete(cj); return NULL; }
+
+    char address[400];
+    snprintf(address, sizeof(address), "%s@%s", box, domains[pick]);
+
+    tm_email_info_t *info = tm_email_info_new();
+    info->channel = CHANNEL_BOOMLIFY;
+    info->email = tm_strdup(address);
+    info->token = tm_strdup(box);
+    cJSON_Delete(cj);
+    return info;
+}
+
 tm_email_t* tm_provider_boomlify_get_emails(const char *email, int *count) {
     *count = -1;
     if (!email) return NULL;
 
-    char *esc = bl_escape_path(email);
-    char url[1024];
+    char seg[384];
+    bl_inbox_path_segment(email, seg, sizeof(seg));
+    char *esc = bl_escape_path(seg);
+    char url[1200];
     snprintf(url, sizeof(url), "%s/emails/public/%s", BL_BASE, esc);
     free(esc);
 

@@ -2,6 +2,7 @@
  * MinMail — https://minmail.app/api
  */
 #include "tempmail_internal.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,14 +30,28 @@ static void mm_cookie(char *out, size_t cap) {
         now, rnd, now, now);
 }
 
+/* 不依赖 GNU strcasestr */
+static const char *mm_stristr(const char *haystack, const char *needle) {
+    if (!haystack || !needle || !needle[0]) return haystack;
+    for (; *haystack; haystack++) {
+        size_t i;
+        for (i = 0; needle[i] && haystack[i]; i++) {
+            if (tolower((unsigned char)haystack[i]) != tolower((unsigned char)needle[i]))
+                break;
+        }
+        if (!needle[i]) return haystack;
+    }
+    return NULL;
+}
+
 #define MM_H_STATIC \
     static char h_vid[512]; \
     static char h_ck_hdr[8192]; \
     static char h_cookie_line[2048]; \
     static const char *arr[20]
 
-static const char **mm_headers_address(char *cookie_buf, size_t cookie_cap) {
-    mm_cookie(cookie_buf, cookie_cap);
+/** cookie_buf 须已由 mm_cookie 填好，保证与 token 内 cookie 字段一致 */
+static const char **mm_headers_address_use(char *cookie_buf) {
     MM_H_STATIC;
     snprintf(h_cookie_line, sizeof(h_cookie_line), "Cookie: %s", cookie_buf);
     int i = 0;
@@ -60,8 +75,14 @@ static const char **mm_headers_address(char *cookie_buf, size_t cookie_cap) {
     return arr;
 }
 
-static const char **mm_headers_list(const char *visitor_id, const char *ck_opt, char *cookie_buf, size_t cookie_cap) {
-    mm_cookie(cookie_buf, cookie_cap);
+static const char **mm_headers_list(const char *visitor_id, const char *ck_opt,
+    const char *stored_cookie, char *cookie_buf, size_t cookie_cap) {
+    if (stored_cookie && stored_cookie[0]) {
+        strncpy(cookie_buf, stored_cookie, cookie_cap - 1);
+        cookie_buf[cookie_cap - 1] = '\0';
+    } else {
+        mm_cookie(cookie_buf, cookie_cap);
+    }
     MM_H_STATIC;
     snprintf(h_vid, sizeof(h_vid), "visitor-id: %s", visitor_id);
     snprintf(h_cookie_line, sizeof(h_cookie_line), "Cookie: %s", cookie_buf);
@@ -91,9 +112,11 @@ static const char **mm_headers_list(const char *visitor_id, const char *ck_opt, 
     return arr;
 }
 
-static void mm_parse_token(const char *token, char *vid, size_t vid_cap, char *ck, size_t ck_cap) {
+static void mm_parse_token(const char *token, char *vid, size_t vid_cap, char *ck, size_t ck_cap,
+    char *cook_out, size_t cook_cap) {
     vid[0] = '\0';
     ck[0] = '\0';
+    if (cook_out && cook_cap > 0) cook_out[0] = '\0';
     if (!token || !token[0]) return;
     if (token[0] == '{') {
         cJSON *j = cJSON_Parse(token);
@@ -110,6 +133,11 @@ static void mm_parse_token(const char *token, char *vid, size_t vid_cap, char *c
                 strncpy(ck, cs, ck_cap - 1);
                 ck[ck_cap - 1] = '\0';
             }
+            const char *co = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(j, "cookie"));
+            if (co && co[0] && cook_out && cook_cap > 0) {
+                strncpy(cook_out, co, cook_cap - 1);
+                cook_out[cook_cap - 1] = '\0';
+            }
             cJSON_Delete(j);
             return;
         }
@@ -118,10 +146,33 @@ static void mm_parse_token(const char *token, char *vid, size_t vid_cap, char *c
     vid[vid_cap - 1] = '\0';
 }
 
+static int mm_to_matches(const char *header, const char *want) {
+    if (!want || !want[0]) return 1;
+    if (!header || !header[0]) return 1;
+    /* 小写比较简化：仅 ASCII 邮箱场景 */
+    size_t i;
+    for (i = 0; want[i] && i < 512; i++) {
+        if (tolower((unsigned char)header[i]) != tolower((unsigned char)want[i])) break;
+    }
+    if (!want[i] && !header[i]) return 1;
+    const char *lt = strchr(header, '<');
+    const char *gt = lt ? strchr(lt, '>') : NULL;
+    if (lt && gt && gt > lt) {
+        lt++;
+        while (lt < gt && isspace((unsigned char)*lt)) lt++;
+        const char *e = gt;
+        while (e > lt && isspace((unsigned char)e[-1])) e--;
+        size_t len = (size_t)(e - lt);
+        if (len == strlen(want) && strncasecmp(lt, want, len) == 0) return 1;
+    }
+    return (mm_stristr(header, want) != NULL);
+}
+
 tm_email_info_t* tm_provider_minmail_generate(void) {
     srand((unsigned)time(NULL));
     char cookie[2048];
-    const char **hdrs = mm_headers_address(cookie, sizeof(cookie));
+    mm_cookie(cookie, sizeof(cookie));
+    const char **hdrs = mm_headers_address_use(cookie);
 
     tm_http_response_t *resp = tm_http_request(TM_HTTP_GET,
         MM_BASE "/mail/address?refresh=true&expire=1440&part=main", hdrs, NULL, 15);
@@ -149,6 +200,7 @@ tm_email_info_t* tm_provider_minmail_generate(void) {
     cJSON *tok = cJSON_CreateObject();
     cJSON_AddStringToObject(tok, "visitorId", vid);
     cJSON_AddStringToObject(tok, "ck", cks);
+    cJSON_AddStringToObject(tok, "cookie", cookie);
     char *tok_str = cJSON_PrintUnformatted(tok);
     cJSON_Delete(tok);
 
@@ -175,11 +227,13 @@ tm_email_t* tm_provider_minmail_get_emails(const char *token, const char *email,
 
     char vid[80];
     char ckbuf[8192];
-    mm_parse_token(token ? token : "", vid, sizeof(vid), ckbuf, sizeof(ckbuf));
+    char scook[2048];
+    mm_parse_token(token ? token : "", vid, sizeof(vid), ckbuf, sizeof(ckbuf), scook, sizeof(scook));
     if (!vid[0]) mm_visitor_id(vid, sizeof(vid));
 
-    char cookie[2048];
-    const char **hdrs = mm_headers_list(vid, ckbuf[0] ? ckbuf : NULL, cookie, sizeof(cookie));
+    char cookie_work[2048];
+    const char **hdrs = mm_headers_list(
+        vid, ckbuf[0] ? ckbuf : NULL, (scook[0] ? scook : NULL), cookie_work, sizeof(cookie_work));
 
     tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, MM_BASE "/mail/list?part=main", hdrs, NULL, 15);
     if (!resp || resp->status < 200 || resp->status >= 300) { tm_http_response_free(resp); return NULL; }
@@ -195,7 +249,7 @@ tm_email_t* tm_provider_minmail_get_emails(const char *token, const char *email,
     for (int i = 0; i < n; i++) {
         cJSON *msg = cJSON_GetArrayItem(messages, i);
         const char *to = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "to"));
-        if (to && to[0] && strcmp(to, email) != 0) continue;
+        if (to && to[0] && !mm_to_matches(to, email)) continue;
         m++;
     }
     *count = m;
@@ -206,7 +260,7 @@ tm_email_t* tm_provider_minmail_get_emails(const char *token, const char *email,
     for (int i = 0; i < n; i++) {
         cJSON *raw = cJSON_GetArrayItem(messages, i);
         const char *to = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "to"));
-        if (to && to[0] && strcmp(to, email) != 0) continue;
+        if (to && to[0] && !mm_to_matches(to, email)) continue;
 
         cJSON *one = cJSON_CreateObject();
 #define MM_S(f) (cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, f)))

@@ -5,7 +5,7 @@ API 与 mail.tm 完全一致，仅 baseURL 不同
 
 import random
 import string
-from ..types import EmailInfo, Email
+from ..types import EmailInfo
 from ..normalize import normalize_email
 from .. import http as tm_http
 

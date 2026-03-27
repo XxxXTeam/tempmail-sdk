@@ -11,6 +11,7 @@ import time
 from typing import List, Optional, Tuple
 
 from .. import http as tm_http
+from ..logger import get_logger
 from ..normalize import normalize_email
 from ..types import Email, EmailInfo
 
@@ -55,39 +56,58 @@ def _cookie_header() -> str:
     return f"_ga={ga}; _ga_DFGB8WF1WG=GS2.1.s{now}$o1$g0$t{now}$j60$l0$h0"
 
 
-def _headers_address() -> dict:
+def _headers_address_cookie(cookie: str) -> dict:
     h = dict(HEADERS_BASE)
-    h["Cookie"] = _cookie_header()
+    h["Cookie"] = cookie
     return h
 
 
-def _headers_list(visitor_id: str, ck: str) -> dict:
+def _headers_list(visitor_id: str, ck: str, cookie: str) -> dict:
     h = dict(HEADERS_BASE)
     h["visitor-id"] = visitor_id
-    h["Cookie"] = _cookie_header()
+    h["Cookie"] = cookie.strip() if cookie and cookie.strip() else _cookie_header()
     if ck:
         h["ck"] = ck
     return h
 
 
-def _parse_token(token: Optional[str]) -> Tuple[str, str]:
+def _parse_token(token: Optional[str]) -> Tuple[str, str, str]:
     if not token or not str(token).strip():
-        return "", ""
+        return "", "", ""
     t = str(token).strip()
     if t.startswith("{"):
         try:
             o = json.loads(t)
             vid = o.get("visitorId") or o.get("visitor_id") or ""
-            return str(vid), str(o.get("ck") or "")
+            return str(vid), str(o.get("ck") or ""), str(o.get("cookie") or "")
         except (json.JSONDecodeError, TypeError):
-            pass
-    return t, ""
+            get_logger().debug("minmail: token JSON parse failed", exc_info=True)
+    return t, "", ""
+
+
+def _to_matches(header: str, want: str) -> bool:
+    w = (want or "").strip().lower()
+    if not w:
+        return True
+    h = (header or "").strip().lower()
+    if not h:
+        return True
+    if h == w:
+        return True
+    if "<" in h and ">" in h:
+        start, end = h.find("<"), h.find(">")
+        if start >= 0 and end > start:
+            inner = h[start + 1 : end].strip()
+            if inner == w:
+                return True
+    return w in h
 
 
 def generate_email() -> EmailInfo:
+    cook = _cookie_header()
     resp = tm_http.get(
         f"{BASE}/mail/address?refresh=true&expire=1440&part=main",
-        headers=_headers_address(),
+        headers=_headers_address_cookie(cook),
         timeout=15,
     )
     resp.raise_for_status()
@@ -99,7 +119,10 @@ def generate_email() -> EmailInfo:
     if not vid:
         vid = _visitor_id()
     ck = data.get("ck") or ""
-    stored = json.dumps({"visitorId": vid, "ck": ck}, separators=(",", ":"))
+    stored = json.dumps(
+        {"visitorId": vid, "ck": ck, "cookie": cook},
+        separators=(",", ":"),
+    )
     expire_min = int(data.get("expire") or 0)
     expires_at = None
     if expire_min > 0:
@@ -108,12 +131,12 @@ def generate_email() -> EmailInfo:
 
 
 def get_emails(email: str, token: Optional[str] = None) -> List[Email]:
-    vid, ck = _parse_token(token)
+    vid, ck, cook = _parse_token(token)
     if not vid:
         vid = _visitor_id()
     resp = tm_http.get(
         f"{BASE}/mail/list?part=main",
-        headers=_headers_list(vid, ck),
+        headers=_headers_list(vid, ck, cook),
         timeout=15,
     )
     resp.raise_for_status()
@@ -125,7 +148,7 @@ def get_emails(email: str, token: Optional[str] = None) -> List[Email]:
     for raw in messages:
         if not isinstance(raw, dict):
             continue
-        if raw.get("to") and raw.get("to") != email:
+        if raw.get("to") and not _to_matches(str(raw.get("to")), email):
             continue
         flat = {
             "id": raw.get("id"),

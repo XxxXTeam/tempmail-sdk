@@ -590,7 +590,7 @@ jobs:
             | `rust-tempmail-example-*.zip` | Rust 示例 - 各平台 |
             | `c-sdk-*.zip` | C SDK 静态库 + 示例二进制 - 各平台 |
             
-            ### 支持的渠道（11 个）
+            ### 支持的渠道
             
             | 渠道 | 服务商 |
             |------|--------|
@@ -605,6 +605,9 @@ jobs:
             | `guerrillamail` | guerrillamail.com |
             | `maildrop` | maildrop.cc |
             | `smail-pw` | smail.pw |
+            | `boomlify` | boomlify.com |
+            | `minmail` | minmail.app |
+            | `vip-215` | vip.215.im |
           draft: false
           prerelease: ${{ needs.release-meta.outputs.is_prerelease == 'true' }}
         env:

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 11 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（C），支持 **14** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
 
 ## 依赖
 
@@ -39,19 +39,22 @@ cmake --build build
 
 ## 支持的渠道
 
-| 渠道 | 枚举值 | 服务商 | 需要 Token |
-|------|--------|--------|:----------:|
-| tempmail | `CHANNEL_TEMPMAIL` | tempmail.ing | - |
-| linshi-email | `CHANNEL_LINSHI_EMAIL` | linshi-email.com | - |
-| tempmail-lol | `CHANNEL_TEMPMAIL_LOL` | tempmail.lol | ✅ |
-| chatgpt-org-uk | `CHANNEL_CHATGPT_ORG_UK` | mail.chatgpt.org.uk | - |
-| temp-mail-io | `CHANNEL_TEMP_MAIL_IO` | temp-mail.io | - |
-| awamail | `CHANNEL_AWAMAIL` | awamail.com | ✅ |
-| mail-tm | `CHANNEL_MAIL_TM` | mail.tm | ✅ |
-| smail-pw | `CHANNEL_SMAIL_PW` | smail.pw | ✅ |
-| dropmail | `CHANNEL_DROPMAIL` | dropmail.me | ✅ |
-| guerrillamail | `CHANNEL_GUERRILLAMAIL` | guerrillamail.com | ✅ |
-| maildrop | `CHANNEL_MAILDROP` | maildrop.cc | ✅ |
+| 渠道 | 枚举值 | 服务商 | 需要 Token | 说明 |
+|------|--------|--------|:----------:|------|
+| tempmail | `CHANNEL_TEMPMAIL` | tempmail.ing | - | 支持自定义有效期 |
+| linshi-email | `CHANNEL_LINSHI_EMAIL` | linshi-email.com | - | |
+| tempmail-lol | `CHANNEL_TEMPMAIL_LOL` | tempmail.lol | ✅ | 支持指定域名 |
+| chatgpt-org-uk | `CHANNEL_CHATGPT_ORG_UK` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
+| temp-mail-io | `CHANNEL_TEMP_MAIL_IO` | temp-mail.io | - | |
+| awamail | `CHANNEL_AWAMAIL` | awamail.com | ✅ | Session Cookie 自动管理 |
+| mail-tm | `CHANNEL_MAIL_TM` | mail.tm | ✅ | 自动注册，Bearer Token |
+| dropmail | `CHANNEL_DROPMAIL` | dropmail.me | ✅ | GraphQL |
+| guerrillamail | `CHANNEL_GUERRILLAMAIL` | guerrillamail.com | ✅ | 公开 JSON API |
+| maildrop | `CHANNEL_MAILDROP` | maildrop.cc | ✅ | GraphQL MIME `data` 解析，HTML 兜底 `text` |
+| smail-pw | `CHANNEL_SMAIL_PW` | smail.pw | ✅ | `_root.data` + `__session` |
+| boomlify | `CHANNEL_BOOMLIFY` | boomlify.com | - | `domains/public` + `emails/public/create`，`{UUID}@{域名}` |
+| minmail | `CHANNEL_MINMAIL` | minmail.app | ✅ | Token 为 JSON（visitorId + ck） |
+| vip-215 | `CHANNEL_VIP_215` | vip.215.im | ✅ | WebSocket 收信 |
 
 ## 快速开始
 

@@ -49,7 +49,7 @@
 | Go | Go | 1.21+ |
 | npm | Node.js + TypeScript | Node 18+, TS 5.0+ |
 | Rust | Rust (cargo) | 1.75+ |
-| Python | Python + pip | 3.9+ |
+| Python | Python + pip | 3.10+ |
 | C | CMake + GCC/Clang + libcurl | CMake 3.14+ |
 
 ### 快速验证
@@ -113,6 +113,8 @@ tempmail-sdk/
 ```
 
 ## 添加新渠道
+
+当前各 SDK **对外公开的渠道共 14 个**，标识符与顺序以根目录 `README.md`「支持的渠道」表及 `types` / `ALL_CHANNELS` / `allChannels` 为准；新增或下线渠道时须**五端同步**（Go、npm、Rust、Python、C）并更新全部 README。
 
 添加新的临时邮箱服务商需要在**全部 5 个 SDK** 中实现。每个渠道需要实现两个核心函数：
 
