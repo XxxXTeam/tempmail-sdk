@@ -14,3 +14,6 @@ pub mod dropmail;
 pub mod guerrillamail;
 pub mod maildrop;
 pub mod smail_pw;
+pub mod boomlify;
+pub mod minmail;
+pub mod vip_215;

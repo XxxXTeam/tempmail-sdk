@@ -1,6 +1,5 @@
 /**
  * 临时邮箱 SDK (C)
- * 支持 11 个邮箱服务提供商，所有渠道返回统一标准化格式
  */
 
 #ifndef TEMPMAIL_SDK_H
@@ -27,6 +26,9 @@ typedef enum {
     CHANNEL_GUERRILLAMAIL,
     CHANNEL_MAILDROP,
     CHANNEL_SMAIL_PW,
+    CHANNEL_BOOMLIFY,
+    CHANNEL_MINMAIL,
+    CHANNEL_VIP_215,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;

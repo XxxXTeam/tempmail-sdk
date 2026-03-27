@@ -16,6 +16,7 @@ from .providers import (
     tempmail, linshi_email, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, mail_tm,
     dropmail, guerrillamail, maildrop, smail_pw,
+    boomlify, minmail, vip_215,
 )
 
 # 所有支持的渠道列表
@@ -23,6 +24,7 @@ ALL_CHANNELS = [
     "tempmail", "linshi-email", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "mail-tm",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
+    "boomlify", "minmail", "vip-215",
 ]
 
 # 渠道信息映射表
@@ -38,6 +40,9 @@ CHANNEL_INFO_MAP = {
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
     "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cc"),
     "smail-pw": ChannelInfo(channel="smail-pw", name="Smail.pw", website="smail.pw"),
+    "boomlify": ChannelInfo(channel="boomlify", name="Boomlify", website="boomlify.com"),
+    "minmail": ChannelInfo(channel="minmail", name="MinMail", website="minmail.app"),
+    "vip-215": ChannelInfo(channel="vip-215", name="VIP 215", website="vip.215.im"),
 }
 
 
@@ -127,6 +132,12 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return maildrop.generate_email()
     elif channel == "smail-pw":
         return smail_pw.generate_email()
+    elif channel == "boomlify":
+        return boomlify.generate_email()
+    elif channel == "minmail":
+        return minmail.generate_email()
+    elif channel == "vip-215":
+        return vip_215.generate_email()
     else:
         raise ValueError(f"Unknown channel: {channel}")
 
@@ -221,6 +232,16 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for smail-pw channel")
         return smail_pw.get_emails(token, email)
+    elif channel == "boomlify":
+        return boomlify.get_emails(email)
+    elif channel == "minmail":
+        if not token:
+            raise ValueError("token is required for minmail channel")
+        return minmail.get_emails(email, token)
+    elif channel == "vip-215":
+        if not token:
+            raise ValueError("token is required for vip-215 channel")
+        return vip_215.get_emails(token, email)
     else:
         raise ValueError(f"Unknown channel: {channel}")
 

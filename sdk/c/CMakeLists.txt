@@ -27,6 +27,9 @@ add_library(tempmail_sdk STATIC
     src/providers/guerrillamail.c
     src/providers/maildrop.c
     src/providers/smail_pw.c
+    src/providers/boomlify.c
+    src/providers/minmail.c
+    src/providers/vip_215.c
     vendor/cJSON.c
 )
 
@@ -35,7 +38,8 @@ target_include_directories(tempmail_sdk PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor
 )
 
-target_link_libraries(tempmail_sdk PUBLIC CURL::libcurl)
+find_package(Threads REQUIRED)
+target_link_libraries(tempmail_sdk PUBLIC CURL::libcurl PRIVATE Threads::Threads)
 
 # 示例程序
 add_executable(tempmail_example example/main.c)

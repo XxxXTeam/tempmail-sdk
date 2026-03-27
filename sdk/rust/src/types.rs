@@ -29,6 +29,12 @@ pub enum Channel {
     Maildrop,
     #[serde(rename = "smail-pw")]
     SmailPw,
+    #[serde(rename = "boomlify")]
+    Boomlify,
+    #[serde(rename = "minmail")]
+    Minmail,
+    #[serde(rename = "vip-215")]
+    Vip215,
 }
 
 impl std::fmt::Display for Channel {
@@ -45,6 +51,9 @@ impl std::fmt::Display for Channel {
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::Maildrop => write!(f, "maildrop"),
             Channel::SmailPw => write!(f, "smail-pw"),
+            Channel::Boomlify => write!(f, "boomlify"),
+            Channel::Minmail => write!(f, "minmail"),
+            Channel::Vip215 => write!(f, "vip-215"),
         }
     }
 }

@@ -13,6 +13,7 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::MailTm, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
+    Channel::Boomlify, Channel::Minmail, Channel::Vip215,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -34,6 +35,9 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::GuerrillaMail => ChannelInfo { channel: Channel::GuerrillaMail, name: "Guerrilla Mail", website: "guerrillamail.com" },
         Channel::Maildrop => ChannelInfo { channel: Channel::Maildrop, name: "Maildrop", website: "maildrop.cc" },
         Channel::SmailPw => ChannelInfo { channel: Channel::SmailPw, name: "Smail.pw", website: "smail.pw" },
+        Channel::Boomlify => ChannelInfo { channel: Channel::Boomlify, name: "Boomlify", website: "boomlify.com" },
+        Channel::Minmail => ChannelInfo { channel: Channel::Minmail, name: "MinMail", website: "minmail.app" },
+        Channel::Vip215 => ChannelInfo { channel: Channel::Vip215, name: "VIP 215", website: "vip.215.im" },
     })
 }
 
@@ -100,6 +104,9 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::Maildrop => providers::maildrop::generate_email(),
         Channel::SmailPw => providers::smail_pw::generate_email(),
+        Channel::Boomlify => providers::boomlify::generate_email(),
+        Channel::Minmail => providers::minmail::generate_email(),
+        Channel::Vip215 => providers::vip_215::generate_email(),
     }
 }
 
@@ -178,6 +185,15 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::SmailPw => {
             let t = token.ok_or("token is required for smail-pw")?;
             providers::smail_pw::get_emails(t, email)
+        }
+        Channel::Boomlify => providers::boomlify::get_emails(email),
+        Channel::Minmail => {
+            let t = token.ok_or("token is required for minmail")?;
+            providers::minmail::get_emails(email, Some(t))
+        }
+        Channel::Vip215 => {
+            let t = token.ok_or("token is required for vip-215")?;
+            providers::vip_215::get_emails(t, email)
         }
     }
 }

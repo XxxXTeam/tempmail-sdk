@@ -18,6 +18,9 @@ Channel = Literal[
     "guerrillamail",
     "maildrop",
     "smail-pw",
+    "boomlify",
+    "minmail",
+    "vip-215",
 ]
 
 

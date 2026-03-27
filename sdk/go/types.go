@@ -18,6 +18,9 @@ const (
 	ChannelGuerrillaMail Channel = "guerrillamail"  // guerrillamail.com
 	ChannelMaildrop      Channel = "maildrop"       // maildrop.cc
 	ChannelSmailPw       Channel = "smail-pw"       // smail.pw
+	ChannelBoomlify      Channel = "boomlify"       // boomlify.com
+	ChannelMinmail       Channel = "minmail"        // minmail.app
+	ChannelVip215        Channel = "vip-215"        // vip.215.im
 )
 
 /*

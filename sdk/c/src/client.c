@@ -25,6 +25,9 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_GUERRILLAMAIL,  "Guerrilla Mail",  "guerrillamail.com" },
     { CHANNEL_MAILDROP,       "Maildrop",        "maildrop.cc" },
     { CHANNEL_SMAIL_PW,       "Smail.pw",        "smail.pw" },
+    { CHANNEL_BOOMLIFY,       "Boomlify",        "boomlify.com" },
+    { CHANNEL_MINMAIL,        "MinMail",         "minmail.app" },
+    { CHANNEL_VIP_215,        "VIP 215",         "vip.215.im" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -54,6 +57,9 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_GUERRILLAMAIL:  result = tm_provider_guerrillamail_generate(); break;
             case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(); break;
             case CHANNEL_SMAIL_PW:       result = tm_provider_smail_pw_generate(); break;
+            case CHANNEL_BOOMLIFY:       result = tm_provider_boomlify_generate(); break;
+            case CHANNEL_MINMAIL:        result = tm_provider_minmail_generate(); break;
+            case CHANNEL_VIP_215:        result = tm_provider_vip215_generate(); break;
             default: return NULL;
         }
         if (result) return result;
@@ -171,6 +177,17 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_SMAIL_PW:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_smail_pw_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_BOOMLIFY:
+                emails = tm_provider_boomlify_get_emails(email_info->email, &count);
+                break;
+            case CHANNEL_MINMAIL:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_minmail_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_VIP_215:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_vip215_get_emails(email_info->token, email_info->email, &count);
                 break;
             default: break;
         }

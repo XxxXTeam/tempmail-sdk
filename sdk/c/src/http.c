@@ -212,8 +212,10 @@ static void load_env_config(void) {
 void tm_init(void) {
     curl_global_init(CURL_GLOBAL_ALL);
     load_env_config();
+    tm_vip215_module_init();
 }
 
 void tm_cleanup(void) {
+    tm_vip215_module_cleanup();
     curl_global_cleanup();
 }

@@ -26,3 +26,4 @@ regex = "1"
 base64 = "0.22"
 hex = "0.4"
 sha2 = "0.10"
+tungstenite = { version = "0.24", features = ["native-tls"] }

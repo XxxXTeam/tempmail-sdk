@@ -17,6 +17,9 @@ static const char* channel_names[] = {
     "guerrillamail",
     "maildrop",
     "smail-pw",
+    "boomlify",
+    "minmail",
+    "vip-215",
 };
 
 const char* tm_channel_name(tm_channel_t channel) {

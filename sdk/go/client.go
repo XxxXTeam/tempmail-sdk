@@ -18,6 +18,9 @@ var allChannels = []Channel{
 	ChannelGuerrillaMail,
 	ChannelMaildrop,
 	ChannelSmailPw,
+	ChannelBoomlify,
+	ChannelMinmail,
+	ChannelVip215,
 }
 
 /*
@@ -45,6 +48,9 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelGuerrillaMail: {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:      {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
 	ChannelSmailPw:       {Channel: ChannelSmailPw, Name: "Smail.pw", Website: "smail.pw"},
+	ChannelBoomlify:      {Channel: ChannelBoomlify, Name: "Boomlify", Website: "boomlify.com"},
+	ChannelMinmail:       {Channel: ChannelMinmail, Name: "MinMail", Website: "minmail.app"},
+	ChannelVip215:        {Channel: ChannelVip215, Name: "VIP 215", Website: "vip.215.im"},
 }
 
 /*
@@ -177,6 +183,15 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelSmailPw:
 		return smailPwGenerate()
+
+	case ChannelBoomlify:
+		return boomlifyGenerate()
+
+	case ChannelMinmail:
+		return minmailGenerate()
+
+	case ChannelVip215:
+		return mailVip215Generate()
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -314,6 +329,21 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for smail-pw channel")
 		}
 		return smailPwGetEmails(token, email)
+
+	case ChannelBoomlify:
+		return boomlifyGetEmails(email)
+
+	case ChannelMinmail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for minmail channel")
+		}
+		return minmailGetEmails(email, token)
+
+	case ChannelVip215:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for vip-215 channel")
+		}
+		return mailVip215GetEmails(token, email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
