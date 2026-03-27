@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **11 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **14 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 支持 11 个临时邮箱服务商，一套代码适配所有渠道
+- 🌐 支持 14 个临时邮箱服务商，一套代码适配所有渠道
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -32,10 +32,13 @@
 | `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | |
 | `awamail` | [awamail.com](https://awamail.com) | Session Cookie | 自动提取 Cookie |
 | `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
-| `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
 | `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
 | `maildrop` | [maildrop.cc](https://maildrop.cc) | - | GraphQL API，自带反垃圾 |
+| `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
+| `boomlify` | [boomlify.com](https://boomlify.com) | - | 拉取公开域名列表并随机本地部；REST 收件，无额外 token |
+| `minmail` | [minmail.app](https://minmail.app) | 内部 Token（JSON） | `GET /api/mail/address` 返回 `visitorId` 与 `ck`；收信需请求头 `visitor-id` 与 `ck`。SDK 将二者序列化为 JSON 存入 token，兼容旧版仅 UUID |
+| `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 
 > **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。
 

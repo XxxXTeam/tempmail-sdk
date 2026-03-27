@@ -7,10 +7,14 @@ const BASE_URL = 'https://minmail.app/api';
 
 const DEFAULT_HEADERS = {
   'Accept': '*/*',
-  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5',
+  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
   'Origin': 'https://minmail.app',
   'Referer': 'https://minmail.app/cn',
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+  'cache-control': 'no-cache',
+  'dnt': '1',
+  'pragma': 'no-cache',
+  'priority': 'u=1, i',
   'sec-ch-ua': '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"Windows"',
@@ -22,7 +26,10 @@ const DEFAULT_HEADERS = {
 interface MinmailAddressResponse {
   address: string;
   expire: number;
-  remainingTime: number;
+  remainingTime?: number;
+  visitorId?: string;
+  visitor_id?: string;
+  ck?: string;
 }
 
 interface MinmailMessage {
@@ -53,14 +60,35 @@ function generateVisitorId(): string {
   return `${randomString(8)}-${randomString(4)}-${randomString(4)}-${randomString(4)}-${randomString(12)}`;
 }
 
-export async function generateEmail(): Promise<InternalEmailInfo> {
-  const visitorId = generateVisitorId();
-  const gaId = `GA1.1.${Date.now()}.${Math.floor(Math.random() * 1000000)}`;
+function minmailCookie(): string {
+  const now = Date.now();
+  const ga = `GA1.1.${now}.${Math.floor(Math.random() * 1000000)}`;
+  return `_ga=${ga}; _ga_DFGB8WF1WG=GS2.1.s${now}$o1$g0$t${now}$j60$l0$h0`;
+}
 
+/** token：JSON {"visitorId","ck"} 或旧版仅 UUID */
+function parseMinmailToken(token: string | undefined): { visitorId: string; ck: string } {
+  const t = (token ?? '').trim();
+  if (t.startsWith('{')) {
+    try {
+      const o = JSON.parse(t) as { visitorId?: string; visitor_id?: string; ck?: string };
+      const vid = o.visitorId ?? o.visitor_id ?? '';
+      return { visitorId: vid, ck: o.ck ?? '' };
+    } catch {
+      /* fallthrough */
+    }
+  }
+  return { visitorId: t, ck: '' };
+}
+
+function encodeMinmailToken(visitorId: string, ck: string): string {
+  return JSON.stringify({ visitorId, ck });
+}
+
+export async function generateEmail(): Promise<InternalEmailInfo> {
   const headers = {
     ...DEFAULT_HEADERS,
-    'visitor-id': visitorId,
-    'Cookie': `_ga=GA1.1.${gaId}; _ga_DFGB8WF1WG=GS2.1.s${Date.now()}$o1$g0$t${Date.now()}$j60$l0$h0`,
+    'Cookie': minmailCookie(),
   };
 
   const response = await fetchWithTimeout(`${BASE_URL}/mail/address?refresh=true&expire=1440&part=main`, {
@@ -73,24 +101,28 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   }
 
   const data: MinmailAddressResponse = await response.json();
+  const serverVid = data.visitorId ?? data.visitor_id ?? '';
+  const visitorId = serverVid || generateVisitorId();
+  const ck = data.ck ?? '';
 
   return {
     channel: CHANNEL,
     email: data.address,
-    token: visitorId,
+    token: encodeMinmailToken(visitorId, ck),
     expiresAt: Date.now() + (data.expire * 60 * 1000),
   };
 }
 
 export async function getEmails(email: string, token?: string): Promise<Email[]> {
-  const visitorId = token || generateVisitorId();
-  const gaId = `GA1.1.${Date.now()}.${Math.floor(Math.random() * 1000000)}`;
+  const { visitorId, ck } = parseMinmailToken(token);
+  const vid = visitorId || generateVisitorId();
 
-  const headers = {
+  const headers: Record<string, string> = {
     ...DEFAULT_HEADERS,
-    'visitor-id': visitorId,
-    'Cookie': `_ga=GA1.1.${gaId}; _ga_DFGB8WF1WG=GS2.1.s${Date.now()}$o1$g0$t${Date.now()}$j60$l0$h0`,
+    'visitor-id': vid,
+    'Cookie': minmailCookie(),
   };
+  if (ck) headers['ck'] = ck;
 
   const response = await fetchWithTimeout(`${BASE_URL}/mail/list?part=main`, {
     method: 'GET',
