@@ -9,6 +9,7 @@ import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
 import * as smailPw from './providers/smail-pw';
+import * as boomlify from './providers/boomlify';
 import { Channel, EmailInfo, InternalEmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, RetryOptions } from './retry';
 import { logger } from './logger';
@@ -48,10 +49,11 @@ const providers = {
   'guerrillamail': guerrillamail,
   'maildrop': maildropProvider,
   'smail-pw': smailPw,
+  'boomlify': boomlify,
 };
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -78,6 +80,7 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
   'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
   'smail-pw': { channel: 'smail-pw', name: 'Smail.pw', website: 'smail.pw' },
+  'boomlify': { channel: 'boomlify', name: 'Boomlify', website: 'boomlify.com' },
 };
 
 /**
@@ -203,6 +206,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return maildropProvider.generateEmail();
     case 'smail-pw':
       return smailPw.generateEmail();
+    case 'boomlify':
+      return boomlify.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -301,6 +306,8 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'smail-pw':
       if (!token) throw new Error('internal error: token missing for smail-pw');
       return smailPw.getEmails(token, email);
+    case 'boomlify':
+      return boomlify.getEmails(email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
