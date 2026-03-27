@@ -8,6 +8,12 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _WIN32
+#define strncasecmp _strnicmp
+#else
+#include <strings.h>
+#endif
+
 #define MM_BASE "https://minmail.app/api"
 
 static void mm_random_seg(char *buf, int len) {
