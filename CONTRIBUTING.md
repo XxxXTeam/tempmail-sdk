@@ -49,7 +49,7 @@
 | Go | Go | 1.21+ |
 | npm | Node.js + TypeScript | Node 18+, TS 5.0+ |
 | Rust | Rust (cargo) | 1.75+ |
-| Python | Python + pip | 3.8+ |
+| Python | Python + pip | 3.9+ |
 | C | CMake + GCC/Clang + libcurl | CMake 3.14+ |
 
 ### 快速验证
