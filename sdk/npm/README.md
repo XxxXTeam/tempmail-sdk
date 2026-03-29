@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **14** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **15** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -32,6 +32,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `smail-pw` | smail.pw | ✅ | `POST/GET https://smail.pw/_root.data`，`__session` Cookie；解析 RSC/Flight 中的 **D1 邮件行对象**（`subject`/`time` 等） |
 | `boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
 | `minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
+| `mffac` | mffac.com | - | REST API，24h 有效期 |
 | `vip-215` | vip.215.im | ✅ | `POST` 建箱 + `wss`；无正文时 synthetic 兜底 |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
@@ -285,7 +286,6 @@ DropMail 自动令牌等更多配置见源码 `src/config.ts` 注释（`DROPMAIL
 | 命令 / 文件 | 说明 |
 |-------------|------|
 | `npx ts-node demo/poll-emails.ts` | 未配置 SMTP 时为交互式选渠道并轮询；配置 `SMTP_HOST` 等后可自动向各渠道发探针并轮询（`POLL_CHANNELS`、`POLL_INTERVAL_MS`、`POLL_MAX_ROUNDS`） |
-| `npm run demo:internxt` | `demo/internxt-tempmail-probe.ts`：检查 Internxt 页面与 **Mail.tm（SDK `mail-tm`）** 全流程 |
 
 `poll-emails` 使用 SMTP 时需安装：`npm install nodemailer @types/nodemailer`（若尚未加入 devDependencies）。
 

@@ -7,7 +7,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **14 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **15 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
@@ -38,6 +38,7 @@
 | `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
 | `boomlify` | [boomlify.com](https://boomlify.com) | - | `GET /domains/public` 取域名后 `POST /emails/public/create`（`domainId`）登记收件箱；地址为 `{邮箱 UUID}@{域名}`，REST 拉信，无额外 token |
 | `minmail` | [minmail.app](https://minmail.app) | 内部 Token（JSON） | `GET /api/mail/address` 返回 `visitorId` 与 `ck`；收信需请求头 `visitor-id` 与 `ck`。SDK 将二者序列化为 JSON 存入 token，兼容旧版仅 UUID |
+| `mffac` | [mffac.com](https://www.mffac.com) | - | REST API；`POST /api/mailboxes` 创建，`GET /api/mailboxes/{address}/emails` 收信；默认 24h 有效期 |
 | `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 
 > **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。
@@ -208,7 +209,6 @@ const only = await generateEmail({ channel: 'smail-pw', channelFallback: false }
 | 脚本 | 说明 |
 |------|------|
 | `demo/poll-emails.ts` | 交互或 **SMTP 自动探针**（设置 `SMTP_HOST` 等）；可用 `POLL_CHANNELS=smail-pw` 限定渠道 |
-| `demo/internxt-tempmail-probe.ts` | 探测 Internxt 页面与 **Mail.tm（经 SDK `mail-tm`）**；`npm run demo:internxt` |
 
 常用环境变量：`TEMPMAIL_PROXY`、`TEMPMAIL_TIMEOUT`、`TEMPMAIL_INSECURE`；DropMail 见各 SDK 文档中的 `DROPMAIL_*` 说明。
 

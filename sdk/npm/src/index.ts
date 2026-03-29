@@ -1,5 +1,6 @@
 import * as tempmail from './providers/tempmail';
 import * as linshiEmail from './providers/linshi-email';
+import * as mffac from './providers/mffac';
 import * as tempmailLol from './providers/tempmail-lol';
 import * as chatgptOrgUk from './providers/chatgpt-org-uk';
 import * as tempMailIO from './providers/temp-mail-io';
@@ -39,7 +40,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -68,6 +69,7 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'smail-pw': { channel: 'smail-pw', name: 'Smail.pw', website: 'smail.pw' },
   'boomlify': { channel: 'boomlify', name: 'Boomlify', website: 'boomlify.com' },
   'minmail': { channel: 'minmail', name: 'MinMail', website: 'minmail.app' },
+  'mffac': { channel: 'mffac', name: 'MFFAC', website: 'mffac.com' },
   'vip-215': { channel: 'vip-215', name: 'VIP 215', website: 'vip.215.im' },
 };
 
@@ -196,6 +198,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return smailPw.generateEmail();
     case 'boomlify':
       return boomlify.generateEmail();
+    case 'mffac':
+      return mffac.generateEmail();
     case 'minmail':
       return minmail.generateEmail();
     case 'vip-215':
@@ -300,6 +304,8 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
       return smailPw.getEmails(token, email);
     case 'boomlify':
       return boomlify.getEmails(email);
+    case 'mffac':
+      return mffac.getEmails(email, token);
     case 'minmail':
       if (!token) throw new Error('internal error: token missing for minmail');
       return minmail.getEmails(email, token);
