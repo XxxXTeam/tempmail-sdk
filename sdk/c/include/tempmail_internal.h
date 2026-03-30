@@ -73,6 +73,9 @@ void tm_linshi_derive_path_key(const char *visitor_id, char *out, size_t cap);
 tm_email_info_t* tm_provider_linshi_email_generate(void);
 tm_email_t* tm_provider_linshi_email_get_emails(const char *api_path_key, const char *email, int *count);
 
+tm_email_info_t* tm_provider_linshiyou_generate(void);
+tm_email_t* tm_provider_linshiyou_get_emails(const char *token, const char *email, int *count);
+
 tm_email_info_t* tm_provider_tempmail_lol_generate(const char *domain);
 tm_email_t* tm_provider_tempmail_lol_get_emails(const char *token, const char *email, int *count);
 

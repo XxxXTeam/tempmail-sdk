@@ -9,7 +9,7 @@ use crate::providers;
 
 /// 所有支持的渠道列表
 pub const ALL_CHANNELS: &[Channel] = &[
-    Channel::Tempmail, Channel::LinshiEmail, Channel::TempmailLol,
+    Channel::Tempmail, Channel::LinshiEmail, Channel::Linshiyou, Channel::TempmailLol,
     Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
@@ -26,6 +26,7 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
     Some(match channel {
         Channel::Tempmail => ChannelInfo { channel: Channel::Tempmail, name: "TempMail", website: "tempmail.ing" },
         Channel::LinshiEmail => ChannelInfo { channel: Channel::LinshiEmail, name: "临时邮箱", website: "linshi-email.com" },
+        Channel::Linshiyou => ChannelInfo { channel: Channel::Linshiyou, name: "临时邮", website: "linshiyou.com" },
         Channel::TempmailLol => ChannelInfo { channel: Channel::TempmailLol, name: "TempMail LOL", website: "tempmail.lol" },
         Channel::ChatgptOrgUk => ChannelInfo { channel: Channel::ChatgptOrgUk, name: "ChatGPT Mail", website: "mail.chatgpt.org.uk" },
         Channel::TempMailIO => ChannelInfo { channel: Channel::TempMailIO, name: "Temp Mail IO", website: "temp-mail.io" },
@@ -96,6 +97,7 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
     match channel {
         Channel::Tempmail => providers::tempmail::generate_email(duration),
         Channel::LinshiEmail => providers::linshi_email::generate_email(),
+        Channel::Linshiyou => providers::linshiyou::generate_email(),
         Channel::TempmailLol => providers::tempmail_lol::generate_email(domain),
         Channel::ChatgptOrgUk => providers::chatgpt_org_uk::generate_email(),
         Channel::TempMailIO => providers::temp_mail_io::generate_email(),
@@ -154,6 +156,10 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::LinshiEmail => {
             let t = token.ok_or("token is required for linshi-email")?;
             providers::linshi_email::get_emails(t, email)
+        }
+        Channel::Linshiyou => {
+            let t = token.ok_or("token is required for linshiyou")?;
+            providers::linshiyou::get_emails(t, email)
         }
         Channel::TempmailLol => {
             let t = token.ok_or("token is required for tempmail-lol")?;

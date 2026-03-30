@@ -1,5 +1,6 @@
 import * as tempmail from './providers/tempmail';
 import * as linshiEmail from './providers/linshi-email';
+import * as linshiyou from './providers/linshiyou';
 import * as mffac from './providers/mffac';
 import * as tempmailLol from './providers/tempmail-lol';
 import * as chatgptOrgUk from './providers/chatgpt-org-uk';
@@ -41,7 +42,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -59,6 +60,7 @@ export interface ChannelInfo {
 const channelInfoMap: Record<Channel, ChannelInfo> = {
   'tempmail': { channel: 'tempmail', name: 'TempMail', website: 'tempmail.ing' },
   'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
+  'linshiyou': { channel: 'linshiyou', name: '临时邮', website: 'linshiyou.com' },
   'tempmail-lol': { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
   'chatgpt-org-uk': { channel: 'chatgpt-org-uk', name: 'ChatGPT Mail', website: 'mail.chatgpt.org.uk' },
   'temp-mail-io': { channel: 'temp-mail-io', name: 'Temp Mail IO', website: 'temp-mail.io' },
@@ -180,6 +182,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return tempmail.generateEmail(options.duration || 30);
     case 'linshi-email':
       return linshiEmail.generateEmail();
+    case 'linshiyou':
+      return linshiyou.generateEmail();
     case 'tempmail-lol':
       return tempmailLol.generateEmail(options.domain || null);
     case 'chatgpt-org-uk':
@@ -280,6 +284,9 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'linshi-email':
       if (!token) throw new Error('internal error: token missing for linshi-email');
       return linshiEmail.getEmails(email, token);
+    case 'linshiyou':
+      if (!token) throw new Error('internal error: token missing for linshiyou');
+      return linshiyou.getEmails(token, email);
     case 'tempmail-lol':
       if (!token) throw new Error('internal error: token missing for tempmail-lol');
       return tempmailLol.getEmails(token, email);

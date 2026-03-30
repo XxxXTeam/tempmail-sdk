@@ -9,6 +9,7 @@ from typing import Optional, List, Literal, Any
 Channel = Literal[
     "tempmail",
     "linshi-email",
+    "linshiyou",
     "tempmail-lol",
     "chatgpt-org-uk",
     "temp-mail-io",

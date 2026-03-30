@@ -16,6 +16,7 @@ add_library(tempmail_sdk STATIC
     src/http.c
     src/providers/tempmail.c
     src/providers/linshi_email.c
+    src/providers/linshiyou.c
     src/providers/linshi_token.c
     vendor/tm_sha256.c
     src/providers/tempmail_lol.c

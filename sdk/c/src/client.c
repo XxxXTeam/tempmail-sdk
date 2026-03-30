@@ -16,6 +16,7 @@
 static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_TEMPMAIL,       "TempMail",       "tempmail.ing" },
     { CHANNEL_LINSHI_EMAIL,   "临时邮箱",       "linshi-email.com" },
+    { CHANNEL_LINSHIYOU,     "临时邮",         "linshiyou.com" },
     { CHANNEL_TEMPMAIL_LOL,   "TempMail LOL",   "tempmail.lol" },
     { CHANNEL_CHATGPT_ORG_UK, "ChatGPT Mail",   "mail.chatgpt.org.uk" },
     { CHANNEL_TEMP_MAIL_IO,   "Temp Mail IO",    "temp-mail.io" },
@@ -49,6 +50,7 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
         switch (channel) {
             case CHANNEL_TEMPMAIL:       result = tm_provider_tempmail_generate(duration); break;
             case CHANNEL_LINSHI_EMAIL:   result = tm_provider_linshi_email_generate(); break;
+            case CHANNEL_LINSHIYOU:      result = tm_provider_linshiyou_generate(); break;
             case CHANNEL_TEMPMAIL_LOL:   result = tm_provider_tempmail_lol_generate(domain); break;
             case CHANNEL_CHATGPT_ORG_UK: result = tm_provider_chatgpt_org_uk_generate(); break;
             case CHANNEL_TEMP_MAIL_IO:   result = tm_provider_temp_mail_io_generate(); break;
@@ -166,6 +168,10 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_LINSHI_EMAIL:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_linshi_email_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_LINSHIYOU:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_linshiyou_get_emails(email_info->token, email_info->email, &count);
                 break;
             case CHANNEL_TEMPMAIL_LOL:   emails = tm_provider_tempmail_lol_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_CHATGPT_ORG_UK: emails = tm_provider_chatgpt_org_uk_get_emails(email_info->token, email_info->email, &count); break;

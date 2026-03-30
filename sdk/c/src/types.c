@@ -8,6 +8,7 @@
 static const char* channel_names[] = {
     "tempmail",
     "linshi-email",
+    "linshiyou",
     "tempmail-lol",
     "chatgpt-org-uk",
     "temp-mail-io",

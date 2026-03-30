@@ -9,6 +9,7 @@ import (
 var allChannels = []Channel{
 	ChannelTempmail,
 	ChannelLinshiEmail,
+	ChannelLinshiyou,
 	ChannelTempmailLol,
 	ChannelChatgptOrgUk,
 	ChannelTempMailIO,
@@ -40,6 +41,7 @@ type ChannelInfo struct {
 var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmail:          {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
 	ChannelLinshiEmail:       {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
+	ChannelLinshiyou:         {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
 	ChannelTempmailLol:       {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
 	ChannelChatgptOrgUk:      {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
 	ChannelTempMailIO:        {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
@@ -158,6 +160,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelLinshiEmail:
 		return linshiEmailGenerate()
+
+	case ChannelLinshiyou:
+		return linshiyouGenerate()
 
 	case ChannelTempmailLol:
 		return tempmailLolGenerate(opts.Domain)
@@ -283,6 +288,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for linshi-email channel")
 		}
 		return linshiEmailGetEmails(token, email)
+
+	case ChannelLinshiyou:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for linshiyou channel")
+		}
+		return linshiyouGetEmails(token, email)
 
 	case ChannelTempmailLol:
 		if token == "" {

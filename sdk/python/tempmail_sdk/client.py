@@ -13,7 +13,7 @@ from .types import (
 from .retry import with_retry
 from .logger import get_logger
 from .providers import (
-    tempmail, linshi_email, tempmail_lol, chatgpt_org_uk,
+    tempmail, linshi_email, linshiyou, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, temporary_email_org, mail_tm,
     dropmail, guerrillamail, maildrop, smail_pw,
     boomlify, minmail, vip_215,
@@ -21,7 +21,7 @@ from .providers import (
 
 # 所有支持的渠道列表
 ALL_CHANNELS = [
-    "tempmail", "linshi-email", "tempmail-lol", "chatgpt-org-uk",
+    "tempmail", "linshi-email", "linshiyou", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "temporary-email-org", "mail-tm",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
     "boomlify", "minmail", "vip-215",
@@ -31,10 +31,12 @@ ALL_CHANNELS = [
 CHANNEL_INFO_MAP = {
     "tempmail": ChannelInfo(channel="tempmail", name="TempMail", website="tempmail.ing"),
     "linshi-email": ChannelInfo(channel="linshi-email", name="临时邮箱", website="linshi-email.com"),
+    "linshiyou": ChannelInfo(channel="linshiyou", name="临时邮", website="linshiyou.com"),
     "tempmail-lol": ChannelInfo(channel="tempmail-lol", name="TempMail LOL", website="tempmail.lol"),
     "chatgpt-org-uk": ChannelInfo(channel="chatgpt-org-uk", name="ChatGPT Mail", website="mail.chatgpt.org.uk"),
     "temp-mail-io": ChannelInfo(channel="temp-mail-io", name="Temp Mail IO", website="temp-mail.io"),
     "awamail": ChannelInfo(channel="awamail", name="AwaMail", website="awamail.com"),
+    "temporary-email-org": ChannelInfo(channel="temporary-email-org", name="Temporary Email", website="temporary-email.org"),
     "mail-tm": ChannelInfo(channel="mail-tm", name="Mail.tm", website="mail.tm"),
     "dropmail": ChannelInfo(channel="dropmail", name="DropMail", website="dropmail.me"),
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
@@ -114,6 +116,8 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return tempmail.generate_email(options.duration)
     elif channel == "linshi-email":
         return linshi_email.generate_email()
+    elif channel == "linshiyou":
+        return linshiyou.generate_email()
     elif channel == "tempmail-lol":
         return tempmail_lol.generate_email(options.domain)
     elif channel == "chatgpt-org-uk":
@@ -200,6 +204,10 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for linshi-email channel")
         return linshi_email.get_emails(email, token)
+    elif channel == "linshiyou":
+        if not token:
+            raise ValueError("token is required for linshiyou channel")
+        return linshiyou.get_emails(token, email)
     elif channel == "tempmail-lol":
         if not token:
             raise ValueError("token is required for tempmail-lol channel")
