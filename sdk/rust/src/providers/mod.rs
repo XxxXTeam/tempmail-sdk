@@ -13,6 +13,7 @@ pub mod temp_mail_io;
 pub mod awamail;
 pub mod temporary_email_org;
 pub mod mail_tm;
+pub mod mail_cx;
 pub mod dropmail;
 pub mod guerrillamail;
 pub mod maildrop;

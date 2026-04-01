@@ -13,7 +13,7 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     email.id = tm_json_get_str(raw, id_keys, 6);
 
     /* From */
-    const char *from_keys[] = {"from_addr", "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender"};
+    const char *from_keys[] = {"from_addr", "from_address", "fromAddress", "sender", "address_from", "from_email", "from", "messageFrom"};
     email.from_addr = tm_json_get_str(raw, from_keys, 8);
 
     /* To */
@@ -29,11 +29,11 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     email.subject = tm_json_get_str(raw, subj_keys, 2);
 
     /* Text */
-    const char *text_keys[] = {"text", "body", "content", "body_text", "text_content", "description"};
+    const char *text_keys[] = {"text", "text_body", "preview_text", "body", "content", "body_text", "text_content", "description"};
     email.text = tm_json_get_str(raw, text_keys, 6);
 
     /* HTML */
-    const char *html_keys[] = {"html", "html_content", "body_html"};
+    const char *html_keys[] = {"html", "html_body", "html_content", "body_html"};
     email.html = tm_json_get_str(raw, html_keys, 3);
 
     /*

@@ -14,6 +14,7 @@ static const char* channel_names[] = {
     "temp-mail-io",
     "awamail",
     "mail-tm",
+    "mail-cx",
     "dropmail",
     "guerrillamail",
     "maildrop",

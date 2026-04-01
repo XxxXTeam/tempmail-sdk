@@ -48,6 +48,7 @@ body:
         - awamail
         - temporary-email-org
         - mail-tm
+        - mail-cx
         - dropmail
         - guerrillamail
         - maildrop

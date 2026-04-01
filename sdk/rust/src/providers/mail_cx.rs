@@ -1,120 +1,196 @@
 /*!
- * mail.cx 渠道实现
- * API 文档: https://api.mail.cx/
- * 无需注册，任意邮箱名即可接收邮件
+ * mail.cx 渠道实现（公开 REST API，见 https://docs.mail.cx）
+ * GET /api/domains → POST /api/accounts（JWT）→ GET /api/messages
  */
 
-use serde_json::Value;
+use chrono::Utc;
 use rand::Rng;
-use crate::types::{Channel, EmailInfo, Email};
+use serde_json::{json, Value};
+use crate::types::{Channel, Email, EmailInfo};
 use crate::normalize::normalize_email;
-use crate::config::http_client;
+use crate::config::{http_client, block_on, get_current_ua};
 
-const BASE_URL: &str = "https://api.mail.cx/api/v1";
-const DOMAINS: &[&str] = &["qabq.com", "nqmo.com", "end.tw", "uuf.me", "6n9.net"];
+const BASE: &str = "https://api.mail.cx";
 
-/// 从 "name <email>" 格式中提取邮箱地址
-fn extract_email(s: &str) -> String {
-    if let Some(start) = s.find('<') {
-        if let Some(end) = s.find('>') {
-            return s[start + 1..end].to_string();
-        }
-    }
-    s.to_string()
-}
-
-/// 将 mail.cx 响应扁平化为 normalize_email 可处理的格式
-fn flatten_message(msg: &Value, recipient: &str) -> Value {
-    let from = msg["from"].as_str().map(|s| extract_email(s)).unwrap_or_default();
-    let to = msg["to"].as_array()
-        .and_then(|arr| arr.first())
-        .and_then(|v| v.as_str())
-        .map(|s| extract_email(s))
-        .unwrap_or_else(|| recipient.to_string());
-
-    serde_json::json!({
-        "id": msg["id"].as_str().unwrap_or(""),
-        "from": from,
-        "to": to,
-        "subject": msg["subject"].as_str().unwrap_or(""),
-        "text": msg["text"].as_str().or_else(|| msg["body"].as_str()).unwrap_or(""),
-        "html": msg["html"].as_str().unwrap_or(""),
-        "date": msg["date"].as_str().unwrap_or(""),
-        "seen": msg["seen"].as_bool().unwrap_or(false),
-    })
-}
-
-fn random_username(len: usize) -> String {
+fn random_string(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
     let mut rng = rand::thread_rng();
     (0..len).map(|_| chars[rng.gen_range(0..chars.len())]).collect()
 }
 
-fn get_token() -> Result<String, String> {
-    let resp = http_client()
-        .post(format!("{}/auth/authorize_token", BASE_URL))
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body("{}")
-        .send().map_err(|e| format!("mail-cx get token failed: {}", e))?;
-
-    if !resp.status().is_success() {
-        return Err(format!("mail-cx get token failed: {}", resp.status()));
-    }
-
-    let text = resp.text().map_err(|e| format!("read body failed: {}", e))?;
-    Ok(text.trim().trim_matches('"').to_string())
-}
-
-pub fn generate_email() -> Result<EmailInfo, String> {
-    let token = get_token()?;
-    let mut rng = rand::thread_rng();
-    let domain = DOMAINS[rng.gen_range(0..DOMAINS.len())];
-    let username = random_username(8);
-    let email = format!("{}@{}", username, domain);
-
-    Ok(EmailInfo {
-        channel: Channel::MailCx,
-        email,
-        token: Some(token),
-        expires_at: None,
-        created_at: None,
+fn get_domains() -> Result<Vec<String>, String> {
+    block_on(async {
+        let resp = http_client()
+            .get(format!("{}/api/domains", BASE))
+            .header("Accept", "application/json")
+            .header("Origin", "https://mail.cx")
+            .header("Referer", "https://mail.cx/")
+            .header("User-Agent", get_current_ua())
+            .send()
+            .await
+            .map_err(|e| format!("mail-cx domains: {}", e))?;
+        if !resp.status().is_success() {
+            return Err(format!("mail-cx domains: {}", resp.status()));
+        }
+        let data: Value = resp.json().await.map_err(|e| format!("parse: {}", e))?;
+        let arr = data["domains"].as_array().cloned().unwrap_or_default();
+        Ok(arr
+            .into_iter()
+            .filter_map(|d| d["domain"].as_str().map(|s| s.to_string()))
+            .collect())
     })
 }
 
-pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
-    /* mail.cx token 有效期很短（~5分钟），每次请求前刷新 */
-    let fresh_token = get_token()?;
+fn flatten_message(msg: &Value, recipient: &str) -> Value {
+    let id = msg["id"].as_str().unwrap_or("");
+    let attachments: Value = match msg["attachments"].as_array() {
+        Some(arr) => {
+            let mapped: Vec<Value> = arr
+                .iter()
+                .filter_map(|a| {
+                    let idx = a["index"].as_u64().or_else(|| a["index"].as_i64().map(|i| i as u64))?;
+                    Some(json!({
+                        "filename": a["filename"].as_str().unwrap_or(""),
+                        "size": a["size"],
+                        "content_type": a["content_type"].as_str(),
+                        "url": format!("{}/api/messages/{}/attachments/{}", BASE, id, idx),
+                    }))
+                })
+                .collect();
+            Value::Array(mapped)
+        }
+        None => Value::Array(vec![]),
+    };
+    json!({
+        "id": id,
+        "sender": msg["sender"].as_str().unwrap_or(""),
+        "from": msg["from"].as_str().unwrap_or(""),
+        "address": msg["address"].as_str().unwrap_or(recipient),
+        "subject": msg["subject"].as_str().unwrap_or(""),
+        "preview_text": msg["preview_text"],
+        "text_body": msg["text_body"],
+        "html_body": msg["html_body"],
+        "created_at": msg["created_at"],
+        "attachments": attachments,
+    })
+}
 
-    let resp = http_client()
-        .get(format!("{}/mailbox/{}", BASE_URL, email))
-        .header("Accept", "application/json")
-        .header("Authorization", format!("Bearer {}", fresh_token))
-        .send().map_err(|e| format!("mail-cx request failed: {}", e))?;
-
-    if !resp.status().is_success() {
-        return Err(format!("mail-cx get emails failed: {}", resp.status()));
+pub fn generate_email(preferred_domain: Option<&str>) -> Result<EmailInfo, String> {
+    let mut domains = get_domains()?;
+    if domains.is_empty() {
+        return Err("No available domains".into());
+    }
+    if let Some(want) = preferred_domain {
+        let w = want.trim_start_matches('@').to_lowercase();
+        let filtered: Vec<String> = domains
+            .iter()
+            .filter(|d| d.to_lowercase() == w)
+            .cloned()
+            .collect();
+        if !filtered.is_empty() {
+            domains = filtered;
+        }
     }
 
-    let data: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
-    let messages = data.as_array().cloned().unwrap_or_default();
+    let mut last_err: Option<String> = None;
+    for _ in 0..8 {
+        let mut rng = rand::thread_rng();
+        let domain = &domains[rng.gen_range(0..domains.len())];
+        let address = format!("{}@{}", random_string(12), domain);
+        let password = random_string(16);
 
-    if messages.is_empty() {
-        return Ok(vec![]);
+        let res = block_on(async {
+            let resp = http_client()
+                .post(format!("{}/api/accounts", BASE))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("Origin", "https://mail.cx")
+                .header("Referer", "https://mail.cx/")
+                .header("User-Agent", get_current_ua())
+                .json(&json!({ "address": &address, "password": &password }))
+                .send()
+                .await
+                .map_err(|e| format!("mail-cx create: {}", e))?;
+
+            let status = resp.status();
+            let text = resp.text().await.unwrap_or_default();
+            if status.as_u16() != 201 {
+                return Err(format!("mail-cx create account: {} {}", status, text));
+            }
+            let data: Value = serde_json::from_str(&text).map_err(|e| format!("parse: {}", e))?;
+            let token = data["token"].as_str().ok_or("mail-cx: no token")?.to_string();
+            let em = data["address"].as_str().ok_or("mail-cx: no address")?.to_string();
+            Ok(EmailInfo {
+                channel: Channel::MailCx,
+                email: em,
+                token: Some(token),
+                expires_at: None,
+                created_at: Some(Utc::now().to_rfc3339()),
+            })
+        });
+
+        match res {
+            Ok(info) => return Ok(info),
+            Err(e) => {
+                if e.contains("409") {
+                    last_err = Some(e);
+                    continue;
+                }
+                return Err(e);
+            }
+        }
     }
+    Err(last_err.unwrap_or_else(|| "mail-cx: could not create account".into()))
+}
 
-    let mut result = Vec::new();
-    for msg in &messages {
-        let detail = http_client()
-            .get(format!("{}/mailbox/{}/{}", BASE_URL, email, msg["id"].as_str().unwrap_or("")))
+pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
+    let token = token.to_string();
+    let email = email.to_string();
+    block_on(async {
+        let resp = http_client()
+            .get(format!("{}/api/messages?page=1", BASE))
             .header("Accept", "application/json")
-            .header("Authorization", format!("Bearer {}", fresh_token))
-            .send().ok()
-            .and_then(|r| if r.status().is_success() { r.json::<Value>().ok() } else { None });
+            .header("Origin", "https://mail.cx")
+            .header("Referer", "https://mail.cx/")
+            .header("User-Agent", get_current_ua())
+            .header("Authorization", format!("Bearer {}", token))
+            .send()
+            .await
+            .map_err(|e| format!("mail-cx list: {}", e))?;
 
-        let flat = flatten_message(detail.as_ref().unwrap_or(msg), email);
-        result.push(normalize_email(&flat, email));
-    }
+        if !resp.status().is_success() {
+            return Err(format!("mail-cx list messages: {}", resp.status()));
+        }
 
-    Ok(result)
+        let data: Value = resp.json().await.map_err(|e| format!("parse: {}", e))?;
+        let messages = data["messages"].as_array().cloned().unwrap_or_default();
+        let mut result = Vec::new();
+
+        for msg in &messages {
+            let id = msg["id"].as_str().unwrap_or("");
+            let detail_json = if !id.is_empty() {
+                match http_client()
+                    .get(format!("{}/api/messages/{}", BASE, id))
+                    .header("Accept", "application/json")
+                    .header("Origin", "https://mail.cx")
+                    .header("Referer", "https://mail.cx/")
+                    .header("User-Agent", get_current_ua())
+                    .header("Authorization", format!("Bearer {}", token))
+                    .send()
+                    .await
+                {
+                    Ok(r) if r.status().is_success() => r.json::<Value>().await.ok(),
+                    _ => None,
+                }
+            } else {
+                None
+            };
+
+            let src = detail_json.as_ref().unwrap_or(msg);
+            let flat = flatten_message(src, &email);
+            result.push(normalize_email(&flat, &email));
+        }
+
+        Ok(result)
+    })
 }

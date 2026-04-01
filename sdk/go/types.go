@@ -17,6 +17,7 @@ const (
 	ChannelAwamail           Channel = "awamail"             // awamail.com
 	ChannelTemporaryEmailOrg Channel = "temporary-email-org" // temporary-email.org
 	ChannelMailTm            Channel = "mail-tm"             // mail.tm
+	ChannelMailCx            Channel = "mail-cx"             // mail.cx
 	ChannelDropmail          Channel = "dropmail"            // dropmail.me
 	ChannelGuerrillaMail     Channel = "guerrillamail"       // guerrillamail.com
 	ChannelMaildrop          Channel = "maildrop"            // maildrop.cx

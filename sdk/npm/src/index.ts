@@ -8,6 +8,7 @@ import * as tempMailIO from './providers/temp-mail-io';
 import * as awamail from './providers/awamail';
 import * as temporaryEmailOrg from './providers/temporary-email-org';
 import * as mailTm from './providers/mail-tm';
+import * as mailCx from './providers/mail-cx';
 import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
@@ -44,7 +45,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -69,6 +70,7 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'awamail': { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
   'temporary-email-org': { channel: 'temporary-email-org', name: 'Temporary Email', website: 'temporary-email.org' },
   'mail-tm': { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
+  'mail-cx': { channel: 'mail-cx', name: 'Mail.cx', website: 'mail.cx' },
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
   'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cx' },
@@ -312,6 +314,9 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'mail-tm':
       if (!token) throw new Error('internal error: token missing for mail-tm');
       return mailTm.getEmails(token, email);
+    case 'mail-cx':
+      if (!token) throw new Error('internal error: token missing for mail-cx');
+      return mailCx.getEmails(token, email);
     case 'dropmail':
       if (!token) throw new Error('internal error: token missing for dropmail');
       return dropmail.getEmails(token, email);

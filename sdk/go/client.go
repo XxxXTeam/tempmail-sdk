@@ -17,6 +17,7 @@ var allChannels = []Channel{
 	ChannelAwamail,
 	ChannelTemporaryEmailOrg,
 	ChannelMailTm,
+	ChannelMailCx,
 	ChannelDropmail,
 	ChannelGuerrillaMail,
 	ChannelMaildrop,
@@ -52,6 +53,7 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelAwamail:           {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
 	ChannelTemporaryEmailOrg: {Channel: ChannelTemporaryEmailOrg, Name: "Temporary Email", Website: "temporary-email.org"},
 	ChannelMailTm:            {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
+	ChannelMailCx:            {Channel: ChannelMailCx, Name: "Mail.cx", Website: "mail.cx"},
 	ChannelDropmail:          {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail:     {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:          {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cx"},
@@ -190,6 +192,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelMailTm:
 		return mailTmGenerate()
+
+	case ChannelMailCx:
+		return mailCxGenerate(opts)
 
 	case ChannelDropmail:
 		return dropmailGenerate()
@@ -345,6 +350,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for mail-tm channel")
 		}
 		return mailTmGetEmails(token, email)
+
+	case ChannelMailCx:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-cx channel")
+		}
+		return mailCxGetEmails(token, email)
 
 	case ChannelDropmail:
 		if token == "" {

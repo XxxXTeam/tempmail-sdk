@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
+Go 语言临时邮箱 SDK，支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
 
 ## 安装
 
@@ -25,6 +25,7 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `awamail` | awamail.com | `ChannelAwamail` | Session Cookie 自动管理 |
 | `temporary-email-org` | temporary-email.org | `ChannelTemporaryEmailOrg` | `GET /zh/messages` Cookie + XHR 收信 |
 | `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册（`api.mail.tm`），Bearer Token |
+| `mail-cx` | mail.cx | `ChannelMailCx` | `api.mail.cx` OpenAPI：`/api/domains`、`/api/accounts`（JWT）、`/api/messages`；可选 `Domain` |
 | `dropmail` | dropmail.me | `ChannelDropmail` | GraphQL，Session ID |
 | `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | 公开 JSON API |
 | `maildrop` | maildrop.cx | `ChannelMaildrop` | REST：`suffixes.php`（排除 `transformer.edu.kg`）+ `emails.php`；`description`→`text` |

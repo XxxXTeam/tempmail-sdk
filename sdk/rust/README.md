@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致。
+临时邮箱 SDK（Rust），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致。
 
 ## 安装
 
@@ -31,6 +31,7 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `Awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `TemporaryEmailOrg` | temporary-email.org | ✅ | `GET /zh/messages` Cookie + XHR 收信 |
 | `MailTm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
+| `MailCx` | mail.cx | ✅ | `api.mail.cx` OpenAPI；`GenerateEmailOptions.domain` 可选 |
 | `Dropmail` | dropmail.me | ✅ | GraphQL API |
 | `GuerrillaMail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `Maildrop` | maildrop.cx | ✅ | REST：`suffixes.php` + `emails.php`；`description`→`text` |

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 一致（`temporary-email-org` 在 `vip-215` 之后；`mffac` 在 `fake-legal` 之后，与枚举一致）。
+临时邮箱 SDK（C），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 一致（`temporary-email-org` 在 `vip-215` 之后；`mffac` 在 `fake-legal` 之后，与枚举一致）。
 
 ## 依赖
 
@@ -49,6 +49,7 @@ cmake --build build
 | temp-mail-io | `CHANNEL_TEMP_MAIL_IO` | temp-mail.io | - | |
 | awamail | `CHANNEL_AWAMAIL` | awamail.com | ✅ | Session Cookie 自动管理 |
 | mail-tm | `CHANNEL_MAIL_TM` | mail.tm | ✅ | 自动注册，Bearer Token |
+| mail-cx | `CHANNEL_MAIL_CX` | mail.cx | ✅ | `api.mail.cx` OpenAPI；`tm_generate_options_t.domain` 可选 |
 | dropmail | `CHANNEL_DROPMAIL` | dropmail.me | ✅ | GraphQL |
 | guerrillamail | `CHANNEL_GUERRILLAMAIL` | guerrillamail.com | ✅ | 公开 JSON API |
 | maildrop | `CHANNEL_MAILDROP` | maildrop.cx | ✅ | REST：`suffixes.php` + `emails.php`；`description`→`text` |

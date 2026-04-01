@@ -1,145 +1,241 @@
 /**
- * mail.cx 渠道实现
- * API 文档: https://api.mail.cx/
- * 无需注册，任意邮箱名即可接收邮件
+ * mail.cx 渠道实现（公开 REST API，见 https://docs.mail.cx）
  */
 #include "tempmail_internal.h"
+#include <stdio.h>
 #include <time.h>
+#include <string.h>
 
-#define MCX_BASE "https://api.mail.cx/api/v1"
+#ifdef _WIN32
+#define MCX_STRICMP _stricmp
+#else
+#include <strings.h>
+#define MCX_STRICMP strcasecmp
+#endif
 
-static const char* mcx_domains[] = {"qabq.com", "nqmo.com", "end.tw", "uuf.me", "6n9.net"};
-static const int mcx_domain_count = 5;
+#define MCX_BASE "https://api.mail.cx"
 
-/*
- * 从 "name <email>" 格式中提取邮箱地址
- * 如 "openel <openel@foxmail.com>" → "openel@foxmail.com"
- */
-static char* mcx_extract_email(const char *s) {
-    if (!s) return tm_strdup("");
-    const char *start = strchr(s, '<');
-    const char *end = strchr(s, '>');
-    if (start && end && end > start) {
-        size_t len = end - start - 1;
-        char *result = (char*)malloc(len + 1);
-        memcpy(result, start + 1, len);
-        result[len] = '\0';
-        return result;
-    }
-    return tm_strdup(s);
-}
+static const char *mcx_headers_get[] = {
+    "Accept: application/json",
+    "Origin: https://mail.cx",
+    "Referer: https://mail.cx/",
+    NULL
+};
 
-static void mcx_random_username(char *buf, int len) {
+static void random_string(char *buf, int len) {
     const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
     for (int i = 0; i < len; i++) {
-        buf[i] = chars[rand() % (sizeof(chars) - 1)];
+        buf[i] = chars[rand() % (int)(sizeof(chars) - 1)];
     }
     buf[len] = '\0';
 }
 
-static char* mcx_get_token(void) {
-    const char* headers[] = {
-        "Content-Type: application/json",
-        "Accept: application/json",
-        NULL
-    };
+/* 释放 cJSON 字符串数组 */
+static void free_domain_list(char **domains, int n) {
+    if (!domains) return;
+    for (int i = 0; i < n; i++) free(domains[i]);
+    free(domains);
+}
 
-    tm_http_response_t *resp = tm_http_request(TM_HTTP_POST, MCX_BASE "/auth/authorize_token", headers, "{}", 15);
-    if (!resp || resp->status != 200) { tm_http_response_free(resp); return NULL; }
-
-    /* 去除可能的引号 */
-    char *token = tm_strdup(resp->body);
+/* 返回 0 成功，*domains / *dn 由调用者 free_domain_list 释放 */
+static int mcx_fetch_domains(char ***out_domains, int *out_n) {
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, MCX_BASE "/api/domains", mcx_headers_get, NULL, 15);
+    if (!resp || resp->status != 200) {
+        tm_http_response_free(resp);
+        return -1;
+    }
+    cJSON *json = cJSON_Parse(resp->body);
     tm_http_response_free(resp);
+    if (!json) return -1;
 
-    if (token && token[0] == '"') {
-        size_t len = strlen(token);
-        if (len > 2 && token[len-1] == '"') {
-            memmove(token, token + 1, len - 2);
-            token[len - 2] = '\0';
+    cJSON *arr = cJSON_GetObjectItemCaseSensitive(json, "domains");
+    if (!cJSON_IsArray(arr)) {
+        cJSON_Delete(json);
+        return -1;
+    }
+
+    int n = cJSON_GetArraySize(arr);
+    char **domains = (char **)calloc((size_t)(n > 0 ? n : 1), sizeof(char *));
+    if (!domains) {
+        cJSON_Delete(json);
+        return -1;
+    }
+    int k = 0;
+    for (int i = 0; i < n; i++) {
+        cJSON *d = cJSON_GetArrayItem(arr, i);
+        cJSON *dom = cJSON_GetObjectItemCaseSensitive(d, "domain");
+        if (cJSON_IsString(dom) && dom->valuestring && dom->valuestring[0]) {
+            domains[k++] = tm_strdup(dom->valuestring);
+        }
+    }
+    cJSON_Delete(json);
+    if (k == 0) {
+        free(domains);
+        return -1;
+    }
+    *out_domains = domains;
+    *out_n = k;
+    return 0;
+}
+
+static int domain_in_list(const char *want, char **domains, int n) {
+    if (!want || !want[0]) return 0;
+    for (int i = 0; i < n; i++) {
+        if (domains[i] && MCX_STRICMP(domains[i], want) == 0) return 1;
+    }
+    return 0;
+}
+
+tm_email_info_t *tm_provider_mail_cx_generate(const char *preferred_domain) {
+    srand((unsigned)time(NULL));
+
+    char **domains = NULL;
+    int dn = 0;
+    if (mcx_fetch_domains(&domains, &dn) != 0) return NULL;
+
+    /* 可选：仅使用 preferred_domain */
+    if (preferred_domain && preferred_domain[0]) {
+        char want[256];
+        const char *p = preferred_domain;
+        if (*p == '@') p++;
+        snprintf(want, sizeof(want), "%s", p);
+        if (!domain_in_list(want, domains, dn)) {
+            /* 不在列表则忽略，仍用全部域名 */
+        } else {
+            for (int i = 0; i < dn; i++) {
+                if (domains[i] && MCX_STRICMP(domains[i], want) == 0) {
+                    char *one = tm_strdup(domains[i]);
+                    free_domain_list(domains, dn);
+                    domains = (char **)malloc(sizeof(char *));
+                    if (!domains) return NULL;
+                    domains[0] = one;
+                    dn = 1;
+                    break;
+                }
+            }
         }
     }
 
-    return token;
+    tm_email_info_t *result = NULL;
+    for (int attempt = 0; attempt < 8 && !result; attempt++) {
+        char username[13], password[17];
+        random_string(username, 12);
+        random_string(password, 16);
+        char *dom = domains[rand() % dn];
+        char address[320];
+        snprintf(address, sizeof(address), "%s@%s", username, dom);
+
+        char body[512];
+        snprintf(body, sizeof(body), "{\"address\":\"%s\",\"password\":\"%s\"}", address, password);
+
+        const char *post_headers[] = {
+            "Content-Type: application/json",
+            "Accept: application/json",
+            "Origin: https://mail.cx",
+            "Referer: https://mail.cx/",
+            NULL
+        };
+
+        tm_http_response_t *resp = tm_http_request(TM_HTTP_POST, MCX_BASE "/api/accounts", post_headers, body, 15);
+        if (!resp) continue;
+
+        if (resp->status == 409) {
+            tm_http_response_free(resp);
+            continue;
+        }
+        if (resp->status != 201) {
+            tm_http_response_free(resp);
+            if (attempt == 7) break;
+            continue;
+        }
+
+        cJSON *acc = cJSON_Parse(resp->body);
+        tm_http_response_free(resp);
+        if (!acc) continue;
+
+        const char *tok = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(acc, "token"));
+        const char *addr = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(acc, "address"));
+        if (tok && addr) {
+            result = tm_email_info_new();
+            result->channel = CHANNEL_MAIL_CX;
+            result->email = tm_strdup(addr);
+            result->token = tm_strdup(tok);
+        }
+        cJSON_Delete(acc);
+    }
+
+    free_domain_list(domains, dn);
+    return result;
 }
 
-tm_email_info_t* tm_provider_mail_cx_generate(void) {
-    srand((unsigned)time(NULL));
-
-    char *token = mcx_get_token();
-    if (!token) return NULL;
-
-    const char *domain = mcx_domains[rand() % mcx_domain_count];
-    char username[9];
-    mcx_random_username(username, 8);
-
-    char address[256];
-    snprintf(address, sizeof(address), "%s@%s", username, domain);
-
-    tm_email_info_t *info = tm_email_info_new();
-    info->channel = CHANNEL_MAIL_CX;
-    info->email = tm_strdup(address);
-    info->token = token;
-    return info;
-}
-
-tm_email_t* tm_provider_mail_cx_get_emails(const char *token, const char *email, int *count) {
+tm_email_t *tm_provider_mail_cx_get_emails(const char *token, const char *email, int *count) {
     *count = -1;
+    char auth[600];
+    snprintf(auth, sizeof(auth), "Authorization: Bearer %s", token);
+    const char *headers[] = {
+        auth,
+        "Accept: application/json",
+        "Origin: https://mail.cx",
+        "Referer: https://mail.cx/",
+        NULL
+    };
 
-    /* mail.cx token 有效期很短（~5分钟），每次请求前刷新 */
-    char *fresh_token = mcx_get_token();
-    if (!fresh_token) return NULL;
-
-    char auth[512];
-    snprintf(auth, sizeof(auth), "Authorization: Bearer %s", fresh_token);
-    free(fresh_token);
-    const char* headers[] = { auth, "Accept: application/json", NULL };
-
-    char url[512];
-    snprintf(url, sizeof(url), MCX_BASE "/mailbox/%s", email);
-
-    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, url, headers, NULL, 15);
-    if (!resp || resp->status != 200) { tm_http_response_free(resp); return NULL; }
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, MCX_BASE "/api/messages?page=1", headers, NULL, 15);
+    if (!resp || resp->status != 200) {
+        tm_http_response_free(resp);
+        return NULL;
+    }
 
     cJSON *json = cJSON_Parse(resp->body);
     tm_http_response_free(resp);
-    if (!json || !cJSON_IsArray(json)) { cJSON_Delete(json); *count = 0; return NULL; }
+    if (!json) return NULL;
 
-    int n = cJSON_GetArraySize(json);
+    cJSON *messages = cJSON_GetObjectItemCaseSensitive(json, "messages");
+    if (!cJSON_IsArray(messages)) {
+        cJSON_Delete(json);
+        return NULL;
+    }
+
+    int n = cJSON_GetArraySize(messages);
     *count = n;
-    if (n == 0) { cJSON_Delete(json); return NULL; }
+    if (n == 0) {
+        cJSON_Delete(json);
+        return NULL;
+    }
 
     tm_email_t *emails = tm_emails_new(n);
     for (int i = 0; i < n; i++) {
-        cJSON *msg = cJSON_GetArrayItem(json, i);
-
-        /* 扁平化 from/to 格式 */
-        cJSON *from_item = cJSON_GetObjectItemCaseSensitive(msg, "from");
-        char *from_email = mcx_extract_email(cJSON_GetStringValue(from_item));
-
-        cJSON *to_arr = cJSON_GetObjectItemCaseSensitive(msg, "to");
-        char *to_email = NULL;
-        if (cJSON_IsArray(to_arr) && cJSON_GetArraySize(to_arr) > 0) {
-            to_email = mcx_extract_email(cJSON_GetStringValue(cJSON_GetArrayItem(to_arr, 0)));
-        } else {
-            to_email = tm_strdup(email);
+        cJSON *msg = cJSON_GetArrayItem(messages, i);
+        const char *mid = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(msg, "id"));
+        if (mid && mid[0]) {
+            char detail_url[384];
+            snprintf(detail_url, sizeof(detail_url), MCX_BASE "/api/messages/%s", mid);
+            tm_http_response_t *dr = tm_http_request(TM_HTTP_GET, detail_url, headers, NULL, 15);
+            if (dr && dr->status == 200) {
+                cJSON *detail = cJSON_Parse(dr->body);
+                if (detail) {
+                    /* 附件 URL */
+                    cJSON *atts = cJSON_GetObjectItemCaseSensitive(detail, "attachments");
+                    if (cJSON_IsArray(atts)) {
+                        cJSON *a;
+                        cJSON_ArrayForEach(a, atts) {
+                            cJSON *idx = cJSON_GetObjectItemCaseSensitive(a, "index");
+                            char urlbuf[512];
+                            if (cJSON_IsNumber(idx)) {
+                                snprintf(urlbuf, sizeof(urlbuf), MCX_BASE "/api/messages/%s/attachments/%d", mid, idx->valueint);
+                                cJSON_AddStringToObject(a, "url", urlbuf);
+                            }
+                        }
+                    }
+                    emails[i] = tm_normalize_email(detail, email);
+                    cJSON_Delete(detail);
+                    tm_http_response_free(dr);
+                    continue;
+                }
+            }
+            tm_http_response_free(dr);
         }
-
-        /* 构建扁平化的 JSON 对象 */
-        cJSON *flat = cJSON_CreateObject();
-        cJSON_AddStringToObject(flat, "id", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "id"), ""));
-        cJSON_AddStringToObject(flat, "from", from_email);
-        cJSON_AddStringToObject(flat, "to", to_email);
-        cJSON_AddStringToObject(flat, "subject", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "subject"), ""));
-        cJSON_AddStringToObject(flat, "text", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "text"), ""));
-        cJSON_AddStringToObject(flat, "html", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "html"), ""));
-        cJSON_AddStringToObject(flat, "date", TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(msg, "date"), ""));
-        cJSON *seen = cJSON_GetObjectItemCaseSensitive(msg, "seen");
-        cJSON_AddBoolToObject(flat, "seen", cJSON_IsTrue(seen));
-
-        emails[i] = tm_normalize_email(flat, email);
-        cJSON_Delete(flat);
-        free(from_email);
-        free(to_email);
+        emails[i] = tm_normalize_email(msg, email);
     }
     cJSON_Delete(json);
     return emails;

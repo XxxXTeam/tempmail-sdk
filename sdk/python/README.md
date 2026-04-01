@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **19** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
+临时邮箱 SDK（Python），支持 **20** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
 
 ## 安装
 
@@ -28,6 +28,7 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `temporary-email-org` | temporary-email.org | ✅ | `GET /zh/messages` Cookie + XHR 收信 |
 | `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
+| `mail-cx` | mail.cx | ✅ | `api.mail.cx` OpenAPI；`GenerateEmailOptions.domain` 可选 |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cx | ✅ | REST：`suffixes.php` + `emails.php`；`description`→`text` |

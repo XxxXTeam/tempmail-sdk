@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,7 +17,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **19** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同）。
+共 **20** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同）。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
@@ -31,6 +31,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
 | `temporary-email-org` | temporary-email.org | ✅ | `GET /zh/messages` 下发 Cookie；收信须 `X-Requested-With: XMLHttpRequest` |
 | `mail-tm` | mail.tm / api.mail.tm | ✅ | 自动注册账号；请求与 **Internxt** 等站点前端一致（`GET /domains?page=1`、`GET /messages?page=1` 及常见浏览器头） |
+| `mail-cx` | mail.cx / api.mail.cx | ✅ | OpenAPI：`GET /api/domains`、`POST /api/accounts`（返回 JWT）、`GET /api/messages`；可选 `domain` 指定系统域名 |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cx | ✅ | REST：`suffixes.php`（排除 `transformer.edu.kg`）+ 随机前缀；`emails.php` 列表，`description`→`text` |

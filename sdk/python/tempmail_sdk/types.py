@@ -17,6 +17,7 @@ Channel = Literal[
     "awamail",
     "temporary-email-org",
     "mail-tm",
+    "mail-cx",
     "dropmail",
     "guerrillamail",
     "maildrop",
@@ -105,7 +106,7 @@ class GenerateEmailOptions:
 
     channel: Optional[str] = None           # 指定渠道，不指定则随机选择
     duration: int = 30                      # tempmail 渠道的有效期（分钟）
-    domain: Optional[str] = None            # tempmail-lol / maildrop / fake-legal 可选指定域名
+    domain: Optional[str] = None            # tempmail-lol / maildrop / fake-legal / mail-cx 可选指定域名
     retry: Optional[RetryConfig] = None     # 重试配置
 
 

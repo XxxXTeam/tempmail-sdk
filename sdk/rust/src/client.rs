@@ -11,7 +11,7 @@ use crate::providers;
 pub const ALL_CHANNELS: &[Channel] = &[
     Channel::Tempmail, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
     Channel::ChatgptOrgUk, Channel::TempMailIO,
-    Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::Dropmail,
+    Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::MailCx, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
     Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal,
 ];
@@ -34,6 +34,7 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Awamail => ChannelInfo { channel: Channel::Awamail, name: "AwaMail", website: "awamail.com" },
         Channel::TemporaryEmailOrg => ChannelInfo { channel: Channel::TemporaryEmailOrg, name: "Temporary Email", website: "temporary-email.org" },
         Channel::MailTm => ChannelInfo { channel: Channel::MailTm, name: "Mail.tm", website: "mail.tm" },
+        Channel::MailCx => ChannelInfo { channel: Channel::MailCx, name: "Mail.cx", website: "mail.cx" },
         Channel::Dropmail => ChannelInfo { channel: Channel::Dropmail, name: "DropMail", website: "dropmail.me" },
         Channel::GuerrillaMail => ChannelInfo { channel: Channel::GuerrillaMail, name: "Guerrilla Mail", website: "guerrillamail.com" },
         Channel::Maildrop => ChannelInfo { channel: Channel::Maildrop, name: "Maildrop", website: "maildrop.cx" },
@@ -108,6 +109,7 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::Awamail => providers::awamail::generate_email(),
         Channel::TemporaryEmailOrg => providers::temporary_email_org::generate_email(),
         Channel::MailTm => providers::mail_tm::generate_email(),
+        Channel::MailCx => providers::mail_cx::generate_email(domain),
         Channel::Dropmail => providers::dropmail::generate_email(),
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::Maildrop => providers::maildrop::generate_email(domain),
@@ -188,6 +190,10 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::MailTm => {
             let t = token.ok_or("token is required for mail-tm")?;
             providers::mail_tm::get_emails(t, email)
+        }
+        Channel::MailCx => {
+            let t = token.ok_or("token is required for mail-cx")?;
+            providers::mail_cx::get_emails(t, email)
         }
         Channel::Dropmail => {
             let t = token.ok_or("token is required for dropmail")?;

@@ -14,7 +14,7 @@ from .retry import with_retry
 from .logger import get_logger
 from .providers import (
     tempmail, linshi_email, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
-    temp_mail_io, awamail, temporary_email_org, mail_tm,
+    temp_mail_io, awamail, temporary_email_org, mail_tm, mail_cx,
     dropmail, guerrillamail, maildrop, smail_pw,
     boomlify, minmail, vip_215, anonbox, fake_legal,
 )
@@ -22,7 +22,7 @@ from .providers import (
 # 所有支持的渠道列表
 ALL_CHANNELS = [
     "tempmail", "linshi-email", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
-    "temp-mail-io", "awamail", "temporary-email-org", "mail-tm",
+    "temp-mail-io", "awamail", "temporary-email-org", "mail-tm", "mail-cx",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
     "boomlify", "minmail", "vip-215", "anonbox", "fake-legal",
 ]
@@ -39,6 +39,7 @@ CHANNEL_INFO_MAP = {
     "awamail": ChannelInfo(channel="awamail", name="AwaMail", website="awamail.com"),
     "temporary-email-org": ChannelInfo(channel="temporary-email-org", name="Temporary Email", website="temporary-email.org"),
     "mail-tm": ChannelInfo(channel="mail-tm", name="Mail.tm", website="mail.tm"),
+    "mail-cx": ChannelInfo(channel="mail-cx", name="Mail.cx", website="mail.cx"),
     "dropmail": ChannelInfo(channel="dropmail", name="DropMail", website="dropmail.me"),
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
     "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cx"),
@@ -135,6 +136,8 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return temporary_email_org.generate_email()
     elif channel == "mail-tm":
         return mail_tm.generate_email()
+    elif channel == "mail-cx":
+        return mail_cx.generate_email(options.domain)
     elif channel == "dropmail":
         return dropmail.generate_email()
     elif channel == "guerrillamail":
@@ -241,6 +244,10 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for mail-tm channel")
         return mail_tm.get_emails(token, email)
+    elif channel == "mail-cx":
+        if not token:
+            raise ValueError("token is required for mail-cx channel")
+        return mail_cx.get_emails(token, email)
     elif channel == "dropmail":
         if not token:
             raise ValueError("token is required for dropmail channel")

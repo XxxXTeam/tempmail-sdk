@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **19 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **20 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 五种 SDK 均支持 **19** 个渠道，随机与 `listChannels` 行为对齐
+- 🌐 五种 SDK 均支持 **20** 个渠道，随机与 `listChannels` 行为对齐
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -37,6 +37,7 @@
 | `awamail` | [awamail.com](https://awamail.com) | Session Cookie | 自动提取 Cookie |
 | `temporary-email-org` | [temporary-email.org](https://www.temporary-email.org) | Session Cookie | 首次 `GET /zh/messages` 下发 `email`、`locale`、`XSRF-TOKEN`、`temporaryemail_session`；拉取邮件需带完整 Cookie 与 `X-Requested-With: XMLHttpRequest` |
 | `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
+| `mail-cx` | [mail.cx](https://mail.cx) / [api.mail.cx](https://api.mail.cx) | Bearer JWT（`POST /api/accounts`） | 公开 OpenAPI：`GET /api/domains`、`POST /api/accounts`（响应含 JWT）、`GET /api/messages`；可选 `domain` 指定系统域名 |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
 | `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
 | `maildrop` | [maildrop.cx](https://maildrop.cx) | Token（完整邮箱） | REST：`GET /api/suffixes.php` 获取后缀，**排除** `transformer.edu.kg`，再随机生成本地部分；可选 `domain` 指定后缀（须仍在列表中）；`GET /api/emails.php?addr=` 拉列表；列表字段 `description` 映射为统一结构中的 `text`，无单封 MIME/HTML 全文 |

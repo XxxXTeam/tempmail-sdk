@@ -27,6 +27,8 @@ pub enum Channel {
     TemporaryEmailOrg,
     #[serde(rename = "mail-tm")]
     MailTm,
+    #[serde(rename = "mail-cx")]
+    MailCx,
     #[serde(rename = "dropmail")]
     Dropmail,
     #[serde(rename = "guerrillamail")]
@@ -60,6 +62,7 @@ impl std::fmt::Display for Channel {
             Channel::Awamail => write!(f, "awamail"),
             Channel::TemporaryEmailOrg => write!(f, "temporary-email-org"),
             Channel::MailTm => write!(f, "mail-tm"),
+            Channel::MailCx => write!(f, "mail-cx"),
             Channel::Dropmail => write!(f, "dropmail"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::Maildrop => write!(f, "maildrop"),

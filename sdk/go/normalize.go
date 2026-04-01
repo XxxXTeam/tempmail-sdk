@@ -104,7 +104,7 @@ func normalizeID(raw map[string]interface{}) string {
 
 /* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender */
 func normalizeFrom(raw map[string]interface{}) string {
-	return getStr(raw, "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender")
+	return getStr(raw, "from_addr", "from_address", "fromAddress", "sender", "address_from", "from_email", "from", "messageFrom")
 }
 
 /* normalizeTo 提取收件人地址，无匹配字段时回退为 recipientEmail */
@@ -123,12 +123,12 @@ func normalizeSubject(raw map[string]interface{}) string {
 
 /* normalizeText 提取纯文本内容，候选字段: text, body, content, body_text, text_content */
 func normalizeText(raw map[string]interface{}) string {
-	return getStr(raw, "text", "body", "content", "body_text", "text_content")
+	return getStr(raw, "text", "text_body", "preview_text", "body", "content", "body_text", "text_content", "description")
 }
 
 /* normalizeHTML 提取 HTML 内容，候选字段: html, html_content, body_html */
 func normalizeHTML(raw map[string]interface{}) string {
-	return getStr(raw, "html", "html_content", "body_html")
+	return getStr(raw, "html", "html_body", "html_content", "body_html")
 }
 
 /*

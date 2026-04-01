@@ -66,7 +66,17 @@ function normalizeId(raw: any): string {
  * 候选字段: from_address, address_from, from, messageFrom, sender
  */
 function normalizeFrom(raw: any): string {
-  return raw.from_addr || raw.from_address || raw.fromAddress || raw.address_from || raw.from_email || raw.from || raw.messageFrom || raw.sender || '';
+  return (
+    raw.from_addr ||
+    raw.from_address ||
+    raw.fromAddress ||
+    raw.sender ||
+    raw.address_from ||
+    raw.from_email ||
+    raw.from ||
+    raw.messageFrom ||
+    ''
+  );
 }
 
 /**
@@ -90,7 +100,17 @@ function normalizeSubject(raw: any): string {
  * 候选字段: text, body, content, body_text, text_content
  */
 function normalizeText(raw: any): string {
-  return raw.text || raw.body || raw.content || raw.body_text || raw.text_content || raw.description || '';
+  return (
+    raw.text ||
+    raw.text_body ||
+    raw.preview_text ||
+    raw.body ||
+    raw.content ||
+    raw.body_text ||
+    raw.text_content ||
+    raw.description ||
+    ''
+  );
 }
 
 /**
@@ -98,7 +118,7 @@ function normalizeText(raw: any): string {
  * 候选字段: html, html_content, body_html
  */
 function normalizeHtml(raw: any): string {
-  return raw.html || raw.html_content || raw.body_html || '';
+  return raw.html || raw.html_body || raw.html_content || raw.body_html || '';
 }
 
 /**
