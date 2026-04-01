@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **18 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **19 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 支持 18 个临时邮箱服务商，一套代码适配所有渠道
+- 🌐 五种 SDK 均支持 **19** 个渠道，随机与 `listChannels` 行为对齐
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -23,10 +23,14 @@
 
 ## 📋 支持的渠道
 
+下列顺序与各 SDK 的 `listChannels` / 随机尝试顺序一致。
+
 | 渠道 | 服务商 | 认证方式 | 说明 |
 |------|--------|----------|------|
 | `tempmail` | [tempmail.ing](https://tempmail.ing) | 邮箱地址 | 支持自定义有效期 |
 | `linshi-email` | [linshi-email.com](https://linshi-email.com) | 邮箱地址 | |
+| `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token（`NEXUS_TOKEN`） | 创建邮箱时 Set-Cookie 下发 `NEXUS_TOKEN`；收信需携带该 Token 与 `tmail-emails` 等 Cookie；列表与正文由 HTML 分段 / iframe 解析 |
+| `mffac` | [mffac.com](https://www.mffac.com) | Token（mailbox `id`） | REST：`POST /api/mailboxes` 创建，`GET /api/mailboxes/{local}/emails` 收信；默认 24h |
 | `tempmail-lol` | [tempmail.lol](https://tempmail.lol) | Token | 支持指定域名 |
 | `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | Inbox Token | 官网在 HTML 注入 `__BROWSER_AUTH`；npm 已随首页一并解析并用于创建邮箱 |
 | `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | |
@@ -38,13 +42,12 @@
 | `maildrop` | [maildrop.cx](https://maildrop.cx) | Token（完整邮箱） | REST：`GET /api/suffixes.php` 获取后缀，**排除** `transformer.edu.kg`，再随机生成本地部分；可选 `domain` 指定后缀（须仍在列表中）；`GET /api/emails.php?addr=` 拉列表；列表字段 `description` 映射为统一结构中的 `text`，无单封 MIME/HTML 全文 |
 | `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
 | `boomlify` | [boomlify.com](https://boomlify.com) | - | `GET /domains/public` 取域名后 `POST /emails/public/create`（`domainId`）登记收件箱；地址为 `{邮箱 UUID}@{域名}`，REST 拉信，无额外 token |
-| `fake-legal` | [fake.legal](https://fake.legal) | - | `GET /api/domains` + `GET /api/inbox/new?domain=` 建址；`GET /api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` 与 npm 行为一致 |
 | `minmail` | [minmail.app](https://minmail.app) | 内部 Token（JSON） | `GET /api/mail/address` 返回 `visitorId` 与 `ck`；收信需请求头 `visitor-id` 与 `ck`。SDK 将二者序列化为 JSON 存入 token，兼容旧版仅 UUID |
-| `mffac` | [mffac.com](https://www.mffac.com) | - | REST API；`POST /api/mailboxes` 创建，`GET /api/mailboxes/{address}/emails` 收信；默认 24h 有效期 |
 | `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 | `anonbox` | [anonbox.net](https://anonbox.net/en/) | 路径 Token（`{收件箱}/{密钥}`） | `GET /en/` 解析 HTML（合并隐藏 `span`）得到 `{local}@{收件箱}.anonbox.net`；收信 `GET` mbox 明文 URL |
+| `fake-legal` | [fake.legal](https://fake.legal) | - | `GET /api/domains` + `GET /api/inbox/new?domain=` 建址；`GET /api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
 
-> **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。
+> **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels` 的枚举顺序与上表略有不同（例如 `temporary-email-org` 排在 `vip-215` 之后），以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
 
 ## 📐 统一邮件格式
 

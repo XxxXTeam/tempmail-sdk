@@ -13,12 +13,12 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     email.id = tm_json_get_str(raw, id_keys, 6);
 
     /* From */
-    const char *from_keys[] = {"from_addr", "from_address", "address_from", "from_email", "from", "messageFrom", "sender"};
-    email.from_addr = tm_json_get_str(raw, from_keys, 7);
+    const char *from_keys[] = {"from_addr", "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender"};
+    email.from_addr = tm_json_get_str(raw, from_keys, 8);
 
     /* To */
-    const char *to_keys[] = {"to", "to_address", "name_to", "email_address", "address"};
-    email.to = tm_json_get_str(raw, to_keys, 5);
+    const char *to_keys[] = {"to", "to_address", "toAddress", "name_to", "email_address", "address"};
+    email.to = tm_json_get_str(raw, to_keys, 6);
     if (!email.to || email.to[0] == '\0') {
         free(email.to);
         email.to = tm_strdup(recipient);
@@ -61,7 +61,7 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
 
     /* Date */
     const char *date_keys[] = {"received_at", "receivedAt", "created_at", "createdAt", "date", "timestamp", "e_date"};
-    email.date = tm_json_get_str(raw, date_keys, 6);
+    email.date = tm_json_get_str(raw, date_keys, 7);
 
     /* IsRead */
     email.is_read = false;

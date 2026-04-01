@@ -20,9 +20,9 @@ pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
 
     Email {
         id: get_str(raw, &["id", "eid", "_id", "mailboxId", "messageId", "mail_id"]),
-        from_addr: get_str(raw, &["from_addr", "from_address", "address_from", "from_email", "from", "messageFrom", "sender"]),
+        from_addr: get_str(raw, &["from_addr", "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender"]),
         to: {
-            let t = get_str(raw, &["to", "to_address", "name_to", "email_address", "address"]);
+            let t = get_str(raw, &["to", "to_address", "toAddress", "name_to", "email_address", "address"]);
             if t.is_empty() { recipient_email.to_string() } else { t }
         },
         subject: get_str(raw, &["subject", "e_subject"]),

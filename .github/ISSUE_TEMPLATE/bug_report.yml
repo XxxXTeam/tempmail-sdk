@@ -40,15 +40,23 @@ body:
         - 全部/不确定
         - tempmail
         - linshi-email
+        - linshiyou
+        - mffac
         - tempmail-lol
         - chatgpt-org-uk
         - temp-mail-io
         - awamail
+        - temporary-email-org
         - mail-tm
         - dropmail
         - guerrillamail
         - maildrop
         - smail-pw
+        - boomlify
+        - minmail
+        - vip-215
+        - anonbox
+        - fake-legal
     validations:
       required: true
 

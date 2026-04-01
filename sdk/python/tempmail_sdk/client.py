@@ -13,7 +13,7 @@ from .types import (
 from .retry import with_retry
 from .logger import get_logger
 from .providers import (
-    tempmail, linshi_email, linshiyou, tempmail_lol, chatgpt_org_uk,
+    tempmail, linshi_email, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, temporary_email_org, mail_tm,
     dropmail, guerrillamail, maildrop, smail_pw,
     boomlify, minmail, vip_215, anonbox, fake_legal,
@@ -21,7 +21,7 @@ from .providers import (
 
 # 所有支持的渠道列表
 ALL_CHANNELS = [
-    "tempmail", "linshi-email", "linshiyou", "tempmail-lol", "chatgpt-org-uk",
+    "tempmail", "linshi-email", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "temporary-email-org", "mail-tm",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
     "boomlify", "minmail", "vip-215", "anonbox", "fake-legal",
@@ -32,6 +32,7 @@ CHANNEL_INFO_MAP = {
     "tempmail": ChannelInfo(channel="tempmail", name="TempMail", website="tempmail.ing"),
     "linshi-email": ChannelInfo(channel="linshi-email", name="临时邮箱", website="linshi-email.com"),
     "linshiyou": ChannelInfo(channel="linshiyou", name="临时邮", website="linshiyou.com"),
+    "mffac": ChannelInfo(channel="mffac", name="MFFAC", website="mffac.com"),
     "tempmail-lol": ChannelInfo(channel="tempmail-lol", name="TempMail LOL", website="tempmail.lol"),
     "chatgpt-org-uk": ChannelInfo(channel="chatgpt-org-uk", name="ChatGPT Mail", website="mail.chatgpt.org.uk"),
     "temp-mail-io": ChannelInfo(channel="temp-mail-io", name="Temp Mail IO", website="temp-mail.io"),
@@ -120,6 +121,8 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return linshi_email.generate_email()
     elif channel == "linshiyou":
         return linshiyou.generate_email()
+    elif channel == "mffac":
+        return mffac.generate_email()
     elif channel == "tempmail-lol":
         return tempmail_lol.generate_email(options.domain)
     elif channel == "chatgpt-org-uk":
@@ -214,6 +217,8 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for linshiyou channel")
         return linshiyou.get_emails(token, email)
+    elif channel == "mffac":
+        return mffac.get_emails(email, token or "")
     elif channel == "tempmail-lol":
         if not token:
             raise ValueError("token is required for tempmail-lol channel")

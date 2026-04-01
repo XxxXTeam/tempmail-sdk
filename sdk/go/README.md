@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+Go 语言临时邮箱 SDK，支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
 
 ## 安装
 
@@ -17,6 +17,8 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 |------|--------|------|------|
 | `tempmail` | tempmail.ing | `ChannelTempmail` | 支持自定义有效期 |
 | `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
+| `linshiyou` | linshiyou.com | `ChannelLinshiyou` | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
+| `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；24h |
 | `tempmail-lol` | tempmail.lol | `ChannelTempmailLol` | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | `ChannelChatgptOrgUk` | Inbox Token 等请求头已封装 |
 | `temp-mail-io` | temp-mail.io | `ChannelTempMailIO` | |
@@ -25,7 +27,7 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册（`api.mail.tm`），Bearer Token |
 | `dropmail` | dropmail.me | `ChannelDropmail` | GraphQL，Session ID |
 | `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | 公开 JSON API |
-| `maildrop` | maildrop.cc | `ChannelMaildrop` | GraphQL；`data` 为 MIME 源码，解析 plain/multipart/Base64/QP，HTML 兜底 `text` |
+| `maildrop` | maildrop.cx | `ChannelMaildrop` | REST：`suffixes.php`（排除 `transformer.edu.kg`）+ `emails.php`；`description`→`text` |
 | `smail-pw` | smail.pw | `ChannelSmailPw` | `_root.data` + `__session`；RSC/Flight 解析 |
 | `boomlify` | boomlify.com | `ChannelBoomlify` | `domains/public` + `emails/public/create`，地址 `{UUID}@{域名}` |
 | `minmail` | minmail.app | `ChannelMinmail` | Token 为 JSON（visitorId + ck 等） |
@@ -218,7 +220,7 @@ export TEMPMAIL_TIMEOUT=30
 |------|------|------|
 | `Channel` | `Channel` | 指定渠道（可选，不指定则随机） |
 | `Duration` | `int` | 有效期分钟数（仅 `tempmail` 渠道） |
-| `Domain` | `*string` | 指定域名（仅 `tempmail-lol` 渠道） |
+| `Domain` | `*string` | 指定域名（`tempmail-lol`、`maildrop`、`fake-legal`） |
 
 **返回值:** `*EmailInfo`
 

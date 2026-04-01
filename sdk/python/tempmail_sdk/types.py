@@ -10,6 +10,7 @@ Channel = Literal[
     "tempmail",
     "linshi-email",
     "linshiyou",
+    "mffac",
     "tempmail-lol",
     "chatgpt-org-uk",
     "temp-mail-io",

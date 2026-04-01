@@ -122,6 +122,8 @@ tm_email_info_t* tm_provider_anonbox_generate(void);
 tm_email_t* tm_provider_anonbox_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_fake_legal_generate(const char *domain);
+tm_email_info_t* tm_provider_mffac_generate(void);
 tm_email_t* tm_provider_fake_legal_get_emails(const char *email, int *count);
+tm_email_t* tm_provider_mffac_get_emails(const char *token, const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

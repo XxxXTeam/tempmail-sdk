@@ -656,22 +656,29 @@ jobs:
             
             ### 支持的渠道
             
+            共 **19** 个渠道，五种 SDK 一致。详见仓库根目录 `README.md`。
+            
             | 渠道 | 服务商 |
             |------|--------|
             | `tempmail` | tempmail.ing |
             | `linshi-email` | linshi-email.com |
+            | `linshiyou` | linshiyou.com |
+            | `mffac` | mffac.com |
             | `tempmail-lol` | tempmail.lol |
             | `chatgpt-org-uk` | mail.chatgpt.org.uk |
             | `temp-mail-io` | temp-mail.io |
             | `awamail` | awamail.com |
+            | `temporary-email-org` | temporary-email.org |
             | `mail-tm` | mail.tm |
             | `dropmail` | dropmail.me |
             | `guerrillamail` | guerrillamail.com |
-            | `maildrop` | maildrop.cc |
+            | `maildrop` | maildrop.cx |
             | `smail-pw` | smail.pw |
             | `boomlify` | boomlify.com |
             | `minmail` | minmail.app |
             | `vip-215` | vip.215.im |
+            | `anonbox` | anonbox.net |
+            | `fake-legal` | fake.legal |
           draft: false
           prerelease: ${{ needs.release-meta.outputs.is_prerelease == 'true' }}
         env:

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
+临时邮箱 SDK（Python），支持 **19** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
 
 ## 安装
 
@@ -20,6 +20,8 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `linshi-email` | linshi-email.com | - | |
+| `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
+| `mffac` | mffac.com | ✅ | mailbox `id`；REST 24h |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
 | `temp-mail-io` | temp-mail.io | - | |
@@ -28,7 +30,7 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
-| `maildrop` | maildrop.cc | ✅ | GraphQL；`data` 为 MIME 源码，解析 plain/multipart/Base64/QP，HTML 兜底 `text` |
+| `maildrop` | maildrop.cx | ✅ | REST：`suffixes.php` + `emails.php`；`description`→`text` |
 | `smail-pw` | smail.pw | ✅ | `__session` Cookie；正则 + JSON 遍历解析 Flight 中的邮件行对象 |
 | `boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
 | `minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |

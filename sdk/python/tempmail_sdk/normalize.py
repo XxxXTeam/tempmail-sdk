@@ -66,12 +66,12 @@ def _normalize_id(raw: Dict[str, Any]) -> str:
 
 def _normalize_from(raw: Dict[str, Any]) -> str:
     """提取发件人地址"""
-    return _get_str(raw, "from_address", "address_from", "from_email", "from", "messageFrom", "sender")
+    return _get_str(raw, "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender")
 
 
 def _normalize_to(raw: Dict[str, Any], recipient_email: str) -> str:
     """提取收件人地址，无匹配字段时回退为 recipient_email"""
-    result = _get_str(raw, "to", "to_address", "name_to", "email_address", "address")
+    result = _get_str(raw, "to", "to_address", "toAddress", "name_to", "email_address", "address")
     return result or recipient_email
 
 

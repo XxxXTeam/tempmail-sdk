@@ -66,7 +66,7 @@ function normalizeId(raw: any): string {
  * 候选字段: from_address, address_from, from, messageFrom, sender
  */
 function normalizeFrom(raw: any): string {
-  return raw.from_addr || raw.from_address || raw.address_from || raw.from_email || raw.from || raw.messageFrom || raw.sender || '';
+  return raw.from_addr || raw.from_address || raw.fromAddress || raw.address_from || raw.from_email || raw.from || raw.messageFrom || raw.sender || '';
 }
 
 /**
@@ -74,7 +74,7 @@ function normalizeFrom(raw: any): string {
  * 候选字段: to, to_address, name_to, email_address, address
  */
 function normalizeTo(raw: any, recipientEmail: string): string {
-  return raw.to || raw.to_address || raw.name_to || raw.email_address || raw.address || recipientEmail || '';
+  return raw.to || raw.to_address || raw.toAddress || raw.name_to || raw.email_address || raw.address || recipientEmail || '';
 }
 
 /**

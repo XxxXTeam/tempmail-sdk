@@ -6,6 +6,7 @@ pub mod tempmail;
 pub mod linshi_email;
 pub mod linshi_token;
 pub mod linshiyou;
+pub mod mffac;
 pub mod tempmail_lol;
 pub mod chatgpt_org_uk;
 pub mod temp_mail_io;

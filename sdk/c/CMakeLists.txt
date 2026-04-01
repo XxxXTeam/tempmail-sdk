@@ -34,6 +34,7 @@ add_library(tempmail_sdk STATIC
     src/providers/temporary_email_org.c
     src/providers/anonbox.c
     src/providers/fake_legal.c
+    src/providers/mffac.c
     vendor/cJSON.c
 )
 

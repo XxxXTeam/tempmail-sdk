@@ -10,6 +10,7 @@ const (
 	ChannelTempmail          Channel = "tempmail"            // tempmail.ing
 	ChannelLinshiEmail       Channel = "linshi-email"        // linshi-email.com
 	ChannelLinshiyou         Channel = "linshiyou"           // linshiyou.com
+	ChannelMffac             Channel = "mffac"               // mffac.com
 	ChannelTempmailLol       Channel = "tempmail-lol"        // tempmail.lol
 	ChannelChatgptOrgUk      Channel = "chatgpt-org-uk"      // mail.chatgpt.org.uk
 	ChannelTempMailIO        Channel = "temp-mail-io"        // temp-mail.io

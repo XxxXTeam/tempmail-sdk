@@ -13,6 +13,8 @@ pub enum Channel {
     LinshiEmail,
     #[serde(rename = "linshiyou")]
     Linshiyou,
+    #[serde(rename = "mffac")]
+    Mffac,
     #[serde(rename = "tempmail-lol")]
     TempmailLol,
     #[serde(rename = "chatgpt-org-uk")]
@@ -51,6 +53,7 @@ impl std::fmt::Display for Channel {
             Channel::Tempmail => write!(f, "tempmail"),
             Channel::LinshiEmail => write!(f, "linshi-email"),
             Channel::Linshiyou => write!(f, "linshiyou"),
+            Channel::Mffac => write!(f, "mffac"),
             Channel::TempmailLol => write!(f, "tempmail-lol"),
             Channel::ChatgptOrgUk => write!(f, "chatgpt-org-uk"),
             Channel::TempMailIO => write!(f, "temp-mail-io"),

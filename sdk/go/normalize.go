@@ -104,12 +104,12 @@ func normalizeID(raw map[string]interface{}) string {
 
 /* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender */
 func normalizeFrom(raw map[string]interface{}) string {
-	return getStr(raw, "from_address", "address_from", "from_email", "from", "messageFrom", "sender")
+	return getStr(raw, "from_address", "fromAddress", "address_from", "from_email", "from", "messageFrom", "sender")
 }
 
 /* normalizeTo 提取收件人地址，无匹配字段时回退为 recipientEmail */
 func normalizeTo(raw map[string]interface{}, recipientEmail string) string {
-	result := getStr(raw, "to", "to_address", "name_to", "email_address", "address")
+	result := getStr(raw, "to", "to_address", "toAddress", "name_to", "email_address", "address")
 	if result == "" {
 		return recipientEmail
 	}

@@ -24,6 +24,7 @@ static const char* channel_names[] = {
     "temporary-email-org",
     "anonbox",
     "fake-legal",
+    "mffac",
 };
 
 const char* tm_channel_name(tm_channel_t channel) {
