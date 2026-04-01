@@ -31,6 +31,8 @@ typedef enum {
     CHANNEL_MINMAIL,
     CHANNEL_VIP_215,
     CHANNEL_TEMPORARY_EMAIL_ORG,
+    CHANNEL_ANONBOX,
+    CHANNEL_FAKE_LEGAL,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;

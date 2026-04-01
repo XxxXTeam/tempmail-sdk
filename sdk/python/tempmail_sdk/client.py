@@ -16,7 +16,7 @@ from .providers import (
     tempmail, linshi_email, linshiyou, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, temporary_email_org, mail_tm,
     dropmail, guerrillamail, maildrop, smail_pw,
-    boomlify, minmail, vip_215,
+    boomlify, minmail, vip_215, anonbox, fake_legal,
 )
 
 # 所有支持的渠道列表
@@ -24,7 +24,7 @@ ALL_CHANNELS = [
     "tempmail", "linshi-email", "linshiyou", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "temporary-email-org", "mail-tm",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
-    "boomlify", "minmail", "vip-215",
+    "boomlify", "minmail", "vip-215", "anonbox", "fake-legal",
 ]
 
 # 渠道信息映射表
@@ -40,11 +40,13 @@ CHANNEL_INFO_MAP = {
     "mail-tm": ChannelInfo(channel="mail-tm", name="Mail.tm", website="mail.tm"),
     "dropmail": ChannelInfo(channel="dropmail", name="DropMail", website="dropmail.me"),
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
-    "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cc"),
+    "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cx"),
     "smail-pw": ChannelInfo(channel="smail-pw", name="Smail.pw", website="smail.pw"),
     "boomlify": ChannelInfo(channel="boomlify", name="Boomlify", website="boomlify.com"),
     "minmail": ChannelInfo(channel="minmail", name="MinMail", website="minmail.app"),
     "vip-215": ChannelInfo(channel="vip-215", name="VIP 215", website="vip.215.im"),
+    "anonbox": ChannelInfo(channel="anonbox", name="Anonbox", website="anonbox.net"),
+    "fake-legal": ChannelInfo(channel="fake-legal", name="Fake Legal", website="fake.legal"),
 }
 
 
@@ -135,7 +137,7 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
     elif channel == "guerrillamail":
         return guerrillamail.generate_email()
     elif channel == "maildrop":
-        return maildrop.generate_email()
+        return maildrop.generate_email(options.domain)
     elif channel == "smail-pw":
         return smail_pw.generate_email()
     elif channel == "boomlify":
@@ -144,6 +146,10 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return minmail.generate_email()
     elif channel == "vip-215":
         return vip_215.generate_email()
+    elif channel == "anonbox":
+        return anonbox.generate_email()
+    elif channel == "fake-legal":
+        return fake_legal.generate_email(options.domain)
     else:
         raise ValueError(f"Unknown channel: {channel}")
 
@@ -256,6 +262,12 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for vip-215 channel")
         return vip_215.get_emails(token, email)
+    elif channel == "anonbox":
+        if not token:
+            raise ValueError("token is required for anonbox channel")
+        return anonbox.get_emails(token, email)
+    elif channel == "fake-legal":
+        return fake_legal.get_emails(email)
     else:
         raise ValueError(f"Unknown channel: {channel}")
 

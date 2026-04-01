@@ -18,11 +18,13 @@ const (
 	ChannelMailTm            Channel = "mail-tm"             // mail.tm
 	ChannelDropmail          Channel = "dropmail"            // dropmail.me
 	ChannelGuerrillaMail     Channel = "guerrillamail"       // guerrillamail.com
-	ChannelMaildrop          Channel = "maildrop"            // maildrop.cc
+	ChannelMaildrop          Channel = "maildrop"            // maildrop.cx
 	ChannelSmailPw           Channel = "smail-pw"            // smail.pw
 	ChannelBoomlify          Channel = "boomlify"            // boomlify.com
 	ChannelMinmail           Channel = "minmail"             // minmail.app
 	ChannelVip215            Channel = "vip-215"             // vip.215.im
+	ChannelAnonbox           Channel = "anonbox"             // anonbox.net (CCC)
+	ChannelFakeLegal         Channel = "fake-legal"          // fake.legal
 )
 
 /*
@@ -111,7 +113,7 @@ type GenerateEmailOptions struct {
 	Channel Channel
 	/* 邮箱有效时长（分钟），仅 tempmail 渠道支持，默认 30 */
 	Duration int
-	/* 指定邮箱域名，仅 tempmail-lol 渠道支持 */
+	/* 指定邮箱域名：tempmail-lol、fake-legal 渠道可选 */
 	Domain *string
 	/* 重试配置，nil 则使用默认值（最多重试 2 次） */
 	Retry *RetryOptions

@@ -15,6 +15,8 @@ import * as smailPw from './providers/smail-pw';
 import * as boomlify from './providers/boomlify';
 import * as minmail from './providers/minmail';
 import * as vip215 from './providers/vip-215';
+import * as anonbox from './providers/anonbox';
+import * as fakeLegal from './providers/fake-legal';
 import { Channel, EmailInfo, InternalEmailInfo, Email, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry } from './retry';
 import { logger } from './logger';
@@ -42,7 +44,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215'];
+const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -69,12 +71,14 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'mail-tm': { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
-  'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cc' },
+  'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cx' },
   'smail-pw': { channel: 'smail-pw', name: 'Smail.pw', website: 'smail.pw' },
   'boomlify': { channel: 'boomlify', name: 'Boomlify', website: 'boomlify.com' },
   'minmail': { channel: 'minmail', name: 'MinMail', website: 'minmail.app' },
   'mffac': { channel: 'mffac', name: 'MFFAC', website: 'mffac.com' },
   'vip-215': { channel: 'vip-215', name: 'VIP 215', website: 'vip.215.im' },
+  'anonbox': { channel: 'anonbox', name: 'Anonbox', website: 'anonbox.net' },
+  'fake-legal': { channel: 'fake-legal', name: 'Fake Legal', website: 'fake.legal' },
 };
 
 /**
@@ -201,7 +205,7 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
     case 'guerrillamail':
       return guerrillamail.generateEmail();
     case 'maildrop':
-      return maildropProvider.generateEmail();
+      return maildropProvider.generateEmail(options.domain ?? null);
     case 'smail-pw':
       return smailPw.generateEmail();
     case 'boomlify':
@@ -212,6 +216,10 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return minmail.generateEmail();
     case 'vip-215':
       return vip215.generateEmail();
+    case 'anonbox':
+      return anonbox.generateEmail();
+    case 'fake-legal':
+      return fakeLegal.generateEmail(options.domain ?? null);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -326,6 +334,11 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'vip-215':
       if (!token) throw new Error('internal error: token missing for vip-215');
       return vip215.getEmails(token, email);
+    case 'anonbox':
+      if (!token) throw new Error('internal error: token missing for anonbox');
+      return anonbox.getEmails(token, email);
+    case 'fake-legal':
+      return fakeLegal.getEmails(email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

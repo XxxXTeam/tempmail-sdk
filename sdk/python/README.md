@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **15** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
+临时邮箱 SDK（Python），支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
 
 ## 安装
 
@@ -33,6 +33,8 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
 | `minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
 | `vip-215` | vip.215.im | ✅ | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
+| `anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
+| `fake-legal` | fake.legal | - | `/api/domains` + `/api/inbox/new`；可选 `GenerateEmailOptions.domain` |
 
 ## 快速开始
 

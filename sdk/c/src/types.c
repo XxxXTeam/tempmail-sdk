@@ -22,6 +22,8 @@ static const char* channel_names[] = {
     "minmail",
     "vip-215",
     "temporary-email-org",
+    "anonbox",
+    "fake-legal",
 };
 
 const char* tm_channel_name(tm_channel_t channel) {

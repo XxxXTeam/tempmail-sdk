@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **16** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **19** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -35,6 +35,8 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
 | `mffac` | mffac.com | - | REST API，24h 有效期 |
 | `vip-215` | vip.215.im | ✅ | `POST` 建箱 + `wss`；无正文时 synthetic 兜底 |
+| `anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
+| `fake-legal` | fake.legal | - | `/api/domains` + `/api/inbox/new?domain=`；`/api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 

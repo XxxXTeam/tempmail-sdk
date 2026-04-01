@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 **15** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
+临时邮箱 SDK（C），支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**（与各语言 SDK 及根目录 README 一致）。
 
 ## 依赖
 
@@ -56,6 +56,8 @@ cmake --build build
 | boomlify | `CHANNEL_BOOMLIFY` | boomlify.com | - | `domains/public` + `emails/public/create`，`{UUID}@{域名}` |
 | minmail | `CHANNEL_MINMAIL` | minmail.app | ✅ | Token 为 JSON（visitorId + ck） |
 | vip-215 | `CHANNEL_VIP_215` | vip.215.im | ✅ | WebSocket 收信 |
+| anonbox | `CHANNEL_ANONBOX` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
+| fake-legal | `CHANNEL_FAKE_LEGAL` | fake.legal | - | `/api/domains` + `/api/inbox/new`；`tm_generate_options_t.domain` 可选 |
 
 ## 快速开始
 

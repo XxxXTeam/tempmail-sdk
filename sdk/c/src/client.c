@@ -24,12 +24,14 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_MAIL_TM,        "Mail.tm",         "mail.tm" },
     { CHANNEL_DROPMAIL,       "DropMail",        "dropmail.me" },
     { CHANNEL_GUERRILLAMAIL,  "Guerrilla Mail",  "guerrillamail.com" },
-    { CHANNEL_MAILDROP,       "Maildrop",        "maildrop.cc" },
+    { CHANNEL_MAILDROP,       "Maildrop",        "maildrop.cx" },
     { CHANNEL_SMAIL_PW,       "Smail.pw",        "smail.pw" },
     { CHANNEL_BOOMLIFY,       "Boomlify",        "boomlify.com" },
     { CHANNEL_MINMAIL,        "MinMail",         "minmail.app" },
     { CHANNEL_VIP_215,        "VIP 215",         "vip.215.im" },
     { CHANNEL_TEMPORARY_EMAIL_ORG, "Temporary Email", "temporary-email.org" },
+    { CHANNEL_ANONBOX,            "Anonbox",          "anonbox.net" },
+    { CHANNEL_FAKE_LEGAL,         "Fake Legal",       "fake.legal" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -58,11 +60,14 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_MAIL_TM:        result = tm_provider_mail_tm_generate(); break;
             case CHANNEL_DROPMAIL:       result = tm_provider_dropmail_generate(); break;
             case CHANNEL_GUERRILLAMAIL:  result = tm_provider_guerrillamail_generate(); break;
-            case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(); break;
+            case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(domain); break;
             case CHANNEL_SMAIL_PW:       result = tm_provider_smail_pw_generate(); break;
             case CHANNEL_BOOMLIFY:       result = tm_provider_boomlify_generate(); break;
             case CHANNEL_MINMAIL:        result = tm_provider_minmail_generate(); break;
             case CHANNEL_VIP_215:        result = tm_provider_vip215_generate(); break;
+            case CHANNEL_TEMPORARY_EMAIL_ORG: result = tm_provider_temporary_email_org_generate(); break;
+            case CHANNEL_ANONBOX:        result = tm_provider_anonbox_generate(); break;
+            case CHANNEL_FAKE_LEGAL:     result = tm_provider_fake_legal_generate(domain); break;
             default: return NULL;
         }
         if (result) return result;
@@ -199,6 +204,13 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_TEMPORARY_EMAIL_ORG:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_temporary_email_org_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_ANONBOX:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_anonbox_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_FAKE_LEGAL:
+                emails = tm_provider_fake_legal_get_emails(email_info->email, &count);
                 break;
             default: break;
         }

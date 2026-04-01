@@ -1,293 +1,129 @@
-/**
- * Maildrop 渠道实现
- * API: GraphQL endpoint https://api.maildrop.cc/graphql
- * 
- * 特点:
- * - 无需认证，公开 GraphQL API
- * - 自带反垃圾过滤
- * - 邮箱名即用户名（任意字符串@maildrop.cc）
- * - 无过期时间限制
- */
-
 import { InternalEmailInfo, Email, Channel } from '../types';
 import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'maildrop';
-const GRAPHQL_URL = 'https://api.maildrop.cc/graphql';
-const DOMAIN = 'maildrop.cc';
+const BASE = 'https://maildrop.cx';
+const EXCLUDED_SUFFIX = 'transformer.edu.kg';
+const DEFAULT_HEADERS: Record<string, string> = {
+  Accept: 'application/json, text/plain, */*',
+  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+  'Cache-Control': 'no-cache',
+  DNT: '1',
+  Pragma: 'no-cache',
+  Referer: 'https://maildrop.cx/zh-cn/app',
+  'sec-ch-ua': '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'empty',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-site': 'same-origin',
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+  'x-requested-with': 'XMLHttpRequest',
+};
 
-/**
- * 解码 RFC 2047 编码的邮件头（如发件人、主题）
- * 支持 Base64 (B) 和 Quoted-Printable (Q) 编码
- */
-function decodeRfc2047(str: string): string {
-  if (!str) return '';
-  return str.replace(/=\?([^?]+)\?(B|Q)\?([^?]*)\?=/gi, (_, _charset, encoding, encoded) => {
-    try {
-      if (encoding.toUpperCase() === 'B') {
-        return Buffer.from(encoded, 'base64').toString('utf-8');
-      }
-      /* Quoted-Printable: _=空格，=XX=十六进制字节 */
-      const decoded = encoded
-        .replace(/_/g, ' ')
-        .replace(/=([0-9A-Fa-f]{2})/g, (_m: string, hex: string) => String.fromCharCode(parseInt(hex, 16)));
-      return decoded;
-    } catch {
-      return encoded;
-    }
-  });
-}
-
-/**
- * 从原始 MIME 邮件源码中提取纯文本正文
- * maildrop 的 data 字段返回完整 MIME 源码，需要解析出 text/plain 部分
- */
-function splitMimeHeaderBody(raw: string): { headers: string; body: string } | null {
-  if (!raw) return null;
-  let idx = raw.indexOf('\r\n\r\n');
-  if (idx === -1) idx = raw.indexOf('\n\n');
-  if (idx === -1) return null;
-  const sep = raw[idx] === '\r' ? 4 : 2;
-  return { headers: raw.substring(0, idx), body: raw.substring(idx + sep) };
-}
-
-function splitPartHeadersContent(part: string): { headers: string; content: string } | null {
-  let pe = part.indexOf('\r\n\r\n');
-  let off = 4;
-  if (pe === -1) {
-    pe = part.indexOf('\n\n');
-    off = 2;
-  }
-  if (pe === -1) return null;
-  return {
-    headers: part.substring(0, pe),
-    content: part.substring(pe + off).replace(/\r\n$/, '').replace(/\n$/, '').replace(/--$/, '').trim(),
-  };
-}
-
-function extractTextFromMime(raw: string): string {
-  if (!raw) return '';
-
-  const hb = splitMimeHeaderBody(raw);
-  if (!hb) return raw.trim();
-
-  const headers = hb.headers;
-  const body = hb.body;
-
-  /* 检查是否为 multipart 邮件 */
-  const boundaryMatch = headers.match(/boundary="?([^";\r\n]+)"?/i);
-  if (boundaryMatch) {
-    const boundary = boundaryMatch[1];
-    const parts = body.split('--' + boundary);
-
-    for (const part of parts) {
-      /* 查找 text/plain 部分 */
-      if (part.match(/Content-Type:\s*text\/plain/i)) {
-        const partHeaderEnd = part.indexOf('\r\n\r\n');
-        if (partHeaderEnd === -1) continue;
-
-        const partHeaders = part.substring(0, partHeaderEnd);
-        let content = part.substring(partHeaderEnd + 4).replace(/\r\n$/, '').replace(/--$/, '').trim();
-
-        /* 处理 Content-Transfer-Encoding */
-        if (partHeaders.match(/Content-Transfer-Encoding:\s*base64/i)) {
-          try {
-            content = Buffer.from(content.replace(/\s/g, ''), 'base64').toString('utf-8');
-          } catch { /* 解码失败则保留原文 */ }
-        } else if (partHeaders.match(/Content-Transfer-Encoding:\s*quoted-printable/i)) {
-          content = content
-            .replace(/=\r?\n/g, '')
-            .replace(/=([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
-        }
-
-        return content.trim();
-      }
-    }
-  }
-
-  /* 非 multipart：检查整体编码 */
-  if (headers.match(/Content-Transfer-Encoding:\s*base64/i)) {
-    try {
-      return Buffer.from(body.replace(/\s/g, ''), 'base64').toString('utf-8').trim();
-    } catch { /* 解码失败 */ }
-  }
-
-  return body.trim();
-}
-
-/** 提取 text/html 部分（multipart 或单段） */
-function extractHtmlFromMime(raw: string): string {
-  if (!raw) return '';
-
-  const hb = splitMimeHeaderBody(raw);
-  if (!hb) return '';
-
-  const headers = hb.headers;
-  const body = hb.body;
-
-  const boundaryMatch = headers.match(/boundary="?([^";\r\n]+)"?/i);
-  if (boundaryMatch) {
-    const boundary = boundaryMatch[1];
-    const parts = body.split('--' + boundary);
-
-    for (const part of parts) {
-      if (part.match(/Content-Type:\s*text\/html/i)) {
-        const sp = splitPartHeadersContent(part);
-        if (!sp) continue;
-
-        const partHeaders = sp.headers;
-        let content = sp.content;
-
-        if (partHeaders.match(/Content-Transfer-Encoding:\s*base64/i)) {
-          try {
-            content = Buffer.from(content.replace(/\s/g, ''), 'base64').toString('utf-8');
-          } catch { /* keep */ }
-        } else if (partHeaders.match(/Content-Transfer-Encoding:\s*quoted-printable/i)) {
-          content = content
-            .replace(/=\r?\n/g, '')
-            .replace(/=([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
-        }
-
-        return content.trim();
-      }
-    }
-  }
-
-  if (headers.match(/Content-Type:\s*text\/html/i)) {
-    if (headers.match(/Content-Transfer-Encoding:\s*base64/i)) {
-      try {
-        return Buffer.from(body.replace(/\s/g, ''), 'base64').toString('utf-8').trim();
-      } catch { /* fallthrough */ }
-    }
-    return body.trim();
-  }
-
-  return '';
-}
-
-function stripHtmlToText(html: string): string {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-/**
- * 生成随机用户名
- */
-function randomUsername(length: number = 10): string {
+function randomLocalPart(length = 10): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  let s = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    s += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return result;
+  return s;
 }
 
-/**
- * 发送 GraphQL 请求
- * 使用 operationName + variables 的标准 GraphQL 格式
- */
-async function graphqlRequest(
-  operationName: string,
-  query: string,
-  variables: Record<string, string> = {},
-): Promise<any> {
-  const response = await fetchWithTimeout(GRAPHQL_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': 'https://maildrop.cc',
-      'Referer': 'https://maildrop.cc/',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    },
-    body: JSON.stringify({ operationName, variables, query }),
+async function fetchSuffixes(): Promise<string[]> {
+  const response = await fetchWithTimeout(`${BASE}/api/suffixes.php`, {
+    method: 'GET',
+    headers: DEFAULT_HEADERS,
   });
-
   if (!response.ok) {
-    throw new Error(`Maildrop GraphQL request failed: ${response.status}`);
+    throw new Error(`maildrop: 获取后缀列表失败 HTTP ${response.status}`);
   }
-
-  const data = await response.json();
-  if (data.errors && data.errors.length > 0) {
-    throw new Error(`Maildrop GraphQL error: ${data.errors[0].message}`);
+  const data = (await response.json()) as unknown;
+  if (!Array.isArray(data)) {
+    throw new Error('maildrop: 后缀列表格式无效');
   }
-
-  return data.data;
+  const ex = EXCLUDED_SUFFIX.toLowerCase();
+  const list = data
+    .filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
+    .map((d) => d.trim())
+    .filter((d) => d.toLowerCase() !== ex);
+  if (list.length === 0) {
+    throw new Error('maildrop: 无可用域名');
+  }
+  return list;
 }
 
-/**
- * 创建临时邮箱
- * Maildrop 无需注册，任意用户名即可接收邮件
- */
-export async function generateEmail(): Promise<InternalEmailInfo> {
-  const username = randomUsername();
-  const email = `${username}@${DOMAIN}`;
+function pickSuffix(suffixes: string[], preferred?: string | null): string {
+  if (preferred && typeof preferred === 'string') {
+    const p = preferred.trim().toLowerCase();
+    const hit = suffixes.find((d) => d.toLowerCase() === p);
+    if (hit) return hit;
+  }
+  return suffixes[Math.floor(Math.random() * suffixes.length)];
+}
 
-  /* 验证邮箱可用：查询一次 inbox 确认 API 正常 */
-  await graphqlRequest(
-    'GetInbox',
-    'query GetInbox($mailbox: String!) { inbox(mailbox: $mailbox) { id } }',
-    { mailbox: username },
-  );
+function cxDateToIso(dateStr: string): string {
+  const s = dateStr?.trim() ?? '';
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) {
+    return s.replace(' ', 'T') + 'Z';
+  }
+  return s;
+}
 
+interface EmailsApiRow {
+  id?: number | string;
+  from_addr?: string;
+  subject?: string;
+  date?: string;
+  isRead?: number | boolean;
+  description?: string;
+}
+
+interface EmailsApiResponse {
+  emails?: EmailsApiRow[];
+}
+
+export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+  const suffixes = await fetchSuffixes();
+  const dom = pickSuffix(suffixes, domain ?? undefined);
+  const local = randomLocalPart();
+  const email = `${local}@${dom}`;
   return {
     channel: CHANNEL,
     email,
-    token: username,
+    token: email,
   };
 }
 
-/**
- * 获取邮件列表
- * 先查 inbox 获取邮件 ID 列表，再逐封获取完整内容
- */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
-  const mailbox = token || email.split('@')[0];
-
-  /* 查询收件箱列表 */
-  const inboxData = await graphqlRequest(
-    'GetInbox',
-    'query GetInbox($mailbox: String!) { inbox(mailbox: $mailbox) { id headerfrom subject date } }',
-    { mailbox },
-  );
-
-  const inbox = inboxData?.inbox;
-  if (!Array.isArray(inbox) || inbox.length === 0) {
-    return [];
+export async function getEmails(_token: string, email: string): Promise<Email[]> {
+  const addr = email?.trim();
+  if (!addr) {
+    throw new Error('maildrop: 邮箱地址为空');
   }
-
-  /* 逐封获取完整邮件内容 */
-  const emails: Email[] = [];
-  for (const item of inbox) {
-    try {
-      const msgData = await graphqlRequest(
-        'GetMessage',
-        'query GetMessage($mailbox: String!, $id: String!) { message(mailbox: $mailbox, id: $id) { id headerfrom subject date data html } }',
-        { mailbox, id: item.id },
-      );
-
-      const msg = msgData?.message;
-      if (msg) {
-        const raw = msg.data || '';
-        const plain = extractTextFromMime(raw);
-        const fromMimeHtml = extractHtmlFromMime(raw);
-        const htmlOut = (msg.html && String(msg.html).trim()) ? String(msg.html) : fromMimeHtml;
-        const textOut = plain || stripHtmlToText(htmlOut);
-        emails.push({
-          id: msg.id || item.id,
-          from: decodeRfc2047(msg.headerfrom || item.headerfrom || ''),
-          to: email,
-          subject: decodeRfc2047(msg.subject || item.subject || ''),
-          text: textOut,
-          html: htmlOut,
-          date: msg.date || item.date || '',
-          isRead: false,
-          attachments: [],
-        });
-      }
-    } catch {
-      /* 单封邮件获取失败不影响整体 */
-    }
+  const qs = new URLSearchParams({ addr, page: '1', limit: '20' });
+  const response = await fetchWithTimeout(`${BASE}/api/emails.php?${qs}`, {
+    method: 'GET',
+    headers: DEFAULT_HEADERS,
+  });
+  if (!response.ok) {
+    throw new Error(`maildrop: 获取邮件失败 HTTP ${response.status}`);
   }
-
-  return emails;
+  const data = (await response.json()) as EmailsApiResponse;
+  const rows = Array.isArray(data.emails) ? data.emails : [];
+  return rows.map((item) => {
+    const desc = item.description?.trim() ?? '';
+    const isRead = item.isRead === true || item.isRead === 1;
+    return {
+      id: String(item.id ?? ''),
+      from: item.from_addr?.trim() ?? '',
+      to: addr,
+      subject: item.subject?.trim() ?? '',
+      text: desc,
+      html: '',
+      date: cxDateToIso(item.date ?? ''),
+      isRead,
+      attachments: [],
+    };
+  });
 }

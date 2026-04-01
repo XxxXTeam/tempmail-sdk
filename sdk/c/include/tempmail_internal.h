@@ -97,7 +97,7 @@ tm_email_t* tm_provider_dropmail_get_emails(const char *token, const char *email
 tm_email_info_t* tm_provider_guerrillamail_generate(void);
 tm_email_t* tm_provider_guerrillamail_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_maildrop_generate(void);
+tm_email_info_t* tm_provider_maildrop_generate(const char *domain);
 tm_email_t* tm_provider_maildrop_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_smail_pw_generate(void);
@@ -117,5 +117,11 @@ tm_email_t* tm_provider_vip215_get_emails(const char *token, const char *email, 
 
 tm_email_info_t* tm_provider_temporary_email_org_generate(void);
 tm_email_t* tm_provider_temporary_email_org_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_anonbox_generate(void);
+tm_email_t* tm_provider_anonbox_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_fake_legal_generate(const char *domain);
+tm_email_t* tm_provider_fake_legal_get_emails(const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

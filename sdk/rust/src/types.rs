@@ -39,6 +39,10 @@ pub enum Channel {
     Minmail,
     #[serde(rename = "vip-215")]
     Vip215,
+    #[serde(rename = "anonbox")]
+    Anonbox,
+    #[serde(rename = "fake-legal")]
+    FakeLegal,
 }
 
 impl std::fmt::Display for Channel {
@@ -60,6 +64,8 @@ impl std::fmt::Display for Channel {
             Channel::Boomlify => write!(f, "boomlify"),
             Channel::Minmail => write!(f, "minmail"),
             Channel::Vip215 => write!(f, "vip-215"),
+            Channel::Anonbox => write!(f, "anonbox"),
+            Channel::FakeLegal => write!(f, "fake-legal"),
         }
     }
 }

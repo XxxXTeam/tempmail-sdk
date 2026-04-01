@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **15** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+Go 语言临时邮箱 SDK，支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -30,6 +30,8 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `boomlify` | boomlify.com | `ChannelBoomlify` | `domains/public` + `emails/public/create`，地址 `{UUID}@{域名}` |
 | `minmail` | minmail.app | `ChannelMinmail` | Token 为 JSON（visitorId + ck 等） |
 | `vip-215` | vip.215.im | `ChannelVip215` | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
+| `anonbox` | anonbox.net | `ChannelAnonbox` | `GET /en/` 解析 HTML + mbox 收信 |
+| `fake-legal` | fake.legal | `ChannelFakeLegal` | `/api/domains` + `/api/inbox/new`；可选域名 |
 
 > **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 

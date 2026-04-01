@@ -1,7 +1,7 @@
 {
   "name": "tempmail-sdk",
   "version": "1.1.5",
-  "description": "临时邮箱 SDK - 支持 16 个临时邮箱服务商",
+  "description": "临时邮箱 SDK - 支持 19 个临时邮箱服务商",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

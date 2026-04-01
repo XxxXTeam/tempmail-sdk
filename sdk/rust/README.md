@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 **15** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（Rust），支持 **18** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -36,6 +36,8 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `Boomlify` | boomlify.com | - | `domains/public` + `emails/public/create`；地址 `{UUID}@{域名}` |
 | `Minmail` | minmail.app | ✅ | `visitor-id` / `ck` 等序列化在 token（JSON） |
 | `Vip215` | vip.215.im | ✅ | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
+| `Anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
+| `FakeLegal` | fake.legal | - | `/api/domains` + `/api/inbox/new`；`GenerateEmailOptions.domain` 可选 |
 
 ## 快速开始
 

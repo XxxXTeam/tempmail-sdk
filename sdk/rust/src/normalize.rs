@@ -9,7 +9,7 @@ use crate::types::{Email, EmailAttachment};
 
 /// 将原始 JSON 数据标准化为统一的 Email 格式
 pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
-    let mut text = get_str(raw, &["text", "body", "content", "body_text", "text_content"]);
+    let mut text = get_str(raw, &["text", "body", "content", "body_text", "text_content", "description"]);
     let mut html = get_str(raw, &["html", "html_content", "body_html"]);
 
     /* 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中 */
@@ -20,7 +20,7 @@ pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
 
     Email {
         id: get_str(raw, &["id", "eid", "_id", "mailboxId", "messageId", "mail_id"]),
-        from_addr: get_str(raw, &["from_address", "address_from", "from_email", "from", "messageFrom", "sender"]),
+        from_addr: get_str(raw, &["from_addr", "from_address", "address_from", "from_email", "from", "messageFrom", "sender"]),
         to: {
             let t = get_str(raw, &["to", "to_address", "name_to", "email_address", "address"]);
             if t.is_empty() { recipient_email.to_string() } else { t }
@@ -124,6 +124,9 @@ fn normalize_is_read(raw: &Value) -> bool {
         if let Some(v) = raw.get(key) {
             if let Some(b) = v.as_bool() {
                 return b;
+            }
+            if let Some(n) = v.as_f64() {
+                return n as i64 != 0;
             }
         }
     }

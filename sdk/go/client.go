@@ -23,6 +23,8 @@ var allChannels = []Channel{
 	ChannelBoomlify,
 	ChannelMinmail,
 	ChannelVip215,
+	ChannelAnonbox,
+	ChannelFakeLegal,
 }
 
 /*
@@ -50,11 +52,13 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelMailTm:            {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
 	ChannelDropmail:          {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail:     {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
-	ChannelMaildrop:          {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cc"},
+	ChannelMaildrop:          {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cx"},
 	ChannelSmailPw:           {Channel: ChannelSmailPw, Name: "Smail.pw", Website: "smail.pw"},
 	ChannelBoomlify:          {Channel: ChannelBoomlify, Name: "Boomlify", Website: "boomlify.com"},
 	ChannelMinmail:           {Channel: ChannelMinmail, Name: "MinMail", Website: "minmail.app"},
 	ChannelVip215:            {Channel: ChannelVip215, Name: "VIP 215", Website: "vip.215.im"},
+	ChannelAnonbox:           {Channel: ChannelAnonbox, Name: "Anonbox", Website: "anonbox.net"},
+	ChannelFakeLegal:         {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
 }
 
 /*
@@ -189,7 +193,7 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		return guerrillaMailGenerate()
 
 	case ChannelMaildrop:
-		return maildropGenerate()
+		return maildropGenerate(opts.Domain)
 
 	case ChannelSmailPw:
 		return smailPwGenerate()
@@ -202,6 +206,12 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelVip215:
 		return mailVip215Generate()
+
+	case ChannelAnonbox:
+		return anonboxGenerate()
+
+	case ChannelFakeLegal:
+		return fakeLegalGenerate(opts.Domain)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -366,6 +376,15 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for vip-215 channel")
 		}
 		return mailVip215GetEmails(token, email)
+
+	case ChannelAnonbox:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for anonbox channel")
+		}
+		return anonboxGetEmails(token, email)
+
+	case ChannelFakeLegal:
+		return fakeLegalGetEmails(email)
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

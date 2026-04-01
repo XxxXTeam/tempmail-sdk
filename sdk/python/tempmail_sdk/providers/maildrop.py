@@ -1,182 +1,113 @@
 """
-maildrop.cc 渠道实现
-API: GraphQL https://api.maildrop.cc/graphql
+Maildrop — https://maildrop.cx
+GET /api/suffixes.php、GET /api/emails.php
 """
 
 import random
-import re
 import string
-import email
-import email.header
-import email.policy
+from urllib.parse import urlencode
+
 from .. import http as tm_http
-from ..logger import get_logger
 from ..types import EmailInfo, Email
 
 CHANNEL = "maildrop"
-GRAPHQL_URL = "https://api.maildrop.cc/graphql"
-DOMAIN = "maildrop.cc"
+BASE = "https://maildrop.cx"
+EXCLUDED_SUFFIX = "transformer.edu.kg"
+
+_HEADERS = {
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "Cache-Control": "no-cache",
+    "DNT": "1",
+    "Pragma": "no-cache",
+    "Referer": "https://maildrop.cx/zh-cn/app",
+    "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "x-requested-with": "XMLHttpRequest",
+}
 
 
-def _decode_rfc2047(s: str) -> str:
-    """
-    解码 RFC 2047 编码的邮件头
-    如 =?utf-8?B?b3BlbmVs?= 解码为可读文本
-    """
-    if not s:
-        return ""
-    decoded_parts = email.header.decode_header(s)
-    result = []
-    for part, charset in decoded_parts:
-        if isinstance(part, bytes):
-            result.append(part.decode(charset or "utf-8", errors="replace"))
-        else:
-            result.append(part)
-    return " ".join(result)
-
-
-def _strip_html_to_text(html: str) -> str:
-    if not html:
-        return ""
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]*>", " ", html)).strip()
-
-
-def _part_content_str(body) -> str:
-    content = body.get_content()
-    if isinstance(content, str):
-        return content.strip()
-    return content.decode("utf-8", errors="replace").strip()
-
-
-def _extract_plain_from_mime(raw: str) -> str:
-    """仅提取 text/plain（与 npm 行为一致：无 plain 时不从 html 填 text）。"""
-    if not raw:
-        return ""
-    try:
-        msg = email.message_from_string(raw, policy=email.policy.default)
-        body = msg.get_body(preferencelist=("plain",))
-        if body:
-            return _part_content_str(body)
-    except Exception:
-        idx = raw.find("\r\n\r\n")
-        if idx >= 0:
-            return raw[idx + 4 :].strip()
-        idx = raw.find("\n\n")
-        if idx >= 0:
-            return raw[idx + 2 :].strip()
-        return raw.strip()
-    return ""
-
-
-def _extract_html_from_mime(raw: str) -> str:
-    if not raw:
-        return ""
-    try:
-        msg = email.message_from_string(raw, policy=email.policy.default)
-        body = msg.get_body(preferencelist=("html",))
-        if body:
-            return _part_content_str(body)
-    except Exception:
-        get_logger().debug("maildrop: extract html from mime failed", exc_info=True)
-    return ""
-
-
-def _random_username(length: int = 10) -> str:
+def _random_local(length: int = 10) -> str:
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
 
-def _graphql_request(
-    operation_name: str, query: str, variables: dict = None
-) -> dict:
-    """
-    发送 GraphQL 请求
-    使用 operationName + variables 的标准 GraphQL 格式
-    """
-    resp = tm_http.post(
-        GRAPHQL_URL,
-        headers={
-            "Content-Type": "application/json",
-            "Origin": "https://maildrop.cc",
-            "Referer": "https://maildrop.cc/",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        json={
-            "operationName": operation_name,
-            "variables": variables or {},
-            "query": query,
-        },
-    )
-    resp.raise_for_status()
-    result = resp.json()
-
-    if result.get("errors"):
-        raise Exception(f"Maildrop GraphQL error: {result['errors'][0].get('message')}")
-
-    return result.get("data", {})
+def _fetch_suffixes() -> list:
+    r = tm_http.get(f"{BASE}/api/suffixes.php", headers=_HEADERS)
+    r.raise_for_status()
+    data = r.json()
+    if not isinstance(data, list):
+        raise ValueError("maildrop: invalid suffixes response")
+    ex = EXCLUDED_SUFFIX.lower()
+    out = []
+    for x in data:
+        if isinstance(x, str):
+            t = x.strip()
+            if t and t.lower() != ex:
+                out.append(t)
+    if not out:
+        raise ValueError("maildrop: no domains available")
+    return out
 
 
-def generate_email(**kwargs) -> EmailInfo:
-    """创建临时邮箱，任意用户名即可接收邮件"""
-    username = _random_username()
-    email = f"{username}@{DOMAIN}"
+def _pick_suffix(suffixes: list, preferred: str | None) -> str:
+    if preferred and str(preferred).strip():
+        p = str(preferred).strip().lower()
+        for d in suffixes:
+            if d.lower() == p:
+                return d
+    return random.choice(suffixes)
 
-    # 验证 API 可用
-    _graphql_request(
-        "GetInbox",
-        "query GetInbox($mailbox: String!) { inbox(mailbox: $mailbox) { id } }",
-        {"mailbox": username},
-    )
 
-    return EmailInfo(
-        channel=CHANNEL,
-        email=email,
-        _token=username,
-    )
+def _cx_date_to_iso(s: str) -> str:
+    s = (s or "").strip()
+    if len(s) == 19 and s[10] == " ":
+        return s[:10] + "T" + s[11:] + "Z"
+    return s
+
+
+def generate_email(domain: str | None = None, **kwargs) -> EmailInfo:
+    """随机本地部分；域名来自 suffixes，排除 transformer.edu.kg。"""
+    suffixes = _fetch_suffixes()
+    dom = _pick_suffix(suffixes, domain)
+    local = _random_local()
+    email = f"{local}@{dom}"
+    return EmailInfo(channel=CHANNEL, email=email, _token=email)
 
 
 def get_emails(token: str, email: str = "", **kwargs) -> list:
-    """获取邮件列表"""
-    mailbox = token or email.split("@")[0]
-
-    # 查询收件箱
-    data = _graphql_request(
-        "GetInbox",
-        "query GetInbox($mailbox: String!) { inbox(mailbox: $mailbox) { id headerfrom subject date } }",
-        {"mailbox": mailbox},
-    )
-    inbox = data.get("inbox") or []
-    if not inbox:
+    addr = (email or "").strip() or (token or "").strip()
+    if not addr:
+        raise ValueError("maildrop: empty address")
+    qs = urlencode({"addr": addr, "page": "1", "limit": "20"})
+    r = tm_http.get(f"{BASE}/api/emails.php?{qs}", headers=_HEADERS)
+    r.raise_for_status()
+    data = r.json() if r.content else {}
+    rows = data.get("emails") or []
+    if not isinstance(rows, list):
         return []
-
-    # 逐封获取完整内容
-    emails = []
-    for item in inbox:
-        try:
-            msg_data = _graphql_request(
-                "GetMessage",
-                "query GetMessage($mailbox: String!, $id: String!) { message(mailbox: $mailbox, id: $id) { id headerfrom subject date data html } }",
-                {"mailbox": mailbox, "id": item["id"]},
+    out = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        desc = (row.get("description") or "").strip()
+        ir = row.get("isRead")
+        is_read = ir is True or ir == 1
+        out.append(
+            Email(
+                id=str(row.get("id", "")),
+                from_addr=(row.get("from_addr") or "").strip(),
+                to=addr,
+                subject=(row.get("subject") or "").strip(),
+                text=desc,
+                html="",
+                date=_cx_date_to_iso(row.get("date") or ""),
+                is_read=is_read,
+                attachments=[],
             )
-            msg = msg_data.get("message")
-            if msg:
-                raw_data = msg.get("data", "") or ""
-                plain = _extract_plain_from_mime(raw_data)
-                from_mime = _extract_html_from_mime(raw_data)
-                api_html = (msg.get("html") or "").strip()
-                html_out = api_html if api_html else from_mime
-                text_out = plain if plain else _strip_html_to_text(html_out)
-                emails.append(Email(
-                    id=msg.get("id") or item.get("id", ""),
-                    from_addr=_decode_rfc2047(msg.get("headerfrom") or item.get("headerfrom", "")),
-                    to=email,
-                    subject=_decode_rfc2047(msg.get("subject") or item.get("subject", "")),
-                    text=text_out,
-                    html=html_out,
-                    date=msg.get("date") or item.get("date", ""),
-                    is_read=False,
-                    attachments=[],
-                ))
-        except Exception:
-            get_logger().debug("maildrop: get_emails single message failed", exc_info=True)
-
-    return emails
+        )
+    return out

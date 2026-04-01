@@ -4,11 +4,6 @@ import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'mail-tm';
 const BASE_URL = 'https://api.mail.tm';
-
-/**
- * 与 Internxt 临时邮箱页（https://internxt.com/temporary-email）前端一致：
- * 同源 cross-site 请求 api.mail.tm 时常带 Origin/Referer；domains 可为空 Bearer。
- */
 const DEFAULT_HEADERS: Record<string, string> = {
   'Accept': 'application/json',
   'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -109,19 +104,11 @@ async function getToken(address: string, password: string): Promise<string> {
   const data = await response.json();
   return data.token;
 }
-
-/**
- * 创建临时邮箱
- * 流程: 获取域名 → 生成随机邮箱/密码 → 创建账号 → 获取 Token
- */
 export async function generateEmail(): Promise<InternalEmailInfo> {
-  // 1. 获取可用域名
   const domains = await getDomains();
   if (domains.length === 0) {
     throw new Error('No available domains');
   }
-
-  // 2. 生成随机邮箱和密码
   const domain = domains[Math.floor(Math.random() * domains.length)];
   const username = randomString(12);
   const address = `${username}@${domain}`;
@@ -140,11 +127,6 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     createdAt: account.createdAt,
   };
 }
-
-/**
- * 将 mail.tm 的消息格式扁平化为 normalizeEmail 可处理的格式
- * mail.tm 的 from 是 {name, address} 对象，to 是数组，html 是字符串数组
- */
 function flattenMessage(msg: any, recipientEmail: string): any {
   return {
     id: msg.id || '',
@@ -163,13 +145,7 @@ function flattenMessage(msg: any, recipientEmail: string): any {
     })),
   };
 }
-
-/**
- * 获取邮件列表
- * 流程: GET /messages 获取列表 → 对每封邮件 GET /messages/{id} 获取详情（含 text/html）
- */
 export async function getEmails(token: string, email: string): Promise<Email[]> {
-  // 1. 获取邮件列表
   const listResponse = await fetchWithTimeout(`${BASE_URL}/messages?page=1`, {
     method: 'GET',
     headers: bearerHeaders(token),
@@ -185,8 +161,6 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   if (messages.length === 0) {
     return [];
   }
-
-  // 2. 并行获取每封邮件的详情（含 text/html/attachments）
   const detailPromises = messages.map(async (msg: any) => {
     try {
       const detailResponse = await fetchWithTimeout(`${BASE_URL}/messages/${msg.id}`, {
@@ -195,14 +169,12 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
       });
 
       if (!detailResponse.ok) {
-        // 如果详情获取失败，退回使用列表数据
         return flattenMessage(msg, email);
       }
 
       const detail = await detailResponse.json();
       return flattenMessage(detail, email);
     } catch {
-      // 出错时退回使用列表数据
       return flattenMessage(msg, email);
     }
   });
