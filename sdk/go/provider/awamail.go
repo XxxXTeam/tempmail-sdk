@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -51,10 +51,10 @@ func setAwamailHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", GetCurrentUA())
 }
 
-// awamailGenerate 创建临时邮箱
+// AwamailGenerate 创建临时邮箱
 // API: POST /welcome/change_mailbox (空 body)
 // 需要保存响应中的 Set-Cookie (awamail_session) 用于后续获取邮件
-func awamailGenerate() (*EmailInfo, error) {
+func AwamailGenerate() (*CreatedMailbox, error) {
 	req, err := http.NewRequest("POST", awamailBaseURL+"/change_mailbox", nil)
 	if err != nil {
 		return nil, err
@@ -98,19 +98,16 @@ func awamailGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelAwamail,
-		Email:     result.Data.EmailAddress,
-		token:     sessionCookie,
-		ExpiresAt: result.Data.ExpiredAt,
-		CreatedAt: result.Data.CreatedAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "awamail", Email: result.Data.EmailAddress, Token: sessionCookie}
+	info.ExpiresAt = result.Data.ExpiredAt
+	info.CreatedAt = result.Data.CreatedAt
+	return info, nil
 }
 
-// awamailGetEmails 获取邮件列表
+// AwamailGetEmails 获取邮件列表
 // API: GET /welcome/get_emails
 // 需要传入 Cookie (awamail_session) 和 x-requested-with 头
-func awamailGetEmails(token string, email string) ([]Email, error) {
+func AwamailGetEmails(token string, email string) ([]NormEmail, error) {
 	req, err := http.NewRequest("GET", awamailBaseURL+"/get_emails", nil)
 	if err != nil {
 		return nil, err
@@ -126,7 +123,7 @@ func awamailGetEmails(token string, email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "awamail get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "awamail get emails"); err != nil {
 		return nil, err
 	}
 
@@ -144,5 +141,5 @@ func awamailGetEmails(token string, email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get emails")
 	}
 
-	return normalizeRawEmails(result.Data.Emails, email)
+	return NormalizeRawMessages(result.Data.Emails, email)
 }

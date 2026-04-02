@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"fmt"
@@ -242,7 +242,7 @@ func anonboxMboxBlockToRaw(block string, recipient string) map[string]interface{
 	}
 }
 
-func anonboxGenerate() (*EmailInfo, error) {
+func AnonboxGenerate() (*CreatedMailbox, error) {
 	req, err := fhttp.NewRequest("GET", anonboxPageURL, nil)
 	if err != nil {
 		return nil, err
@@ -266,18 +266,14 @@ func anonboxGenerate() (*EmailInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &EmailInfo{
-		Channel: ChannelAnonbox,
-		Email:   email,
-		token:   token,
-	}
+	info := &CreatedMailbox{Channel: "anonbox", Email: email, Token: token}
 	if expires != "" {
 		info.ExpiresAt = expires
 	}
 	return info, nil
 }
 
-func anonboxGetEmails(token, email string) ([]Email, error) {
+func AnonboxGetEmails(token, email string) ([]NormEmail, error) {
 	if token == "" {
 		return nil, fmt.Errorf("internal error: token missing for anonbox")
 	}
@@ -300,7 +296,7 @@ func anonboxGetEmails(token, email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 404 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("anonbox: get emails HTTP %d", resp.StatusCode)
@@ -311,16 +307,16 @@ func anonboxGetEmails(token, email string) ([]Email, error) {
 	}
 	t := strings.TrimSpace(string(raw))
 	if t == "" {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 	blocks := anonboxSplitMbox(t)
-	out := make([]Email, 0, len(blocks))
+	out := make([]NormEmail, 0, len(blocks))
 	for _, b := range blocks {
 		b = strings.TrimSpace(b)
 		if b == "" {
 			continue
 		}
-		out = append(out, normalizeRawEmail(anonboxMboxBlockToRaw(b, email), email))
+		out = append(out, NormalizeMap(anonboxMboxBlockToRaw(b, email), email))
 	}
 	return out, nil
 }

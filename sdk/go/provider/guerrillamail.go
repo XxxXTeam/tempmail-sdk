@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -20,10 +20,10 @@ import (
 const guerrillaMailBaseURL = "https://api.guerrillamail.com/ajax.php"
 
 /*
- * guerrillaMailGenerate 创建临时邮箱
+ * GuerrillaMailGenerate 创建临时邮箱
  * API: GET ajax.php?f=get_email_address
  */
-func guerrillaMailGenerate() (*EmailInfo, error) {
+func GuerrillaMailGenerate() (*CreatedMailbox, error) {
 	client := HTTPClient()
 	resp, err := client.Get(guerrillaMailBaseURL + "?f=get_email_address&lang=en")
 	if err != nil {
@@ -54,19 +54,16 @@ func guerrillaMailGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("guerrillamail generate failed: missing email_addr or sid_token")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelGuerrillaMail,
-		Email:     result.EmailAddr,
-		token:     result.SidToken,
-		ExpiresAt: (result.EmailTimestamp + 3600) * 1000,
-	}, nil
+	info := &CreatedMailbox{Channel: "guerrillamail", Email: result.EmailAddr, Token: result.SidToken}
+	info.ExpiresAt = (result.EmailTimestamp + 3600) * 1000
+	return info, nil
 }
 
 /*
- * guerrillaMailGetEmails 获取邮件列表
+ * GuerrillaMailGetEmails 获取邮件列表
  * API: GET ajax.php?f=check_email&seq=0&sid_token=xxx
  */
-func guerrillaMailGetEmails(token string, email string) ([]Email, error) {
+func GuerrillaMailGetEmails(token string, email string) ([]NormEmail, error) {
 	u := guerrillaMailBaseURL + "?f=check_email&seq=0&sid_token=" + url.QueryEscape(token)
 	client := HTTPClient()
 	resp, err := client.Get(u)
@@ -93,8 +90,8 @@ func guerrillaMailGetEmails(token string, email string) ([]Email, error) {
 	}
 
 	if len(result.List) == 0 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 
-	return normalizeRawEmails(result.List, email)
+	return NormalizeRawMessages(result.List, email)
 }

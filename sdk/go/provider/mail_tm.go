@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -167,9 +167,9 @@ func mailTmGetToken(address, password string) (string, error) {
 	return result.Token, nil
 }
 
-// mailTmGenerate 创建临时邮箱
+// MailTmGenerate 创建临时邮箱
 // 流程: 获取域名 → 生成随机邮箱/密码 → 创建账号 → 获取 Token
-func mailTmGenerate() (*EmailInfo, error) {
+func MailTmGenerate() (*CreatedMailbox, error) {
 	// 1. 获取可用域名
 	domains, err := mailTmGetDomains()
 	if err != nil {
@@ -197,12 +197,9 @@ func mailTmGenerate() (*EmailInfo, error) {
 		return nil, err
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelMailTm,
-		Email:     address,
-		token:     token,
-		CreatedAt: account.CreatedAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "mail-tm", Email: address, Token: token}
+	info.CreatedAt = account.CreatedAt
+	return info, nil
 }
 
 // mailTmFlattenMessage 将 mail.tm 的消息格式扁平化为 normalizeEmail 可处理的 map
@@ -256,9 +253,9 @@ func mailTmFlattenMessage(raw map[string]interface{}, recipientEmail string) map
 	return flat
 }
 
-// mailTmGetEmails 获取邮件列表
+// MailTmGetEmails 获取邮件列表
 // 流程: GET /messages 获取列表 → 并发 GET /messages/{id} 获取每封邮件详情
-func mailTmGetEmails(token string, email string) ([]Email, error) {
+func MailTmGetEmails(token string, email string) ([]NormEmail, error) {
 	// 1. 获取邮件列表
 	req, err := http.NewRequest("GET", mailTmBaseURL+"/messages", nil)
 	if err != nil {
@@ -294,7 +291,7 @@ func mailTmGetEmails(token string, email string) ([]Email, error) {
 	}
 
 	if len(msgItems) == 0 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 
 	// 2. 并发获取每封邮件的详情
@@ -346,13 +343,13 @@ func mailTmGetEmails(token string, email string) ([]Email, error) {
 	wg.Wait()
 
 	// 3. 扁平化并标准化
-	emails := make([]Email, 0, len(results))
+	emails := make([]NormEmail, 0, len(results))
 	for _, r := range results {
 		if r.err != nil || r.raw == nil {
 			continue
 		}
 		flat := mailTmFlattenMessage(r.raw, email)
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 
 	return emails, nil

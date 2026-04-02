@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -93,7 +93,7 @@ func fakeLegalPickDomain(domains []string, preferred *string) string {
 	return domains[rand.Intn(len(domains))]
 }
 
-func fakeLegalGenerate(domain *string) (*EmailInfo, error) {
+func FakeLegalGenerate(domain *string) (*CreatedMailbox, error) {
 	domains, err := fakeLegalFetchDomains()
 	if err != nil {
 		return nil, err
@@ -124,13 +124,10 @@ func fakeLegalGenerate(domain *string) (*EmailInfo, error) {
 	if !nr.Success || strings.TrimSpace(nr.Address) == "" {
 		return nil, fmt.Errorf("fake-legal: invalid new inbox response")
 	}
-	return &EmailInfo{
-		Channel: ChannelFakeLegal,
-		Email:   strings.TrimSpace(nr.Address),
-	}, nil
+	return &CreatedMailbox{Channel: "fake-legal", Email: strings.TrimSpace(nr.Address), Token: ""}, nil
 }
 
-func fakeLegalGetEmails(email string) ([]Email, error) {
+func FakeLegalGetEmails(email string) ([]NormEmail, error) {
 	email = strings.TrimSpace(email)
 	if email == "" {
 		return nil, fmt.Errorf("fake-legal: empty email")
@@ -159,11 +156,11 @@ func fakeLegalGetEmails(email string) ([]Email, error) {
 		return nil, err
 	}
 	if !ir.Success || ir.Emails == nil {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
-	emails := make([]Email, 0, len(ir.Emails))
+	emails := make([]NormEmail, 0, len(ir.Emails))
 	for _, raw := range ir.Emails {
-		emails = append(emails, normalizeRawEmail(raw, email))
+		emails = append(emails, NormalizeMap(raw, email))
 	}
 	return emails, nil
 }

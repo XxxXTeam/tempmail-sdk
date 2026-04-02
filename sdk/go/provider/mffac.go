@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ func mffacDefaultHeaders(req *http.Request) {
 	req.Header.Set("sec-fetch-site", "same-origin")
 }
 
-func mffacGenerate() (*EmailInfo, error) {
+func MffacGenerate() (*CreatedMailbox, error) {
 	req, err := http.NewRequest("POST", mffacAPIBase+"/mailboxes", bytes.NewReader([]byte(`{"expiresInHours":24}`)))
 	if err != nil {
 		return nil, err
@@ -64,16 +64,13 @@ func mffacGenerate() (*EmailInfo, error) {
 	}
 
 	email := parsed.Mailbox.Address + "@mffac.com"
-	return &EmailInfo{
-		Channel:   ChannelMffac,
-		Email:     email,
-		token:     parsed.Mailbox.ID,
-		ExpiresAt: parsed.Mailbox.ExpiresAt,
-		CreatedAt: parsed.Mailbox.CreatedAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "mffac", Email: email, Token: parsed.Mailbox.ID}
+	info.ExpiresAt = parsed.Mailbox.ExpiresAt
+	info.CreatedAt = parsed.Mailbox.CreatedAt
+	return info, nil
 }
 
-func mffacGetEmails(email string, _token string) ([]Email, error) {
+func MffacGetEmails(email string, _token string) ([]NormEmail, error) {
 	local := email
 	if i := strings.LastIndex(email, "@"); i > 0 {
 		local = email[:i]
@@ -117,5 +114,5 @@ func mffacGetEmails(email string, _token string) ([]Email, error) {
 			return nil, err
 		}
 	}
-	return normalizeRawEmails(rawList, email)
+	return NormalizeRawMessages(rawList, email)
 }

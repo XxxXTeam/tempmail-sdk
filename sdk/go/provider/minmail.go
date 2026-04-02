@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -134,7 +134,7 @@ func minmailToMatches(header, want string) bool {
 	return strings.Contains(h, want)
 }
 
-func minmailGenerate() (*EmailInfo, error) {
+func MinmailGenerate() (*CreatedMailbox, error) {
 	cook := minmailCookieHeader()
 	req, err := http.NewRequest("GET", minmailAPIBase+"/mail/address?refresh=true&expire=1440&part=main", nil)
 	if err != nil {
@@ -174,15 +174,12 @@ func minmailGenerate() (*EmailInfo, error) {
 	}
 
 	expiresAt := time.Now().Add(time.Duration(data.Expire) * time.Minute).UnixMilli()
-	return &EmailInfo{
-		Channel:   ChannelMinmail,
-		Email:     data.Address,
-		token:     tok,
-		ExpiresAt: expiresAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "minmail", Email: data.Address, Token: tok}
+	info.ExpiresAt = expiresAt
+	return info, nil
 }
 
-func minmailGetEmails(email, token string) ([]Email, error) {
+func MinmailGetEmails(email, token string) ([]NormEmail, error) {
 	vid, ck, cook := minmailParseToken(token)
 	if vid == "" {
 		vid = minmailVisitorID()
@@ -212,7 +209,7 @@ func minmailGetEmails(email, token string) ([]Email, error) {
 		return nil, err
 	}
 
-	var emails []Email
+	var emails []NormEmail
 	for _, raw := range data.Message {
 		if raw.To != "" && !minmailToMatches(raw.To, email) {
 			continue
@@ -227,7 +224,7 @@ func minmailGetEmails(email, token string) ([]Email, error) {
 			"date":    raw.Date,
 			"isRead":  raw.IsRead,
 		}
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 	return emails, nil
 }

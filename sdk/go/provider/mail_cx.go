@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -112,8 +112,8 @@ func mailCxCreateAccount(address, password string) (*mailCxAccountResp, error) {
 	return &acc, nil
 }
 
-// mailCxGenerate 创建临时邮箱；可选 Domain 指定系统域名（须在列表中）
-func mailCxGenerate(opts *GenerateEmailOptions) (*EmailInfo, error) {
+// MailCxGenerate 创建临时邮箱；可选 domain 指定系统域名（须在列表中）
+func MailCxGenerate(domain *string) (*CreatedMailbox, error) {
 	domains, err := mailCxGetDomains()
 	if err != nil {
 		return nil, err
@@ -121,8 +121,8 @@ func mailCxGenerate(opts *GenerateEmailOptions) (*EmailInfo, error) {
 	if len(domains) == 0 {
 		return nil, fmt.Errorf("no available domains")
 	}
-	if opts != nil && opts.Domain != nil && *opts.Domain != "" {
-		want := strings.ToLower(strings.TrimPrefix(*opts.Domain, "@"))
+	if domain != nil && *domain != "" {
+		want := strings.ToLower(strings.TrimPrefix(*domain, "@"))
 		var filtered []string
 		for _, d := range domains {
 			if strings.ToLower(d) == want {
@@ -147,11 +147,7 @@ func mailCxGenerate(opts *GenerateEmailOptions) (*EmailInfo, error) {
 			}
 			return nil, err
 		}
-		return &EmailInfo{
-			Channel: ChannelMailCx,
-			Email:   acc.Address,
-			token:   acc.Token,
-		}, nil
+		return &CreatedMailbox{Channel: "mail-cx", Email: acc.Address, Token: acc.Token}, nil
 	}
 	if lastErr != nil {
 		return nil, lastErr
@@ -201,7 +197,7 @@ func mailCxFlattenMessage(raw map[string]interface{}, recipientEmail string) map
 	return flat
 }
 
-func mailCxGetEmails(token string, email string) ([]Email, error) {
+func MailCxGetEmails(token string, email string) ([]NormEmail, error) {
 	req, err := http.NewRequest("GET", mailCxBase+"/api/messages?page=1", nil)
 	if err != nil {
 		return nil, err
@@ -231,7 +227,7 @@ func mailCxGetEmails(token string, email string) ([]Email, error) {
 		return nil, err
 	}
 	if len(list.Messages) == 0 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 
 	type res struct {
@@ -288,13 +284,13 @@ func mailCxGetEmails(token string, email string) ([]Email, error) {
 	}
 	wg.Wait()
 
-	emails := make([]Email, 0, len(results))
+	emails := make([]NormEmail, 0, len(results))
 	for _, r := range results {
 		if r.raw == nil {
 			continue
 		}
 		flat := mailCxFlattenMessage(r.raw, email)
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 	return emails, nil
 }

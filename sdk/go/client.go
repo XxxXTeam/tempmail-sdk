@@ -3,6 +3,8 @@ package tempemail
 import (
 	"fmt"
 	"math/rand"
+
+	prov "github.com/XxxXTeam/tempmail-sdk/sdk/go/provider"
 )
 
 /* 所有支持的渠道列表，用于随机选择和遍历 */
@@ -164,64 +166,64 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		if duration <= 0 {
 			duration = 30
 		}
-		return tempmailGenerate(duration)
+		return fromMailbox(prov.TempmailGenerate(duration))
 
 	case ChannelLinshiEmail:
-		return linshiEmailGenerate()
+		return fromMailbox(prov.LinshiEmailGenerate())
 
 	case ChannelLinshiyou:
-		return linshiyouGenerate()
+		return fromMailbox(prov.LinshiyouGenerate())
 
 	case ChannelMffac:
-		return mffacGenerate()
+		return fromMailbox(prov.MffacGenerate())
 
 	case ChannelTempmailLol:
-		return tempmailLolGenerate(opts.Domain)
+		return fromMailbox(prov.TempmailLolGenerate(opts.Domain))
 
 	case ChannelChatgptOrgUk:
-		return chatgptOrgUkGenerate()
+		return fromMailbox(prov.ChatgptOrgUkGenerate())
 
 	case ChannelTempMailIO:
-		return tempMailIOGenerate()
+		return fromMailbox(prov.TempMailIOGenerate())
 
 	case ChannelAwamail:
-		return awamailGenerate()
+		return fromMailbox(prov.AwamailGenerate())
 
 	case ChannelTemporaryEmailOrg:
-		return temporaryEmailOrgGenerate()
+		return fromMailbox(prov.TemporaryEmailOrgGenerate())
 
 	case ChannelMailTm:
-		return mailTmGenerate()
+		return fromMailbox(prov.MailTmGenerate())
 
 	case ChannelMailCx:
-		return mailCxGenerate(opts)
+		return fromMailbox(prov.MailCxGenerate(opts.Domain))
 
 	case ChannelDropmail:
-		return dropmailGenerate()
+		return fromMailbox(prov.DropmailGenerate())
 
 	case ChannelGuerrillaMail:
-		return guerrillaMailGenerate()
+		return fromMailbox(prov.GuerrillaMailGenerate())
 
 	case ChannelMaildrop:
-		return maildropGenerate(opts.Domain)
+		return fromMailbox(prov.MaildropGenerate(opts.Domain))
 
 	case ChannelSmailPw:
-		return smailPwGenerate()
+		return fromMailbox(prov.SmailPwGenerate())
 
 	case ChannelBoomlify:
-		return boomlifyGenerate()
+		return fromMailbox(prov.BoomlifyGenerate())
 
 	case ChannelMinmail:
-		return minmailGenerate()
+		return fromMailbox(prov.MinmailGenerate())
 
 	case ChannelVip215:
-		return mailVip215Generate()
+		return fromMailbox(prov.MailVip215Generate())
 
 	case ChannelAnonbox:
-		return anonboxGenerate()
+		return fromMailbox(prov.AnonboxGenerate())
 
 	case ChannelFakeLegal:
-		return fakeLegalGenerate(opts.Domain)
+		return fromMailbox(prov.FakeLegalGenerate(opts.Domain))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -301,109 +303,109 @@ func GetEmails(info *EmailInfo, opts *GetEmailsOptions) (*GetEmailsResult, error
 func getEmailsOnce(channel Channel, email string, token string) ([]Email, error) {
 	switch channel {
 	case ChannelTempmail:
-		return tempmailGetEmails(email)
+		return normEmailsResult(prov.TempmailGetEmails(email))
 
 	case ChannelLinshiEmail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for linshi-email channel")
 		}
-		return linshiEmailGetEmails(token, email)
+		return normEmailsResult(prov.LinshiEmailGetEmails(token, email))
 
 	case ChannelLinshiyou:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for linshiyou channel")
 		}
-		return linshiyouGetEmails(token, email)
+		return normEmailsResult(prov.LinshiyouGetEmails(token, email))
 
 	case ChannelMffac:
-		return mffacGetEmails(email, token)
+		return normEmailsResult(prov.MffacGetEmails(email, token))
 
 	case ChannelTempmailLol:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for tempmail-lol channel")
 		}
-		return tempmailLolGetEmails(token, email)
+		return normEmailsResult(prov.TempmailLolGetEmails(token, email))
 
 	case ChannelChatgptOrgUk:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for chatgpt-org-uk channel")
 		}
-		return chatgptOrgUkGetEmails(email, token)
+		return normEmailsResult(prov.ChatgptOrgUkGetEmails(email, token))
 
 	case ChannelTempMailIO:
-		return tempMailIOGetEmails(email)
+		return normEmailsResult(prov.TempMailIOGetEmails(email))
 
 	case ChannelAwamail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for awamail channel")
 		}
-		return awamailGetEmails(token, email)
+		return normEmailsResult(prov.AwamailGetEmails(token, email))
 
 	case ChannelTemporaryEmailOrg:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for temporary-email-org channel")
 		}
-		return temporaryEmailOrgGetEmails(token, email)
+		return normEmailsResult(prov.TemporaryEmailOrgGetEmails(token, email))
 
 	case ChannelMailTm:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for mail-tm channel")
 		}
-		return mailTmGetEmails(token, email)
+		return normEmailsResult(prov.MailTmGetEmails(token, email))
 
 	case ChannelMailCx:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for mail-cx channel")
 		}
-		return mailCxGetEmails(token, email)
+		return normEmailsResult(prov.MailCxGetEmails(token, email))
 
 	case ChannelDropmail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for dropmail channel")
 		}
-		return dropmailGetEmails(token, email)
+		return normEmailsResult(prov.DropmailGetEmails(token, email))
 
 	case ChannelGuerrillaMail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for guerrillamail channel")
 		}
-		return guerrillaMailGetEmails(token, email)
+		return normEmailsResult(prov.GuerrillaMailGetEmails(token, email))
 
 	case ChannelMaildrop:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for maildrop channel")
 		}
-		return maildropGetEmails(token, email)
+		return normEmailsResult(prov.MaildropGetEmails(token, email))
 
 	case ChannelSmailPw:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for smail-pw channel")
 		}
-		return smailPwGetEmails(token, email)
+		return normEmailsResult(prov.SmailPwGetEmails(token, email))
 
 	case ChannelBoomlify:
-		return boomlifyGetEmails(email)
+		return normEmailsResult(prov.BoomlifyGetEmails(email))
 
 	case ChannelMinmail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for minmail channel")
 		}
-		return minmailGetEmails(email, token)
+		return normEmailsResult(prov.MinmailGetEmails(email, token))
 
 	case ChannelVip215:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for vip-215 channel")
 		}
-		return mailVip215GetEmails(token, email)
+		return normEmailsResult(prov.MailVip215GetEmails(token, email))
 
 	case ChannelAnonbox:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for anonbox channel")
 		}
-		return anonboxGetEmails(token, email)
+		return normEmailsResult(prov.AnonboxGetEmails(token, email))
 
 	case ChannelFakeLegal:
-		return fakeLegalGetEmails(email)
+		return normEmailsResult(prov.FakeLegalGetEmails(email))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

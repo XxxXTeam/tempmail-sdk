@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"fmt"
@@ -81,13 +81,13 @@ func linshiyouExtractSrcdoc(bodyPart string) string {
 	return html.UnescapeString(m[1])
 }
 
-func linshiyouParseMailSegments(raw, recipientEmail string) []Email {
+func linshiyouParseMailSegments(raw, recipientEmail string) []NormEmail {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return nil
 	}
 	parts := strings.Split(raw, "<-----TMAILNEXTMAIL----->")
-	var out []Email
+	var out []NormEmail
 	for _, seg := range parts {
 		seg = strings.TrimSpace(seg)
 		if seg == "" {
@@ -127,14 +127,14 @@ func linshiyouParseMailSegments(raw, recipientEmail string) []Email {
 			text = strings.TrimSpace(linshiyouStripTags(htmlBody))
 		}
 
-		var attachments []EmailAttachment
+		var attachments []NormAttachment
 		if dm := reLinshiyouDownload.FindStringSubmatch(bodyPart); len(dm) >= 2 {
-			attachments = append(attachments, EmailAttachment{
+			attachments = append(attachments, NormAttachment{
 				URL: linshiyouOrigin + dm[1],
 			})
 		}
 
-		out = append(out, Email{
+		out = append(out, NormEmail{
 			ID:          id,
 			From:        from,
 			To:          recipientEmail,
@@ -149,7 +149,7 @@ func linshiyouParseMailSegments(raw, recipientEmail string) []Email {
 	return out
 }
 
-func linshiyouGenerate() (*EmailInfo, error) {
+func LinshiyouGenerate() (*CreatedMailbox, error) {
 	req, err := http.NewRequest("GET", linshiyouOrigin+"/api/user?user", nil)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func linshiyouGenerate() (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "linshiyou generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "linshiyou generate"); err != nil {
 		return nil, err
 	}
 
@@ -188,16 +188,11 @@ func linshiyouGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("linshiyou: invalid email in response body")
 	}
 
-	token := fmt.Sprintf("NEXUS_TOKEN=%s; tmail-emails=%s", nexus, email)
-
-	return &EmailInfo{
-		Channel: ChannelLinshiyou,
-		Email:   email,
-		token:   token,
-	}, nil
+	cookieTok := fmt.Sprintf("NEXUS_TOKEN=%s; tmail-emails=%s", nexus, email)
+	return &CreatedMailbox{Channel: "linshiyou", Email: email, Token: cookieTok}, nil
 }
 
-func linshiyouGetEmails(token string, email string) ([]Email, error) {
+func LinshiyouGetEmails(token string, email string) ([]NormEmail, error) {
 	req, err := http.NewRequest("GET", linshiyouOrigin+"/api/mail?unseen=1", nil)
 	if err != nil {
 		return nil, err
@@ -213,7 +208,7 @@ func linshiyouGetEmails(token string, email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "linshiyou get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "linshiyou get emails"); err != nil {
 		return nil, err
 	}
 

@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"fmt"
@@ -88,8 +88,8 @@ func parseInt64Safe(s string) int64 {
 	return n
 }
 
-// smailPwGenerate POST intent=generate，保存 __session，解析收件地址
-func smailPwGenerate() (*EmailInfo, error) {
+// SmailPwGenerate POST intent=generate，保存 __session，解析收件地址
+func SmailPwGenerate() (*CreatedMailbox, error) {
 	req, err := http.NewRequest(http.MethodPost, smailPwRootDataURL, strings.NewReader("intent=generate"))
 	if err != nil {
 		return nil, err
@@ -122,15 +122,11 @@ func smailPwGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to parse inbox from smail.pw response")
 	}
 
-	return &EmailInfo{
-		Channel: ChannelSmailPw,
-		Email:   email,
-		token:   cookie,
-	}, nil
+	return &CreatedMailbox{Channel: "smail-pw", Email: email, Token: cookie}, nil
 }
 
-// smailPwGetEmails GET _root.data + Cookie
-func smailPwGetEmails(token, email string) ([]Email, error) {
+// SmailPwGetEmails GET _root.data + Cookie
+func SmailPwGetEmails(token, email string) ([]NormEmail, error) {
 	req, err := http.NewRequest(http.MethodGet, smailPwRootDataURL, nil)
 	if err != nil {
 		return nil, err
@@ -155,11 +151,11 @@ func smailPwGetEmails(token, email string) ([]Email, error) {
 
 	mails := smailPwParseMails(string(raw), email)
 	if len(mails) == 0 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
-	out := make([]Email, 0, len(mails))
+	out := make([]NormEmail, 0, len(mails))
 	for _, m := range mails {
-		out = append(out, normalizeRawEmail(m, email))
+		out = append(out, NormalizeMap(m, email))
 	}
 	return out, nil
 }

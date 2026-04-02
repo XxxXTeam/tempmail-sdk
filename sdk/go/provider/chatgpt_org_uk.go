@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ func setChatgptOrgUkHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", GetCurrentUA())
 }
 
-type chatgptOrgUkGenerateResponse struct {
+type ChatgptOrgUkGenerateResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
 		Email string `json:"email"`
@@ -88,7 +88,7 @@ func chatgptOrgUkFetchHomeSession(client tls_client.HttpClient) (gmSid string, b
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "chatgpt-org-uk home"); err != nil {
+	if err := CheckHTTPStatus(resp, "chatgpt-org-uk home"); err != nil {
 		return "", "", err
 	}
 
@@ -145,7 +145,7 @@ func chatgptOrgUkFetchInboxToken(client tls_client.HttpClient, email string, gmS
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "chatgpt-org-uk inbox-token"); err != nil {
+	if err := CheckHTTPStatus(resp, "chatgpt-org-uk inbox-token"); err != nil {
 		return "", err
 	}
 
@@ -199,7 +199,7 @@ func chatgptOrgUkParsePackedToken(packed string) (gmSid string, inbox string) {
 	return "", packed
 }
 
-func chatgptOrgUkGenerate() (*EmailInfo, error) {
+func ChatgptOrgUkGenerate() (*CreatedMailbox, error) {
 	client := HTTPClient()
 
 	gmSid, browserToken, err := chatgptOrgUkFetchHomeSessionWithRetry(client)
@@ -221,7 +221,7 @@ func chatgptOrgUkGenerate() (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "chatgpt-org-uk generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "chatgpt-org-uk generate"); err != nil {
 		return nil, err
 	}
 
@@ -230,7 +230,7 @@ func chatgptOrgUkGenerate() (*EmailInfo, error) {
 		return nil, err
 	}
 
-	var result chatgptOrgUkGenerateResponse
+	var result ChatgptOrgUkGenerateResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
@@ -259,14 +259,10 @@ func chatgptOrgUkGenerate() (*EmailInfo, error) {
 		return nil, err
 	}
 
-	return &EmailInfo{
-		Channel: ChannelChatgptOrgUk,
-		Email:   email,
-		token:   string(packed),
-	}, nil
+	return &CreatedMailbox{Channel: "chatgpt-org-uk", Email: email, Token: string(packed)}, nil
 }
 
-func chatgptOrgUkGetEmails(email string, token string) ([]Email, error) {
+func ChatgptOrgUkGetEmails(email string, token string) ([]NormEmail, error) {
 	if token == "" {
 		return nil, fmt.Errorf("missing inbox token")
 	}
@@ -282,7 +278,7 @@ func chatgptOrgUkGetEmails(email string, token string) ([]Email, error) {
 		}
 	}
 
-	fetchEmails := func(inboxToken string, sid string) ([]Email, error) {
+	fetchEmails := func(inboxToken string, sid string) ([]NormEmail, error) {
 		req, err := http.NewRequest("GET", chatgptOrgUkBaseURL+"/emails?email="+encodedEmail, nil)
 		if err != nil {
 			return nil, err
@@ -297,7 +293,7 @@ func chatgptOrgUkGetEmails(email string, token string) ([]Email, error) {
 		}
 		defer resp.Body.Close()
 
-		if err := checkHTTPStatus(resp, "chatgpt-org-uk get emails"); err != nil {
+		if err := CheckHTTPStatus(resp, "chatgpt-org-uk get emails"); err != nil {
 			return nil, err
 		}
 
@@ -315,7 +311,7 @@ func chatgptOrgUkGetEmails(email string, token string) ([]Email, error) {
 			return nil, fmt.Errorf("failed to get emails")
 		}
 
-		return normalizeRawEmails(result.Data.Emails, email)
+		return NormalizeRawMessages(result.Data.Emails, email)
 	}
 
 	emails, err := fetchEmails(inbox, gmSid)

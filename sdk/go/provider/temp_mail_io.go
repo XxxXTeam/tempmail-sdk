@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -85,9 +85,9 @@ func setTempMailIOHeaders(req *http.Request) {
 	req.Header.Set("Referer", "https://temp-mail.io/")
 }
 
-// tempMailIOGenerate 创建临时邮箱
+// TempMailIOGenerate 创建临时邮箱
 // API: POST /api/v3/email/new
-func tempMailIOGenerate() (*EmailInfo, error) {
+func TempMailIOGenerate() (*CreatedMailbox, error) {
 	reqBody, _ := json.Marshal(tempMailIOCreateRequest{
 		MinNameLength: 10,
 		MaxNameLength: 10,
@@ -106,7 +106,7 @@ func tempMailIOGenerate() (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "temp-mail-io generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "temp-mail-io generate"); err != nil {
 		return nil, err
 	}
 
@@ -124,17 +124,13 @@ func tempMailIOGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel: ChannelTempMailIO,
-		Email:   result.Email,
-		token:   result.Token,
-	}, nil
+	return &CreatedMailbox{Channel: "temp-mail-io", Email: result.Email, Token: result.Token}, nil
 }
 
-// tempMailIOGetEmails 获取邮件列表
+// TempMailIOGetEmails 获取邮件列表
 // API: GET /api/v3/email/{email}/messages
 // 返回: 直接返回邮件数组
-func tempMailIOGetEmails(email string) ([]Email, error) {
+func TempMailIOGetEmails(email string) ([]NormEmail, error) {
 	req, err := http.NewRequest("GET", tempMailIOBaseURL+"/email/"+email+"/messages", nil)
 	if err != nil {
 		return nil, err
@@ -148,7 +144,7 @@ func tempMailIOGetEmails(email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "temp-mail-io get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "temp-mail-io get emails"); err != nil {
 		return nil, err
 	}
 
@@ -163,5 +159,5 @@ func tempMailIOGetEmails(email string) ([]Email, error) {
 		return nil, err
 	}
 
-	return normalizeRawEmails(rawMessages, email)
+	return NormalizeRawMessages(rawMessages, email)
 }

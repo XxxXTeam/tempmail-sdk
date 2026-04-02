@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -12,12 +12,12 @@ import (
 
 const tempmailLolBaseURL = "https://api.tempmail.lol/v2"
 
-type tempmailLolGenerateRequest struct {
+type TempmailLolGenerateRequest struct {
 	Domain  *string `json:"domain"`
 	Captcha *string `json:"captcha"`
 }
 
-type tempmailLolGenerateResponse struct {
+type TempmailLolGenerateResponse struct {
 	Address string `json:"address"`
 	Token   string `json:"token"`
 }
@@ -27,8 +27,8 @@ type tempmailLolEmailsResponse struct {
 	Expired bool              `json:"expired"`
 }
 
-func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
-	reqBody, _ := json.Marshal(tempmailLolGenerateRequest{Domain: domain, Captcha: nil})
+func TempmailLolGenerate(domain *string) (*CreatedMailbox, error) {
+	reqBody, _ := json.Marshal(TempmailLolGenerateRequest{Domain: domain, Captcha: nil})
 
 	req, err := http.NewRequest("POST", tempmailLolBaseURL+"/inbox/create", bytes.NewReader(reqBody))
 	if err != nil {
@@ -47,7 +47,7 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "tempmail-lol generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "tempmail-lol generate"); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +56,7 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 		return nil, err
 	}
 
-	var result tempmailLolGenerateResponse
+	var result TempmailLolGenerateResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
@@ -65,14 +65,11 @@ func tempmailLolGenerate(domain *string) (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel: ChannelTempmailLol,
-		Email:   result.Address,
-		token:   result.Token,
-	}, nil
+	info := &CreatedMailbox{Channel: "tempmail-lol", Email: result.Address, Token: result.Token}
+	return info, nil
 }
 
-func tempmailLolGetEmails(token string, recipientEmail string) ([]Email, error) {
+func TempmailLolGetEmails(token string, recipientEmail string) ([]NormEmail, error) {
 	encodedToken := url.QueryEscape(token)
 
 	req, err := http.NewRequest("GET", tempmailLolBaseURL+"/inbox?token="+encodedToken, nil)
@@ -91,7 +88,7 @@ func tempmailLolGetEmails(token string, recipientEmail string) ([]Email, error) 
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "tempmail-lol get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "tempmail-lol get emails"); err != nil {
 		return nil, err
 	}
 
@@ -105,5 +102,5 @@ func tempmailLolGetEmails(token string, recipientEmail string) ([]Email, error) 
 		return nil, err
 	}
 
-	return normalizeRawEmails(result.Emails, recipientEmail)
+	return NormalizeRawMessages(result.Emails, recipientEmail)
 }

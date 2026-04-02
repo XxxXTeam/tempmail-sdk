@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"crypto/rand"

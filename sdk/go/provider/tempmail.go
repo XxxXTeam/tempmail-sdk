@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -12,11 +12,11 @@ import (
 
 const tempmailBaseURL = "https://api.tempmail.ing/api"
 
-type tempmailGenerateRequest struct {
+type TempmailGenerateRequest struct {
 	Duration int `json:"duration"`
 }
 
-type tempmailGenerateResponse struct {
+type TempmailGenerateResponse struct {
 	Email struct {
 		Address         string `json:"address"`
 		ExpiresAt       string `json:"expiresAt"`
@@ -31,12 +31,12 @@ type tempmailEmailsResponse struct {
 	Success bool              `json:"success"`
 }
 
-func tempmailGenerate(duration int) (*EmailInfo, error) {
+func TempmailGenerate(duration int) (*CreatedMailbox, error) {
 	if duration <= 0 {
 		duration = 30
 	}
 
-	reqBody, _ := json.Marshal(tempmailGenerateRequest{Duration: duration})
+	reqBody, _ := json.Marshal(TempmailGenerateRequest{Duration: duration})
 
 	req, err := http.NewRequest("POST", tempmailBaseURL+"/generate", bytes.NewReader(reqBody))
 	if err != nil {
@@ -55,7 +55,7 @@ func tempmailGenerate(duration int) (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "tempmail generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "tempmail generate"); err != nil {
 		return nil, err
 	}
 
@@ -64,7 +64,7 @@ func tempmailGenerate(duration int) (*EmailInfo, error) {
 		return nil, err
 	}
 
-	var result tempmailGenerateResponse
+	var result TempmailGenerateResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
@@ -73,15 +73,13 @@ func tempmailGenerate(duration int) (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelTempmail,
-		Email:     result.Email.Address,
-		ExpiresAt: result.Email.ExpiresAt,
-		CreatedAt: result.Email.CreatedAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "tempmail", Email: result.Email.Address, Token: ""}
+	info.ExpiresAt = result.Email.ExpiresAt
+	info.CreatedAt = result.Email.CreatedAt
+	return info, nil
 }
 
-func tempmailGetEmails(email string) ([]Email, error) {
+func TempmailGetEmails(email string) ([]NormEmail, error) {
 	encodedEmail := url.QueryEscape(email)
 
 	req, err := http.NewRequest("GET", tempmailBaseURL+"/emails/"+encodedEmail, nil)
@@ -100,7 +98,7 @@ func tempmailGetEmails(email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "tempmail get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "tempmail get emails"); err != nil {
 		return nil, err
 	}
 
@@ -127,14 +125,14 @@ func tempmailGetEmails(email string) ([]Email, error) {
 	 *   is_read → 0/1
 	 * 需要先扁平化再 normalize
 	 */
-	emails := make([]Email, 0, len(result.Emails))
+	emails := make([]NormEmail, 0, len(result.Emails))
 	for _, raw := range result.Emails {
 		var m map[string]interface{}
 		if err := json.Unmarshal(raw, &m); err != nil {
 			continue
 		}
 		flat := tempmailFlattenMessage(m, email)
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 	return emails, nil
 }

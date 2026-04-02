@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -78,7 +78,7 @@ var (
 )
 
 func explicitDropmailAuthToken() string {
-	cfg := GetConfig()
+	cfg := GetConfigSnapshot()
 	if s := strings.TrimSpace(cfg.DropmailAuthToken); s != "" {
 		return s
 	}
@@ -92,7 +92,7 @@ func explicitDropmailAuthToken() string {
 }
 
 func dropmailAutoTokenDisabled() bool {
-	if GetConfig().DropmailDisableAutoToken {
+	if GetConfigSnapshot().DropmailDisableAutoToken {
 		return true
 	}
 	v := strings.ToLower(strings.TrimSpace(os.Getenv("DROPMAIL_NO_AUTO_TOKEN")))
@@ -100,7 +100,7 @@ func dropmailAutoTokenDisabled() bool {
 }
 
 func dropmailRenewLifetimeStr() string {
-	if s := strings.TrimSpace(GetConfig().DropmailRenewLifetime); s != "" {
+	if s := strings.TrimSpace(GetConfigSnapshot().DropmailRenewLifetime); s != "" {
 		return s
 	}
 	if s := strings.TrimSpace(os.Getenv("DROPMAIL_RENEW_LIFETIME")); s != "" {
@@ -281,9 +281,9 @@ func dropmailGraphQLRequest(query string, variables map[string]interface{}) (jso
 	return result.Data, nil
 }
 
-// dropmailGenerate 创建临时邮箱
+// DropmailGenerate 创建临时邮箱
 // GraphQL mutation: introduceSession
-func dropmailGenerate() (*EmailInfo, error) {
+func DropmailGenerate() (*CreatedMailbox, error) {
 	data, err := dropmailGraphQLRequest(dropmailCreateSessionQuery, nil)
 	if err != nil {
 		return nil, err
@@ -299,12 +299,9 @@ func dropmailGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelDropmail,
-		Email:     session.Addresses[0].Address,
-		token:     session.ID,
-		ExpiresAt: session.ExpiresAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "dropmail", Email: session.Addresses[0].Address, Token: session.ID}
+	info.ExpiresAt = session.ExpiresAt
+	return info, nil
 }
 
 // dropmailFlattenMessage 将 dropmail 的邮件格式扁平化
@@ -327,9 +324,9 @@ func dropmailFlattenMessage(mail map[string]interface{}, recipientEmail string) 
 	return flat
 }
 
-// dropmailGetEmails 获取邮件列表
+// DropmailGetEmails 获取邮件列表
 // GraphQL query: session(id) { mails {...} }
-func dropmailGetEmails(token string, email string) ([]Email, error) {
+func DropmailGetEmails(token string, email string) ([]NormEmail, error) {
 	data, err := dropmailGraphQLRequest(dropmailGetMailsQuery, map[string]interface{}{
 		"id": token,
 	})
@@ -344,13 +341,13 @@ func dropmailGetEmails(token string, email string) ([]Email, error) {
 
 	mails := resp.Session.Mails
 	if len(mails) == 0 {
-		return []Email{}, nil
+		return []NormEmail{}, nil
 	}
 
-	emails := make([]Email, 0, len(mails))
+	emails := make([]NormEmail, 0, len(mails))
 	for _, mail := range mails {
 		flat := dropmailFlattenMessage(mail, email)
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 	return emails, nil
 }

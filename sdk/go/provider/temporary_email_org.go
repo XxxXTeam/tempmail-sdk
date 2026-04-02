@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -53,7 +53,7 @@ type temporaryEmailOrgMessagesResp struct {
 	Messages []json.RawMessage `json:"messages"`
 }
 
-func temporaryEmailOrgGenerate() (*EmailInfo, error) {
+func TemporaryEmailOrgGenerate() (*CreatedMailbox, error) {
 	req, err := http.NewRequest("GET", temporaryEmailOrgMessagesURL, nil)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func temporaryEmailOrgGenerate() (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "temporary-email-org generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "temporary-email-org generate"); err != nil {
 		return nil, err
 	}
 
@@ -89,14 +89,10 @@ func temporaryEmailOrgGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("temporary-email-org: invalid mailbox")
 	}
 
-	return &EmailInfo{
-		Channel: ChannelTemporaryEmailOrg,
-		Email:   mailbox,
-		token:   cookieStr,
-	}, nil
+	return &CreatedMailbox{Channel: "temporary-email-org", Email: mailbox, Token: cookieStr}, nil
 }
 
-func temporaryEmailOrgGetEmails(cookieHeader string, email string) ([]Email, error) {
+func TemporaryEmailOrgGetEmails(cookieHeader string, email string) ([]NormEmail, error) {
 	req, err := http.NewRequest("GET", temporaryEmailOrgMessagesURL, nil)
 	if err != nil {
 		return nil, err
@@ -111,7 +107,7 @@ func temporaryEmailOrgGetEmails(cookieHeader string, email string) ([]Email, err
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "temporary-email-org messages"); err != nil {
+	if err := CheckHTTPStatus(resp, "temporary-email-org messages"); err != nil {
 		return nil, err
 	}
 
@@ -125,5 +121,5 @@ func temporaryEmailOrgGetEmails(cookieHeader string, email string) ([]Email, err
 		return nil, err
 	}
 
-	return normalizeRawEmails(parsed.Messages, email)
+	return NormalizeRawMessages(parsed.Messages, email)
 }

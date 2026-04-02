@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -153,7 +153,7 @@ func boomlifyCreatePublicInbox(domainID string) (string, error) {
 	return cr.ID, nil
 }
 
-func boomlifyGenerate() (*EmailInfo, error) {
+func BoomlifyGenerate() (*CreatedMailbox, error) {
 	domains, err := boomlifyGetDomains()
 	if err != nil {
 		return nil, err
@@ -168,11 +168,7 @@ func boomlifyGenerate() (*EmailInfo, error) {
 	}
 	addr := fmt.Sprintf("%s@%s", boxID, pick.Domain)
 
-	return &EmailInfo{
-		Channel: ChannelBoomlify,
-		Email:   addr,
-		token:   boxID,
-	}, nil
+	return &CreatedMailbox{Channel: "boomlify", Email: addr, Token: boxID}, nil
 }
 
 func boomlifyInboxPathSegment(email string) string {
@@ -187,7 +183,7 @@ func boomlifyInboxPathSegment(email string) string {
 	return email
 }
 
-func boomlifyGetEmails(email string) ([]Email, error) {
+func BoomlifyGetEmails(email string) ([]NormEmail, error) {
 	seg := boomlifyInboxPathSegment(email)
 	u := fmt.Sprintf("%s/emails/public/%s", boomlifyBaseURL, url.PathEscape(seg))
 	req, err := http.NewRequest("GET", u, nil)
@@ -215,7 +211,7 @@ func boomlifyGetEmails(email string) ([]Email, error) {
 		return nil, err
 	}
 
-	emails := make([]Email, 0, len(rows))
+	emails := make([]NormEmail, 0, len(rows))
 	for _, raw := range rows {
 		from := raw.FromEmail
 		if from == "" {
@@ -231,7 +227,7 @@ func boomlifyGetEmails(email string) ([]Email, error) {
 			"received_at": raw.ReceivedAt,
 			"isRead":      false,
 		}
-		emails = append(emails, normalizeRawEmail(flat, email))
+		emails = append(emails, NormalizeMap(flat, email))
 	}
 	return emails, nil
 }

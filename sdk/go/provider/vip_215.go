@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ var vip215Boxes = make(map[string]*vip215Box)
 
 type vip215Box struct {
 	mu      sync.Mutex
-	emails  []Email
+	emails  []NormEmail
 	seenIDs map[string]struct{}
 	started bool
 }
@@ -139,7 +139,7 @@ type vip215CreateResp struct {
 	} `json:"data"`
 }
 
-func mailVip215Generate() (*EmailInfo, error) {
+func MailVip215Generate() (*CreatedMailbox, error) {
 	req, err := fhttp.NewRequest("POST", vip215HTTPBase+"/api/temp-inbox", nil)
 	if err != nil {
 		return nil, err
@@ -183,13 +183,10 @@ func mailVip215Generate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("vip-215: invalid API response")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelVip215,
-		Email:     parsed.Data.Address,
-		token:     parsed.Data.Token,
-		CreatedAt: parsed.Data.CreatedAt,
-		ExpiresAt: parsed.Data.ExpiresAt,
-	}, nil
+	info := &CreatedMailbox{Channel: "vip-215", Email: parsed.Data.Address, Token: parsed.Data.Token}
+	info.CreatedAt = parsed.Data.CreatedAt
+	info.ExpiresAt = parsed.Data.ExpiresAt
+	return info, nil
 }
 
 func vip215WsLoop(token, recipient string, box *vip215Box) {
@@ -240,7 +237,7 @@ func vip215WsLoop(token, recipient string, box *vip215Box) {
 			"text":    tPlain,
 			"html":    tHTML,
 		}
-		em := normalizeRawEmail(raw, recipient)
+		em := NormalizeMap(raw, recipient)
 		if strings.TrimSpace(em.ID) == "" {
 			continue
 		}
@@ -255,7 +252,7 @@ func vip215WsLoop(token, recipient string, box *vip215Box) {
 	}
 }
 
-func mailVip215GetEmails(token, email string) ([]Email, error) {
+func MailVip215GetEmails(token, email string) ([]NormEmail, error) {
 	box := getVip215Box(token)
 	box.mu.Lock()
 	needStart := !box.started
@@ -271,7 +268,7 @@ func mailVip215GetEmails(token, email string) ([]Email, error) {
 
 	box.mu.Lock()
 	defer box.mu.Unlock()
-	out := make([]Email, len(box.emails))
+	out := make([]NormEmail, len(box.emails))
 	copy(out, box.emails)
 	return out, nil
 }

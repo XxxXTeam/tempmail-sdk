@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 
 const linshiEmailBaseURL = "https://www.linshi-email.com/api/v1"
 
-type linshiEmailGenerateResponse struct {
+type LinshiEmailGenerateResponse struct {
 	Data struct {
 		Email   string `json:"email"`
 		Expired int64  `json:"expired"`
@@ -26,7 +26,7 @@ type linshiEmailEmailsResponse struct {
 	Status string            `json:"status"`
 }
 
-func linshiEmailGenerate() (*EmailInfo, error) {
+func LinshiEmailGenerate() (*CreatedMailbox, error) {
 	apiKey := RandomSyntheticLinshiAPIPathKey()
 	reqBody := []byte("{}")
 
@@ -48,7 +48,7 @@ func linshiEmailGenerate() (*EmailInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "linshi-email generate"); err != nil {
+	if err := CheckHTTPStatus(resp, "linshi-email generate"); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func linshiEmailGenerate() (*EmailInfo, error) {
 		return nil, err
 	}
 
-	var result linshiEmailGenerateResponse
+	var result LinshiEmailGenerateResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
@@ -66,15 +66,12 @@ func linshiEmailGenerate() (*EmailInfo, error) {
 		return nil, fmt.Errorf("failed to generate email")
 	}
 
-	return &EmailInfo{
-		Channel:   ChannelLinshiEmail,
-		Email:     result.Data.Email,
-		token:     apiKey,
-		ExpiresAt: result.Data.Expired,
-	}, nil
+	info := &CreatedMailbox{Channel: "linshi-email", Email: result.Data.Email, Token: apiKey}
+	info.ExpiresAt = result.Data.Expired
+	return info, nil
 }
 
-func linshiEmailGetEmails(apiPathKey string, email string) ([]Email, error) {
+func LinshiEmailGetEmails(apiPathKey string, email string) ([]NormEmail, error) {
 	if apiPathKey == "" {
 		return nil, fmt.Errorf("internal error: api path key missing for linshi-email")
 	}
@@ -99,7 +96,7 @@ func linshiEmailGetEmails(apiPathKey string, email string) ([]Email, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := checkHTTPStatus(resp, "linshi-email get emails"); err != nil {
+	if err := CheckHTTPStatus(resp, "linshi-email get emails"); err != nil {
 		return nil, err
 	}
 
@@ -117,5 +114,5 @@ func linshiEmailGetEmails(apiPathKey string, email string) ([]Email, error) {
 		return nil, fmt.Errorf("failed to get emails")
 	}
 
-	return normalizeRawEmails(result.List, email)
+	return NormalizeRawMessages(result.List, email)
 }

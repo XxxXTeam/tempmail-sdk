@@ -1,4 +1,4 @@
-package tempemail
+package provider
 
 import (
 	"encoding/json"
@@ -108,9 +108,9 @@ func maildropCxDateToRFC3339(s string) string {
 }
 
 /*
- * maildropGenerate 随机本地部分 + 可选指定域名（须在后缀列表中且未被排除）
+ * MaildropGenerate 随机本地部分 + 可选指定域名（须在后缀列表中且未被排除）
  */
-func maildropGenerate(domain *string) (*EmailInfo, error) {
+func MaildropGenerate(domain *string) (*CreatedMailbox, error) {
 	suffixes, err := maildropFetchSuffixes()
 	if err != nil {
 		return nil, err
@@ -118,11 +118,7 @@ func maildropGenerate(domain *string) (*EmailInfo, error) {
 	dom := maildropPickSuffix(suffixes, domain)
 	local := maildropRandomLocal(10)
 	email := local + "@" + dom
-	return &EmailInfo{
-		Channel: ChannelMaildrop,
-		Email:   email,
-		token:   email,
-	}, nil
+	return &CreatedMailbox{Channel: "maildrop", Email: email, Token: email}, nil
 }
 
 type maildropEmailsResp struct {
@@ -167,9 +163,9 @@ func maildropParseIsRead(raw json.RawMessage) bool {
 }
 
 /*
- * maildropGetEmails 列表仅含 description 摘要
+ * MaildropGetEmails 列表仅含 description 摘要
  */
-func maildropGetEmails(token string, email string) ([]Email, error) {
+func MaildropGetEmails(token string, email string) ([]NormEmail, error) {
 	addr := strings.TrimSpace(email)
 	if addr == "" {
 		addr = strings.TrimSpace(token)
@@ -208,10 +204,10 @@ func maildropGetEmails(token string, email string) ([]Email, error) {
 		return nil, fmt.Errorf("maildrop emails parse: %w", err)
 	}
 
-	out := make([]Email, 0, len(data.Emails))
+	out := make([]NormEmail, 0, len(data.Emails))
 	for _, row := range data.Emails {
 		desc := strings.TrimSpace(row.Description)
-		out = append(out, Email{
+		out = append(out, NormEmail{
 			ID:          maildropRawToString(row.ID),
 			From:        strings.TrimSpace(row.FromAddr),
 			To:          addr,
@@ -220,7 +216,7 @@ func maildropGetEmails(token string, email string) ([]Email, error) {
 			HTML:        "",
 			Date:        maildropCxDateToRFC3339(row.Date),
 			IsRead:      maildropParseIsRead(row.IsRead),
-			Attachments: []EmailAttachment{},
+			Attachments: []NormAttachment{},
 		})
 	}
 	return out, nil
