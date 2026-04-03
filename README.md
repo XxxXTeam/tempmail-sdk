@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **20 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **21 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 五种 SDK 均支持 **20** 个渠道，随机与 `listChannels` 行为对齐
+- 🌐 五种 SDK 均支持 **21** 个渠道，随机与 `listChannels` 行为对齐
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -30,6 +30,7 @@
 | 渠道 | 服务商 | 认证方式 | 说明 |
 |------|--------|----------|------|
 | `tempmail` | [tempmail.ing](https://tempmail.ing) | 邮箱地址 | 支持自定义有效期 |
+| `tempmail-cn` | [tempmail.cn](https://tempmail.cn) | 邮箱地址 | Socket.IO 事件协议：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或已解析到该服务的自定义域名 |
 | `linshi-email` | [linshi-email.com](https://linshi-email.com) | 邮箱地址 | |
 | `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token（`NEXUS_TOKEN`） | 创建邮箱时 Set-Cookie 下发 `NEXUS_TOKEN`；收信需携带该 Token 与 `tmail-emails` 等 Cookie；列表与正文由 HTML 分段 / iframe 解析 |
 | `mffac` | [mffac.com](https://www.mffac.com) | Token（mailbox `id`） | REST：`POST /api/mailboxes` 创建，`GET /api/mailboxes/{local}/emails` 收信；默认 24h |

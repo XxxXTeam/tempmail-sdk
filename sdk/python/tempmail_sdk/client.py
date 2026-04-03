@@ -14,7 +14,7 @@ from .retry import with_retry, with_retry_with_attempts
 from .telemetry import report_telemetry
 from .logger import get_logger
 from .providers import (
-    tempmail, linshi_email, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
+    tempmail, tempmail_cn, linshi_email, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, temporary_email_org, mail_tm, mail_cx,
     dropmail, guerrillamail, maildrop, smail_pw,
     boomlify, minmail, vip_215, anonbox, fake_legal,
@@ -22,7 +22,7 @@ from .providers import (
 
 # 所有支持的渠道列表
 ALL_CHANNELS = [
-    "tempmail", "linshi-email", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
+    "tempmail", "tempmail-cn", "linshi-email", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "temporary-email-org", "mail-tm", "mail-cx",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
     "boomlify", "minmail", "vip-215", "anonbox", "fake-legal",
@@ -31,6 +31,7 @@ ALL_CHANNELS = [
 # 渠道信息映射表
 CHANNEL_INFO_MAP = {
     "tempmail": ChannelInfo(channel="tempmail", name="TempMail", website="tempmail.ing"),
+    "tempmail-cn": ChannelInfo(channel="tempmail-cn", name="TempMail CN", website="tempmail.cn"),
     "linshi-email": ChannelInfo(channel="linshi-email", name="临时邮箱", website="linshi-email.com"),
     "linshiyou": ChannelInfo(channel="linshiyou", name="临时邮", website="linshiyou.com"),
     "mffac": ChannelInfo(channel="mffac", name="MFFAC", website="mffac.com"),
@@ -127,6 +128,8 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
     """单次创建邮箱（不含重试逻辑）"""
     if channel == "tempmail":
         return tempmail.generate_email(options.duration)
+    elif channel == "tempmail-cn":
+        return tempmail_cn.generate_email(options.domain)
     elif channel == "linshi-email":
         return linshi_email.generate_email()
     elif channel == "linshiyou":
@@ -229,6 +232,8 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
     """单次获取邮件（不含重试逻辑）"""
     if channel == "tempmail":
         return tempmail.get_emails(email)
+    elif channel == "tempmail-cn":
+        return tempmail_cn.get_emails(email)
     elif channel == "linshi-email":
         if not token:
             raise ValueError("token is required for linshi-email channel")
@@ -317,7 +322,7 @@ class TempEmailClient:
     def __init__(self):
         self._email_info: Optional[EmailInfo] = None
 
-    def generate(self, options: Optional[GenerateEmailOptions] = None) -> EmailInfo:
+    def generate(self, options: Optional[GenerateEmailOptions] = None) -> Optional[EmailInfo]:
         """创建临时邮箱并缓存邮箱信息"""
         self._email_info = generate_email(options)
         return self._email_info

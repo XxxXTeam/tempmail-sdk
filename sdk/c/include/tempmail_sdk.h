@@ -39,6 +39,7 @@ typedef enum {
     CHANNEL_ANONBOX,
     CHANNEL_FAKE_LEGAL,
     CHANNEL_MFFAC,
+    CHANNEL_TEMPMAIL_CN,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;
@@ -117,7 +118,7 @@ typedef struct {
 typedef struct {
     tm_channel_t channel;        /* 渠道，CHANNEL_RANDOM 随机 */
     int duration;                /* tempmail 有效期（分钟） */
-    const char *domain;          /* tempmail-lol 域名 */
+    const char *domain;          /* tempmail-cn 接入域名，或 tempmail-lol 等渠道域名 */
     tm_retry_config_t *retry;    /* 重试配置，NULL 使用默认 */
 } tm_generate_options_t;
 

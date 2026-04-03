@@ -10,7 +10,7 @@ use crate::providers;
 
 /// 所有支持的渠道列表
 pub const ALL_CHANNELS: &[Channel] = &[
-    Channel::Tempmail, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
+    Channel::Tempmail, Channel::TempmailCn, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
     Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::MailCx, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
@@ -26,6 +26,7 @@ pub fn list_channels() -> Vec<ChannelInfo> {
 pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
     Some(match channel {
         Channel::Tempmail => ChannelInfo { channel: Channel::Tempmail, name: "TempMail", website: "tempmail.ing" },
+        Channel::TempmailCn => ChannelInfo { channel: Channel::TempmailCn, name: "TempMail CN", website: "tempmail.cn" },
         Channel::LinshiEmail => ChannelInfo { channel: Channel::LinshiEmail, name: "临时邮箱", website: "linshi-email.com" },
         Channel::Linshiyou => ChannelInfo { channel: Channel::Linshiyou, name: "临时邮", website: "linshiyou.com" },
         Channel::Mffac => ChannelInfo { channel: Channel::Mffac, name: "MFFAC", website: "mffac.com" },
@@ -121,6 +122,7 @@ fn build_channel_order(preferred: Option<&Channel>) -> Vec<Channel> {
 fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -> Result<EmailInfo, String> {
     match channel {
         Channel::Tempmail => providers::tempmail::generate_email(duration),
+        Channel::TempmailCn => providers::tempmail_cn::generate_email(domain),
         Channel::LinshiEmail => providers::linshi_email::generate_email(),
         Channel::Linshiyou => providers::linshiyou::generate_email(),
         Channel::Mffac => providers::mffac::generate_email(),
@@ -215,6 +217,7 @@ pub fn get_emails(info: &EmailInfo, options: Option<&GetEmailsOptions>) -> GetEm
 fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Result<Vec<Email>, String> {
     match channel {
         Channel::Tempmail => providers::tempmail::get_emails(email),
+        Channel::TempmailCn => providers::tempmail_cn::get_emails(email),
         Channel::LinshiEmail => {
             let t = token.ok_or("token is required for linshi-email")?;
             providers::linshi_email::get_emails(t, email)

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 一致（`temporary-email-org` 在 `vip-215` 之后；`mffac` 在 `fake-legal` 之后，与枚举一致）。
+临时邮箱 SDK（C），支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 一致（`temporary-email-org` 在 `vip-215` 之后；`mffac` 在 `fake-legal` 之后，与枚举一致）。
 
 ## 依赖
 
@@ -61,6 +61,7 @@ cmake --build build
 | anonbox | `CHANNEL_ANONBOX` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
 | fake-legal | `CHANNEL_FAKE_LEGAL` | fake.legal | - | `/api/domains` + `/api/inbox/new`；`tm_generate_options_t.domain` 可选 |
 | mffac | `CHANNEL_MFFAC` | mffac.com | ✅ | mailbox `id`；REST 24h |
+| tempmail-cn | `CHANNEL_TEMPMAIL_CN` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`tm_generate_options_t.domain` 可指定自定义接入域名 |
 
 ## 快速开始
 

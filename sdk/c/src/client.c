@@ -34,6 +34,7 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_ANONBOX,            "Anonbox",          "anonbox.net" },
     { CHANNEL_FAKE_LEGAL,         "Fake Legal",       "fake.legal" },
     { CHANNEL_MFFAC,              "MFFAC",            "mffac.com" },
+    { CHANNEL_TEMPMAIL_CN,        "TempMail CN",      "tempmail.cn" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -53,6 +54,7 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
     for (int attempt = 0; attempt <= cfg.max_retries; attempt++) {
         switch (channel) {
             case CHANNEL_TEMPMAIL:       result = tm_provider_tempmail_generate(duration); break;
+            case CHANNEL_TEMPMAIL_CN:    result = tm_provider_tempmail_cn_generate(domain); break;
             case CHANNEL_LINSHI_EMAIL:   result = tm_provider_linshi_email_generate(); break;
             case CHANNEL_LINSHIYOU:      result = tm_provider_linshiyou_generate(); break;
             case CHANNEL_TEMPMAIL_LOL:   result = tm_provider_tempmail_lol_generate(domain); break;
@@ -186,6 +188,7 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
     for (int attempt = 0; attempt <= cfg.max_retries; attempt++) {
         switch (email_info->channel) {
             case CHANNEL_TEMPMAIL:       emails = tm_provider_tempmail_get_emails(email_info->email, &count); break;
+            case CHANNEL_TEMPMAIL_CN:    emails = tm_provider_tempmail_cn_get_emails(email_info->email, &count); break;
             case CHANNEL_LINSHI_EMAIL:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_linshi_email_get_emails(email_info->token, email_info->email, &count);

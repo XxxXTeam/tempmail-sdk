@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,11 +17,12 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **20** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同）。
+共 **21** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同）。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
+| `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或自定义接入域名 |
 | `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + `tmail-emails` 等 Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | `POST /api/mailboxes`；token 为 mailbox `id`；24h |
@@ -106,6 +107,9 @@ const emailInfo3 = await generateEmail({ channel: 'tempmail', duration: 60 });
 // tempmail-lol 渠道支持指定域名
 const emailInfo4 = await generateEmail({ channel: 'tempmail-lol', domain: 'example.com' });
 
+// tempmail-cn 渠道支持指定 tempmail.cn 自定义接入域名
+const emailInfo5 = await generateEmail({ channel: 'tempmail-cn', domain: 'mail.example.com' });
+
 // 只尝试指定渠道（探测可用性、写自动化时用）
 const probe = await generateEmail({ channel: 'smail-pw', channelFallback: false });
 ```
@@ -162,7 +166,7 @@ if (mailTm) {
 | `channel` | `Channel` | 指定渠道（可选，不指定则随机） |
 | `channelFallback` | `boolean` | 默认 `true`：指定渠道失败会继续尝试其他渠道；设为 `false` 时仅尝试 `channel` |
 | `duration` | `number` | 有效期分钟数（仅 `tempmail` 渠道） |
-| `domain` | `string` | 指定域名（`tempmail-lol`、`maildrop`、`fake-legal`） |
+| `domain` | `string` | 指定域名（`tempmail-cn`、`tempmail-lol`、`maildrop`、`fake-legal`） |
 | `retry` | `RetryConfig` | 创建邮箱时的重试（超时、5xx、网络错误等） |
 
 **返回值:** `EmailInfo`

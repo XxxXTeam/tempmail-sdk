@@ -73,6 +73,12 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient);
 tm_email_info_t* tm_provider_tempmail_generate(int duration);
 tm_email_t* tm_provider_tempmail_get_emails(const char *email, int *count);
 
+void tm_tempmail_cn_module_init(void);
+void tm_tempmail_cn_module_cleanup(void);
+
+tm_email_info_t* tm_provider_tempmail_cn_generate(const char *domain);
+tm_email_t* tm_provider_tempmail_cn_get_emails(const char *email, int *count);
+
 int tm_linshi_random_api_path_key(char *out, size_t out_cap);
 void tm_linshi_derive_path_key(const char *visitor_id, char *out, size_t cap);
 

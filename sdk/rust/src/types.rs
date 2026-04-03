@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 pub enum Channel {
     #[serde(rename = "tempmail")]
     Tempmail,
+    #[serde(rename = "tempmail-cn")]
+    TempmailCn,
     #[serde(rename = "linshi-email")]
     LinshiEmail,
     #[serde(rename = "linshiyou")]
@@ -53,6 +55,7 @@ impl std::fmt::Display for Channel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Channel::Tempmail => write!(f, "tempmail"),
+            Channel::TempmailCn => write!(f, "tempmail-cn"),
             Channel::LinshiEmail => write!(f, "linshi-email"),
             Channel::Linshiyou => write!(f, "linshiyou"),
             Channel::Mffac => write!(f, "mffac"),
@@ -173,7 +176,7 @@ pub struct GenerateEmailOptions {
     pub channel: Option<Channel>,
     /// tempmail 渠道的有效期（分钟）
     pub duration: Option<u32>,
-    /// tempmail-lol 渠道的指定域名
+    /// 指定邮箱域名/接入域名（如 tempmail-cn、tempmail-lol）
     pub domain: Option<String>,
     /// 重试配置
     pub retry: Option<RetryConfig>,

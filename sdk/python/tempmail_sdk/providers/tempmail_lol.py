@@ -3,6 +3,7 @@ tempmail.lol 渠道实现
 API: https://api.tempmail.lol/v2
 """
 
+from typing import Optional
 from urllib.parse import quote
 from .. import http as tm_http
 from ..types import EmailInfo
@@ -22,7 +23,7 @@ DEFAULT_HEADERS = {
 }
 
 
-def generate_email(domain: str = None, **kwargs) -> EmailInfo:
+def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     """创建临时邮箱，支持指定域名"""
     resp = tm_http.post(
         f"{BASE_URL}/inbox/create",

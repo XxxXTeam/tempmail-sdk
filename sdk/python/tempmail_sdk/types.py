@@ -8,6 +8,7 @@ from typing import Optional, List, Literal, Any
 # 支持的临时邮箱渠道标识
 Channel = Literal[
     "tempmail",
+    "tempmail-cn",
     "linshi-email",
     "linshiyou",
     "mffac",
@@ -106,7 +107,7 @@ class GenerateEmailOptions:
 
     channel: Optional[str] = None           # 指定渠道，不指定则随机选择
     duration: int = 30                      # tempmail 渠道的有效期（分钟）
-    domain: Optional[str] = None            # tempmail-lol / maildrop / fake-legal / mail-cx 可选指定域名
+    domain: Optional[str] = None            # tempmail-cn 接入域名，或 tempmail-lol / maildrop / fake-legal / mail-cx 指定域名
     retry: Optional[RetryConfig] = None     # 重试配置
 
 

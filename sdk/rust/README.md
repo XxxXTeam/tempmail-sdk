@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致。
+临时邮箱 SDK（Rust），支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致。
 
 ## 安装
 
@@ -22,6 +22,7 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | 渠道（`Channel`） | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `Tempmail` | tempmail.ing | - | 支持自定义有效期 |
+| `TempmailCn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
 | `LinshiEmail` | linshi-email.com | - | |
 | `Linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `Mffac` | mffac.com | ✅ | mailbox `id` token；REST 24h |

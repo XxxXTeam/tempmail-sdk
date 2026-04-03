@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **20** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
+临时邮箱 SDK（Python），支持 **21** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
 
 ## 安装
 
@@ -19,6 +19,7 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
+| `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
 | `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | mailbox `id`；REST 24h |

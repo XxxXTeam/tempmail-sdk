@@ -3,6 +3,7 @@
  */
 
 pub mod tempmail;
+pub mod tempmail_cn;
 pub mod linshi_email;
 pub mod linshi_token;
 pub mod linshiyou;

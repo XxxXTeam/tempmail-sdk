@@ -265,10 +265,12 @@ void tm_init(void) {
     curl_global_init(CURL_GLOBAL_ALL);
     load_env_config();
     tm_vip215_module_init();
+    tm_tempmail_cn_module_init();
 }
 
 void tm_cleanup(void) {
     tm_telemetry_flush_batch();
     tm_vip215_module_cleanup();
+    tm_tempmail_cn_module_cleanup();
     curl_global_cleanup();
 }

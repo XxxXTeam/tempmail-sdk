@@ -2,7 +2,7 @@
  * 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商
  */
-export type Channel = 'tempmail' | 'linshi-email' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'awamail' | 'temporary-email-org' | 'mail-tm' | 'mail-cx' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw' | 'boomlify' | 'minmail' | 'vip-215' | 'anonbox' | 'fake-legal';
+export type Channel = 'tempmail' | 'tempmail-cn' | 'linshi-email' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'awamail' | 'temporary-email-org' | 'mail-tm' | 'mail-cx' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw' | 'boomlify' | 'minmail' | 'vip-215' | 'anonbox' | 'fake-legal';
 
 /**
  * 创建临时邮箱后返回的邮箱信息
@@ -130,7 +130,7 @@ export interface GenerateEmailOptions {
   channelFallback?: boolean;
   /** 邮箱有效时长 */
   duration?: number;
-  /** 指定邮箱域名 */
+  /** 指定邮箱域名或接入域名（如 `tempmail-cn` 自定义域名） */
   domain?: string | null;
   /** 重试配置，不传则使用默认值（最多重试 2 次） */
   retry?: RetryConfig;

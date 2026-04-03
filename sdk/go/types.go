@@ -8,6 +8,7 @@ type Channel string
 
 const (
 	ChannelTempmail          Channel = "tempmail"            // tempmail.ing
+	ChannelTempmailCn        Channel = "tempmail-cn"         // tempmail.cn
 	ChannelLinshiEmail       Channel = "linshi-email"        // linshi-email.com
 	ChannelLinshiyou         Channel = "linshiyou"           // linshiyou.com
 	ChannelMffac             Channel = "mffac"               // mffac.com
@@ -115,7 +116,7 @@ type GenerateEmailOptions struct {
 	Channel Channel
 	/* 邮箱有效时长（分钟），仅 tempmail 渠道支持，默认 30 */
 	Duration int
-	/* 指定邮箱域名：tempmail-lol、fake-legal 渠道可选 */
+	/* 指定邮箱域名/接入域名：如 tempmail-cn、tempmail-lol、fake-legal 渠道可选 */
 	Domain *string
 	/* 重试配置，nil 则使用默认值（最多重试 2 次） */
 	Retry *RetryOptions

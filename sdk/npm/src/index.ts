@@ -1,4 +1,5 @@
 import * as tempmail from './providers/tempmail';
+import * as tempmailCn from './providers/tempmail-cn';
 import * as linshiEmail from './providers/linshi-email';
 import * as linshiyou from './providers/linshiyou';
 import * as mffac from './providers/mffac';
@@ -48,7 +49,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
+const allChannels: Channel[] = ['tempmail', 'tempmail-cn', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -65,6 +66,7 @@ export interface ChannelInfo {
 /** 渠道信息映射表 */
 const channelInfoMap: Record<Channel, ChannelInfo> = {
   'tempmail': { channel: 'tempmail', name: 'TempMail', website: 'tempmail.ing' },
+  'tempmail-cn': { channel: 'tempmail-cn', name: 'TempMail CN', website: 'tempmail.cn' },
   'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
   'linshiyou': { channel: 'linshiyou', name: '临时邮', website: 'linshiyou.com' },
   'tempmail-lol': { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
@@ -196,6 +198,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
   switch (channel) {
     case 'tempmail':
       return tempmail.generateEmail(options.duration || 30);
+    case 'tempmail-cn':
+      return tempmailCn.generateEmail(options.domain ?? null);
     case 'linshi-email':
       return linshiEmail.generateEmail();
     case 'linshiyou':
@@ -308,6 +312,8 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
   switch (channel) {
     case 'tempmail':
       return tempmail.getEmails(email);
+    case 'tempmail-cn':
+      return tempmailCn.getEmails(email);
     case 'linshi-email':
       if (!token) throw new Error('internal error: token missing for linshi-email');
       return linshiEmail.getEmails(email, token);

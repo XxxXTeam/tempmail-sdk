@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **20** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
+Go 语言临时邮箱 SDK，支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
 
 ## 安装
 
@@ -16,6 +16,7 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | 渠道 | 服务商 | 常量 | 说明 |
 |------|--------|------|------|
 | `tempmail` | tempmail.ing | `ChannelTempmail` | 支持自定义有效期 |
+| `tempmail-cn` | tempmail.cn | `ChannelTempmailCn` | Socket.IO：`request shortid` / `set shortid` / `mail`；`Domain` 可指定 `tempmail.cn` 或自定义接入域名 |
 | `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
 | `linshiyou` | linshiyou.com | `ChannelLinshiyou` | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；24h |

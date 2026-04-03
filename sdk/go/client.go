@@ -10,6 +10,7 @@ import (
 /* 所有支持的渠道列表，用于随机选择和遍历 */
 var allChannels = []Channel{
 	ChannelTempmail,
+	ChannelTempmailCn,
 	ChannelLinshiEmail,
 	ChannelLinshiyou,
 	ChannelMffac,
@@ -46,6 +47,7 @@ type ChannelInfo struct {
 /* 渠道信息映射表 */
 var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmail:          {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
+	ChannelTempmailCn:        {Channel: ChannelTempmailCn, Name: "TempMail CN", Website: "tempmail.cn"},
 	ChannelLinshiEmail:       {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
 	ChannelLinshiyou:         {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
 	ChannelMffac:             {Channel: ChannelMffac, Name: "MFFAC", Website: "mffac.com"},
@@ -173,6 +175,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 			duration = 30
 		}
 		return fromMailbox(prov.TempmailGenerate(duration))
+
+	case ChannelTempmailCn:
+		return fromMailbox(prov.TempmailCNGenerate(opts.Domain))
 
 	case ChannelLinshiEmail:
 		return fromMailbox(prov.LinshiEmailGenerate())
@@ -315,6 +320,9 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 	switch channel {
 	case ChannelTempmail:
 		return normEmailsResult(prov.TempmailGetEmails(email))
+
+	case ChannelTempmailCn:
+		return normEmailsResult(prov.TempmailCNGetEmails(email))
 
 	case ChannelLinshiEmail:
 		if token == "" {
