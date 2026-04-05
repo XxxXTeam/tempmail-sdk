@@ -3,6 +3,60 @@
  */
 
 #include "tempmail_internal.h"
+#include <time.h>
+
+/* 将 received_at 等字段（字符串或毫秒/秒时间戳）格式化为 RFC3339 UTC */
+static char *tm_normalize_date_json(const cJSON *raw) {
+    const char *k1[] = {"received_at", "receivedAt", "created_at", "createdAt", "date"};
+    for (int i = 0; i < 5; i++) {
+        const cJSON *item = cJSON_GetObjectItemCaseSensitive(raw, k1[i]);
+        if (!item) continue;
+        if (cJSON_IsString(item) && item->valuestring && item->valuestring[0] != '\0') {
+            return tm_strdup(item->valuestring);
+        }
+        if (cJSON_IsNumber(item) && item->valuedouble > 0) {
+            double v = item->valuedouble;
+            time_t sec = (v > 1e12) ? (time_t)(v / 1000.0 + 0.5) : (time_t)(v + 0.5);
+            char buf[48];
+            struct tm tmu;
+#ifdef _WIN32
+            if (gmtime_s(&tmu, &sec) != 0) memset(&tmu, 0, sizeof(tmu));
+#else
+            gmtime_r(&sec, &tmu);
+#endif
+            strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tmu);
+            return tm_strdup(buf);
+        }
+    }
+    const cJSON *ts = cJSON_GetObjectItemCaseSensitive(raw, "timestamp");
+    if (cJSON_IsNumber(ts) && ts->valuedouble > 0) {
+        double v = ts->valuedouble;
+        time_t sec = (v < 1e12) ? (time_t)(v + 0.5) : (time_t)(v / 1000.0 + 0.5);
+        char buf[48];
+        struct tm tmu;
+#ifdef _WIN32
+        if (gmtime_s(&tmu, &sec) != 0) memset(&tmu, 0, sizeof(tmu));
+#else
+        gmtime_r(&sec, &tmu);
+#endif
+        strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tmu);
+        return tm_strdup(buf);
+    }
+    const cJSON *ed = cJSON_GetObjectItemCaseSensitive(raw, "e_date");
+    if (cJSON_IsNumber(ed) && ed->valuedouble > 0) {
+        time_t sec = (time_t)(ed->valuedouble / 1000.0 + 0.5);
+        char buf[48];
+        struct tm tmu;
+#ifdef _WIN32
+        if (gmtime_s(&tmu, &sec) != 0) memset(&tmu, 0, sizeof(tmu));
+#else
+        gmtime_r(&sec, &tmu);
+#endif
+        strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tmu);
+        return tm_strdup(buf);
+    }
+    return tm_strdup("");
+}
 
 tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     tm_email_t email;
@@ -13,8 +67,8 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     email.id = tm_json_get_str(raw, id_keys, 6);
 
     /* From */
-    const char *from_keys[] = {"from_addr", "from_address", "fromAddress", "sender", "address_from", "from_email", "from", "messageFrom"};
-    email.from_addr = tm_json_get_str(raw, from_keys, 8);
+    const char *from_keys[] = {"from_addr", "from_address", "fromAddress", "mail_sender", "sender", "address_from", "from_email", "from", "messageFrom"};
+    email.from_addr = tm_json_get_str(raw, from_keys, 9);
 
     /* To */
     const char *to_keys[] = {"to", "to_address", "toAddress", "name_to", "email_address", "address"};
@@ -25,16 +79,16 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
     }
 
     /* Subject */
-    const char *subj_keys[] = {"subject", "e_subject"};
-    email.subject = tm_json_get_str(raw, subj_keys, 2);
+    const char *subj_keys[] = {"subject", "e_subject", "mail_title"};
+    email.subject = tm_json_get_str(raw, subj_keys, 3);
 
     /* Text */
-    const char *text_keys[] = {"text", "text_body", "preview_text", "body", "content", "body_text", "text_content", "description"};
-    email.text = tm_json_get_str(raw, text_keys, 6);
+    const char *text_keys[] = {"text", "text_body", "preview_text", "mail_body_text", "body", "content", "body_text", "text_content", "description"};
+    email.text = tm_json_get_str(raw, text_keys, 9);
 
     /* HTML */
-    const char *html_keys[] = {"html", "html_body", "html_content", "body_html"};
-    email.html = tm_json_get_str(raw, html_keys, 3);
+    const char *html_keys[] = {"html", "html_body", "html_content", "body_html", "mail_body_html"};
+    email.html = tm_json_get_str(raw, html_keys, 5);
 
     /*
      * 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中
@@ -59,9 +113,8 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
         }
     }
 
-    /* Date */
-    const char *date_keys[] = {"received_at", "receivedAt", "created_at", "createdAt", "date", "timestamp", "e_date"};
-    email.date = tm_json_get_str(raw, date_keys, 7);
+    /* Date（含数字型毫秒时间戳，如 ta-easy received_at） */
+    email.date = tm_normalize_date_json(raw);
 
     /* IsRead */
     email.is_read = false;

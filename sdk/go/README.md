@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `types.go` 中 `Channel` 常量及 `client` 分发一致。
+Go 语言临时邮箱 SDK，支持 **26** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。`ListChannels` / 随机尝试顺序与 `client.go` 中 `allChannels` 一致。
 
 ## 安装
 
@@ -17,6 +17,10 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 |------|--------|------|------|
 | `tempmail` | tempmail.ing | `ChannelTempmail` | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | `ChannelTempmailCn` | Socket.IO：`request shortid` / `set shortid` / `mail`；`Domain` 可指定 `tempmail.cn` 或自定义接入域名 |
+| `tmpmails` | tmpmails.com | `ChannelTmpmails` | `user_sign` Cookie + Next.js Server Action 收信；`Domain` 可选语言路径（`zh`/`en` 等） |
+| `tempmailg` | tempmailg.com | `ChannelTempmailg` | 无 Cookie 罐 `GET /public/{locale}` + `POST /public/get_messages`；Token 内含 Cookie 与 CSRF；`Domain` 可选语言路径 |
+| `ta-easy` | ta-easy.com | `ChannelTaEasy` | REST：`api-endpoint.ta-easy.com`；需 Token；`ExpiresAt` 毫秒时间戳 |
+| `10mail-wangtz` | 10mail.wangtz.cn | `Channel10mailWangtz` | REST `/api/tempMail`、`/api/emailList`；后缀 `wangtz.cn`；`HTTPClientTenmailWangtz` 默认 **InsecureSkipVerify** |
 | `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
 | `linshiyou` | linshiyou.com | `ChannelLinshiyou` | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；24h |
@@ -36,6 +40,7 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `vip-215` | vip.215.im | `ChannelVip215` | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
 | `anonbox` | anonbox.net | `ChannelAnonbox` | `GET /en/` 解析 HTML + mbox 收信 |
 | `fake-legal` | fake.legal | `ChannelFakeLegal` | `/api/domains` + `/api/inbox/new`；可选域名 |
+| `moakt` | moakt.com | `ChannelMoakt` | `GET /{locale}` → `/inbox` 解析 `#email-address`；Token 为 `mok1:` + Base64 JSON（`locale` + Cookie，须含 `tm_session`）；收信逐封 `GET .../email/{uuid}/html`；`HTTPClientNoCookieJar`；`Domain` 可选语言路径 |
 
 > **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 
@@ -236,7 +241,7 @@ export TEMPMAIL_TELEMETRY_URL="https://example.com/v1/event"
 |------|------|------|
 | `Channel` | `Channel` | 指定渠道（可选，不指定则随机） |
 | `Duration` | `int` | 有效期分钟数（仅 `tempmail` 渠道） |
-| `Domain` | `*string` | 指定域名（`tempmail-lol`、`maildrop`、`fake-legal`） |
+| `Domain` | `*string` | 指定域名或接入参数（`tempmail-cn`、`tempmail-lol`、`maildrop`、`fake-legal`、`mail-cx`、`tmpmails` / `tempmailg` / `moakt` 语言路径、`10mail-wangtz` 本地部分等） |
 | `Retry` | `*RetryOptions` | 创建邮箱时的 HTTP 重试，nil 使用默认 |
 
 **返回值:** `*EmailInfo`

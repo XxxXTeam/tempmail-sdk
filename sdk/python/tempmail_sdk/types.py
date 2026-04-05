@@ -9,6 +9,10 @@ from typing import Optional, List, Literal, Any
 Channel = Literal[
     "tempmail",
     "tempmail-cn",
+    "tmpmails",
+    "ta-easy",
+    "10mail-wangtz",
+    "10minute-one",
     "linshi-email",
     "linshiyou",
     "mffac",
@@ -28,6 +32,7 @@ Channel = Literal[
     "vip-215",
     "anonbox",
     "fake-legal",
+    "moakt",
 ]
 
 

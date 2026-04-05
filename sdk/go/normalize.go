@@ -102,33 +102,33 @@ func normalizeID(raw map[string]interface{}) string {
 	return getStr(raw, "id", "eid", "_id", "mailboxId", "messageId", "mail_id")
 }
 
-/* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender */
+/* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender, mail_sender（ta-easy） */
 func normalizeFrom(raw map[string]interface{}) string {
-	return getStr(raw, "from_addr", "from_address", "fromAddress", "sender", "address_from", "from_email", "from", "messageFrom")
+	return getStr(raw, "from_addr", "from_address", "fromAddress", "fromEmail", "mail_sender", "sender", "address_from", "from_email", "from", "messageFrom")
 }
 
 /* normalizeTo 提取收件人地址，无匹配字段时回退为 recipientEmail */
 func normalizeTo(raw map[string]interface{}, recipientEmail string) string {
-	result := getStr(raw, "to", "to_address", "toAddress", "name_to", "email_address", "address")
+	result := getStr(raw, "to", "to_address", "toAddress", "toEmail", "name_to", "email_address", "address")
 	if result == "" {
 		return recipientEmail
 	}
 	return result
 }
 
-/* normalizeSubject 提取邮件主题，候选字段: subject, e_subject */
+/* normalizeSubject 提取邮件主题，候选字段: subject, e_subject, mail_title（ta-easy） */
 func normalizeSubject(raw map[string]interface{}) string {
-	return getStr(raw, "subject", "e_subject")
+	return getStr(raw, "subject", "e_subject", "mail_title")
 }
 
-/* normalizeText 提取纯文本内容，候选字段: text, body, content, body_text, text_content */
+/* normalizeText 提取纯文本内容，候选字段: text, body, content, body_text, text_content, mail_body_text（ta-easy） */
 func normalizeText(raw map[string]interface{}) string {
-	return getStr(raw, "text", "text_body", "preview_text", "body", "content", "body_text", "text_content", "description")
+	return getStr(raw, "text", "text_body", "preview_text", "mail_body_text", "body", "content", "body_text", "text_content", "description")
 }
 
-/* normalizeHTML 提取 HTML 内容，候选字段: html, html_content, body_html */
+/* normalizeHTML 提取 HTML 内容，候选字段: html, html_content, body_html, mail_body_html（ta-easy） */
 func normalizeHTML(raw map[string]interface{}) string {
-	return getStr(raw, "html", "html_body", "html_content", "body_html")
+	return getStr(raw, "html", "html_body", "html_content", "body_html", "mail_body_html")
 }
 
 /*
@@ -142,6 +142,10 @@ func normalizeDate(raw map[string]interface{}) string {
 		if v, ok := raw[key]; ok && v != nil {
 			switch val := v.(type) {
 			case string:
+				/* Next.js RSC / Flight：日期序列化为 "$D2026-04-04T23:24:49.308Z" */
+				if strings.HasPrefix(val, "$D") {
+					val = val[2:]
+				}
 				if t, err := time.Parse(time.RFC3339, val); err == nil {
 					return t.UTC().Format(time.RFC3339)
 				}
@@ -184,6 +188,17 @@ func normalizeDate(raw map[string]interface{}) string {
  * 支持 bool / float64(0|1) / string("0"|"1") 多种类型
  */
 func normalizeIsRead(raw map[string]interface{}) bool {
+	/* tmpmails：readAt 非空表示已读 */
+	if v, ok := raw["readAt"]; ok && v != nil {
+		switch val := v.(type) {
+		case string:
+			return strings.TrimSpace(val) != ""
+		case float64:
+			return val != 0
+		case bool:
+			return val
+		}
+	}
 	/* 布尔值 seen (mail.tm) */
 	if v, ok := raw["seen"]; ok {
 		if b, ok := v.(bool); ok {

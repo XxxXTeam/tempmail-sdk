@@ -10,11 +10,11 @@ use crate::providers;
 
 /// 所有支持的渠道列表
 pub const ALL_CHANNELS: &[Channel] = &[
-    Channel::Tempmail, Channel::TempmailCn, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
+    Channel::Tempmail, Channel::TempmailCn, Channel::Tmpmails, Channel::TaEasy, Channel::TenmailWangtz, Channel::TenminuteOne, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
     Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::MailCx, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
-    Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal,
+    Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal, Channel::Moakt,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -27,6 +27,10 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
     Some(match channel {
         Channel::Tempmail => ChannelInfo { channel: Channel::Tempmail, name: "TempMail", website: "tempmail.ing" },
         Channel::TempmailCn => ChannelInfo { channel: Channel::TempmailCn, name: "TempMail CN", website: "tempmail.cn" },
+        Channel::Tmpmails => ChannelInfo { channel: Channel::Tmpmails, name: "TmpMails", website: "tmpmails.com" },
+        Channel::TaEasy => ChannelInfo { channel: Channel::TaEasy, name: "TA Easy", website: "ta-easy.com" },
+        Channel::TenmailWangtz => ChannelInfo { channel: Channel::TenmailWangtz, name: "10mail Wangtz", website: "10mail.wangtz.cn" },
+        Channel::TenminuteOne => ChannelInfo { channel: Channel::TenminuteOne, name: "10 Minute Email", website: "10minutemail.one" },
         Channel::LinshiEmail => ChannelInfo { channel: Channel::LinshiEmail, name: "临时邮箱", website: "linshi-email.com" },
         Channel::Linshiyou => ChannelInfo { channel: Channel::Linshiyou, name: "临时邮", website: "linshiyou.com" },
         Channel::Mffac => ChannelInfo { channel: Channel::Mffac, name: "MFFAC", website: "mffac.com" },
@@ -46,6 +50,7 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Vip215 => ChannelInfo { channel: Channel::Vip215, name: "VIP 215", website: "vip.215.im" },
         Channel::Anonbox => ChannelInfo { channel: Channel::Anonbox, name: "Anonbox", website: "anonbox.net" },
         Channel::FakeLegal => ChannelInfo { channel: Channel::FakeLegal, name: "Fake Legal", website: "fake.legal" },
+        Channel::Moakt => ChannelInfo { channel: Channel::Moakt, name: "Moakt", website: "moakt.com" },
     })
 }
 
@@ -123,6 +128,10 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
     match channel {
         Channel::Tempmail => providers::tempmail::generate_email(duration),
         Channel::TempmailCn => providers::tempmail_cn::generate_email(domain),
+        Channel::Tmpmails => providers::tmpmails::generate_email(domain),
+        Channel::TaEasy => providers::ta_easy::generate_email(),
+        Channel::TenmailWangtz => providers::tenmail_wangtz::generate_email(domain),
+        Channel::TenminuteOne => providers::tenminute_one::generate_email(domain),
         Channel::LinshiEmail => providers::linshi_email::generate_email(),
         Channel::Linshiyou => providers::linshiyou::generate_email(),
         Channel::Mffac => providers::mffac::generate_email(),
@@ -142,6 +151,7 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::Vip215 => providers::vip_215::generate_email(),
         Channel::Anonbox => providers::anonbox::generate_email(),
         Channel::FakeLegal => providers::fake_legal::generate_email(domain),
+        Channel::Moakt => providers::moakt::generate_email(domain),
     }
 }
 
@@ -218,6 +228,19 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
     match channel {
         Channel::Tempmail => providers::tempmail::get_emails(email),
         Channel::TempmailCn => providers::tempmail_cn::get_emails(email),
+        Channel::Tmpmails => {
+            let t = token.ok_or("token is required for tmpmails")?;
+            providers::tmpmails::get_emails(t, email)
+        },
+        Channel::TaEasy => {
+            let t = token.ok_or("token is required for ta-easy")?;
+            providers::ta_easy::get_emails(email, t)
+        },
+        Channel::TenmailWangtz => providers::tenmail_wangtz::get_emails(email),
+        Channel::TenminuteOne => {
+            let t = token.ok_or("token is required for 10minute-one")?;
+            providers::tenminute_one::get_emails(t, email)
+        },
         Channel::LinshiEmail => {
             let t = token.ok_or("token is required for linshi-email")?;
             providers::linshi_email::get_emails(t, email)
@@ -282,6 +305,10 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
             providers::anonbox::get_emails(t, email)
         }
         Channel::FakeLegal => providers::fake_legal::get_emails(email),
+        Channel::Moakt => {
+            let t = token.ok_or("token is required for moakt")?;
+            providers::moakt::get_emails(t, email)
+        }
     }
 }
 

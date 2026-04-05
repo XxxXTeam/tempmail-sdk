@@ -53,8 +53,12 @@ type NormEmail struct {
 var (
 	// HTTPClient 由 tempemail.init 注入
 	HTTPClient func() tls_client.HttpClient
+	// HTTPClientTenmailWangtz 10mail.wangtz.cn 等渠道默认跳过 TLS 校验的客户端；nil 时回退 HTTPClient
+	HTTPClientTenmailWangtz func() tls_client.HttpClient
 	// HTTPClientNoRedirect 由 tempemail.init 注入（不跟随重定向）
 	HTTPClientNoRedirect func() tls_client.HttpClient
+	// HTTPClientNoCookieJar 由 tempemail.init 注入（不持久化 Cookie，供 tempmailg 等）
+	HTTPClientNoCookieJar func() tls_client.HttpClient
 	// CheckHTTPStatus 由 tempemail.init 注入（状态码 >=400 返回 error）
 	CheckHTTPStatus func(*http.Response, string) error
 	// GetCurrentUA 由 tempemail.init 注入

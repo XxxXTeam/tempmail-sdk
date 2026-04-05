@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致。
+临时邮箱 SDK（Rust），支持 **25** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致（无 `Tempmailg`，与 npm/Python/C 一致）。
 
 ## 安装
 
@@ -23,6 +23,9 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 |------|--------|:----------:|------|
 | `Tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `TempmailCn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
+| `Tmpmails` | tmpmails.com | ✅ | Next.js Server Action；`domain` 可选语言路径 |
+| `TaEasy` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com` |
+| `TenmailWangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；`http_client_tenmail_wangtz()` **默认跳过证书校验** |
 | `LinshiEmail` | linshi-email.com | - | |
 | `Linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `Mffac` | mffac.com | ✅ | mailbox `id` token；REST 24h |
@@ -42,29 +45,24 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `Vip215` | vip.215.im | ✅ | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
 | `Anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
 | `FakeLegal` | fake.legal | - | `/api/domains` + `/api/inbox/new`；`GenerateEmailOptions.domain` 可选 |
+| `Moakt` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`http_client_no_cookie_jar()`；`GenerateEmailOptions.domain` 可选语言路径 |
 
 ## 快速开始
 
 ```rust
-use tempmail_sdk::{generate_email, get_emails, GenerateEmailOptions, GetEmailsOptions, Channel};
+use tempmail_sdk::{generate_email, get_emails, GenerateEmailOptions, Channel};
 
 fn main() {
-    // 创建临时邮箱
     let opts = GenerateEmailOptions {
         channel: Some(Channel::GuerrillaMail),
         ..Default::default()
     };
-    let info = generate_email(&opts).unwrap();
-    println!("邮箱: {}", info.email);
-
-    // 获取邮件
-    let result = get_emails(&GetEmailsOptions {
-        channel: info.channel,
-        email: info.email,
-        token: info.token,
-        retry: None,
-    });
-    println!("success={} count={}", result.success, result.emails.len());
+    if let Some(info) = generate_email(&opts) {
+        println!("邮箱: {}", info.email);
+        // channel / email / token 由 SDK 从 EmailInfo 读取
+        let result = get_emails(&info, None);
+        println!("success={} count={}", result.success, result.emails.len());
+    }
 }
 ```
 
@@ -74,11 +72,12 @@ fn main() {
 use tempmail_sdk::{TempEmailClient, GenerateEmailOptions, Channel};
 
 let mut client = TempEmailClient::new();
-let info = client.generate(&GenerateEmailOptions {
+if client.generate(&GenerateEmailOptions {
     channel: Some(Channel::Maildrop),
     ..Default::default()
-}).unwrap();
-let result = client.get_emails().unwrap();
+}).is_some() {
+    let _result = client.get_emails(None).expect("get_emails");
+}
 ```
 
 ## 代理与 HTTP 配置

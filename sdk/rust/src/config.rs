@@ -157,6 +157,12 @@ static CONFIG_VERSION: AtomicU64 = AtomicU64::new(0);
 /* 缓存的 wreq 客户端及其对应配置版本（使用 RwLock 减少并发读争用） */
 static CACHED_CLIENT: RwLock<Option<(Client, u64)>> = RwLock::new(None);
 
+/* 不持久化 Cookie（供 moakt 等需独立会话的渠道，避免与全局 Cookie 罐混用） */
+static CACHED_NO_COOKIE_JAR: RwLock<Option<(Client, u64)>> = RwLock::new(None);
+
+/* 10mail.wangtz.cn：默认关闭证书校验（与 curl --insecure 一致） */
+static CACHED_TENMAIL_WANGTZ: RwLock<Option<(Client, u64)>> = RwLock::new(None);
+
 /* 全局 tokio Runtime（wreq 是异步的，SDK 对外暴露同步 API） */
 static TOKIO_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 
@@ -238,6 +244,92 @@ pub fn http_client() -> Client {
     /* SSL 验证 */
     if cfg.insecure {
         builder = builder.cert_verification(false);
+    }
+
+    let client = builder.build().unwrap();
+    *guard = Some((client.clone(), ver));
+    client
+}
+
+/// 与 [`http_client`] 相同配置，但不使用 Cookie 存储（每次请求仅依赖显式 `Cookie` 头）
+pub fn http_client_no_cookie_jar() -> Client {
+    let ver = CONFIG_VERSION.load(Ordering::SeqCst);
+
+    {
+        let guard = CACHED_NO_COOKIE_JAR.read().unwrap();
+        if let Some((ref client, cached_ver)) = *guard {
+            if cached_ver == ver {
+                return client.clone();
+            }
+        }
+    }
+
+    let mut guard = CACHED_NO_COOKIE_JAR.write().unwrap();
+    if let Some((ref client, cached_ver)) = *guard {
+        if cached_ver == ver {
+            return client.clone();
+        }
+    }
+
+    let cfg = get_config();
+    let bc = pick_random_browser();
+
+    log::debug!("创建 wreq 客户端 (无 Cookie 罐), emulation={:?}", bc.emulation);
+
+    let mut builder = Client::builder()
+        .emulation(bc.emulation)
+        .timeout(Duration::from_secs(cfg.timeout_secs))
+        .cookie_store(false);
+
+    if let Some(ref proxy_url) = cfg.proxy {
+        if let Ok(proxy) = wreq::Proxy::all(proxy_url) {
+            builder = builder.proxy(proxy);
+        }
+    }
+
+    if cfg.insecure {
+        builder = builder.cert_verification(false);
+    }
+
+    let client = builder.build().unwrap();
+    *guard = Some((client.clone(), ver));
+    client
+}
+
+/// 供 10mail-wangtz 渠道使用：默认跳过 TLS 证书校验，仍应用代理与超时
+pub fn http_client_tenmail_wangtz() -> Client {
+    let ver = CONFIG_VERSION.load(Ordering::SeqCst);
+
+    {
+        let guard = CACHED_TENMAIL_WANGTZ.read().unwrap();
+        if let Some((ref client, cached_ver)) = *guard {
+            if cached_ver == ver {
+                return client.clone();
+            }
+        }
+    }
+
+    let mut guard = CACHED_TENMAIL_WANGTZ.write().unwrap();
+    if let Some((ref client, cached_ver)) = *guard {
+        if cached_ver == ver {
+            return client.clone();
+        }
+    }
+
+    let cfg = get_config();
+    let bc = pick_random_browser();
+    log::debug!("创建 wreq 客户端 (10mail-wangtz, 跳过证书校验), emulation={:?}", bc.emulation);
+
+    let mut builder = Client::builder()
+        .emulation(bc.emulation)
+        .timeout(Duration::from_secs(cfg.timeout_secs))
+        .cookie_store(true)
+        .cert_verification(false);
+
+    if let Some(ref proxy_url) = cfg.proxy {
+        if let Ok(proxy) = wreq::Proxy::all(proxy_url) {
+            builder = builder.proxy(proxy);
+        }
     }
 
     let client = builder.build().unwrap();

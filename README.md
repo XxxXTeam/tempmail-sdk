@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-支持 **21 个**临时邮箱服务商的多语言 SDK，提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本，**各语言渠道列表一致**。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+支持 **25** 个通用临时邮箱渠道（**npm / Rust / Python / C**）；**Go** SDK 另含 **`tempmailg`**，共 **26** 个渠道标识。提供 **Go、npm (TypeScript)、Rust、Python、C** 五种版本（C 的 `tm_channel_t` 枚举顺序与下表略有不同，见 `sdk/c/README.md`）。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 五种 SDK 均支持 **21** 个渠道，随机与 `listChannels` 行为对齐
+- 🌐 **npm、Rust、Python、C** 各 **25** 个渠道；**Go** **26** 个（多 `tempmailg`）；跨语言标识一致（C 枚举顺序见头文件与 C README）
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -31,6 +31,10 @@
 |------|--------|----------|------|
 | `tempmail` | [tempmail.ing](https://tempmail.ing) | 邮箱地址 | 支持自定义有效期 |
 | `tempmail-cn` | [tempmail.cn](https://tempmail.cn) | 邮箱地址 | Socket.IO 事件协议：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或已解析到该服务的自定义域名 |
+| `tmpmails` | [tmpmails.com](https://tmpmails.com) | Token（`locale` + `user_sign` + Next.js `Next-Action`） | GET 首页下发 Cookie 与页面内地址；收信为 `POST` Server Action（`text/x-component`）；`domain` 可选为站点语言路径（如 `zh`、`en`） |
+| `tempmailg` | [tempmailg.com](https://tempmailg.com) | Token（Base64 会话：`locale` + Cookie + CSRF） | **仅 Go SDK。** 无 Cookie 罐 `GET /public/{locale}` + `POST /public/get_messages`；`domain` 可选语言路径；换新邮箱须重新 `Generate` |
+| `ta-easy` | [ta-easy.com](https://www.ta-easy.com) | Token（会话 UUID） | `POST https://api-endpoint.ta-easy.com/temp-email/address/new` 建址；`POST .../temp-email/inbox/list` 拉信；`expiresAt` 为毫秒时间戳；上游字段如 `mail_sender` / `mail_title` / `mail_body_*` 由 SDK 归一化到统一 `Email` |
+| `10mail-wangtz` | [10mail.wangtz.cn](https://10mail.wangtz.cn) | - | `POST /api/tempMail`、`POST /api/emailList`；邮箱后缀固定 `wangtz.cn`；`domain` 可选作为 `emailName`（本地部分）；**各 SDK 对该站点默认跳过 TLS 证书校验**（与 `curl -k` 一致） |
 | `linshi-email` | [linshi-email.com](https://linshi-email.com) | 邮箱地址 | |
 | `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token（`NEXUS_TOKEN`） | 创建邮箱时 Set-Cookie 下发 `NEXUS_TOKEN`；收信需携带该 Token 与 `tmail-emails` 等 Cookie；列表与正文由 HTML 分段 / iframe 解析 |
 | `mffac` | [mffac.com](https://www.mffac.com) | Token（mailbox `id`） | REST：`POST /api/mailboxes` 创建，`GET /api/mailboxes/{local}/emails` 收信；默认 24h |
@@ -50,8 +54,9 @@
 | `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 | `anonbox` | [anonbox.net](https://anonbox.net/en/) | 路径 Token（`{收件箱}/{密钥}`） | `GET /en/` 解析 HTML（合并隐藏 `span`）得到 `{local}@{收件箱}.anonbox.net`；收信 `GET` mbox 明文 URL |
 | `fake-legal` | [fake.legal](https://fake.legal) | - | `GET /api/domains` + `GET /api/inbox/new?domain=` 建址；`GET /api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
+| `moakt` | [moakt.com](https://www.moakt.com) | Token（`mok1:` + Base64 JSON：`locale` + 合并 Cookie，须含 `tm_session`） | HTML：`GET /{locale}` → `GET /{locale}/inbox` 解析 `#email-address`；收信解析 `href` 中 `/email/{uuid}` 并逐封 `GET .../html`；`domain` 可选语言路径（如 `zh`）；各 SDK 以独立会话或显式 `Cookie` 头维护，避免与全局 Cookie 混用 |
 
-> **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels` 的枚举顺序与上表略有不同（例如 `temporary-email-org` 排在 `vip-215` 之后），以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
+> **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels` / `tm_channel_t` 的**枚举顺序**与上表（Go/npm 等随机列表顺序）不同，以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
 
 ## 📐 统一邮件格式
 
@@ -76,7 +81,7 @@ interface Email {
 }
 ```
 
-> **说明：** 个别渠道的上游接口只提供列表或摘要（例如 `maildrop` 的 `description`），此时 `text` 可能仅为预览片段，`html` 可能为空字符串，属预期行为。
+> **说明：** 个别渠道的上游接口只提供列表或摘要（例如 `maildrop` 的 `description`），此时 `text` 可能仅为预览片段，`html` 可能为空字符串，属预期行为。各语言 `normalize` 模块会将常见别名字段映射到上述结构（例如 ta-easy 的 `mail_sender`→`from`、`mail_title`→`subject`、`mail_body_text` / `mail_body_html`→`text` / `html`，数字型 `received_at`→ISO 日期）。
 
 ## 📦 包获取渠道
 
@@ -300,7 +305,7 @@ tempmail-sdk/
 │   │   ├── client.go           # 入口文件
 │   │   ├── types.go            # 类型定义
 │   │   ├── normalize.go        # 标准化转换
-│   │   └── provider_*.go       # 各渠道实现
+│   │   └── provider/*.go       # 各渠道实现（如 ta_easy.go、wangtz_10mail.go、tmpmails.go）
 │   ├── npm/                    # npm SDK (TypeScript)
 │   │   ├── src/
 │   │   │   ├── index.ts        # 入口文件

@@ -70,6 +70,7 @@ function normalizeFrom(raw: any): string {
     raw.from_addr ||
     raw.from_address ||
     raw.fromAddress ||
+    raw.mail_sender ||
     raw.sender ||
     raw.address_from ||
     raw.from_email ||
@@ -92,7 +93,7 @@ function normalizeTo(raw: any, recipientEmail: string): string {
  * 候选字段: subject, e_subject
  */
 function normalizeSubject(raw: any): string {
-  return raw.subject || raw.e_subject || '';
+  return raw.subject || raw.e_subject || raw.mail_title || '';
 }
 
 /**
@@ -104,6 +105,7 @@ function normalizeText(raw: any): string {
     raw.text ||
     raw.text_body ||
     raw.preview_text ||
+    raw.mail_body_text ||
     raw.body ||
     raw.content ||
     raw.body_text ||
@@ -118,7 +120,7 @@ function normalizeText(raw: any): string {
  * 候选字段: html, html_content, body_html
  */
 function normalizeHtml(raw: any): string {
-  return raw.html || raw.html_body || raw.html_content || raw.body_html || '';
+  return raw.html || raw.html_body || raw.html_content || raw.body_html || raw.mail_body_html || '';
 }
 
 /**

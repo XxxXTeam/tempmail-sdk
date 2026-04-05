@@ -42,6 +42,15 @@ tm_http_response_t* tm_http_request(
     int timeout_secs
 );
 
+/* 与 tm_http_request 相同，但强制跳过 TLS 证书校验（10mail-wangtz 等渠道默认行为） */
+tm_http_response_t* tm_http_request_skip_cert_verify(
+    tm_http_method_t method,
+    const char *url,
+    const char **headers,
+    const char *body,
+    int timeout_secs
+);
+
 /* 释放 HTTP 响应 */
 void tm_http_response_free(tm_http_response_t *resp);
 
@@ -78,6 +87,9 @@ void tm_tempmail_cn_module_cleanup(void);
 
 tm_email_info_t* tm_provider_tempmail_cn_generate(const char *domain);
 tm_email_t* tm_provider_tempmail_cn_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_tmpmails_generate(const char *domain);
+tm_email_t* tm_provider_tmpmails_get_emails(const char *token, const char *email, int *count);
 
 int tm_linshi_random_api_path_key(char *out, size_t out_cap);
 void tm_linshi_derive_path_key(const char *visitor_id, char *out, size_t cap);
@@ -140,5 +152,17 @@ tm_email_info_t* tm_provider_fake_legal_generate(const char *domain);
 tm_email_info_t* tm_provider_mffac_generate(void);
 tm_email_t* tm_provider_fake_legal_get_emails(const char *email, int *count);
 tm_email_t* tm_provider_mffac_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_ta_easy_generate(void);
+tm_email_t* tm_provider_ta_easy_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_tenmail_wangtz_generate(const char *domain);
+tm_email_t* tm_provider_tenmail_wangtz_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_moakt_generate(const char *domain);
+tm_email_t* tm_provider_moakt_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_tenminute_one_generate(const char *domain);
+tm_email_t* tm_provider_tenminute_one_get_emails(const char *token, const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

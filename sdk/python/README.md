@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **21** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致。
+临时邮箱 SDK（Python），支持 **25** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致（无 `tempmailg`，与 npm/Rust/C 一致）。
 
 ## 安装
 
@@ -20,6 +20,9 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
+| `tmpmails` | tmpmails.com | ✅ | Next.js Server Action 收信；`domain` 可选语言路径 |
+| `ta-easy` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com` |
+| `10mail-wangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；**默认跳过 TLS 证书校验** |
 | `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | mailbox `id`；REST 24h |
@@ -39,24 +42,22 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `vip-215` | vip.215.im | ✅ | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
 | `anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
 | `fake-legal` | fake.legal | - | `/api/domains` + `/api/inbox/new`；可选 `GenerateEmailOptions.domain` |
+| `moakt` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`domain` 可选语言路径；独立 `requests` 请求避免污染全局 Session Cookie |
 
 ## 快速开始
 
 ```python
-from tempmail_sdk import generate_email, get_emails, GenerateEmailOptions, GetEmailsOptions
+from tempmail_sdk import generate_email, get_emails, GenerateEmailOptions
 
 # 创建临时邮箱
 info = generate_email(GenerateEmailOptions(channel="guerrillamail"))
-print(f"邮箱: {info.email}")
+if info:
+    print(f"邮箱: {info.email}")
 
-# 获取邮件
-result = get_emails(GetEmailsOptions(
-    channel=info.channel,
-    email=info.email,
-    token=info.token,
-))
-if result.success:
-    print(f"收到 {len(result.emails)} 封邮件")
+    # 获取邮件（channel / email / token 由 SDK 从 EmailInfo 读取，无需手动传入）
+    result = get_emails(info)
+    if result.success:
+        print(f"收到 {len(result.emails)} 封邮件")
 ```
 
 ## 使用客户端类

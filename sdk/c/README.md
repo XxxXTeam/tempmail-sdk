@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 **21** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 一致（`temporary-email-org` 在 `vip-215` 之后；`mffac` 在 `fake-legal` 之后，与枚举一致）。
+临时邮箱 SDK（C），支持 **25** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 及 `tempmail_sdk.h` 中 `tm_channel_t` **枚举下标**一致（与 Go 的 `allChannels` 顺序不同，且 **无** `tempmailg`，与 npm/Rust/Python 一致，属正常）。
 
 ## 依赖
 
@@ -62,6 +62,10 @@ cmake --build build
 | fake-legal | `CHANNEL_FAKE_LEGAL` | fake.legal | - | `/api/domains` + `/api/inbox/new`；`tm_generate_options_t.domain` 可选 |
 | mffac | `CHANNEL_MFFAC` | mffac.com | ✅ | mailbox `id`；REST 24h |
 | tempmail-cn | `CHANNEL_TEMPMAIL_CN` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`tm_generate_options_t.domain` 可指定自定义接入域名 |
+| ta-easy | `CHANNEL_TA_EASY` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com`；需 `info->token` 拉信 |
+| tmpmails | `CHANNEL_TMPMAILS` | tmpmails.com | ✅ | Next.js Server Action；`domain` 可选语言路径 |
+| 10mail-wangtz | `CHANNEL_10MAIL_WANGTZ` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；`tm_http_request_insecure` 跳过证书校验 |
+| moakt | `CHANNEL_MOAKT` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`domain` 可选语言路径（如 `zh`） |
 
 ## 快速开始
 
@@ -81,13 +85,8 @@ int main(void) {
     if (info) {
         printf("邮箱: %s\n", info->email);
 
-        // 获取邮件
-        tm_get_emails_options_t get_opts = {0};
-        get_opts.channel = info->channel;
-        get_opts.email = info->email;
-        get_opts.token = info->token;
-
-        tm_get_emails_result_t *result = tm_get_emails(&get_opts);
+        /* 获取邮件：渠道 / 邮箱 / token 均从 tm_email_info_t 读取 */
+        tm_get_emails_result_t *result = tm_get_emails(info, NULL);
         if (result) {
             printf("邮件数: %d\n", result->email_count);
             tm_free_get_emails_result(result);

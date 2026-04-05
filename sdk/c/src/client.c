@@ -35,6 +35,11 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_FAKE_LEGAL,         "Fake Legal",       "fake.legal" },
     { CHANNEL_MFFAC,              "MFFAC",            "mffac.com" },
     { CHANNEL_TEMPMAIL_CN,        "TempMail CN",      "tempmail.cn" },
+    { CHANNEL_TA_EASY,            "TA Easy",          "ta-easy.com" },
+    { CHANNEL_TMPMAILS,           "TmpMails",         "tmpmails.com" },
+    { CHANNEL_10MAIL_WANGTZ,      "10mail Wangtz",    "10mail.wangtz.cn" },
+    { CHANNEL_MOAKT,              "Moakt",            "moakt.com" },
+    { CHANNEL_10MINUTE_ONE,       "10 Minute Email",  "10minutemail.one" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -74,6 +79,11 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_ANONBOX:        result = tm_provider_anonbox_generate(); break;
             case CHANNEL_FAKE_LEGAL:     result = tm_provider_fake_legal_generate(domain); break;
             case CHANNEL_MFFAC:          result = tm_provider_mffac_generate(); break;
+            case CHANNEL_TA_EASY:        result = tm_provider_ta_easy_generate(); break;
+            case CHANNEL_TMPMAILS:       result = tm_provider_tmpmails_generate(domain); break;
+            case CHANNEL_10MAIL_WANGTZ:  result = tm_provider_tenmail_wangtz_generate(domain); break;
+            case CHANNEL_MOAKT:          result = tm_provider_moakt_generate(domain); break;
+            case CHANNEL_10MINUTE_ONE:   result = tm_provider_tenminute_one_generate(domain); break;
             default: return NULL;
         }
         if (result) {
@@ -237,6 +247,25 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
                 break;
             case CHANNEL_MFFAC:
                 emails = tm_provider_mffac_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_TA_EASY:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_ta_easy_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_TMPMAILS:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_tmpmails_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_10MAIL_WANGTZ:
+                emails = tm_provider_tenmail_wangtz_get_emails(email_info->email, &count);
+                break;
+            case CHANNEL_MOAKT:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_moakt_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_10MINUTE_ONE:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_tenminute_one_get_emails(email_info->token, email_info->email, &count);
                 break;
             default: break;
         }

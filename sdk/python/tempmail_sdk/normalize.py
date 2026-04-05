@@ -71,6 +71,7 @@ def _normalize_from(raw: Dict[str, Any]) -> str:
         "from_addr",
         "from_address",
         "fromAddress",
+        "mail_sender",
         "sender",
         "address_from",
         "from_email",
@@ -87,7 +88,7 @@ def _normalize_to(raw: Dict[str, Any], recipient_email: str) -> str:
 
 def _normalize_subject(raw: Dict[str, Any]) -> str:
     """提取邮件主题"""
-    return _get_str(raw, "subject", "e_subject")
+    return _get_str(raw, "subject", "e_subject", "mail_title")
 
 
 def _normalize_text(raw: Dict[str, Any]) -> str:
@@ -97,6 +98,7 @@ def _normalize_text(raw: Dict[str, Any]) -> str:
         "text",
         "text_body",
         "preview_text",
+        "mail_body_text",
         "body",
         "content",
         "body_text",
@@ -107,7 +109,7 @@ def _normalize_text(raw: Dict[str, Any]) -> str:
 
 def _normalize_html(raw: Dict[str, Any]) -> str:
     """提取 HTML 内容"""
-    return _get_str(raw, "html", "html_body", "html_content", "body_html")
+    return _get_str(raw, "html", "html_body", "html_content", "body_html", "mail_body_html")
 
 
 def _normalize_date(raw: Dict[str, Any]) -> str:

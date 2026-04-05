@@ -2,7 +2,7 @@
  * 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商
  */
-export type Channel = 'tempmail' | 'tempmail-cn' | 'linshi-email' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'awamail' | 'temporary-email-org' | 'mail-tm' | 'mail-cx' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw' | 'boomlify' | 'minmail' | 'vip-215' | 'anonbox' | 'fake-legal';
+export type Channel = 'tempmail' | 'tempmail-cn' | 'tmpmails' | 'ta-easy' | '10mail-wangtz' | '10minute-one' | 'linshi-email' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'awamail' | 'temporary-email-org' | 'mail-tm' | 'mail-cx' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw' | 'boomlify' | 'minmail' | 'vip-215' | 'anonbox' | 'fake-legal' | 'moakt';
 
 /**
  * 创建临时邮箱后返回的邮箱信息

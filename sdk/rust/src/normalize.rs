@@ -9,8 +9,8 @@ use crate::types::{Email, EmailAttachment};
 
 /// 将原始 JSON 数据标准化为统一的 Email 格式
 pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
-    let mut text = get_str(raw, &["text", "text_body", "preview_text", "body", "content", "body_text", "text_content", "description"]);
-    let mut html = get_str(raw, &["html", "html_body", "html_content", "body_html"]);
+    let mut text = get_str(raw, &["text", "text_body", "preview_text", "mail_body_text", "body", "content", "body_text", "text_content", "description"]);
+    let mut html = get_str(raw, &["html", "html_body", "html_content", "body_html", "mail_body_html"]);
 
     /* 修正 text/html 错配：部分渠道将 HTML 放在 body/text 字段中 */
     if !text.is_empty() && html.is_empty() && is_html_content(&text) {
@@ -20,12 +20,12 @@ pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
 
     Email {
         id: get_str(raw, &["id", "eid", "_id", "mailboxId", "messageId", "mail_id"]),
-        from_addr: get_str(raw, &["from_addr", "from_address", "fromAddress", "sender", "address_from", "from_email", "from", "messageFrom"]),
+        from_addr: get_str(raw, &["from_addr", "from_address", "fromAddress", "mail_sender", "sender", "address_from", "from_email", "from", "messageFrom"]),
         to: {
             let t = get_str(raw, &["to", "to_address", "toAddress", "name_to", "email_address", "address"]);
             if t.is_empty() { recipient_email.to_string() } else { t }
         },
-        subject: get_str(raw, &["subject", "e_subject"]),
+        subject: get_str(raw, &["subject", "e_subject", "mail_title"]),
         text,
         html,
         date: normalize_date(raw),

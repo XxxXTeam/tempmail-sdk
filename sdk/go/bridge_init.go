@@ -11,7 +11,9 @@ func init() {
 	provider.HTTPClient = func() tls_client.HttpClient {
 		return HTTPClient()
 	}
+	provider.HTTPClientTenmailWangtz = HTTPClientTenmailWangtz
 	provider.HTTPClientNoRedirect = HTTPClientNoRedirect
+	provider.HTTPClientNoCookieJar = HTTPClientNoCookieJar
 	provider.CheckHTTPStatus = checkHTTPStatus
 	provider.GetCurrentUA = GetCurrentUA
 	provider.GetConfigSnapshot = func() provider.ConfigSnapshot {

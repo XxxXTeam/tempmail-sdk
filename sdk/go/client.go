@@ -11,6 +11,11 @@ import (
 var allChannels = []Channel{
 	ChannelTempmail,
 	ChannelTempmailCn,
+	ChannelTmpmails,
+	ChannelTempmailg,
+	ChannelTaEasy,
+	Channel10mailWangtz,
+	Channel10minuteOne,
 	ChannelLinshiEmail,
 	ChannelLinshiyou,
 	ChannelMffac,
@@ -30,6 +35,7 @@ var allChannels = []Channel{
 	ChannelVip215,
 	ChannelAnonbox,
 	ChannelFakeLegal,
+	ChannelMoakt,
 }
 
 /*
@@ -48,6 +54,11 @@ type ChannelInfo struct {
 var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmail:          {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
 	ChannelTempmailCn:        {Channel: ChannelTempmailCn, Name: "TempMail CN", Website: "tempmail.cn"},
+	ChannelTmpmails:          {Channel: ChannelTmpmails, Name: "TmpMails", Website: "tmpmails.com"},
+	ChannelTempmailg:         {Channel: ChannelTempmailg, Name: "TempMailG", Website: "tempmailg.com"},
+	ChannelTaEasy:            {Channel: ChannelTaEasy, Name: "TA Easy", Website: "ta-easy.com"},
+	Channel10mailWangtz:      {Channel: Channel10mailWangtz, Name: "10mail Wangtz", Website: "10mail.wangtz.cn"},
+	Channel10minuteOne:       {Channel: Channel10minuteOne, Name: "10 Minute Email", Website: "10minutemail.one"},
 	ChannelLinshiEmail:       {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
 	ChannelLinshiyou:         {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
 	ChannelMffac:             {Channel: ChannelMffac, Name: "MFFAC", Website: "mffac.com"},
@@ -67,6 +78,7 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelVip215:            {Channel: ChannelVip215, Name: "VIP 215", Website: "vip.215.im"},
 	ChannelAnonbox:           {Channel: ChannelAnonbox, Name: "Anonbox", Website: "anonbox.net"},
 	ChannelFakeLegal:         {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
+	ChannelMoakt:             {Channel: ChannelMoakt, Name: "Moakt", Website: "moakt.com"},
 }
 
 /*
@@ -179,6 +191,21 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelTempmailCn:
 		return fromMailbox(prov.TempmailCNGenerate(opts.Domain))
 
+	case ChannelTmpmails:
+		return fromMailbox(prov.TmpmailsGenerate(opts.Domain))
+
+	case ChannelTempmailg:
+		return fromMailbox(prov.TempmailgGenerate(opts.Domain))
+
+	case ChannelTaEasy:
+		return fromMailbox(prov.TaEasyGenerate())
+
+	case Channel10mailWangtz:
+		return fromMailbox(prov.TenmailWangtzGenerate(opts.Domain))
+
+	case Channel10minuteOne:
+		return fromMailbox(prov.TenminuteOneGenerate(opts.Domain))
+
 	case ChannelLinshiEmail:
 		return fromMailbox(prov.LinshiEmailGenerate())
 
@@ -235,6 +262,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelFakeLegal:
 		return fromMailbox(prov.FakeLegalGenerate(opts.Domain))
+
+	case ChannelMoakt:
+		return fromMailbox(prov.MoaktGenerate(opts.Domain))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -323,6 +353,33 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 
 	case ChannelTempmailCn:
 		return normEmailsResult(prov.TempmailCNGetEmails(email))
+
+	case ChannelTmpmails:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tmpmails channel")
+		}
+		return normEmailsResult(prov.TmpmailsGetEmails(email, token))
+
+	case ChannelTempmailg:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempmailg channel")
+		}
+		return normEmailsResult(prov.TempmailgGetEmails(email, token))
+
+	case ChannelTaEasy:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for ta-easy channel")
+		}
+		return normEmailsResult(prov.TaEasyGetEmails(email, token))
+
+	case Channel10mailWangtz:
+		return normEmailsResult(prov.TenmailWangtzGetEmails(email, token))
+
+	case Channel10minuteOne:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for 10minute-one channel")
+		}
+		return normEmailsResult(prov.TenminuteOneGetEmails(email, token))
 
 	case ChannelLinshiEmail:
 		if token == "" {
@@ -425,6 +482,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 
 	case ChannelFakeLegal:
 		return normEmailsResult(prov.FakeLegalGetEmails(email))
+
+	case ChannelMoakt:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for moakt channel")
+		}
+		return normEmailsResult(prov.MoaktGetEmails(email, token))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

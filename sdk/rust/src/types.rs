@@ -11,6 +11,14 @@ pub enum Channel {
     Tempmail,
     #[serde(rename = "tempmail-cn")]
     TempmailCn,
+    #[serde(rename = "tmpmails")]
+    Tmpmails,
+    #[serde(rename = "ta-easy")]
+    TaEasy,
+    #[serde(rename = "10mail-wangtz")]
+    TenmailWangtz,
+    #[serde(rename = "10minute-one")]
+    TenminuteOne,
     #[serde(rename = "linshi-email")]
     LinshiEmail,
     #[serde(rename = "linshiyou")]
@@ -49,6 +57,8 @@ pub enum Channel {
     Anonbox,
     #[serde(rename = "fake-legal")]
     FakeLegal,
+    #[serde(rename = "moakt")]
+    Moakt,
 }
 
 impl std::fmt::Display for Channel {
@@ -56,6 +66,10 @@ impl std::fmt::Display for Channel {
         match self {
             Channel::Tempmail => write!(f, "tempmail"),
             Channel::TempmailCn => write!(f, "tempmail-cn"),
+            Channel::Tmpmails => write!(f, "tmpmails"),
+            Channel::TaEasy => write!(f, "ta-easy"),
+            Channel::TenmailWangtz => write!(f, "10mail-wangtz"),
+            Channel::TenminuteOne => write!(f, "10minute-one"),
             Channel::LinshiEmail => write!(f, "linshi-email"),
             Channel::Linshiyou => write!(f, "linshiyou"),
             Channel::Mffac => write!(f, "mffac"),
@@ -75,6 +89,7 @@ impl std::fmt::Display for Channel {
             Channel::Vip215 => write!(f, "vip-215"),
             Channel::Anonbox => write!(f, "anonbox"),
             Channel::FakeLegal => write!(f, "fake-legal"),
+            Channel::Moakt => write!(f, "moakt"),
         }
     }
 }
@@ -176,7 +191,7 @@ pub struct GenerateEmailOptions {
     pub channel: Option<Channel>,
     /// tempmail 渠道的有效期（分钟）
     pub duration: Option<u32>,
-    /// 指定邮箱域名/接入域名（如 tempmail-cn、tempmail-lol）
+    /// 指定邮箱域名/接入域名（如 tempmail-cn、tempmail-lol）；tmpmails 为语言路径（zh、en）
     pub domain: Option<String>,
     /// 重试配置
     pub retry: Option<RetryConfig>,

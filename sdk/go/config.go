@@ -48,10 +48,15 @@ var (
 	configVersion uint64 /* 配置版本号，每次 SetConfig 递增 */
 	configMu      sync.RWMutex
 
-	cachedClient           tls_client.HttpClient /* 缓存的 TLS 指纹客户端 */
-	cachedNoRedirectClient tls_client.HttpClient /* 缓存的不跟随重定向客户端 */
-	cachedClientVersion    uint64                /* 缓存客户端对应的配置版本 */
-	clientMu               sync.Mutex
+	cachedClient            tls_client.HttpClient /* 缓存的 TLS 指纹客户端 */
+	cachedNoRedirectClient  tls_client.HttpClient /* 缓存的不跟随重定向客户端 */
+	cachedNoCookieJarClient tls_client.HttpClient /* 无 Cookie 罐，供 tempmailg 等需「清空环境」建邮的渠道 */
+	cachedClientVersion     uint64                /* 缓存客户端对应的配置版本 */
+	clientMu                sync.Mutex
+
+	cachedTenmailWangtzClient tls_client.HttpClient /* 10mail-wangtz：默认跳过证书校验 */
+	cachedTenmailWangtzVer    uint64
+	tenmailWangtzClientMu     sync.Mutex
 )
 
 func init() {
@@ -142,9 +147,10 @@ func GetConfig() SDKConfig {
  * @param cfg SDK 全局配置
  * @param bc 浏览器配置（TLS 指纹 profile + UA）
  * @param followRedirect 是否跟随重定向
+ * @param withCookieJar 是否启用 Cookie 罐（false 时不持久化 Set-Cookie，适合每次建邮须独立会话的场景）
  * @returns tls_client.HttpClient
  */
-func buildTLSClient(cfg SDKConfig, bc BrowserConfig, followRedirect bool) tls_client.HttpClient {
+func buildTLSClient(cfg SDKConfig, bc BrowserConfig, followRedirect, withCookieJar bool) tls_client.HttpClient {
 	timeout := cfg.Timeout
 	if timeout <= 0 {
 		timeout = 15 * time.Second
@@ -154,7 +160,9 @@ func buildTLSClient(cfg SDKConfig, bc BrowserConfig, followRedirect bool) tls_cl
 		tls_client.WithTimeoutSeconds(int(timeout.Seconds())),
 		tls_client.WithClientProfile(bc.Profile),
 		tls_client.WithRandomTLSExtensionOrder(),
-		tls_client.WithCookieJar(tls_client.NewCookieJar()),
+	}
+	if withCookieJar {
+		options = append(options, tls_client.WithCookieJar(tls_client.NewCookieJar()))
 	}
 
 	if !followRedirect {
@@ -203,8 +211,9 @@ func HTTPClient() tls_client.HttpClient {
 
 	sdkLogger.Debug("创建 TLS 客户端", "ua", bc.UA)
 
-	cachedClient = buildTLSClient(cfg, bc, true)
+	cachedClient = buildTLSClient(cfg, bc, true, true)
 	cachedClientVersion = ver
+	cachedNoCookieJarClient = nil /* 主客户端重建时一并失效无罐客户端 */
 	return cachedClient
 }
 
@@ -230,6 +239,59 @@ func HTTPClientNoRedirect() tls_client.HttpClient {
 
 	cfg := GetConfig()
 	bc := GetCurrentBrowser()
-	cachedNoRedirectClient = buildTLSClient(cfg, bc, false)
+	cachedNoRedirectClient = buildTLSClient(cfg, bc, false, true)
 	return cachedNoRedirectClient
+}
+
+/*
+ * HTTPClientNoCookieJar 获取与主客户端相同 TLS 指纹与代理配置、但不使用 Cookie 罐的客户端。
+ * tempmailg.com 等依赖「首次 GET 下发的会话 Cookie（服务端 Laravel 加密串，常被误称为 JWT）」作为邮箱凭证；
+ * 若共用全局 Cookie 罐，第二次 Generate 会带上旧会话，无法换到新邮箱。本客户端仅用于此类渠道。
+ */
+func HTTPClientNoCookieJar() tls_client.HttpClient {
+	HTTPClient()
+
+	configMu.RLock()
+	ver := configVersion
+	configMu.RUnlock()
+
+	clientMu.Lock()
+	defer clientMu.Unlock()
+
+	if cachedNoCookieJarClient != nil && cachedClientVersion == ver {
+		return cachedNoCookieJarClient
+	}
+
+	cfg := GetConfig()
+	bc := GetCurrentBrowser()
+	sdkLogger.Debug("创建 TLS 客户端（无 Cookie 罐）", "ua", bc.UA)
+	cachedNoCookieJarClient = buildTLSClient(cfg, bc, true, false)
+	return cachedNoCookieJarClient
+}
+
+/*
+ * HTTPClientTenmailWangtz 供 10mail.wangtz.cn 使用：默认跳过 TLS 证书校验（与 curl --insecure 一致），
+ * 仍应用当前全局代理与超时。全局 Insecure 为 true 时行为一致。
+ */
+func HTTPClientTenmailWangtz() tls_client.HttpClient {
+	configMu.RLock()
+	ver := configVersion
+	configMu.RUnlock()
+
+	tenmailWangtzClientMu.Lock()
+	defer tenmailWangtzClientMu.Unlock()
+
+	if cachedTenmailWangtzClient != nil && cachedTenmailWangtzVer == ver {
+		return cachedTenmailWangtzClient
+	}
+
+	cfg := GetConfig()
+	cfgCopy := cfg
+	cfgCopy.Insecure = true
+	bc := GetCurrentBrowser()
+
+	sdkLogger.Debug("创建 TLS 客户端（10mail-wangtz，跳过证书校验）", "ua", bc.UA)
+	cachedTenmailWangtzClient = buildTLSClient(cfgCopy, bc, true, true)
+	cachedTenmailWangtzVer = ver
+	return cachedTenmailWangtzClient
 }

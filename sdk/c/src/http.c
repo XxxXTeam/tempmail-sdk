@@ -134,12 +134,14 @@ static size_t header_callback(char *buffer, size_t size, size_t nitems, void *us
     return total;
 }
 
-tm_http_response_t* tm_http_request(
+/* skip_cert_verify_force: 非 0 时强制跳过 TLS 校验（与全局 insecure 为或关系） */
+static tm_http_response_t* tm_http_perform(
     tm_http_method_t method,
     const char *url,
     const char **headers,
     const char *body,
-    int timeout_secs
+    int timeout_secs,
+    int skip_cert_verify_force
 ) {
     tm_http_response_t *resp = (tm_http_response_t*)calloc(1, sizeof(tm_http_response_t));
     if (!resp) return NULL;
@@ -161,8 +163,9 @@ tm_http_response_t* tm_http_request(
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)effective_timeout);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
-    /* SSL 验证 */
-    if (g_config.insecure) {
+    /* SSL 验证：渠道可强制跳过（如 10mail-wangtz） */
+    int skip_ssl = (skip_cert_verify_force != 0) || g_config.insecure;
+    if (skip_ssl) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     } else {
@@ -216,6 +219,26 @@ tm_http_response_t* tm_http_request(
     curl_slist_free_all(header_list);
     curl_easy_cleanup(curl);
     return resp;
+}
+
+tm_http_response_t* tm_http_request(
+    tm_http_method_t method,
+    const char *url,
+    const char **headers,
+    const char *body,
+    int timeout_secs
+) {
+    return tm_http_perform(method, url, headers, body, timeout_secs, 0);
+}
+
+tm_http_response_t* tm_http_request_skip_cert_verify(
+    tm_http_method_t method,
+    const char *url,
+    const char **headers,
+    const char *body,
+    int timeout_secs
+) {
+    return tm_http_perform(method, url, headers, body, timeout_secs, 1);
 }
 
 void tm_http_response_free(tm_http_response_t *resp) {

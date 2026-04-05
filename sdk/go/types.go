@@ -9,6 +9,11 @@ type Channel string
 const (
 	ChannelTempmail          Channel = "tempmail"            // tempmail.ing
 	ChannelTempmailCn        Channel = "tempmail-cn"         // tempmail.cn
+	ChannelTmpmails          Channel = "tmpmails"            // tmpmails.com
+	ChannelTempmailg         Channel = "tempmailg"           // tempmailg.com（凭证为首次 GET 下发的会话 Cookie，换新邮箱须重新 Generate）
+	ChannelTaEasy            Channel = "ta-easy"             // ta-easy.com
+	Channel10mailWangtz      Channel = "10mail-wangtz"       // 10mail.wangtz.cn
+	Channel10minuteOne       Channel = "10minute-one"        // 10minutemail.one（SSR JWT + web API）
 	ChannelLinshiEmail       Channel = "linshi-email"        // linshi-email.com
 	ChannelLinshiyou         Channel = "linshiyou"           // linshiyou.com
 	ChannelMffac             Channel = "mffac"               // mffac.com
@@ -28,6 +33,7 @@ const (
 	ChannelVip215            Channel = "vip-215"             // vip.215.im
 	ChannelAnonbox           Channel = "anonbox"             // anonbox.net (CCC)
 	ChannelFakeLegal         Channel = "fake-legal"          // fake.legal
+	ChannelMoakt             Channel = "moakt"               // moakt.com（HTML 收件箱 + tm_session Cookie）
 )
 
 /*
@@ -116,7 +122,7 @@ type GenerateEmailOptions struct {
 	Channel Channel
 	/* 邮箱有效时长（分钟），仅 tempmail 渠道支持，默认 30 */
 	Duration int
-	/* 指定邮箱域名/接入域名：如 tempmail-cn、tempmail-lol、fake-legal 渠道可选 */
+	/* 指定邮箱域名/接入域名：如 tempmail-cn、tempmail-lol、fake-legal；tmpmails、tempmailg 渠道表示语言路径（如 zh、en） */
 	Domain *string
 	/* 重试配置，nil 则使用默认值（最多重试 2 次） */
 	Retry *RetryOptions

@@ -17,6 +17,7 @@ add_library(tempmail_sdk STATIC
     src/telemetry.c
     src/providers/tempmail.c
     src/providers/tempmail_cn.c
+    src/providers/tmpmails.c
     src/providers/linshi_email.c
     src/providers/linshiyou.c
     src/providers/linshi_token.c
@@ -38,6 +39,10 @@ add_library(tempmail_sdk STATIC
     src/providers/anonbox.c
     src/providers/fake_legal.c
     src/providers/mffac.c
+    src/providers/ta_easy.c
+    src/providers/tenmail_wangtz.c
+    src/providers/moakt.c
+    src/providers/tenminute_one.c
     vendor/cJSON.c
 )
 

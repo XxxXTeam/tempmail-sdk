@@ -1,5 +1,8 @@
 import * as tempmail from './providers/tempmail';
 import * as tempmailCn from './providers/tempmail-cn';
+import * as tmpmails from './providers/tmpmails';
+import * as taEasy from './providers/ta-easy';
+import * as tenmailWangtz from './providers/10mail-wangtz';
 import * as linshiEmail from './providers/linshi-email';
 import * as linshiyou from './providers/linshiyou';
 import * as mffac from './providers/mffac';
@@ -19,6 +22,8 @@ import * as minmail from './providers/minmail';
 import * as vip215 from './providers/vip-215';
 import * as anonbox from './providers/anonbox';
 import * as fakeLegal from './providers/fake-legal';
+import * as moakt from './providers/moakt';
+import * as tenminuteOne from './providers/10minute-one';
 import { Channel, EmailInfo, InternalEmailInfo, Email, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, withRetryWithAttempts } from './retry';
 import { reportTelemetry } from './telemetry';
@@ -36,7 +41,7 @@ export { Channel, EmailInfo, Email, EmailAttachment, GetEmailsResult, GenerateEm
 const tokenStore = new WeakMap<EmailInfo, string>();
 export { normalizeEmail } from './normalize';
 export { withRetry, withRetryWithAttempts, fetchWithTimeout, RetryOptions } from './retry';
-export type { RetryWithAttemptsResult } from './retry';
+export type { RetryWithAttemptsResult, FetchWithTimeoutOptions } from './retry';
 export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
 export { SDKConfig, setConfig, getConfig } from './config';
 export { getSdkVersion } from './version';
@@ -49,7 +54,7 @@ export {
 } from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'tempmail-cn', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal'];
+const allChannels: Channel[] = ['tempmail', 'tempmail-cn', 'tmpmails', 'ta-easy', '10mail-wangtz', '10minute-one', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal', 'moakt'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -67,6 +72,10 @@ export interface ChannelInfo {
 const channelInfoMap: Record<Channel, ChannelInfo> = {
   'tempmail': { channel: 'tempmail', name: 'TempMail', website: 'tempmail.ing' },
   'tempmail-cn': { channel: 'tempmail-cn', name: 'TempMail CN', website: 'tempmail.cn' },
+  'tmpmails': { channel: 'tmpmails', name: 'TmpMails', website: 'tmpmails.com' },
+  'ta-easy': { channel: 'ta-easy', name: 'TA Easy', website: 'ta-easy.com' },
+  '10mail-wangtz': { channel: '10mail-wangtz', name: '10mail Wangtz', website: '10mail.wangtz.cn' },
+  '10minute-one': { channel: '10minute-one', name: '10 Minute Email', website: '10minutemail.one' },
   'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
   'linshiyou': { channel: 'linshiyou', name: '临时邮', website: 'linshiyou.com' },
   'tempmail-lol': { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
@@ -86,6 +95,7 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'vip-215': { channel: 'vip-215', name: 'VIP 215', website: 'vip.215.im' },
   'anonbox': { channel: 'anonbox', name: 'Anonbox', website: 'anonbox.net' },
   'fake-legal': { channel: 'fake-legal', name: 'Fake Legal', website: 'fake.legal' },
+  'moakt': { channel: 'moakt', name: 'Moakt', website: 'moakt.com' },
 };
 
 /**
@@ -200,6 +210,14 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return tempmail.generateEmail(options.duration || 30);
     case 'tempmail-cn':
       return tempmailCn.generateEmail(options.domain ?? null);
+    case 'tmpmails':
+      return tmpmails.generateEmail(options.domain ?? null);
+    case 'ta-easy':
+      return taEasy.generateEmail();
+    case '10mail-wangtz':
+      return tenmailWangtz.generateEmail(options.domain ?? null);
+    case '10minute-one':
+      return tenminuteOne.generateEmail(options.domain ?? null);
     case 'linshi-email':
       return linshiEmail.generateEmail();
     case 'linshiyou':
@@ -236,6 +254,8 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return anonbox.generateEmail();
     case 'fake-legal':
       return fakeLegal.generateEmail(options.domain ?? null);
+    case 'moakt':
+      return moakt.generateEmail(options.domain ?? null);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -314,6 +334,17 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
       return tempmail.getEmails(email);
     case 'tempmail-cn':
       return tempmailCn.getEmails(email);
+    case 'tmpmails':
+      if (!token) throw new Error('internal error: token missing for tmpmails');
+      return tmpmails.getEmails(email, token);
+    case 'ta-easy':
+      if (!token) throw new Error('internal error: token missing for ta-easy');
+      return taEasy.getEmails(email, token);
+    case '10mail-wangtz':
+      return tenmailWangtz.getEmails(email);
+    case '10minute-one':
+      if (!token) throw new Error('internal error: token missing for 10minute-one');
+      return tenminuteOne.getEmails(email, token);
     case 'linshi-email':
       if (!token) throw new Error('internal error: token missing for linshi-email');
       return linshiEmail.getEmails(email, token);
@@ -367,6 +398,9 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
       return anonbox.getEmails(token, email);
     case 'fake-legal':
       return fakeLegal.getEmails(email);
+    case 'moakt':
+      if (!token) throw new Error('internal error: token missing for moakt');
+      return moakt.getEmails(email, token);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

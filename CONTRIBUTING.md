@@ -81,7 +81,7 @@ tempmail-sdk/
 │   │   ├── client.go           # Client 实现
 │   │   ├── types.go            # 类型定义
 │   │   ├── normalize.go        # 邮件标准化
-│   │   └── provider_*.go       # 各渠道实现
+│   │   └── provider/*.go         # 各渠道实现
 │   ├── npm/                    # npm SDK (TypeScript)
 │   │   └── src/
 │   │       ├── config.ts       # 全局配置
@@ -114,7 +114,7 @@ tempmail-sdk/
 
 ## 添加新渠道
 
-当前各 SDK **对外公开的渠道**以根目录 `README.md`「支持的渠道」表及 `types` / `ALL_CHANNELS` / `allChannels` 为准（npm 含 `mffac` 等扩展渠道时数量可能多于 Go/Rust 等端）；新增或下线渠道时须**五端同步**（Go、npm、Rust、Python、C）并更新全部 README。
+当前各 SDK **对外公开的渠道**以根目录 `README.md`「支持的渠道」表及各端 `Channel` / `ALL_CHANNELS` / `allChannels` / `tm_channel_t` 为准。**npm、Rust、Python、C** 四端渠道标识与数量应对齐（当前各 **25** 个）；**Go** 可与四端一致，也可额外独有渠道（如 `tempmailg`），须在根表与 `sdk/go/README.md` 标明 **「仅 Go」**。C 的枚举**顺序**可与 Go 等不同，以 `tempmail_sdk.h` 为准。新增或下线通用渠道时须**五端同步**（Go、npm、Rust、Python、C）并更新根目录与各子目录 README。
 
 添加新的临时邮箱服务商需要在**全部 5 个 SDK** 中实现。每个渠道需要实现两个核心函数：
 

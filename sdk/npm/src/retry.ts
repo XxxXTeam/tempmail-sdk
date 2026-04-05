@@ -171,13 +171,48 @@ function getFetchConfig(): { fetchFn: typeof fetch; timeout: number } {
   return _cachedFetchConfig;
 }
 
+/** Node 下跳过 TLS 证书校验（用于 10mail.wangtz.cn 等渠道默认行为） */
+export interface FetchWithTimeoutOptions {
+  skipTlsVerify?: boolean;
+}
+
+function resolveFetchForTls(
+  baseFetch: typeof fetch,
+  skipTlsVerify: boolean | undefined,
+): typeof fetch {
+  if (!skipTlsVerify) {
+    return baseFetch;
+  }
+  if (typeof process === 'undefined' || !process.versions?.node) {
+    return baseFetch;
+  }
+  try {
+    // Node 18+ 内置 undici，用于 per-request 关闭证书校验（不修改全局 NODE_TLS_REJECT_UNAUTHORIZED）
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const undici = require('undici') as {
+      Agent: new (opts: { connect: { rejectUnauthorized: boolean } }) => unknown;
+      fetch: (input: string, init?: Record<string, unknown>) => Promise<Response>;
+    };
+    const dispatcher = new undici.Agent({ connect: { rejectUnauthorized: false } });
+    return ((u: string, i?: RequestInit) =>
+      undici.fetch(u, {
+        ...(i as Record<string, unknown>),
+        dispatcher,
+      })) as typeof fetch;
+  } catch {
+    return baseFetch;
+  }
+}
+
 export async function fetchWithTimeout(
   url: string,
   init?: RequestInit,
   timeoutMs?: number,
+  opts?: FetchWithTimeoutOptions,
 ): Promise<Response> {
   const { fetchFn, timeout: defaultTimeout } = getFetchConfig();
   const effectiveTimeout = timeoutMs ?? defaultTimeout;
+  const fetchImpl = resolveFetchForTls(fetchFn, opts?.skipTlsVerify);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
@@ -191,7 +226,7 @@ export async function fetchWithTimeout(
   }
 
   try {
-    const response = await fetchFn(url, {
+    const response = await fetchImpl(url, {
       ...init,
       signal: controller.signal,
     });

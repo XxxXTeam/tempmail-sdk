@@ -40,6 +40,11 @@ typedef enum {
     CHANNEL_FAKE_LEGAL,
     CHANNEL_MFFAC,
     CHANNEL_TEMPMAIL_CN,
+    CHANNEL_TA_EASY,
+    CHANNEL_TMPMAILS,
+    CHANNEL_10MAIL_WANGTZ,
+    CHANNEL_MOAKT,
+    CHANNEL_10MINUTE_ONE,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;

@@ -4,6 +4,10 @@
 
 pub mod tempmail;
 pub mod tempmail_cn;
+pub mod tmpmails;
+pub mod ta_easy;
+pub mod tenmail_wangtz;
+pub mod tenminute_one;
 pub mod linshi_email;
 pub mod linshi_token;
 pub mod linshiyou;
@@ -24,3 +28,4 @@ pub mod minmail;
 pub mod vip_215;
 pub mod anonbox;
 pub mod fake_legal;
+pub mod moakt;
