@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **25** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **27** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,15 +17,17 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **25** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同；无 `tempmailg`，与 Rust/Python/C 一致）。
+共 **27** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同，并与 Go / Rust / Python / C 对齐）。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或自定义接入域名 |
 | `tmpmails` | tmpmails.com | ✅ | 首页 Cookie + Next.js Server Action；`domain` 可选语言路径（`zh`/`en`） |
+| `tempmailg` | tempmailg.com | ✅ | `GET /public/{locale}` + `POST /public/get_messages`；Token 为 `tmg1:` + Base64(JSON)；`domain` 可选语言路径；独立 fetch 会话，避免 Cookie 污染 |
 | `ta-easy` | ta-easy.com | ✅ | REST 创建 + 收件箱列表；`expiresAt` 毫秒时间戳 |
 | `10mail-wangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；**默认 `fetchWithInsecureTLS` 跳过证书校验** |
+| `10minute-one` | 10minutemail.one | ✅ | SSR / JWT + Web API；`domain` 可选 |
 | `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + `tmail-emails` 等 Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | `POST /api/mailboxes`；token 为 mailbox `id`；24h |

@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），支持 **25** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致（无 `Tempmailg`，与 npm/Python/C 一致）。
+临时邮箱 SDK（Rust），支持 **27** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致，并与 Go / npm / Python / C 的 `listChannels` 顺序对齐。
 
 ## 安装
 
@@ -24,8 +24,10 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `Tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `TempmailCn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
 | `Tmpmails` | tmpmails.com | ✅ | Next.js Server Action；`domain` 可选语言路径 |
+| `Tempmailg` | tempmailg.com | ✅ | `http_client_no_cookie_jar()`；`GET /public/{locale}` + `POST /public/get_messages`；Token `tmg1:` + Base64(JSON)；`domain` 可选语言路径 |
 | `TaEasy` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com` |
 | `TenmailWangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；`http_client_tenmail_wangtz()` **默认跳过证书校验** |
+| `TenminuteOne` | 10minutemail.one | ✅ | SSR / JWT + Web API；`GenerateEmailOptions.domain` 可选 |
 | `LinshiEmail` | linshi-email.com | - | |
 | `Linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `Mffac` | mffac.com | ✅ | mailbox `id` token；REST 24h |

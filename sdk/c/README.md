@@ -2,7 +2,10 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），支持 **25** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。下列顺序与 `client.c` 中 `g_channel_infos` / `tm_list_channels` 及 `tempmail_sdk.h` 中 `tm_channel_t` **枚举下标**一致（与 Go 的 `allChannels` 顺序不同，且 **无** `tempmailg`，与 npm/Rust/Python 一致，属正常）。
+临时邮箱 SDK（C），支持 **27** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+
+- **`tm_list_channels()`** 返回顺序与 `client.c` 中 `g_channel_infos` / `g_channel_try_order` 一致，并与 **Go `allChannels` / 其他 SDK 的 `listChannels`** 对齐。
+- **`tm_channel_t` 枚举常量**的数值顺序为历史兼容布局，与上表行序**不一致**；`tm_channel_name()` 按枚举值映射字符串。新增渠道时以 `tempmail_sdk.h` 为准。
 
 ## 依赖
 
@@ -39,6 +42,8 @@ cmake --build build
 
 ## 支持的渠道
 
+下表按 **`tm_channel_t` 枚举数值**排列（便于查 `CHANNEL_*` 常量），**不是** `tm_list_channels()` 的展示顺序。
+
 | 渠道 | 枚举值 | 服务商 | 需要 Token | 说明 |
 |------|--------|--------|:----------:|------|
 | tempmail | `CHANNEL_TEMPMAIL` | tempmail.ing | - | 支持自定义有效期 |
@@ -66,6 +71,8 @@ cmake --build build
 | tmpmails | `CHANNEL_TMPMAILS` | tmpmails.com | ✅ | Next.js Server Action；`domain` 可选语言路径 |
 | 10mail-wangtz | `CHANNEL_10MAIL_WANGTZ` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；`tm_http_request_insecure` 跳过证书校验 |
 | moakt | `CHANNEL_MOAKT` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`domain` 可选语言路径（如 `zh`） |
+| 10minute-one | `CHANNEL_10MINUTE_ONE` | 10minutemail.one | ✅ | SSR / JWT + Web API；`tm_generate_options_t.domain` 可选 |
+| tempmailg | `CHANNEL_TEMPMAILG` | tempmailg.com | ✅ | `GET /public/{locale}` + `POST /public/get_messages`；Token `tmg1:` + Base64(JSON)；`domain` 可选语言路径 |
 
 ## 快速开始
 

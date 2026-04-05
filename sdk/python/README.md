@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **25** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致（无 `tempmailg`，与 npm/Rust/C 一致）。
+临时邮箱 SDK（Python），支持 **27** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致，并与 Go / npm / Rust / C 对齐。
 
 ## 安装
 
@@ -21,8 +21,10 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
 | `tmpmails` | tmpmails.com | ✅ | Next.js Server Action 收信；`domain` 可选语言路径 |
+| `tempmailg` | tempmailg.com | ✅ | 独立 `requests.Session` 建邮；`GET /public/{locale}` + `POST /public/get_messages`；Token `tmg1:` + Base64(JSON)；`domain` 可选语言路径 |
 | `ta-easy` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com` |
 | `10mail-wangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；**默认跳过 TLS 证书校验** |
+| `10minute-one` | 10minutemail.one | ✅ | SSR / JWT + Web API；`GenerateEmailOptions.domain` 可选 |
 | `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | mailbox `id`；REST 24h |

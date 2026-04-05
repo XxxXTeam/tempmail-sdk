@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **26** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。`ListChannels` / 随机尝试顺序与 `client.go` 中 `allChannels` 一致。
+Go 语言临时邮箱 SDK，支持 **27** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。`ListChannels` / 随机尝试顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的列表顺序对齐。
 
 ## 安装
 
@@ -21,6 +21,7 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `tempmailg` | tempmailg.com | `ChannelTempmailg` | 无 Cookie 罐 `GET /public/{locale}` + `POST /public/get_messages`；Token 内含 Cookie 与 CSRF；`Domain` 可选语言路径 |
 | `ta-easy` | ta-easy.com | `ChannelTaEasy` | REST：`api-endpoint.ta-easy.com`；需 Token；`ExpiresAt` 毫秒时间戳 |
 | `10mail-wangtz` | 10mail.wangtz.cn | `Channel10mailWangtz` | REST `/api/tempMail`、`/api/emailList`；后缀 `wangtz.cn`；`HTTPClientTenmailWangtz` 默认 **InsecureSkipVerify** |
+| `10minute-one` | 10minutemail.one | `Channel10minuteOne` | SSR / JWT + Web API；`Domain` 可选（见实现） |
 | `linshi-email` | linshi-email.com | `ChannelLinshiEmail` | |
 | `linshiyou` | linshiyou.com | `ChannelLinshiyou` | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；24h |
