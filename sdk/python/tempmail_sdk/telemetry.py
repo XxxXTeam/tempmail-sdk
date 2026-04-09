@@ -63,11 +63,18 @@ def _post_body(url: str, body: bytes, ver: str) -> None:
         pass
 
 
+def _cancel_flush_timer_locked() -> None:
+    global _flush_timer
+    if _flush_timer is None:
+        return
+    _flush_timer.cancel()
+    _flush_timer = None
+
+
 def _arm_flush_timer() -> None:
     global _flush_timer
     with _lock:
-        if _flush_timer is not None:
-            _flush_timer.cancel()
+        _cancel_flush_timer_locked()
         _flush_timer = threading.Timer(_FLUSH_SEC, _flush_batch)
         _flush_timer.daemon = True
         _flush_timer.start()
@@ -89,12 +96,10 @@ def _ensure_periodic() -> None:
 
 
 def _flush_batch() -> None:
-    global _flush_timer
     if not _telemetry_on():
         with _lock:
             _queue.clear()
-            if _flush_timer is not None:
-                _flush_timer.cancel()
+            _cancel_flush_timer_locked()
         return
 
     with _lock:
@@ -102,9 +107,7 @@ def _flush_batch() -> None:
             return
         events = _queue[:]
         _queue.clear()
-        if _flush_timer is not None:
-            _flush_timer.cancel()
-            _flush_timer = None
+        _cancel_flush_timer_locked()
 
     url = _resolve_url()
     if not url:
