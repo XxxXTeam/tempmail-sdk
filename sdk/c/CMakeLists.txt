@@ -43,6 +43,7 @@ add_library(tempmail_sdk STATIC
     src/providers/ta_easy.c
     src/providers/tenmail_wangtz.c
     src/providers/moakt.c
+    src/providers/etempmail.c
     src/providers/tenminute_one.c
     vendor/cJSON.c
 )

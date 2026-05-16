@@ -36,6 +36,7 @@ var allChannels = []Channel{
 	ChannelAnonbox,
 	ChannelFakeLegal,
 	ChannelMoakt,
+	ChannelEtempmail,
 }
 
 /*
@@ -79,6 +80,7 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelAnonbox:           {Channel: ChannelAnonbox, Name: "Anonbox", Website: "anonbox.net"},
 	ChannelFakeLegal:         {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
 	ChannelMoakt:             {Channel: ChannelMoakt, Name: "Moakt", Website: "moakt.com"},
+	ChannelEtempmail:         {Channel: ChannelEtempmail, Name: "eTempMail", Website: "etempmail.com"},
 }
 
 /*
@@ -265,6 +267,9 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelMoakt:
 		return fromMailbox(prov.MoaktGenerate(opts.Domain))
+
+	case ChannelEtempmail:
+		return fromMailbox(prov.EtempmailGenerate())
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -488,6 +493,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for moakt channel")
 		}
 		return normEmailsResult(prov.MoaktGetEmails(email, token))
+
+	case ChannelEtempmail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for etempmail channel")
+		}
+		return normEmailsResult(prov.EtempmailGetEmails(email, token))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)

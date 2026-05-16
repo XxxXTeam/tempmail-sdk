@@ -4,8 +4,10 @@ import { normalizeEmail } from '../normalize';
 import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'vip-215';
-const API_URL = 'https://vip.215.im/api/temp-inbox';
-const WS_ORIGIN = 'https://vip.215.im';
+const BASE = 'https://vip.215.im';
+const API_URL = `${BASE}/api/temp-inbox`;
+const WS_TICKET_URL = `${BASE}/v1/auth/ws-ticket`;
+const WS_ORIGIN = BASE;
 
 /*
  * 推送无正文时，各 SDK 统一合成 text/html（synthetic-v1），便于解析：
@@ -71,17 +73,38 @@ function buildSyntheticBodies(
   return { text, html };
 }
 
-const DEFAULT_HEADERS: Record<string, string> = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+const USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0';
+
+const HOME_HEADERS: Record<string, string> = {
+  'User-Agent': USER_AGENT,
+  Accept:
+    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+  'Cache-Control': 'no-cache',
+  DNT: '1',
+  Pragma: 'no-cache',
+  'Sec-CH-UA': '"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"',
+  'Sec-CH-UA-Mobile': '?0',
+  'Sec-CH-UA-Platform': '"Windows"',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'same-origin',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
+};
+
+const API_HEADERS: Record<string, string> = {
+  Accept: '*/*',
+  'User-Agent': USER_AGENT,
   'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
   'Cache-Control': 'no-cache',
   'Content-Type': 'application/json',
   DNT: '1',
-  Origin: 'https://vip.215.im',
+  Origin: BASE,
   Pragma: 'no-cache',
-  Referer: 'https://vip.215.im/',
-  'Sec-CH-UA': '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+  Referer: `${BASE}/`,
+  'Sec-CH-UA': '"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"',
   'Sec-CH-UA-Mobile': '?0',
   'Sec-CH-UA-Platform': '"Windows"',
   'Sec-Fetch-Dest': 'empty',
@@ -89,6 +112,81 @@ const DEFAULT_HEADERS: Record<string, string> = {
   'Sec-Fetch-Site': 'same-origin',
   'X-Locale': 'zh',
 };
+
+function cookieHeaderFromResponse(headers: Headers): string {
+  const h = headers as Headers & { getSetCookie?: () => string[] };
+  const lines = typeof h.getSetCookie === 'function' ? h.getSetCookie() : [];
+  const parts: string[] = [];
+  for (const line of lines) {
+    const nv = line.split(';')[0].trim();
+    if (nv) parts.push(nv);
+  }
+  if (!parts.length) {
+    const single = headers.get('set-cookie');
+    if (single) {
+      for (const segment of single.split(/,(?=[^ =]+=)/)) {
+        const nv = segment.split(';')[0].trim();
+        if (nv) parts.push(nv);
+      }
+    }
+  }
+  return parts.join('; ');
+}
+
+function mergeCookieHeader(existing: string, headers: Headers): string {
+  const incoming = cookieHeaderFromResponse(headers);
+  if (!incoming) return existing;
+  const map = new Map<string, string>();
+  for (const chunk of [existing, incoming]) {
+    for (const pair of chunk.split(';')) {
+      const trimmed = pair.trim();
+      if (!trimmed) continue;
+      const eq = trimmed.indexOf('=');
+      if (eq <= 0) continue;
+      map.set(trimmed.slice(0, eq).trim(), trimmed.slice(eq + 1).trim());
+    }
+  }
+  return [...map.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
+}
+
+async function establishSession(): Promise<string> {
+  const res = await fetchWithTimeout(`${BASE}/`, {
+    method: 'GET',
+    headers: HOME_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`vip-215: homepage failed: ${res.status}`);
+  }
+  const cookie = cookieHeaderFromResponse(res.headers);
+  if (!cookie.includes('yyds_homepage_bridge=') || !cookie.includes('yyds_homepage_device=')) {
+    throw new Error('vip-215: missing homepage cookies');
+  }
+  return cookie;
+}
+
+async function fetchWsTicket(jwt: string): Promise<string> {
+  const res = await fetchWithTimeout(WS_TICKET_URL, {
+    method: 'GET',
+    headers: {
+      ...API_HEADERS,
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  const rawText = await res.text();
+  if (!res.ok) {
+    throw new Error(`vip-215: ws-ticket failed: ${res.status} ${rawText}`);
+  }
+  let body: { success?: boolean; data?: { ticket?: string } };
+  try {
+    body = JSON.parse(rawText) as typeof body;
+  } catch {
+    throw new Error(`vip-215: ws-ticket non-JSON: ${rawText.slice(0, 120)}`);
+  }
+  if (!body?.success || !body.data?.ticket) {
+    throw new Error('vip-215: invalid ws-ticket response');
+  }
+  return body.data.ticket;
+}
 
 type MailboxState = {
   emails: Map<string, Email>;
@@ -107,12 +205,12 @@ function getState(token: string): MailboxState {
   return st;
 }
 
-function wsUrl(token: string): string {
-  return `wss://vip.215.im/v1/ws?token=${encodeURIComponent(token)}`;
+function wsUrl(wsTicket: string): string {
+  return `wss://vip.215.im/v1/ws?token=${encodeURIComponent(wsTicket)}`;
 }
 
-function ensureWs(token: string, recipientEmail: string): Promise<void> {
-  const st = getState(token);
+function ensureWs(jwt: string, recipientEmail: string): Promise<void> {
+  const st = getState(jwt);
   if (st.ws?.readyState === WebSocket.OPEN) {
     return Promise.resolve();
   }
@@ -120,65 +218,68 @@ function ensureWs(token: string, recipientEmail: string): Promise<void> {
     return st.connectPromise;
   }
 
-  st.connectPromise = new Promise<void>((resolve, reject) => {
-    const ws = new WebSocket(wsUrl(token), {
-      headers: {
-        'User-Agent': DEFAULT_HEADERS['User-Agent'],
-        Origin: WS_ORIGIN,
-      },
-    });
+  st.connectPromise = (async () => {
+    const wsTicket = await fetchWsTicket(jwt);
+    await new Promise<void>((resolve, reject) => {
+      const ws = new WebSocket(wsUrl(wsTicket), {
+        headers: {
+          'User-Agent': USER_AGENT,
+          Origin: WS_ORIGIN,
+        },
+      });
 
-    st.ws = ws;
+      st.ws = ws;
 
-    const clearConnecting = () => {
-      st.connectPromise = undefined;
-    };
+      const clearConnecting = () => {
+        st.connectPromise = undefined;
+      };
 
-    ws.once('open', () => {
-      clearConnecting();
-      resolve();
-    });
+      ws.once('open', () => {
+        clearConnecting();
+        resolve();
+      });
 
-    ws.once('error', (err: Error) => {
-      clearConnecting();
-      st.ws = null;
-      reject(err);
-    });
+      ws.once('error', (err: Error) => {
+        clearConnecting();
+        st.ws = null;
+        reject(err);
+      });
 
-    ws.on('message', (data: WebSocket.RawData) => {
-      try {
-        const msg = JSON.parse(data.toString()) as {
-          type?: string;
-          data?: { id?: string; from?: string; subject?: string; date?: string; size?: number };
-        };
-        if (msg?.type !== 'message.new' || !msg.data) {
-          return;
+      ws.on('message', (data: WebSocket.RawData) => {
+        try {
+          const msg = JSON.parse(data.toString()) as {
+            type?: string;
+            data?: { id?: string; from?: string; subject?: string; date?: string; size?: number };
+          };
+          if (msg?.type !== 'message.new' || !msg.data) {
+            return;
+          }
+          const d = msg.data;
+          const syn = buildSyntheticBodies(recipientEmail, d);
+          const raw = {
+            id: d.id,
+            from: d.from,
+            subject: d.subject,
+            date: d.date,
+            to: recipientEmail,
+            text: syn.text,
+            html: syn.html,
+          };
+          const norm = normalizeEmail(raw, recipientEmail);
+          if (norm.id) {
+            st.emails.set(norm.id, norm);
+          }
+        } catch {
+          /* 忽略非 JSON / 非预期帧 */
         }
-        const d = msg.data;
-        const syn = buildSyntheticBodies(recipientEmail, d);
-        const raw = {
-          id: d.id,
-          from: d.from,
-          subject: d.subject,
-          date: d.date,
-          to: recipientEmail,
-          text: syn.text,
-          html: syn.html,
-        };
-        const norm = normalizeEmail(raw, recipientEmail);
-        if (norm.id) {
-          st.emails.set(norm.id, norm);
-        }
-      } catch {
-        /* 忽略非 JSON / 非预期帧 */
-      }
-    });
+      });
 
-    ws.on('close', () => {
-      st.ws = null;
-      st.connectPromise = undefined;
+      ws.on('close', () => {
+        st.ws = null;
+        st.connectPromise = undefined;
+      });
     });
-  });
+  })();
 
   return st.connectPromise;
 }
@@ -187,10 +288,15 @@ function ensureWs(token: string, recipientEmail: string): Promise<void> {
  * 创建临时收件箱（服务端分配地址与 JWT，收件靠 WebSocket 推送）
  */
 export async function generateEmail(): Promise<InternalEmailInfo> {
+  let cookie = await establishSession();
   const response = await fetchWithTimeout(API_URL, {
     method: 'POST',
-    headers: DEFAULT_HEADERS,
+    headers: {
+      ...API_HEADERS,
+      Cookie: cookie,
+    },
   });
+  cookie = mergeCookieHeader(cookie, response.headers);
 
   if (!response.ok) {
     const text = await response.text().catch(() => '');

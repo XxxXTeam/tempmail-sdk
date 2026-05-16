@@ -14,7 +14,7 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::ChatgptOrgUk, Channel::TempMailIO,
     Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::MailCx, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
-    Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal, Channel::Moakt,
+    Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal, Channel::Moakt, Channel::Etempmail,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -52,6 +52,7 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Anonbox => ChannelInfo { channel: Channel::Anonbox, name: "Anonbox", website: "anonbox.net" },
         Channel::FakeLegal => ChannelInfo { channel: Channel::FakeLegal, name: "Fake Legal", website: "fake.legal" },
         Channel::Moakt => ChannelInfo { channel: Channel::Moakt, name: "Moakt", website: "moakt.com" },
+        Channel::Etempmail => ChannelInfo { channel: Channel::Etempmail, name: "eTempMail", website: "etempmail.com" },
     })
 }
 
@@ -154,6 +155,7 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::Anonbox => providers::anonbox::generate_email(),
         Channel::FakeLegal => providers::fake_legal::generate_email(domain),
         Channel::Moakt => providers::moakt::generate_email(domain),
+        Channel::Etempmail => providers::etempmail::generate_email(),
     }
 }
 
@@ -314,6 +316,10 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::Moakt => {
             let t = token.ok_or("token is required for moakt")?;
             providers::moakt::get_emails(t, email)
+        }
+        Channel::Etempmail => {
+            let t = token.ok_or("token is required for etempmail")?;
+            providers::etempmail::get_emails(t, email)
         }
     }
 }

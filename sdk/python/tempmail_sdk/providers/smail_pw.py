@@ -30,6 +30,9 @@ _RE_PLAIN_INBOX = re.compile(r"\b([a-z0-9][a-z0-9.-]*@smail\.pw)\b", re.I)
 _RE_MAIL = re.compile(
     r'"id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","([^"]*)","time",(\d+)'
 )
+_RE_MAIL_NO_SUBJ = re.compile(
+    r'"id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","time",(\d+)'
+)
 _RE_MAIL2 = re.compile(
     r'"id","([^"]+)","from_name","([^"]*)","from_address","([^"]*)","subject","([^"]*)","time",(\d+)'
 )
@@ -94,6 +97,96 @@ def _extract_inbox(text: str) -> str:
     return m.group(1) if m else ""
 
 
+def _is_flight_deferred_row(obj) -> bool:
+    return isinstance(obj, dict) and obj and all(str(k).startswith("_") for k in obj)
+
+
+def _resolve_flight_deferred_row(root: list, obj: dict) -> dict | None:
+    fields: dict = {}
+    for k, v in obj.items():
+        if not str(k).startswith("_"):
+            continue
+        try:
+            key_idx = int(str(k)[1:])
+            val_idx = int(v)
+        except (TypeError, ValueError):
+            continue
+        if key_idx < 0 or key_idx >= len(root) or val_idx < 0 or val_idx >= len(root):
+            continue
+        key = root[key_idx]
+        val = root[val_idx]
+        if key == "time" and (isinstance(val, int) or (isinstance(val, str) and str(val).isdigit())):
+            fields["time"] = int(val)
+        elif isinstance(key, str) and isinstance(val, str):
+            fields[key] = val
+    if not fields.get("id") and "time" not in fields:
+        return None
+    return fields
+
+
+def _row_fields_to_mail(fields: dict, recipient: str) -> dict | None:
+    time_ms = fields.get("time")
+    if not isinstance(time_ms, int):
+        return None
+    to_addr = str(fields.get("to_address") or recipient)
+    subject = str(fields.get("subject") or "")
+    if subject == to_addr or subject.endswith("@smail.pw"):
+        subject = ""
+    return {
+        "id": str(fields.get("id") or ""),
+        "to_address": to_addr,
+        "from_name": str(fields.get("from_name") or ""),
+        "from_address": str(fields.get("from_address") or ""),
+        "subject": subject,
+        "date": time_ms,
+        "text": "",
+        "html": "",
+        "attachments": [],
+    }
+
+
+def _parse_flight_root(root: list, recipient: str) -> list:
+    mails = []
+    for i, el in enumerate(root):
+        if el != "emails" or i + 1 >= len(root):
+            continue
+        refs = root[i + 1]
+        if not isinstance(refs, list):
+            break
+        for r in refs:
+            idx = int(r) if isinstance(r, int) else None
+            if idx is None and isinstance(r, str) and r.isdigit():
+                idx = int(r)
+            if idx is None or idx < 0 or idx >= len(root):
+                continue
+            node = root[idx]
+            if _is_flight_deferred_row(node):
+                fields = _resolve_flight_deferred_row(root, node)
+                if fields:
+                    mail = _row_fields_to_mail(fields, recipient)
+                    if mail:
+                        mails.append(mail)
+        break
+    return mails
+
+
+def _fetch_email_body(token: str, mail_id: str) -> dict:
+    if not mail_id or mail_id.startswith("__smail_"):
+        return {"text": "", "html": ""}
+    try:
+        resp = tm_http.get(
+            f"https://smail.pw/api/email/{mail_id}",
+            headers={**_HEADERS, "Cookie": token, "Accept": "application/json"},
+        )
+        if resp.status_code != 200:
+            return {"text": "", "html": ""}
+        data = resp.json()
+        html = data.get("body") if isinstance(data, dict) else ""
+        return {"text": "", "html": html if isinstance(html, str) else ""}
+    except Exception:
+        return {"text": "", "html": ""}
+
+
 def _merge_by_id(rows: list) -> list:
     by_id = {}
     anon = 0
@@ -127,6 +220,23 @@ def _parse_mails(text: str, recipient: str) -> list:
         )
     if reg:
         chunks.append(reg)
+    reg0 = []
+    for m in _RE_MAIL_NO_SUBJ.finditer(text):
+        reg0.append(
+            {
+                "id": m.group(1),
+                "to_address": m.group(2) or recipient,
+                "from_name": m.group(3),
+                "from_address": m.group(4),
+                "subject": "",
+                "date": int(m.group(5)),
+                "text": "",
+                "html": "",
+                "attachments": [],
+            }
+        )
+    if reg0:
+        chunks.append(reg0)
     reg2 = []
     for m in _RE_MAIL2.finditer(text):
         reg2.append(
@@ -150,6 +260,10 @@ def _parse_mails(text: str, recipient: str) -> list:
         _walk_plain_row_emails(root, recipient, plain, set())
         if plain:
             chunks.append(plain)
+        if isinstance(root, list):
+            flight = _parse_flight_root(root, recipient)
+            if flight:
+                chunks.append(flight)
     except Exception:
         get_logger().debug("smail-pw: json parse in _parse_mails failed", exc_info=True)
     flat = [row for part in chunks for row in part]
@@ -183,4 +297,13 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
     )
     resp.raise_for_status()
     raw_list = _parse_mails(resp.text, email)
-    return [normalize_email(r, email) for r in raw_list]
+    out = [normalize_email(r, email) for r in raw_list]
+    for item in out:
+        if not item.id:
+            continue
+        body = _fetch_email_body(token, item.id)
+        if body.get("html"):
+            item.html = body["html"]
+        if body.get("text"):
+            item.text = body["text"]
+    return out

@@ -42,6 +42,7 @@ static const tm_channel_t g_channel_try_order[] = {
     CHANNEL_ANONBOX,
     CHANNEL_FAKE_LEGAL,
     CHANNEL_MOAKT,
+    CHANNEL_ETEMPMAIL,
 };
 
 #define TM_CHANNEL_TRY_N ((int)(sizeof(g_channel_try_order) / sizeof(g_channel_try_order[0])))
@@ -74,6 +75,7 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_ANONBOX,        "Anonbox",        "anonbox.net" },
     { CHANNEL_FAKE_LEGAL,     "Fake Legal",     "fake.legal" },
     { CHANNEL_MOAKT,          "Moakt",          "moakt.com" },
+    { CHANNEL_ETEMPMAIL,      "eTempMail",      "etempmail.com" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -118,6 +120,7 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_TEMPMAILG:      result = tm_provider_tempmailg_generate(domain); break;
             case CHANNEL_10MAIL_WANGTZ:  result = tm_provider_tenmail_wangtz_generate(domain); break;
             case CHANNEL_MOAKT:          result = tm_provider_moakt_generate(domain); break;
+            case CHANNEL_ETEMPMAIL:      result = tm_provider_etempmail_generate(); break;
             case CHANNEL_10MINUTE_ONE:   result = tm_provider_tenminute_one_generate(domain); break;
             default: return NULL;
         }
@@ -298,6 +301,10 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_MOAKT:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_moakt_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_ETEMPMAIL:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_etempmail_get_emails(email_info->token, email_info->email, &count);
                 break;
             case CHANNEL_10MINUTE_ONE:
                 if (!email_info->token) { count = -1; break; }

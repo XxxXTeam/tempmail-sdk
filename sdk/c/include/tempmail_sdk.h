@@ -46,6 +46,7 @@ typedef enum {
     CHANNEL_MOAKT,
     CHANNEL_10MINUTE_ONE,
     CHANNEL_TEMPMAILG,
+    CHANNEL_ETEMPMAIL,
     CHANNEL_COUNT,       /* 渠道总数 */
     CHANNEL_RANDOM = -1, /* 随机选择 */
 } tm_channel_t;

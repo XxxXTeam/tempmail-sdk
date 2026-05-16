@@ -1,6 +1,6 @@
 /*!
  * MinMail — https://minmail.app/api
- * 建箱返回 visitorId、ck；列表请求需 visitor-id 与 ck 请求头。
+ * 建箱与列表均需客户端 visitor-id 请求头绑定会话。
  */
 
 use rand::Rng;
@@ -40,6 +40,50 @@ fn visitor_id() -> String {
     )
 }
 
+fn merge_cookie_line(prev: &str, set_cookie: &str) -> String {
+    let mut m: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for chunk in prev.split(';').chain(set_cookie.split(';')) {
+        let t = chunk.trim();
+        if t.is_empty() {
+            continue;
+        }
+        if let Some((k, v)) = t.split_once('=') {
+            m.insert(k.trim().to_string(), v.trim().to_string());
+        }
+    }
+    m.iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+fn cookie_get(line: &str, name: &str) -> String {
+    for part in line.split(';') {
+        let t = part.trim();
+        if let Some((k, v)) = t.split_once('=') {
+            if k.trim() == name {
+                return v.trim().to_string();
+            }
+        }
+    }
+    String::new()
+}
+
+fn set_cookie_from_response(headers: &wreq::header::HeaderMap) -> String {
+    let mut parts = Vec::new();
+    for (name, value) in headers.iter() {
+        if name.as_str().eq_ignore_ascii_case("set-cookie") {
+            if let Ok(s) = value.to_str() {
+                let nv = s.split(';').next().unwrap_or("").trim();
+                if !nv.is_empty() {
+                    parts.push(nv.to_string());
+                }
+            }
+        }
+    }
+    parts.join("; ")
+}
+
 fn cookie_header() -> String {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -62,13 +106,13 @@ fn base_headers(b: wreq::RequestBuilder, cookie_line: &str) -> wreq::RequestBuil
             "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
         )
         .header("Origin", "https://minmail.app")
-        .header("Referer", "https://minmail.app/cn")
+        .header("Referer", "https://minmail.app/")
         .header("User-Agent", get_current_ua())
         .header("cache-control", "no-cache")
         .header("dnt", "1")
         .header("pragma", "no-cache")
         .header("priority", "u=1, i")
-        .header("sec-ch-ua", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#)
+        .header("sec-ch-ua", r#""Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99""#)
         .header("sec-ch-ua-mobile", "?0")
         .header("sec-ch-ua-platform", r#""Windows""#)
         .header("sec-fetch-dest", "empty")
@@ -77,9 +121,14 @@ fn base_headers(b: wreq::RequestBuilder, cookie_line: &str) -> wreq::RequestBuil
         .header("Cookie", cookie)
 }
 
-fn build_address_req(client: &wreq::Client, path: &str, cookie_line: &str) -> wreq::RequestBuilder {
+fn build_address_req(
+    client: &wreq::Client,
+    path: &str,
+    vid: &str,
+    cookie_line: &str,
+) -> wreq::RequestBuilder {
     let url = format!("{}{}", BASE, path);
-    base_headers(client.get(&url), cookie_line)
+    base_headers(client.get(&url), cookie_line).header("visitor-id", vid)
 }
 
 fn build_list_req(
@@ -101,7 +150,15 @@ fn parse_minmail_token(s: &str) -> (String, String, String) {
     let t = s.trim();
     if t.starts_with('{') {
         if let Ok(tok) = serde_json::from_str::<MinmailToken>(t) {
-            return (tok.visitor_id, tok.ck, tok.cookie);
+            let mut vid = tok.visitor_id;
+            if vid.is_empty() {
+                vid = cookie_get(&tok.cookie, "visitorId");
+            }
+            let mut ck = tok.ck;
+            if ck.is_empty() {
+                ck = cookie_get(&tok.cookie, "ck");
+            }
+            return (vid, ck, tok.cookie);
         }
     }
     (t.to_string(), String::new(), String::new())
@@ -139,11 +196,13 @@ fn minmail_to_matches(header: &str, want: &str) -> bool {
 }
 
 pub fn generate_email() -> Result<EmailInfo, String> {
+    let vid = visitor_id();
     let cook = cookie_header();
     block_on(async {
         let resp = build_address_req(
             &http_client(),
             "/mail/address?refresh=true&expire=1440&part=main",
+            &vid,
             &cook,
         )
             .send()
@@ -152,24 +211,51 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         if !resp.status().is_success() {
             return Err(format!("minmail address {}", resp.status()));
         }
+        let headers = resp.headers().clone();
+        let set_ck = set_cookie_from_response(&headers);
+        let mut cook_merged = merge_cookie_line(&cook, &set_ck);
+        let ck_hdr = headers
+            .get("ck")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_string();
         let data: Value = resp.json().await.map_err(|e| e.to_string())?;
         let address = data["address"].as_str().unwrap_or("");
         if address.is_empty() {
             return Err("minmail: empty address".into());
         }
-        let mut server_vid = data["visitorId"].as_str().unwrap_or("").to_string();
-        if server_vid.is_empty() {
-            if let Some(s) = data["visitor_id"].as_str() {
-                server_vid = s.to_string();
+        let mut bound_vid = vid.clone();
+        if let Some(s) = data["visitorId"].as_str().filter(|s| !s.is_empty()) {
+            bound_vid = s.to_string();
+        } else if let Some(s) = data["visitor_id"].as_str().filter(|s| !s.is_empty()) {
+            bound_vid = s.to_string();
+        } else {
+            let from_cookie = cookie_get(&cook_merged, "visitorId");
+            if !from_cookie.is_empty() {
+                bound_vid = from_cookie;
             }
         }
-        let vid = if server_vid.is_empty() {
-            visitor_id()
-        } else {
-            server_vid
-        };
-        let ck = data["ck"].as_str().unwrap_or("");
-        let token = encode_minmail_token(&vid, ck, &cook).map_err(|e| e.to_string())?;
+        let ck_owned = data["ck"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+            .or_else(|| {
+                if !ck_hdr.is_empty() {
+                    Some(ck_hdr)
+                } else {
+                    let c = cookie_get(&cook_merged, "ck");
+                    if c.is_empty() {
+                        None
+                    } else {
+                        Some(c)
+                    }
+                }
+            })
+            .unwrap_or_default();
+        if !bound_vid.is_empty() && cookie_get(&cook_merged, "visitorId").is_empty() {
+            cook_merged = merge_cookie_line(&cook_merged, &format!("visitorId={bound_vid}"));
+        }
+        let token = encode_minmail_token(&bound_vid, &ck_owned, &cook_merged).map_err(|e| e.to_string())?;
         let expire_min = data["expire"].as_i64().unwrap_or(0);
         let expires_at = if expire_min > 0 {
             let now = SystemTime::now()
@@ -191,11 +277,11 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(email: &str, token: Option<&str>) -> Result<Vec<Email>, String> {
-    let (mut vid, ck, cook) = token
+    let (vid, ck, cook) = token
         .map(|s| parse_minmail_token(s))
         .unwrap_or_else(|| (String::new(), String::new(), String::new()));
     if vid.is_empty() {
-        vid = visitor_id();
+        return Err("minmail: token must include visitorId".into());
     }
     let email = email.to_string();
     block_on(async {
@@ -218,6 +304,8 @@ pub fn get_emails(email: &str, token: Option<&str>) -> Result<Vec<Email>, String
             let flat = serde_json::json!({
                 "id": raw["id"],
                 "from": raw["from"],
+                "fromAddress": raw["fromAddress"],
+                "fromName": raw["fromName"],
                 "to": to_s,
                 "subject": raw["subject"],
                 "text": raw["preview"],

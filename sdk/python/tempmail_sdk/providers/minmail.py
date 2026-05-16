@@ -1,7 +1,8 @@
 """
 MinMail 渠道
 API: https://minmail.app/api
-建箱 GET /mail/address 返回 visitorId、ck；收信 GET /mail/list 需请求头 visitor-id 与 ck。
+建箱 GET /mail/address 返回 address，visitorId/ck 可在 JSON、Set-Cookie 或响应头 ck；
+收信 GET /mail/list 需 visitor-id（及有 ck 时带 ck）请求头。
 """
 
 import json
@@ -22,16 +23,16 @@ HEADERS_BASE = {
     "Accept": "*/*",
     "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
     "Origin": "https://minmail.app",
-    "Referer": "https://minmail.app/cn",
+    "Referer": "https://minmail.app/",
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+        "(KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0"
     ),
     "cache-control": "no-cache",
     "dnt": "1",
     "pragma": "no-cache",
     "priority": "u=1, i",
-    "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+    "sec-ch-ua": '"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"',
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": '"Windows"',
     "sec-fetch-dest": "empty",
@@ -56,8 +57,33 @@ def _cookie_header() -> str:
     return f"_ga={ga}; _ga_DFGB8WF1WG=GS2.1.s{now}$o1$g0$t{now}$j60$l0$h0"
 
 
-def _headers_address_cookie(cookie: str) -> dict:
+def _merge_cookies(prev: str, resp) -> str:
+    m: dict[str, str] = {}
+    for part in (prev or "").split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        k, v = part.split("=", 1)
+        m[k.strip()] = v.strip()
+    for c in resp.cookies:
+        m[c.name] = c.value
+    return "; ".join(f"{k}={v}" for k, v in sorted(m.items()))
+
+
+def _cookie_get(cookie_line: str, name: str) -> str:
+    for part in (cookie_line or "").split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        k, v = part.split("=", 1)
+        if k.strip() == name:
+            return v.strip()
+    return ""
+
+
+def _headers_address(visitor_id: str, cookie: str) -> dict:
     h = dict(HEADERS_BASE)
+    h["visitor-id"] = visitor_id
     h["Cookie"] = cookie
     return h
 
@@ -78,8 +104,10 @@ def _parse_token(token: Optional[str]) -> Tuple[str, str, str]:
     if t.startswith("{"):
         try:
             o = json.loads(t)
-            vid = o.get("visitorId") or o.get("visitor_id") or ""
-            return str(vid), str(o.get("ck") or ""), str(o.get("cookie") or "")
+            cookie = str(o.get("cookie") or "")
+            vid = str(o.get("visitorId") or o.get("visitor_id") or _cookie_get(cookie, "visitorId") or "")
+            ck = str(o.get("ck") or _cookie_get(cookie, "ck") or "")
+            return vid, ck, cookie
         except (json.JSONDecodeError, TypeError):
             get_logger().debug("minmail: token JSON parse failed", exc_info=True)
     return t, "", ""
@@ -104,21 +132,23 @@ def _to_matches(header: str, want: str) -> bool:
 
 
 def generate_email() -> EmailInfo:
+    vid = _visitor_id()
     cook = _cookie_header()
     resp = tm_http.get(
         f"{BASE}/mail/address?refresh=true&expire=1440&part=main",
-        headers=_headers_address_cookie(cook),
+        headers=_headers_address(vid, cook),
         timeout=15,
     )
     resp.raise_for_status()
+    cook = _merge_cookies(cook, resp)
     data = resp.json()
     address = data.get("address")
     if not address:
         raise RuntimeError("minmail: empty address")
-    vid = data.get("visitorId") or data.get("visitor_id") or ""
-    if not vid:
-        vid = _visitor_id()
-    ck = data.get("ck") or ""
+    vid = data.get("visitorId") or data.get("visitor_id") or _cookie_get(cook, "visitorId") or vid
+    ck = data.get("ck") or resp.headers.get("ck") or _cookie_get(cook, "ck") or ""
+    if vid and not _cookie_get(cook, "visitorId"):
+        cook = _merge_cookies(f"{cook}; visitorId={vid}", resp)
     stored = json.dumps(
         {"visitorId": vid, "ck": ck, "cookie": cook},
         separators=(",", ":"),
@@ -133,7 +163,7 @@ def generate_email() -> EmailInfo:
 def get_emails(email: str, token: Optional[str] = None) -> List[Email]:
     vid, ck, cook = _parse_token(token)
     if not vid:
-        vid = _visitor_id()
+        raise RuntimeError("minmail: token must include visitorId")
     resp = tm_http.get(
         f"{BASE}/mail/list?part=main",
         headers=_headers_list(vid, ck, cook),
@@ -153,6 +183,8 @@ def get_emails(email: str, token: Optional[str] = None) -> List[Email]:
         flat = {
             "id": raw.get("id"),
             "from": raw.get("from"),
+            "fromAddress": raw.get("fromAddress"),
+            "fromName": raw.get("fromName"),
             "to": raw.get("to") or email,
             "subject": raw.get("subject"),
             "text": raw.get("preview"),

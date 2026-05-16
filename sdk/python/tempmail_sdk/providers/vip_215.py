@@ -19,19 +19,42 @@ from ..types import Email, EmailInfo
 CHANNEL = "vip-215"
 BASE = "https://vip.215.im"
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0"
+)
+
+HOME_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,image/apng,*/*;q=0.8"
     ),
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "Cache-Control": "no-cache",
+    "DNT": "1",
+    "Pragma": "no-cache",
+    "Sec-CH-UA": '"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"',
+    "Sec-CH-UA-Mobile": "?0",
+    "Sec-CH-UA-Platform": '"Windows"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
+}
+
+HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "*/*",
     "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
     "Cache-Control": "no-cache",
     "Content-Type": "application/json",
     "DNT": "1",
-    "Origin": "https://vip.215.im",
+    "Origin": BASE,
     "Pragma": "no-cache",
-    "Referer": "https://vip.215.im/",
-    "Sec-CH-UA": '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+    "Referer": f"{BASE}/",
+    "Sec-CH-UA": '"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"',
     "Sec-CH-UA-Mobile": "?0",
     "Sec-CH-UA-Platform": '"Windows"',
     "Sec-Fetch-Dest": "empty",
@@ -41,9 +64,47 @@ HEADERS = {
 }
 
 WS_EXTRA_HEADERS = [
-    f"User-Agent: {HEADERS['User-Agent']}",
-    "Origin: https://vip.215.im",
+    f"User-Agent: {USER_AGENT}",
+    f"Origin: {BASE}",
 ]
+
+
+def _cookie_header_from_response(resp) -> str:
+    jar = getattr(resp, "cookies", None)
+    if jar:
+        return "; ".join(f"{c.name}={c.value}" for c in jar)
+    raw = resp.headers.get("Set-Cookie") or ""
+    parts = []
+    for segment in raw.split(","):
+        nv = segment.split(";")[0].strip()
+        if nv and "=" in nv:
+            parts.append(nv)
+    return "; ".join(parts)
+
+
+def _establish_session() -> str:
+    resp = tm_http.get(f"{BASE}/", headers=HOME_HEADERS, timeout=15)
+    resp.raise_for_status()
+    cookie = _cookie_header_from_response(resp)
+    if "yyds_homepage_bridge=" not in cookie or "yyds_homepage_device=" not in cookie:
+        raise RuntimeError("vip-215: missing homepage cookies")
+    return cookie
+
+
+def _fetch_ws_ticket(jwt: str) -> str:
+    resp = tm_http.get(
+        f"{BASE}/v1/auth/ws-ticket",
+        headers={**HEADERS, "Authorization": f"Bearer {jwt}"},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    body = resp.json()
+    if not body.get("success"):
+        raise RuntimeError("vip-215: ws-ticket success=false")
+    ticket = (body.get("data") or {}).get("ticket")
+    if not ticket:
+        raise RuntimeError("vip-215: missing ws ticket")
+    return ticket
 
 _SYNTHETIC_MARKER = "【tempmail-sdk|synthetic|vip-215|v1】"
 
@@ -119,8 +180,9 @@ def _get_box(token: str, recipient: str) -> _Vip215Box:
         return b
 
 
-def _ws_run(token: str, box: _Vip215Box) -> None:
-    url = f"wss://vip.215.im/v1/ws?token={quote(token, safe='')}"
+def _ws_run(jwt: str, box: _Vip215Box) -> None:
+    ws_ticket = _fetch_ws_ticket(jwt)
+    url = f"wss://vip.215.im/v1/ws?token={quote(ws_ticket, safe='')}"
 
     def on_message(_ws, message: str) -> None:
         try:
@@ -171,9 +233,11 @@ def _ensure_ws(token: str, recipient: str) -> None:
 
 
 def generate_email() -> EmailInfo:
+    cookie = _establish_session()
+    hdrs = {**HEADERS, "Cookie": cookie}
     resp = tm_http.post(
         f"{BASE}/api/temp-inbox",
-        headers=HEADERS,
+        headers=hdrs,
         data=b"",
         timeout=15,
     )

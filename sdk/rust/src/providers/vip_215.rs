@@ -2,19 +2,116 @@
  * vip.215.im：POST /api/temp-inbox；收件通过 WebSocket `message.new`（独立线程 + tungstenite）
  */
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 
+use reqwest::header::HeaderMap;
 use serde_json::Value;
 use tungstenite::protocol::Message;
 
-use crate::config::{block_on, get_current_ua, http_client};
+use crate::config::{block_on, get_current_ua, http_client_no_cookie_jar};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 
 const HTTP_BASE: &str = "https://vip.215.im";
 const VIP215_SYNTHETIC_MARKER: &str = "【tempmail-sdk|synthetic|vip-215|v1】";
+
+fn cookie_map(hdr: &str) -> BTreeMap<String, String> {
+    let mut m = BTreeMap::new();
+    for part in hdr.split(';') {
+        let p = part.trim();
+        if p.is_empty() {
+            continue;
+        }
+        if let Some((k, v)) = p.split_once('=') {
+            m.insert(k.trim().to_string(), v.trim().to_string());
+        }
+    }
+    m
+}
+
+fn cookie_hdr_from_map(m: &BTreeMap<String, String>) -> String {
+    m.iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+fn merge_set_cookies(prev: &str, headers: &HeaderMap) -> String {
+    let mut m = cookie_map(prev);
+    for v in headers.get_all("set-cookie") {
+        if let Ok(s) = v.to_str() {
+            if let Some(nv) = s.split(';').next() {
+                if let Some((k, val)) = nv.split_once('=') {
+                    m.insert(k.trim().to_string(), val.trim().to_string());
+                }
+            }
+        }
+    }
+    cookie_hdr_from_map(&m)
+}
+
+fn vip215_api_headers(ua: &str) -> Vec<(&'static str, String)> {
+    vec![
+        ("accept", "*/*".into()),
+        ("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6".into()),
+        ("cache-control", "no-cache".into()),
+        ("content-type", "application/json".into()),
+        ("dnt", "1".into()),
+        ("origin", HTTP_BASE.into()),
+        ("pragma", "no-cache".into()),
+        ("referer", format!("{HTTP_BASE}/")),
+        (
+            "sec-ch-ua",
+            r#""Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99""#.into(),
+        ),
+        ("sec-ch-ua-mobile", "?0".into()),
+        ("sec-ch-ua-platform", r#""Windows""#.into()),
+        ("sec-fetch-dest", "empty".into()),
+        ("sec-fetch-mode", "cors".into()),
+        ("sec-fetch-site", "same-origin".into()),
+        ("user-agent", ua.to_string()),
+        ("x-locale", "zh".into()),
+    ]
+}
+
+fn apply_vip215_api_headers(
+    mut req: reqwest::RequestBuilder,
+    ua: &str,
+    cookie: Option<&str>,
+) -> reqwest::RequestBuilder {
+    for (k, v) in vip215_api_headers(ua) {
+        req = req.header(k, v);
+    }
+    if let Some(c) = cookie {
+        if !c.is_empty() {
+            req = req.header("Cookie", c);
+        }
+    }
+    req
+}
+
+async fn fetch_ws_ticket(client: &reqwest::Client, ua: &str, jwt: &str) -> Result<String, String> {
+    let mut req = client.get(format!("{HTTP_BASE}/v1/auth/ws-ticket"));
+    req = apply_vip215_api_headers(req, ua, None);
+    req = req.header("Authorization", format!("Bearer {jwt}"));
+    let resp = req.send().await.map_err(|e| format!("vip-215 ws-ticket: {e}"))?;
+    if !resp.status().is_success() {
+        let status = resp.status();
+        let t = resp.text().await.unwrap_or_default();
+        return Err(format!("vip-215 ws-ticket HTTP {status} {t}"));
+    }
+    let body: Value = resp.json().await.map_err(|e| e.to_string())?;
+    if body.get("success").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("vip-215: ws-ticket success=false".into());
+    }
+    body.get("data")
+        .and_then(|d| d.get("ticket"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| "vip-215: missing ws ticket".into())
+}
 
 struct Vip215Box {
     emails: Vec<Email>,
@@ -139,10 +236,18 @@ fn vip215_synthetic_bodies(recipient: &str, data: &Value) -> (String, String) {
     (text, html)
 }
 
-fn ws_loop(token: String, recipient: String, arc: Arc<Mutex<Vip215Box>>) {
-    let enc = urlencoding::encode(&token);
-    let ws_url = format!("wss://vip.215.im/v1/ws?token={}", enc);
+fn ws_loop(jwt: String, recipient: String, arc: Arc<Mutex<Vip215Box>>) {
     let ua = get_current_ua();
+    let client = http_client_no_cookie_jar();
+    let ws_ticket = match block_on(fetch_ws_ticket(&client, &ua, &jwt)) {
+        Ok(t) => t,
+        Err(e) => {
+            log::warn!("vip-215 ws-ticket failed: {}", e);
+            return;
+        }
+    };
+    let enc = urlencoding::encode(&ws_ticket);
+    let ws_url = format!("wss://vip.215.im/v1/ws?token={}", enc);
     let request = match tungstenite::http::Request::builder()
         .uri(&ws_url)
         .header("Host", "vip.215.im")
@@ -240,23 +345,46 @@ fn ensure_ws(token: &str, recipient: &str) {
 pub fn generate_email() -> Result<EmailInfo, String> {
     block_on(async {
         let ua = get_current_ua();
-        let resp = http_client()
-            .post(format!("{}/api/temp-inbox", HTTP_BASE))
-            .header("Content-Type", "application/json")
+        let client = http_client_no_cookie_jar();
+
+        let home = client
+            .get(format!("{HTTP_BASE}/"))
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            )
             .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
             .header("Cache-Control", "no-cache")
             .header("DNT", "1")
-            .header("Origin", "https://vip.215.im")
             .header("Pragma", "no-cache")
-            .header("Referer", "https://vip.215.im/")
-            .header("Sec-CH-UA", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#)
+            .header(
+                "Sec-CH-UA",
+                r#""Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99""#,
+            )
             .header("Sec-CH-UA-Mobile", "?0")
             .header("Sec-CH-UA-Platform", r#""Windows""#)
-            .header("Sec-Fetch-Dest", "empty")
-            .header("Sec-Fetch-Mode", "cors")
+            .header("Sec-Fetch-Dest", "document")
+            .header("Sec-Fetch-Mode", "navigate")
             .header("Sec-Fetch-Site", "same-origin")
-            .header("X-Locale", "zh")
-            .header("User-Agent", ua)
+            .header("Sec-Fetch-User", "?1")
+            .header("Upgrade-Insecure-Requests", "1")
+            .header("User-Agent", &ua)
+            .send()
+            .await
+            .map_err(|e| format!("vip-215 homepage: {e}"))?;
+        if !home.status().is_success() {
+            return Err(format!("vip-215 homepage HTTP {}", home.status()));
+        }
+        let mut cookie_hdr = merge_set_cookies("", home.headers());
+        if !cookie_hdr.contains("yyds_homepage_bridge=")
+            || !cookie_hdr.contains("yyds_homepage_device=")
+        {
+            return Err("vip-215: missing homepage cookies".into());
+        }
+
+        let mut req = client.post(format!("{HTTP_BASE}/api/temp-inbox"));
+        req = apply_vip215_api_headers(req, &ua, Some(&cookie_hdr));
+        let resp = req
             .send()
             .await
             .map_err(|e| format!("vip-215 create inbox: {}", e))?;
@@ -266,6 +394,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             let t = resp.text().await.unwrap_or_default();
             return Err(format!("vip-215 create inbox HTTP {} {}", status, t));
         }
+        cookie_hdr = merge_set_cookies(&cookie_hdr, resp.headers());
 
         let body: Value = resp.json().await.map_err(|e| e.to_string())?;
         if body.get("success").and_then(|v| v.as_bool()) != Some(true) {

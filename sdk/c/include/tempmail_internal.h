@@ -168,4 +168,7 @@ tm_email_t* tm_provider_moakt_get_emails(const char *token, const char *email, i
 tm_email_info_t* tm_provider_tenminute_one_generate(const char *domain);
 tm_email_t* tm_provider_tenminute_one_get_emails(const char *token, const char *email, int *count);
 
+tm_email_info_t* tm_provider_etempmail_generate(void);
+tm_email_t* tm_provider_etempmail_get_emails(const char *token, const char *email, int *count);
+
 #endif /* TEMPMAIL_INTERNAL_H */

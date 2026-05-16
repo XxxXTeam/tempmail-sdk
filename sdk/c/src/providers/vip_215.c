@@ -21,12 +21,33 @@
 #include <unistd.h>
 #endif
 
-#define VIP215_HTTP_BASE "https://vip.215.im/api/temp-inbox"
+#define VIP215_SITE "https://vip.215.im"
+#define VIP215_HTTP_BASE VIP215_SITE "/api/temp-inbox"
+#define VIP215_WS_TICKET VIP215_SITE "/v1/auth/ws-ticket"
 #define VIP215_WS_PATH "wss://vip.215.im/v1/ws?token="
 #define VIP215_MARKER "\xe3\x80\x90tempmail-sdk|synthetic|vip-215|v1\xe3\x80\x91"
 
+static const char *vip215_home_headers[] = {
+    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0",
+    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "Cache-Control: no-cache",
+    "DNT: 1",
+    "Pragma: no-cache",
+    "Sec-CH-UA: \"Chromium\";v=\"148\", \"Microsoft Edge\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
+    "Sec-CH-UA-Mobile: ?0",
+    "Sec-CH-UA-Platform: \"Windows\"",
+    "Sec-Fetch-Dest: document",
+    "Sec-Fetch-Mode: navigate",
+    "Sec-Fetch-Site: same-origin",
+    "Sec-Fetch-User: ?1",
+    "Upgrade-Insecure-Requests: 1",
+    NULL
+};
+
 static const char *vip215_post_headers[] = {
-    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0",
+    "Accept: */*",
     "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
     "Cache-Control: no-cache",
     "Content-Type: application/json",
@@ -34,7 +55,7 @@ static const char *vip215_post_headers[] = {
     "Origin: https://vip.215.im",
     "Pragma: no-cache",
     "Referer: https://vip.215.im/",
-    "Sec-CH-UA: \"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "Sec-CH-UA: \"Chromium\";v=\"148\", \"Microsoft Edge\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
     "Sec-CH-UA-Mobile: ?0",
     "Sec-CH-UA-Platform: \"Windows\"",
     "Sec-Fetch-Dest: empty",
@@ -66,6 +87,48 @@ typedef struct vip215_entry {
 } vip215_entry_t;
 
 static vip215_entry_t *g_vip215_head;
+
+static char *vip215_concat_cookie(const char *a, const char *b) {
+    if (!b || !b[0]) return tm_strdup(a ? a : "");
+    if (!a || !a[0]) return tm_strdup(b);
+    size_t na = strlen(a), nb = strlen(b);
+    char *o = (char *)malloc(na + nb + 8);
+    if (!o) return NULL;
+    snprintf(o, na + nb + 8, "%s; %s", a, b);
+    return o;
+}
+
+static int vip215_has_home_cookies(const char *ck) {
+    return ck && strstr(ck, "yyds_homepage_bridge=") && strstr(ck, "yyds_homepage_device=");
+}
+
+static char *vip215_fetch_ws_ticket(const char *jwt) {
+    if (!jwt || !jwt[0]) return NULL;
+    char auth_line[8704];
+    snprintf(auth_line, sizeof(auth_line), "Authorization: Bearer %s", jwt);
+    const char *hdrs[32];
+    int i = 0;
+    for (const char **p = vip215_post_headers; *p; p++) hdrs[i++] = *p;
+    hdrs[i++] = auth_line;
+    hdrs[i] = NULL;
+
+    tm_http_response_t *r = tm_http_request(TM_HTTP_GET, VIP215_WS_TICKET, hdrs, NULL, 15);
+    if (!r || r->status < 200 || r->status >= 300 || !r->body) {
+        tm_http_response_free(r);
+        return NULL;
+    }
+    cJSON *json = cJSON_Parse(r->body);
+    tm_http_response_free(r);
+    if (!json) return NULL;
+    cJSON *ok = cJSON_GetObjectItemCaseSensitive(json, "success");
+    cJSON *data = cJSON_GetObjectItemCaseSensitive(json, "data");
+    cJSON *ticket = data ? cJSON_GetObjectItemCaseSensitive(data, "ticket") : NULL;
+    char *out = NULL;
+    if (cJSON_IsBool(ok) && cJSON_IsTrue(ok) && cJSON_IsString(ticket) && ticket->valuestring)
+        out = tm_strdup(ticket->valuestring);
+    cJSON_Delete(json);
+    return out;
+}
 
 void tm_vip215_module_init(void) {
 #ifdef _WIN32
@@ -341,7 +404,19 @@ static void *vip215_ws_thread(void *arg)
 #endif
     }
 
-    char *esc = curl_easy_escape(curl, e->token, 0);
+    char *ws_ticket = vip215_fetch_ws_ticket(e->token);
+    if (!ws_ticket) {
+        TM_LOG_WARN("vip-215: ws-ticket 获取失败");
+        curl_easy_cleanup(curl);
+#ifdef _WIN32
+        return 0;
+#else
+        return NULL;
+#endif
+    }
+
+    char *esc = curl_easy_escape(curl, ws_ticket, 0);
+    free(ws_ticket);
     if (!esc) {
         curl_easy_cleanup(curl);
 #ifdef _WIN32
@@ -456,11 +531,38 @@ static void vip215_start_reader(vip215_entry_t *e) {
 #endif /* TM_VIP215_USE_CURL_WS */
 
 tm_email_info_t* tm_provider_vip215_generate(void) {
-    tm_http_response_t *resp = tm_http_request(TM_HTTP_POST, VIP215_HTTP_BASE, vip215_post_headers, NULL, 15);
-    if (!resp || resp->status < 200 || resp->status >= 300) {
-        tm_http_response_free(resp);
+    tm_http_response_t *home = tm_http_request(TM_HTTP_GET, VIP215_SITE "/", vip215_home_headers, NULL, 15);
+    if (!home || home->status < 200 || home->status >= 300) {
+        tm_http_response_free(home);
         return NULL;
     }
+    char *cookie = home->cookies ? tm_strdup(home->cookies) : tm_strdup("");
+    tm_http_response_free(home);
+    if (!vip215_has_home_cookies(cookie)) {
+        free(cookie);
+        return NULL;
+    }
+
+    char ck_line[8704];
+    snprintf(ck_line, sizeof(ck_line), "Cookie: %s", cookie);
+    const char *post_hdrs[32];
+    int hi = 0;
+    for (const char **p = vip215_post_headers; *p; p++) post_hdrs[hi++] = *p;
+    post_hdrs[hi++] = ck_line;
+    post_hdrs[hi] = NULL;
+
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_POST, VIP215_HTTP_BASE, post_hdrs, NULL, 15);
+    if (!resp || resp->status < 200 || resp->status >= 300) {
+        tm_http_response_free(resp);
+        free(cookie);
+        return NULL;
+    }
+    if (resp->cookies && resp->cookies[0]) {
+        char *merged = vip215_concat_cookie(cookie, resp->cookies);
+        free(cookie);
+        cookie = merged;
+    }
+    free(cookie);
 
     cJSON *json = cJSON_Parse(resp->body);
     tm_http_response_free(resp);

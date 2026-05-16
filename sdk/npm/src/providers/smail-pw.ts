@@ -40,35 +40,120 @@ function flightLinearLeaves(node: unknown): unknown[] {
   return out;
 }
 
-const MAIL_KV_KEYS = new Set(['id', 'to_address', 'from_name', 'from_address']);
+const MAIL_KV_KEYS = new Set(['id', 'to_address', 'from_name', 'from_address', 'subject']);
+
+function parseTimeMs(raw: unknown): number {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return raw;
+  }
+  if (typeof raw === 'string' && /^\d+$/.test(raw)) {
+    return parseInt(raw, 10);
+  }
+  return NaN;
+}
+
+/** RR7 Flight 延迟行：{"_18":19,"_20":21,...}，键/值分别指向 root 槽位 */
+function isFlightDeferredRow(obj: unknown): obj is Record<string, unknown> {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    return false;
+  }
+  const keys = Object.keys(obj);
+  return keys.length > 0 && keys.every((k) => k.startsWith('_'));
+}
+
+function resolveFlightDeferredRow(
+  root: unknown[],
+  obj: Record<string, unknown>,
+): Record<string, string | number> | null {
+  const fields: Record<string, string | number> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (!k.startsWith('_')) {
+      continue;
+    }
+    const keyIdx = parseInt(k.slice(1), 10);
+    const valIdx = typeof v === 'number' ? v : parseInt(String(v), 10);
+    if (
+      !Number.isFinite(keyIdx) ||
+      !Number.isFinite(valIdx) ||
+      keyIdx < 0 ||
+      keyIdx >= root.length ||
+      valIdx < 0 ||
+      valIdx >= root.length
+    ) {
+      continue;
+    }
+    const key = root[keyIdx];
+    const val = root[valIdx];
+    if (typeof key !== 'string') {
+      continue;
+    }
+    if (key === 'time') {
+      const timeMs = parseTimeMs(val);
+      if (Number.isFinite(timeMs)) {
+        fields.time = timeMs;
+      }
+    } else if (typeof val === 'string') {
+      fields[key] = val;
+    }
+  }
+  if (!fields.id && fields.time === undefined) {
+    return null;
+  }
+  return fields;
+}
+
+function rowFieldsToMail(
+  fields: Record<string, string | number>,
+  recipientEmail: string,
+): Record<string, unknown> | null {
+  const timeMs = parseTimeMs(fields.time);
+  if (!Number.isFinite(timeMs)) {
+    return null;
+  }
+  const toAddr = String(fields.to_address || recipientEmail);
+  let subject = String(fields.subject ?? '');
+  if (subject === toAddr || /@smail\.pw$/i.test(subject)) {
+    subject = '';
+  }
+  return {
+    id: String(fields.id ?? ''),
+    to_address: toAddr,
+    from_name: String(fields.from_name ?? ''),
+    from_address: String(fields.from_address ?? ''),
+    subject,
+    date: timeMs,
+    text: '',
+    html: '',
+    attachments: [],
+  };
+}
 
 /**
  * 在线性序列中查找 ... "subject", <str>, "time", <num>，再向前成对读取已知字段。
- * 比纯正则更耐受 emails 与 id 之间的 {"_23":4,...} 引用块。
+ * RR7 常省略 subject 值，表现为 "subject","time",<ts>。
  */
 function parseSmailEmailsFromLinear(
   leaves: unknown[],
   recipientEmail: string,
 ): any[] {
   const mails: any[] = [];
-  for (let i = 0; i + 3 < leaves.length; i++) {
+  for (let i = 0; i + 2 < leaves.length; i++) {
     if (leaves[i] !== 'subject') {
       continue;
     }
-    const subj = leaves[i + 1];
-    if (typeof subj !== 'string') {
+
+    let subj = '';
+    let timeIdx: number;
+    if (leaves[i + 1] === 'time') {
+      timeIdx = i + 2;
+    } else if (typeof leaves[i + 1] === 'string' && leaves[i + 2] === 'time') {
+      subj = leaves[i + 1] as string;
+      timeIdx = i + 3;
+    } else {
       continue;
     }
-    if (leaves[i + 2] !== 'time') {
-      continue;
-    }
-    const timeRaw = leaves[i + 3];
-    const timeMs =
-      typeof timeRaw === 'number'
-        ? timeRaw
-        : typeof timeRaw === 'string' && /^\d+$/.test(timeRaw)
-          ? parseInt(timeRaw, 10)
-          : NaN;
+
+    const timeMs = parseTimeMs(leaves[timeIdx]);
     if (!Number.isFinite(timeMs)) {
       continue;
     }
@@ -83,20 +168,22 @@ function parseSmailEmailsFromLinear(
       if (MAIL_KV_KEYS.has(key)) {
         fields[key] = val;
       }
-      /* 未知键值对跳过（RSC 可能在 subject 前插入其它字符串字段） */
+    }
+    if (!subj && fields.subject) {
+      subj = fields.subject;
     }
 
-    mails.push({
-      id: fields.id || '',
-      to_address: fields.to_address || recipientEmail,
-      from_name: fields.from_name || '',
-      from_address: fields.from_address || '',
-      subject: subj,
-      date: timeMs,
-      text: '',
-      html: '',
-      attachments: [],
-    });
+    const mail = rowFieldsToMail(
+      {
+        ...fields,
+        subject: subj,
+        time: timeMs,
+      },
+      recipientEmail,
+    );
+    if (mail) {
+      mails.push(mail);
+    }
   }
   return mails;
 }
@@ -139,6 +226,21 @@ function parseSmailEmailsRegex(text: string, recipientEmail: string): any[] {
       from_address: m[4],
       subject: m[5],
       date: parseInt(m[6], 10),
+      text: '',
+      html: '',
+      attachments: [],
+    });
+  }
+  const reNoSubj =
+    /"id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","time",(\d+)/g;
+  while ((m = reNoSubj.exec(text)) !== null) {
+    out.push({
+      id: m[1],
+      to_address: m[2] || recipientEmail,
+      from_name: m[3],
+      from_address: m[4],
+      subject: '',
+      date: parseInt(m[5], 10),
       text: '',
       html: '',
       attachments: [],
@@ -298,6 +400,12 @@ function parseSmailEmailsFromFlightRoot(root: unknown[], recipientEmail: string)
       if (Array.isArray(node)) {
         const leaves = flightLinearLeaves(node);
         mails.push(...parseSmailEmailsFromLinear(leaves, recipientEmail));
+      } else if (isFlightDeferredRow(node)) {
+        const fields = resolveFlightDeferredRow(root, node);
+        const mail = fields ? rowFieldsToMail(fields, recipientEmail) : null;
+        if (mail) {
+          mails.push(mail);
+        }
       } else if (node !== null && typeof node === 'object') {
         mails.push(...collectPlainRowEmails(node, recipientEmail));
       }
@@ -361,6 +469,33 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   };
 }
 
+/** 列表不含正文，需按 id 拉取 /api/email/:id（与官网一致） */
+async function fetchEmailBody(token: string, id: string): Promise<{ text: string; html: string }> {
+  if (!id || id.startsWith('__smail_')) {
+    return { text: '', html: '' };
+  }
+  try {
+    const response = await fetchWithTimeout(
+      `https://smail.pw/api/email/${encodeURIComponent(id)}`,
+      {
+        headers: {
+          ...DEFAULT_HEADERS,
+          Cookie: token,
+          Accept: 'application/json',
+        },
+      },
+    );
+    if (!response.ok) {
+      return { text: '', html: '' };
+    }
+    const data = (await response.json()) as { body?: string };
+    const html = typeof data.body === 'string' ? data.body : '';
+    return { text: '', html };
+  } catch {
+    return { text: '', html: '' };
+  }
+}
+
 /**
  * GET _root.data，携带 __session Cookie，解析邮件列表
  */
@@ -379,5 +514,18 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
 
   const text = await response.text();
   const rawList = parseSmailEmailsFromPayload(text, email);
-  return rawList.map((raw) => normalizeEmail(raw, email));
+  const normalized = rawList.map((raw) => normalizeEmail(raw, email));
+  await Promise.all(
+    normalized.map(async (item, idx) => {
+      const id = item.id;
+      if (!id) {
+        return;
+      }
+      const body = await fetchEmailBody(token, id);
+      if (body.html || body.text) {
+        normalized[idx] = { ...item, ...body };
+      }
+    }),
+  );
+  return normalized;
 }

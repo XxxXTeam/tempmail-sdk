@@ -34,6 +34,7 @@ const (
 	ChannelAnonbox           Channel = "anonbox"             // anonbox.net (CCC)
 	ChannelFakeLegal         Channel = "fake-legal"          // fake.legal
 	ChannelMoakt             Channel = "moakt"               // moakt.com（HTML 收件箱 + tm_session Cookie）
+	ChannelEtempmail         Channel = "etempmail"           // etempmail.com（会话 Cookie + JSON API）
 )
 
 /*

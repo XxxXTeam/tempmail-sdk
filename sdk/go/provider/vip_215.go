@@ -19,6 +19,8 @@ import (
 const vip215HTTPBase = "https://vip.215.im"
 const vip215WSHost = "vip.215.im"
 
+const vip215UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0"
+
 var vip215RegMu sync.Mutex
 var vip215Boxes = make(map[string]*vip215Box)
 
@@ -139,27 +141,122 @@ type vip215CreateResp struct {
 	} `json:"data"`
 }
 
-func MailVip215Generate() (*CreatedMailbox, error) {
-	req, err := fhttp.NewRequest("POST", vip215HTTPBase+"/api/temp-inbox", nil)
-	if err != nil {
-		return nil, err
+type vip215WsTicketResp struct {
+	Success bool `json:"success"`
+	Data    *struct {
+		Ticket string `json:"ticket"`
+	} `json:"data"`
+}
+
+func vip215JoinCookies(cookies []*http.Cookie) string {
+	var parts []string
+	for _, c := range cookies {
+		if c == nil || c.Name == "" {
+			continue
+		}
+		parts = append(parts, c.Name+"="+c.Value)
 	}
-	h := req.Header
-	h.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0")
+	return strings.Join(parts, "; ")
+}
+
+func vip215SetAPIHeaders(h http.Header) {
+	h.Set("User-Agent", vip215UserAgent)
+	h.Set("Accept", "*/*")
 	h.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
 	h.Set("Cache-Control", "no-cache")
 	h.Set("Content-Type", "application/json")
 	h.Set("DNT", "1")
-	h.Set("Origin", "https://vip.215.im")
+	h.Set("Origin", vip215HTTPBase)
 	h.Set("Pragma", "no-cache")
-	h.Set("Referer", "https://vip.215.im/")
-	h.Set("Sec-CH-UA", `"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"`)
+	h.Set("Referer", vip215HTTPBase+"/")
+	h.Set("Sec-CH-UA", `"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"`)
 	h.Set("Sec-CH-UA-Mobile", "?0")
 	h.Set("Sec-CH-UA-Platform", `"Windows"`)
 	h.Set("Sec-Fetch-Dest", "empty")
 	h.Set("Sec-Fetch-Mode", "cors")
 	h.Set("Sec-Fetch-Site", "same-origin")
 	h.Set("X-Locale", "zh")
+}
+
+func vip215EstablishSession() (string, error) {
+	req, err := fhttp.NewRequest("GET", vip215HTTPBase+"/", nil)
+	if err != nil {
+		return "", err
+	}
+	h := req.Header
+	h.Set("User-Agent", vip215UserAgent)
+	h.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	h.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+	h.Set("Cache-Control", "no-cache")
+	h.Set("DNT", "1")
+	h.Set("Pragma", "no-cache")
+	h.Set("Sec-CH-UA", `"Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99"`)
+	h.Set("Sec-CH-UA-Mobile", "?0")
+	h.Set("Sec-CH-UA-Platform", `"Windows"`)
+	h.Set("Sec-Fetch-Dest", "document")
+	h.Set("Sec-Fetch-Mode", "navigate")
+	h.Set("Sec-Fetch-Site", "same-origin")
+	h.Set("Sec-Fetch-User", "?1")
+	h.Set("Upgrade-Insecure-Requests", "1")
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("vip-215 homepage failed: %d", resp.StatusCode)
+	}
+	cookie := vip215JoinCookies(resp.Cookies())
+	if !strings.Contains(cookie, "yyds_homepage_bridge=") || !strings.Contains(cookie, "yyds_homepage_device=") {
+		return "", fmt.Errorf("vip-215: missing homepage cookies")
+	}
+	return cookie, nil
+}
+
+func vip215FetchWsTicket(jwt string) (string, error) {
+	req, err := fhttp.NewRequest("GET", vip215HTTPBase+"/v1/auth/ws-ticket", nil)
+	if err != nil {
+		return "", err
+	}
+	vip215SetAPIHeaders(req.Header)
+	req.Header.Set("Authorization", "Bearer "+jwt)
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("vip-215 ws-ticket failed: %d %s", resp.StatusCode, string(body))
+	}
+	var parsed vip215WsTicketResp
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return "", err
+	}
+	if !parsed.Success || parsed.Data == nil || parsed.Data.Ticket == "" {
+		return "", fmt.Errorf("vip-215: invalid ws-ticket response")
+	}
+	return parsed.Data.Ticket, nil
+}
+
+func MailVip215Generate() (*CreatedMailbox, error) {
+	cookie, err := vip215EstablishSession()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := fhttp.NewRequest("POST", vip215HTTPBase+"/api/temp-inbox", nil)
+	if err != nil {
+		return nil, err
+	}
+	vip215SetAPIHeaders(req.Header)
+	req.Header.Set("Cookie", cookie)
 
 	resp, err := HTTPClient().Do(req)
 	if err != nil {
@@ -189,15 +286,20 @@ func MailVip215Generate() (*CreatedMailbox, error) {
 	return info, nil
 }
 
-func vip215WsLoop(token, recipient string, box *vip215Box) {
+func vip215WsLoop(jwt, recipient string, box *vip215Box) {
+	wsTicket, err := vip215FetchWsTicket(jwt)
+	if err != nil {
+		return
+	}
+
 	u := url.URL{Scheme: "wss", Host: vip215WSHost, Path: "/v1/ws"}
 	q := u.Query()
-	q.Set("token", token)
+	q.Set("token", wsTicket)
 	u.RawQuery = q.Encode()
 
 	hdr := http.Header{}
-	hdr.Set("Origin", "https://vip.215.im")
-	hdr.Set("User-Agent", GetCurrentUA())
+	hdr.Set("Origin", vip215HTTPBase)
+	hdr.Set("User-Agent", vip215UserAgent)
 
 	d := websocket.Dialer{
 		HandshakeTimeout: 15 * time.Second,

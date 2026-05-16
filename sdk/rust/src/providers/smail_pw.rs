@@ -32,6 +32,16 @@ fn re_mail_block() -> &'static Regex {
     })
 }
 
+fn re_mail_block_no_subj() -> &'static Regex {
+    static R: OnceLock<Regex> = OnceLock::new();
+    R.get_or_init(|| {
+        Regex::new(
+            r#""id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","time",(\d+)"#,
+        )
+        .unwrap()
+    })
+}
+
 fn re_mail_block2() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
     R.get_or_init(|| {
@@ -86,6 +96,86 @@ fn extract_inbox(text: &str) -> Option<String> {
         })
 }
 
+fn is_flight_deferred(obj: &serde_json::Map<String, Value>) -> bool {
+    !obj.is_empty() && obj.keys().all(|k| k.starts_with('_'))
+}
+
+fn resolve_flight_deferred(root: &[Value], obj: &serde_json::Map<String, Value>) -> Option<serde_json::Map<String, Value>> {
+    let mut fields = serde_json::Map::new();
+    for (k, v) in obj {
+        if !k.starts_with('_') {
+            continue;
+        }
+        let key_idx: usize = k[1..].parse().ok()?;
+        let val_idx = v.as_u64()? as usize;
+        let key = root.get(key_idx)?.as_str()?;
+        let val = root.get(val_idx)?;
+        if key == "time" {
+            if let Some(n) = val.as_i64().or_else(|| val.as_str().and_then(|s| s.parse().ok())) {
+                fields.insert("time".into(), json!(n));
+            }
+        } else if let Some(s) = val.as_str() {
+            fields.insert(key.to_string(), json!(s));
+        }
+    }
+    if !fields.contains_key("id") && !fields.contains_key("time") {
+        return None;
+    }
+    Some(fields)
+}
+
+fn row_to_mail(fields: &serde_json::Map<String, Value>, recipient: &str) -> Option<Value> {
+    let time_ms = fields.get("time")?.as_i64()?;
+    let to_addr = fields
+        .get("to_address")
+        .and_then(|v| v.as_str())
+        .unwrap_or(recipient);
+    let mut subject = fields
+        .get("subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    if subject == to_addr || subject.to_lowercase().ends_with("@smail.pw") {
+        subject.clear();
+    }
+    Some(json!({
+        "id": fields.get("id").and_then(|v| v.as_str()).unwrap_or(""),
+        "to_address": to_addr,
+        "from_name": fields.get("from_name").and_then(|v| v.as_str()).unwrap_or(""),
+        "from_address": fields.get("from_address").and_then(|v| v.as_str()).unwrap_or(""),
+        "subject": subject,
+        "date": time_ms,
+        "text": "",
+        "html": "",
+        "attachments": Value::Array(vec![]),
+    }))
+}
+
+fn parse_flight_root(root: &[Value], recipient: &str) -> Vec<Value> {
+    let mut out = Vec::new();
+    for i in 0..root.len().saturating_sub(1) {
+        if root[i].as_str() != Some("emails") {
+            continue;
+        }
+        let Some(refs) = root[i + 1].as_array() else { break };
+        for r in refs {
+            let Some(idx) = r.as_u64() else { continue };
+            let Some(node) = root.get(idx as usize) else { continue };
+            if let Value::Object(obj) = node {
+                if is_flight_deferred(obj) {
+                    if let Some(fields) = resolve_flight_deferred(root, obj) {
+                        if let Some(mail) = row_to_mail(&fields, recipient) {
+                            out.push(mail);
+                        }
+                    }
+                }
+            }
+        }
+        break;
+    }
+    out
+}
+
 fn parse_mail_values(text: &str, recipient: &str) -> Vec<Value> {
     let mut out = Vec::new();
     for cap in re_mail_block().captures_iter(text) {
@@ -102,8 +192,28 @@ fn parse_mail_values(text: &str, recipient: &str) -> Vec<Value> {
             "attachments": Value::Array(vec![]),
         }));
     }
+    for cap in re_mail_block_no_subj().captures_iter(text) {
+        let ts: i64 = cap[5].parse().unwrap_or(0);
+        out.push(json!({
+            "id": &cap[1],
+            "to_address": &cap[2],
+            "from_name": &cap[3],
+            "from_address": &cap[4],
+            "subject": "",
+            "date": ts,
+            "text": "",
+            "html": "",
+            "attachments": Value::Array(vec![]),
+        }));
+    }
     if !out.is_empty() {
         return out;
+    }
+    if let Ok(Value::Array(root)) = serde_json::from_str::<Value>(text) {
+        let flight = parse_flight_root(&root, recipient);
+        if !flight.is_empty() {
+            return flight;
+        }
     }
     for cap in re_mail_block2().captures_iter(text) {
         let ts: i64 = cap[5].parse().unwrap_or(0);
@@ -176,6 +286,26 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         }
         let text = resp.text().await.map_err(|e| e.to_string())?;
         let vals = parse_mail_values(&text, email);
-        Ok(vals.iter().map(|v| normalize_email(v, email)).collect())
+        let mut emails: Vec<Email> = vals.iter().map(|v| normalize_email(v, email)).collect();
+        for em in &mut emails {
+            if em.id.is_empty() || em.id.starts_with("__smail_") {
+                continue;
+            }
+            let url = format!("https://smail.pw/api/email/{}", urlencoding::encode(&em.id));
+            let req = apply_headers(
+                http_client().get(&url).header("Cookie", token),
+                &[("Accept", "application/json")],
+            );
+            if let Ok(resp) = req.send().await {
+                if resp.status().is_success() {
+                    if let Ok(v) = resp.json::<Value>().await {
+                        if let Some(body) = v.get("body").and_then(|b| b.as_str()) {
+                            em.html = body.to_string();
+                        }
+                    }
+                }
+            }
+        }
+        Ok(emails)
     })
 }

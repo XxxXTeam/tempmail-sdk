@@ -88,6 +88,31 @@ static char *tm_smail_extract_session(tm_http_response_t *resp) {
     return out;
 }
 
+/** RR7：subject 后紧跟 "time",<ts>，无内联主题字符串 */
+static const char *smail_try_parse_mail_v1_nosubj(const char *p, const char *recipient,
+        char *id, char *to, char *fn, char *fa, char *subj, long long *tms) {
+    (void)recipient;
+    if (strncmp(p, "\"id\",", 5) != 0) return NULL;
+    p += 5;
+    p = read_jstr(p, id, 256);
+    if (!p || strncmp(p, ",\"to_address\",", 14) != 0) return NULL;
+    p += 14;
+    p = read_jstr(p, to, 512);
+    if (!p || strncmp(p, ",\"from_name\",", 13) != 0) return NULL;
+    p += 13;
+    p = read_jstr(p, fn, 256);
+    if (!p || strncmp(p, ",\"from_address\",", 16) != 0) return NULL;
+    p += 16;
+    p = read_jstr(p, fa, 256);
+    if (!p || strncmp(p, ",\"subject\",\"time\",", 20) != 0) return NULL;
+    p += 20;
+    subj[0] = '\0';
+    char *endptr = NULL;
+    *tms = strtoll(p, &endptr, 10);
+    if (!endptr || endptr == p) return NULL;
+    return (const char *)endptr;
+}
+
 static const char *smail_try_parse_mail_v1(const char *p, const char *recipient,
         char *id, char *to, char *fn, char *fa, char *subj, long long *tms) {
     (void)recipient;
@@ -112,6 +137,32 @@ static const char *smail_try_parse_mail_v1(const char *p, const char *recipient,
     *tms = strtoll(p, &endptr, 10);
     if (!endptr || endptr == p) return NULL;
     return (const char *)endptr;
+}
+
+static char *tm_smail_fetch_body(const char *token, const char *mail_id) {
+    if (!token || !mail_id || !*mail_id || strncmp(mail_id, "__smail_", 8) == 0) return NULL;
+    char url[512];
+    snprintf(url, sizeof(url), "https://smail.pw/api/email/%s", mail_id);
+    char cookie_hdr[768];
+    snprintf(cookie_hdr, sizeof(cookie_hdr), "Cookie: %s", token);
+    const char *gh[20];
+    int gi = 0;
+    gh[gi++] = cookie_hdr;
+    gh[gi++] = "Accept: application/json";
+    for (int i = 0; sm_get_headers_base[i] && gi < 19; i++) gh[gi++] = sm_get_headers_base[i];
+    gh[gi] = NULL;
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, url, gh, NULL, 15);
+    if (!resp || resp->status < 200 || resp->status >= 300 || !resp->body) {
+        tm_http_response_free(resp);
+        return NULL;
+    }
+    cJSON *root = cJSON_Parse(resp->body);
+    tm_http_response_free(resp);
+    if (!root) return NULL;
+    cJSON *body = cJSON_GetObjectItem(root, "body");
+    char *html = (body && cJSON_IsString(body)) ? tm_strdup(body->valuestring) : NULL;
+    cJSON_Delete(root);
+    return html;
 }
 
 static const char *smail_try_parse_mail_v2(const char *p, const char *recipient,
@@ -183,6 +234,7 @@ tm_email_t *tm_provider_smail_pw_get_emails(const char *token, const char *email
         char id[256], to[512], fn[256], fa[256], subj[512];
         long long tms = 0;
         const char *next = smail_try_parse_mail_v1(hit, email, id, to, fn, fa, subj, &tms);
+        if (!next) next = smail_try_parse_mail_v1_nosubj(hit, email, id, to, fn, fa, subj, &tms);
         if (!next) next = smail_try_parse_mail_v2(hit, email, id, to, fn, fa, subj, &tms);
         if (next) {
             char from_comb[512];
@@ -211,7 +263,13 @@ tm_email_t *tm_provider_smail_pw_get_emails(const char *token, const char *email
         cJSON_AddStringToObject(flat, "to", rows[i].to);
         cJSON_AddStringToObject(flat, "subject", rows[i].subj);
         cJSON_AddStringToObject(flat, "text", "");
-        cJSON_AddStringToObject(flat, "html", "");
+        char *body_html = tm_smail_fetch_body(token, rows[i].id);
+        if (body_html) {
+            cJSON_AddStringToObject(flat, "html", body_html);
+            free(body_html);
+        } else {
+            cJSON_AddStringToObject(flat, "html", "");
+        }
         char datebuf[48];
         time_t sec = (time_t)(rows[i].ts / 1000);
         struct tm tmu;

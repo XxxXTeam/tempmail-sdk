@@ -17,7 +17,7 @@ from .providers import (
     tempmail, tempmail_cn, tmpmails, tempmailg, ta_easy, tenmail_wangtz, linshi_email, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
     temp_mail_io, awamail, temporary_email_org, mail_tm, mail_cx,
     dropmail, guerrillamail, maildrop, smail_pw,
-    boomlify, minmail, vip_215, anonbox, fake_legal, moakt, tenminute_one,
+    boomlify, minmail, vip_215, anonbox, fake_legal, moakt, tenminute_one, etempmail,
 )
 
 # 所有支持的渠道列表
@@ -25,7 +25,7 @@ ALL_CHANNELS = [
     "tempmail", "tempmail-cn", "tmpmails", "tempmailg", "ta-easy", "10mail-wangtz", "10minute-one", "linshi-email", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
     "temp-mail-io", "awamail", "temporary-email-org", "mail-tm", "mail-cx",
     "dropmail", "guerrillamail", "maildrop", "smail-pw",
-    "boomlify", "minmail", "vip-215", "anonbox", "fake-legal", "moakt",
+    "boomlify", "minmail", "vip-215", "anonbox", "fake-legal", "moakt", "etempmail",
 ]
 
 # 渠道信息映射表
@@ -57,6 +57,7 @@ CHANNEL_INFO_MAP = {
     "anonbox": ChannelInfo(channel="anonbox", name="Anonbox", website="anonbox.net"),
     "fake-legal": ChannelInfo(channel="fake-legal", name="Fake Legal", website="fake.legal"),
     "moakt": ChannelInfo(channel="moakt", name="Moakt", website="moakt.com"),
+    "etempmail": ChannelInfo(channel="etempmail", name="eTempMail", website="etempmail.com"),
 }
 
 
@@ -186,6 +187,8 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return fake_legal.generate_email(options.domain)
     elif channel == "moakt":
         return moakt.generate_email(options.domain)
+    elif channel == "etempmail":
+        return etempmail.generate_email()
     else:
         raise ValueError(f"Unknown channel: {channel}")
 
@@ -338,6 +341,10 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for moakt channel")
         return moakt.get_emails(email, token)
+    elif channel == "etempmail":
+        if not token:
+            raise ValueError("token is required for etempmail channel")
+        return etempmail.get_emails(email, token)
     elif channel == "10minute-one":
         if not token:
             raise ValueError("token is required for 10minute-one channel")

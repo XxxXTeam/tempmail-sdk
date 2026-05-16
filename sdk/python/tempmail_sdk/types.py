@@ -34,6 +34,7 @@ Channel = Literal[
     "anonbox",
     "fake-legal",
     "moakt",
+    "etempmail",
 ]
 
 

@@ -61,6 +61,8 @@ pub enum Channel {
     FakeLegal,
     #[serde(rename = "moakt")]
     Moakt,
+    #[serde(rename = "etempmail")]
+    Etempmail,
 }
 
 impl std::fmt::Display for Channel {
@@ -93,6 +95,7 @@ impl std::fmt::Display for Channel {
             Channel::Anonbox => write!(f, "anonbox"),
             Channel::FakeLegal => write!(f, "fake-legal"),
             Channel::Moakt => write!(f, "moakt"),
+            Channel::Etempmail => write!(f, "etempmail"),
         }
     }
 }
