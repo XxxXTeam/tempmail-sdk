@@ -7,7 +7,7 @@ use serde_json::Value;
 use rand::Rng;
 use crate::types::{Channel, EmailInfo, Email};
 use crate::normalize::normalize_email;
-use crate::config::http_client;
+use crate::config::{http_client, block_on, get_current_ua};
 
 const BASE_URL: &str = "https://api.mail.gw";
 
@@ -18,20 +18,23 @@ fn random_string(len: usize) -> String {
 }
 
 fn get_domains() -> Result<Vec<String>, String> {
-    let resp = http_client()
-        .get(format!("{}/domains", BASE_URL))
-        .header("Accept", "application/json")
-        .send().map_err(|e| format!("mail-gw domains failed: {}", e))?;
+    block_on(async {
+        let resp = http_client()
+            .get(format!("{}/domains", BASE_URL))
+            .header("Accept", "application/json")
+            .header("User-Agent", get_current_ua())
+            .send().await.map_err(|e| format!("mail-gw domains failed: {}", e))?;
 
-    let data: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
-    let members = if data.is_array() { data } else {
-        data.get("hydra:member").cloned().unwrap_or(Value::Array(vec![]))
-    };
+        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let members = if data.is_array() { data } else {
+            data.get("hydra:member").cloned().unwrap_or(Value::Array(vec![]))
+        };
 
-    Ok(members.as_array().unwrap_or(&vec![]).iter()
-        .filter(|d| d["isActive"].as_bool() == Some(true))
-        .filter_map(|d| d["domain"].as_str().map(|s| s.to_string()))
-        .collect())
+        Ok(members.as_array().unwrap_or(&vec![]).iter()
+            .filter(|d| d["isActive"].as_bool() == Some(true))
+            .filter_map(|d| d["domain"].as_str().map(|s| s.to_string()))
+            .collect())
+    })
 }
 
 fn flatten_message(msg: &Value, recipient: &str) -> Value {
@@ -73,67 +76,78 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     let address = format!("{}@{}", username, domain);
     let password = random_string(16);
 
-    let resp = http_client()
-        .post(format!("{}/accounts", BASE_URL))
-        .header("Content-Type", "application/ld+json")
-        .json(&serde_json::json!({"address": &address, "password": &password}))
-        .send().map_err(|e| format!("mail-gw create account failed: {}", e))?;
+    block_on(async {
+        let resp = http_client()
+            .post(format!("{}/accounts", BASE_URL))
+            .header("Content-Type", "application/ld+json")
+            .header("User-Agent", get_current_ua())
+            .json(&serde_json::json!({"address": &address, "password": &password}))
+            .send().await.map_err(|e| format!("mail-gw create account failed: {}", e))?;
 
-    if !resp.status().is_success() {
-        let text = resp.text().unwrap_or_default();
-        return Err(format!("mail-gw create account failed: {}", text));
-    }
+        if !resp.status().is_success() {
+            let text = resp.text().await.unwrap_or_default();
+            return Err(format!("mail-gw create account failed: {}", text));
+        }
 
-    let account: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
+        let account: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
 
-    let resp = http_client()
-        .post(format!("{}/token", BASE_URL))
-        .header("Content-Type", "application/json")
-        .json(&serde_json::json!({"address": &address, "password": &password}))
-        .send().map_err(|e| format!("mail-gw get token failed: {}", e))?;
+        let resp = http_client()
+            .post(format!("{}/token", BASE_URL))
+            .header("Content-Type", "application/json")
+            .header("User-Agent", get_current_ua())
+            .json(&serde_json::json!({"address": &address, "password": &password}))
+            .send().await.map_err(|e| format!("mail-gw get token failed: {}", e))?;
 
-    if !resp.status().is_success() {
-        return Err(format!("mail-gw get token failed: {}", resp.status()));
-    }
+        if !resp.status().is_success() {
+            return Err(format!("mail-gw get token failed: {}", resp.status()));
+        }
 
-    let token_data: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
+        let token_data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
 
-    Ok(EmailInfo {
-        channel: Channel::MailGw,
-        email: address,
-        token: token_data["token"].as_str().map(|s| s.to_string()),
-        expires_at: None,
-        created_at: account["createdAt"].as_str().map(|s| s.to_string()),
+        Ok(EmailInfo {
+            channel: Channel::MailGw,
+            email: address,
+            token: token_data["token"].as_str().map(|s| s.to_string()),
+            expires_at: None,
+            created_at: account["createdAt"].as_str().map(|s| s.to_string()),
+        })
     })
 }
 
 pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
-    let resp = http_client()
-        .get(format!("{}/messages", BASE_URL))
-        .header("Accept", "application/json")
-        .header("Authorization", format!("Bearer {}", token))
-        .send().map_err(|e| format!("mail-gw request failed: {}", e))?;
-
-    if !resp.status().is_success() {
-        return Err(format!("mail-gw get emails failed: {}", resp.status()));
-    }
-
-    let data: Value = resp.json().map_err(|e| format!("parse failed: {}", e))?;
-    let messages = if data.is_array() { data.as_array().cloned().unwrap_or_default() }
-    else { data.get("hydra:member").and_then(|v| v.as_array()).cloned().unwrap_or_default() };
-
-    let mut result = Vec::new();
-    for msg in &messages {
-        let detail = http_client()
-            .get(format!("{}/messages/{}", BASE_URL, msg["id"].as_str().unwrap_or("")))
+    block_on(async {
+        let resp = http_client()
+            .get(format!("{}/messages", BASE_URL))
             .header("Accept", "application/json")
+            .header("User-Agent", get_current_ua())
             .header("Authorization", format!("Bearer {}", token))
-            .send().ok()
-            .and_then(|r| if r.status().is_success() { r.json::<Value>().ok() } else { None });
+            .send().await.map_err(|e| format!("mail-gw request failed: {}", e))?;
 
-        let flat = flatten_message(detail.as_ref().unwrap_or(msg), email);
-        result.push(normalize_email(&flat, email));
-    }
+        if !resp.status().is_success() {
+            return Err(format!("mail-gw get emails failed: {}", resp.status()));
+        }
 
-    Ok(result)
+        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let messages = if data.is_array() { data.as_array().cloned().unwrap_or_default() }
+        else { data.get("hydra:member").and_then(|v| v.as_array()).cloned().unwrap_or_default() };
+
+        let mut result = Vec::new();
+        for msg in &messages {
+            let detail = match http_client()
+                .get(format!("{}/messages/{}", BASE_URL, msg["id"].as_str().unwrap_or("")))
+                .header("Accept", "application/json")
+                .header("User-Agent", get_current_ua())
+                .header("Authorization", format!("Bearer {}", token))
+                .send().await
+            {
+                Ok(r) if r.status().is_success() => r.json::<Value>().await.ok(),
+                _ => None,
+            };
+
+            let flat = flatten_message(detail.as_ref().unwrap_or(msg), email);
+            result.push(normalize_email(&flat, email));
+        }
+
+        Ok(result)
+    })
 }

@@ -6,8 +6,8 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 
-use reqwest::header::HeaderMap;
 use serde_json::Value;
+use wreq::header::HeaderMap;
 use tungstenite::protocol::Message;
 
 use crate::config::{block_on, get_current_ua, http_client_no_cookie_jar};
@@ -77,10 +77,10 @@ fn vip215_api_headers(ua: &str) -> Vec<(&'static str, String)> {
 }
 
 fn apply_vip215_api_headers(
-    mut req: reqwest::RequestBuilder,
+    mut req: wreq::RequestBuilder,
     ua: &str,
     cookie: Option<&str>,
-) -> reqwest::RequestBuilder {
+) -> wreq::RequestBuilder {
     for (k, v) in vip215_api_headers(ua) {
         req = req.header(k, v);
     }
@@ -92,25 +92,27 @@ fn apply_vip215_api_headers(
     req
 }
 
-async fn fetch_ws_ticket(client: &reqwest::Client, ua: &str, jwt: &str) -> Result<String, String> {
-    let mut req = client.get(format!("{HTTP_BASE}/v1/auth/ws-ticket"));
-    req = apply_vip215_api_headers(req, ua, None);
-    req = req.header("Authorization", format!("Bearer {jwt}"));
-    let resp = req.send().await.map_err(|e| format!("vip-215 ws-ticket: {e}"))?;
-    if !resp.status().is_success() {
-        let status = resp.status();
-        let t = resp.text().await.unwrap_or_default();
-        return Err(format!("vip-215 ws-ticket HTTP {status} {t}"));
-    }
-    let body: Value = resp.json().await.map_err(|e| e.to_string())?;
-    if body.get("success").and_then(|v| v.as_bool()) != Some(true) {
-        return Err("vip-215: ws-ticket success=false".into());
-    }
-    body.get("data")
-        .and_then(|d| d.get("ticket"))
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string())
-        .ok_or_else(|| "vip-215: missing ws ticket".into())
+fn fetch_ws_ticket(client: &wreq::Client, ua: &str, jwt: &str) -> Result<String, String> {
+    block_on(async {
+        let mut req = client.get(format!("{HTTP_BASE}/v1/auth/ws-ticket"));
+        req = apply_vip215_api_headers(req, ua, None);
+        req = req.header("Authorization", format!("Bearer {jwt}"));
+        let resp = req.send().await.map_err(|e| format!("vip-215 ws-ticket: {e}"))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let t = resp.text().await.unwrap_or_default();
+            return Err(format!("vip-215 ws-ticket HTTP {status} {t}"));
+        }
+        let body: Value = resp.json().await.map_err(|e| e.to_string())?;
+        if body.get("success").and_then(|v| v.as_bool()) != Some(true) {
+            return Err("vip-215: ws-ticket success=false".into());
+        }
+        body.get("data")
+            .and_then(|d| d.get("ticket"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .ok_or_else(|| "vip-215: missing ws ticket".into())
+    })
 }
 
 struct Vip215Box {
@@ -239,7 +241,7 @@ fn vip215_synthetic_bodies(recipient: &str, data: &Value) -> (String, String) {
 fn ws_loop(jwt: String, recipient: String, arc: Arc<Mutex<Vip215Box>>) {
     let ua = get_current_ua();
     let client = http_client_no_cookie_jar();
-    let ws_ticket = match block_on(fetch_ws_ticket(&client, &ua, &jwt)) {
+    let ws_ticket = match fetch_ws_ticket(&client, &ua, &jwt) {
         Ok(t) => t,
         Err(e) => {
             log::warn!("vip-215 ws-ticket failed: {}", e);
@@ -368,7 +370,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .header("Sec-Fetch-Site", "same-origin")
             .header("Sec-Fetch-User", "?1")
             .header("Upgrade-Insecure-Requests", "1")
-            .header("User-Agent", &ua)
+            .header("User-Agent", ua)
             .send()
             .await
             .map_err(|e| format!("vip-215 homepage: {e}"))?;
