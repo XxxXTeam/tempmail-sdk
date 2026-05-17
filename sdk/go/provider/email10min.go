@@ -17,11 +17,11 @@ import (
 const email10minBase = "https://email10min.com"
 
 var (
-	email10minCsrfMetaRe  = regexp.MustCompile(`<meta\s+name="csrf-token"\s+content="([^"]+)"`)
-	email10minCsrfInputRe = regexp.MustCompile(`<input[^>]+name="_token"[^>]+value="([^"]+)"`)
-	email10minEmailIdRe   = regexp.MustCompile(`id="emailAddress"[^>]*>([^<]+)`)
-	email10minEmailClsRe  = regexp.MustCompile(`class="[^"]*email[^"]*"[^>]*>([^<]*@[^<]+)`)
-	email10minDataEmailRe = regexp.MustCompile(`data-email="([^"]+@[^"]+)"`)
+	email10minCsrfMetaRe   = regexp.MustCompile(`<meta\s+name="csrf-token"\s+content="([^"]+)"`)
+	email10minCsrfInputRe  = regexp.MustCompile(`<input[^>]+name="_token"[^>]+value="([^"]+)"`)
+	email10minEmailIdRe    = regexp.MustCompile(`id="emailAddress"[^>]*>([^<]+)`)
+	email10minEmailClsRe   = regexp.MustCompile(`class="[^"]*email[^"]*"[^>]*>([^<]*@[^<]+)`)
+	email10minDataEmailRe  = regexp.MustCompile(`data-email="([^"]+@[^"]+)"`)
 	email10minValueEmailRe = regexp.MustCompile(`value="([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})"`)
 	email10minJSONEmailRe  = regexp.MustCompile(`"mailbox"\s*:\s*"([^"]+@[^"]+)"`)
 	email10minGenericRe    = regexp.MustCompile(`([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})`)

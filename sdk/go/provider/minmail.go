@@ -287,11 +287,11 @@ func MinmailGetEmails(email, token string) ([]NormEmail, error) {
 			"fromAddress": raw.FromAddress,
 			"fromName":    raw.FromName,
 			"to":          raw.To,
-			"subject": raw.Subject,
-			"text":    raw.Preview,
-			"html":    raw.Content,
-			"date":    raw.Date,
-			"isRead":  raw.IsRead,
+			"subject":     raw.Subject,
+			"text":        raw.Preview,
+			"html":        raw.Content,
+			"date":        raw.Date,
+			"isRead":      raw.IsRead,
 		}
 		emails = append(emails, NormalizeMap(flat, email))
 	}

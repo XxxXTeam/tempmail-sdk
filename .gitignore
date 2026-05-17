@@ -58,3 +58,5 @@ sdk/npm/.env
 .gitignore
 tag.txt
 server/
+.playwright-mcp/
+CLAUDE.md

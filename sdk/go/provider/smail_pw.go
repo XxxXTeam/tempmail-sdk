@@ -31,8 +31,8 @@ var smailPwHeaders = map[string]string{
 }
 
 var (
-	smailPwQuotedInbox = regexp.MustCompile(`(?i)"([a-z0-9][a-z0-9.-]*@smail\.pw)"`)
-	smailPwPlainInbox  = regexp.MustCompile(`(?i)\b([a-z0-9][a-z0-9.-]*@smail\.pw)\b`)
+	smailPwQuotedInbox    = regexp.MustCompile(`(?i)"([a-z0-9][a-z0-9.-]*@smail\.pw)"`)
+	smailPwPlainInbox     = regexp.MustCompile(`(?i)\b([a-z0-9][a-z0-9.-]*@smail\.pw)\b`)
 	smailPwMailBlock      = regexp.MustCompile(`"id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","([^"]*)","time",(\d+)`)
 	smailPwMailBlockNoSub = regexp.MustCompile(`"id","([^"]+)","to_address","([^"]*)","from_name","([^"]*)","from_address","([^"]*)","subject","time",(\d+)`)
 	smailPwMailBlock2     = regexp.MustCompile(`"id","([^"]+)","from_name","([^"]*)","from_address","([^"]*)","subject","([^"]*)","time",(\d+)`)

@@ -23,12 +23,12 @@ const (
 var sioVersions = []int{4, 3}
 
 type sioBoxState struct {
-	mu       sync.Mutex
-	emails   []NormEmail
-	seenIDs  map[string]bool
-	ws       *websocket.Conn
-	email    string
-	channel  string
+	mu      sync.Mutex
+	emails  []NormEmail
+	seenIDs map[string]bool
+	ws      *websocket.Conn
+	email   string
+	channel string
 }
 
 type sioProvider struct {
@@ -373,9 +373,9 @@ func (p *sioProvider) GetEmails(email string) ([]NormEmail, error) {
 // ====== 三个渠道实例 ======
 
 var (
-	mjjCmProvider    = newSioProvider("mjj-cm", "mjj.cm")
+	mjjCmProvider     = newSioProvider("mjj-cm", "mjj.cm")
 	mailXiuviProvider = newSioProvider("mail-xiuvi", "mail.xiuvi.cn")
-	linshiCoProvider = newSioProvider("linshi-co", "linshi.co")
+	linshiCoProvider  = newSioProvider("linshi-co", "linshi.co")
 )
 
 // MjjCmGenerate 创建 mjj-cm 临时邮箱
