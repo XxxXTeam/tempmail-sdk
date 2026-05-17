@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -66,7 +65,7 @@ func minmailCookieHeader() string {
 	return fmt.Sprintf("_ga=%s; _ga_DFGB8WF1WG=GS2.1.s%d$o1$g0$t%d$j60$l0$h0", ga, now, now)
 }
 
-func minmailMergeCookies(prev string, cookies []*http.Cookie) string {
+func minmailMergeCookies(prev string, cookies []*fhttp.Cookie) string {
 	m := map[string]string{}
 	for _, part := range strings.Split(prev, ";") {
 		part = strings.TrimSpace(part)

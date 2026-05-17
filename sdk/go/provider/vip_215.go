@@ -148,7 +148,7 @@ type vip215WsTicketResp struct {
 	} `json:"data"`
 }
 
-func vip215JoinCookies(cookies []*http.Cookie) string {
+func vip215JoinCookies(cookies []*fhttp.Cookie) string {
 	var parts []string
 	for _, c := range cookies {
 		if c == nil || c.Name == "" {
@@ -159,7 +159,7 @@ func vip215JoinCookies(cookies []*http.Cookie) string {
 	return strings.Join(parts, "; ")
 }
 
-func vip215SetAPIHeaders(h http.Header) {
+func vip215SetAPIHeaders(h fhttp.Header) {
 	h.Set("User-Agent", vip215UserAgent)
 	h.Set("Accept", "*/*")
 	h.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")

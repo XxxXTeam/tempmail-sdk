@@ -555,6 +555,9 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.info/ajax.php", token, email))
 
 	default:
+		return nil, fmt.Errorf("unsupported channel: %s", channel)
+	}
+}
 
 /*
  * EmailInfo.GetEmails 获取当前邮箱的邮件列表
