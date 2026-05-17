@@ -545,12 +545,44 @@ tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
     tm_http_response_free(r1);
     if (!ck) return NULL;
 
+    /* POST /inbox random=1 获取 tm_session cookie（302 重定向后 cookie 一并拿到） */
     if (strlen(ck) + 16 >= sizeof(h_ck)) {
         free(ck);
         return NULL;
     }
     snprintf(h_ck, sizeof(h_ck), "Cookie: %s", ck);
 
+    const char *hdr_post[] = {
+        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "Cache-Control: no-cache",
+        "DNT: 1",
+        "Pragma: no-cache",
+        h_ref2,
+        "Upgrade-Insecure-Requests: 1",
+        "Content-Type: application/x-www-form-urlencoded",
+        h_ck,
+        NULL};
+
+    tm_http_response_t *r2 = tm_http_request(TM_HTTP_POST, inbox, hdr_post, "random=1", timeout);
+    if (!r2) {
+        free(ck);
+        return NULL;
+    }
+    char *ck2 = mok_cookie_merge(ck, r2->cookies ? r2->cookies : "");
+    free(ck);
+    tm_http_response_free(r2);
+    if (!ck2) return NULL;
+
+    if (!mok_cookie_has_tm_session(ck2)) {
+        free(ck2);
+        return NULL;
+    }
+
+    /* GET /inbox 获取邮箱地址 */
+    snprintf(h_ck, sizeof(h_ck), "Cookie: %s", ck2);
     const char *hdr_inbox[] = {
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
@@ -564,34 +596,29 @@ tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
         h_ck,
         NULL};
 
-    tm_http_response_t *r2 = tm_http_request(TM_HTTP_GET, inbox, hdr_inbox, NULL, timeout);
-    if (!r2 || r2->status != 200 || !r2->body) {
-        tm_http_response_free(r2);
-        free(ck);
+    tm_http_response_t *r3 = tm_http_request(TM_HTTP_GET, inbox, hdr_inbox, NULL, timeout);
+    if (!r3 || r3->status != 200 || !r3->body) {
+        tm_http_response_free(r3);
+        free(ck2);
         return NULL;
     }
-    char *ck2 = mok_cookie_merge(ck, r2->cookies ? r2->cookies : "");
-    free(ck);
-    if (!ck2) {
-        tm_http_response_free(r2);
+    char *ck3 = mok_cookie_merge(ck2, r3->cookies ? r3->cookies : "");
+    free(ck2);
+    if (!ck3) {
+        tm_http_response_free(r3);
         return NULL;
     }
 
     char email_buf[256];
-    if (mok_parse_inbox_email(r2->body, email_buf, sizeof(email_buf)) != 0) {
-        tm_http_response_free(r2);
-        free(ck2);
+    if (mok_parse_inbox_email(r3->body, email_buf, sizeof(email_buf)) != 0) {
+        tm_http_response_free(r3);
+        free(ck3);
         return NULL;
     }
-    tm_http_response_free(r2);
+    tm_http_response_free(r3);
 
-    if (!mok_cookie_has_tm_session(ck2)) {
-        free(ck2);
-        return NULL;
-    }
-
-    char *tok = mok_build_token(loc, ck2);
-    free(ck2);
+    char *tok = mok_build_token(loc, ck3);
+    free(ck3);
     if (!tok) return NULL;
 
     tm_email_info_t *info = tm_email_info_new();

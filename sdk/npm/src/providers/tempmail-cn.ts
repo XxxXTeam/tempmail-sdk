@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
+import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'tempmail-cn';
 const DEFAULT_HOST = 'tempmail.cn';
@@ -244,7 +245,7 @@ async function requestShortId(host: string): Promise<string> {
       } catch {
         /* ignore close errors */
       }
-      reject(new Error('tempmail-cn: timed out waiting for shortid'));
+      reject(new Error('tempmail-cn: timed out waiting for mailbox'));
     }, CONNECT_TIMEOUT_MS);
 
     const cleanup = () => {
@@ -281,7 +282,7 @@ async function requestShortId(host: string): Promise<string> {
         return;
       }
       const decoded = parseEventPacket(packet);
-      if (!decoded || decoded.event !== 'shortid' || typeof decoded.payload !== 'string') {
+      if (!decoded || decoded.event !== 'mailbox' || typeof decoded.payload !== 'string') {
         return;
       }
       finish(decoded.payload);
@@ -294,7 +295,7 @@ async function requestShortId(host: string): Promise<string> {
     ws.once('error', onError);
     ws.once('close', onClose);
 
-    sendEvent(ws, 'request shortid', true);
+    sendEvent(ws, 'request mailbox', true);
   });
 }
 
@@ -349,7 +350,7 @@ async function ensureMailbox(email: string): Promise<void> {
       ws.on('close', detach);
       ws.on('error', detach);
 
-      sendEvent(ws, 'set shortid', local);
+      sendEvent(ws, 'set mailbox', local);
       await sleep(INITIAL_SYNC_WAIT_MS);
     } catch (error) {
       st.connectPromise = undefined;
@@ -370,7 +371,27 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
 }
 
 export async function getEmails(email: string): Promise<Email[]> {
-  await ensureMailbox(email);
-  const st = getState(email);
-  return [...st.emails];
+  const { host } = splitAddress(email);
+  const url = `https://${host}/api/mails/${encodeURIComponent(email)}`;
+  const res = await fetchWithTimeout(url, {
+    headers: {
+      ...DEFAULT_HEADERS,
+      Accept: 'application/json',
+      Referer: `https://${host}/`,
+    },
+  });
+  if (!res.ok) throw new Error(`tempmail-cn: get mails failed: ${res.status}`);
+  const data = await res.json() as { mails?: unknown[] };
+  const list = Array.isArray(data.mails) ? data.mails : [];
+  return list.map((raw: any) => normalizeEmail({
+    id: raw.id ?? raw._id ?? '',
+    from: raw.from ?? raw.headers?.from ?? '',
+    to: email,
+    subject: raw.subject ?? raw.headers?.subject ?? '',
+    text: raw.text ?? raw.body ?? '',
+    html: raw.html ?? '',
+    date: raw.date ?? raw.headers?.date ?? '',
+    isRead: false,
+    attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
+  }, email));
 }

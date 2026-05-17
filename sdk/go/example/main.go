@@ -13,10 +13,8 @@ func main() {
 
 	channels := []tempemail.Channel{
 		tempemail.ChannelTempmail,
-		tempemail.ChannelLinshiEmail,
 		tempemail.ChannelTempmailLol,
 		tempemail.ChannelChatgptOrgUk,
-		tempemail.ChannelTempMailIO,
 		tempemail.ChannelAwamail,
 		tempemail.ChannelMailTm,
 		tempemail.ChannelDropmail,

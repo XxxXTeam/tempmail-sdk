@@ -9,9 +9,25 @@
 - 缓存 timeout 避免每次请求都读取 config
 """
 
+import random
 import requests
 from requests.adapters import HTTPAdapter
 from .config import get_config, get_config_version
+
+
+def _random_ipv4() -> str:
+    """生成随机 IPv4 地址（每段 1-254），用于伪造来源 IP 请求头"""
+    return ".".join(str(random.randint(1, 254)) for _ in range(4))
+
+
+def _spoof_ip_headers() -> dict:
+    """生成一组伪造来源 IP 的请求头，所有头使用同一个随机 IP"""
+    ip = _random_ipv4()
+    return {
+        "X-Forwarded-For": ip,
+        "X-Real-IP": ip,
+        "X-Originating-IP": ip,
+    }
 
 # 缓存的 Session 及其对应的配置版本
 _cached_session = None
@@ -69,15 +85,23 @@ def get_session() -> requests.Session:
     return session
 
 
+def _merge_spoof_headers(headers: dict = None) -> dict:
+    """将伪造来源 IP 请求头合并到用户指定的 headers 中（每次请求生成新的随机 IP）"""
+    merged = _spoof_ip_headers()
+    if headers:
+        merged.update(headers)
+    return merged
+
+
 def get(url: str, headers: dict = None, timeout: int = None, **kwargs) -> requests.Response:
-    """带全局配置的 GET 请求"""
+    """带全局配置的 GET 请求（自动注入伪造来源 IP 请求头）"""
     session = get_session()
     effective_timeout = timeout if timeout is not None else _cached_timeout
-    return session.get(url, headers=headers, timeout=effective_timeout, **kwargs)
+    return session.get(url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs)
 
 
 def post(url: str, headers: dict = None, timeout: int = None, **kwargs) -> requests.Response:
-    """带全局配置的 POST 请求"""
+    """带全局配置的 POST 请求（自动注入伪造来源 IP 请求头）"""
     session = get_session()
     effective_timeout = timeout if timeout is not None else _cached_timeout
-    return session.post(url, headers=headers, timeout=effective_timeout, **kwargs)
+    return session.post(url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs)

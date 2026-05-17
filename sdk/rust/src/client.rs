@@ -10,11 +10,19 @@ use crate::providers;
 
 /// 所有支持的渠道列表
 pub const ALL_CHANNELS: &[Channel] = &[
-    Channel::Tempmail, Channel::TempmailCn, Channel::Tmpmails, Channel::Tempmailg, Channel::TaEasy, Channel::TenmailWangtz, Channel::TenminuteOne, Channel::LinshiEmail, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
-    Channel::ChatgptOrgUk, Channel::TempMailIO,
-    Channel::Awamail, Channel::TemporaryEmailOrg, Channel::MailTm, Channel::MailCx, Channel::Dropmail,
+    Channel::Tempmail, Channel::TempmailCn, Channel::Tmpmails, Channel::TaEasy, Channel::TenminuteOne, Channel::Linshiyou, Channel::Mffac, Channel::TempmailLol,
+    Channel::ChatgptOrgUk,
+    Channel::Awamail, Channel::MailTm, Channel::Dropmail,
     Channel::GuerrillaMail, Channel::Maildrop, Channel::SmailPw,
     Channel::Boomlify, Channel::Minmail, Channel::Vip215, Channel::Anonbox, Channel::FakeLegal, Channel::Moakt, Channel::Etempmail,
+    Channel::TwentyfourmailChacuo, Channel::Email10min, Channel::MjjCm, Channel::MailXiuvi, Channel::LinshiCo,
+    Channel::Harakirimail,
+    Channel::TempmailPlus,
+    Channel::MailGw,
+    Channel::TempmailLolV2,
+    Channel::Sharklasers,
+    Channel::GrrLa,
+    Channel::GuerrillamailInfo,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -28,20 +36,14 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Tempmail => ChannelInfo { channel: Channel::Tempmail, name: "TempMail", website: "tempmail.ing" },
         Channel::TempmailCn => ChannelInfo { channel: Channel::TempmailCn, name: "TempMail CN", website: "tempmail.cn" },
         Channel::Tmpmails => ChannelInfo { channel: Channel::Tmpmails, name: "TmpMails", website: "tmpmails.com" },
-        Channel::Tempmailg => ChannelInfo { channel: Channel::Tempmailg, name: "TempMailG", website: "tempmailg.com" },
         Channel::TaEasy => ChannelInfo { channel: Channel::TaEasy, name: "TA Easy", website: "ta-easy.com" },
-        Channel::TenmailWangtz => ChannelInfo { channel: Channel::TenmailWangtz, name: "10mail Wangtz", website: "10mail.wangtz.cn" },
         Channel::TenminuteOne => ChannelInfo { channel: Channel::TenminuteOne, name: "10 Minute Email", website: "10minutemail.one" },
-        Channel::LinshiEmail => ChannelInfo { channel: Channel::LinshiEmail, name: "临时邮箱", website: "linshi-email.com" },
         Channel::Linshiyou => ChannelInfo { channel: Channel::Linshiyou, name: "临时邮", website: "linshiyou.com" },
         Channel::Mffac => ChannelInfo { channel: Channel::Mffac, name: "MFFAC", website: "mffac.com" },
         Channel::TempmailLol => ChannelInfo { channel: Channel::TempmailLol, name: "TempMail LOL", website: "tempmail.lol" },
         Channel::ChatgptOrgUk => ChannelInfo { channel: Channel::ChatgptOrgUk, name: "ChatGPT Mail", website: "mail.chatgpt.org.uk" },
-        Channel::TempMailIO => ChannelInfo { channel: Channel::TempMailIO, name: "Temp Mail IO", website: "temp-mail.io" },
         Channel::Awamail => ChannelInfo { channel: Channel::Awamail, name: "AwaMail", website: "awamail.com" },
-        Channel::TemporaryEmailOrg => ChannelInfo { channel: Channel::TemporaryEmailOrg, name: "Temporary Email", website: "temporary-email.org" },
         Channel::MailTm => ChannelInfo { channel: Channel::MailTm, name: "Mail.tm", website: "mail.tm" },
-        Channel::MailCx => ChannelInfo { channel: Channel::MailCx, name: "Mail.cx", website: "mail.cx" },
         Channel::Dropmail => ChannelInfo { channel: Channel::Dropmail, name: "DropMail", website: "dropmail.me" },
         Channel::GuerrillaMail => ChannelInfo { channel: Channel::GuerrillaMail, name: "Guerrilla Mail", website: "guerrillamail.com" },
         Channel::Maildrop => ChannelInfo { channel: Channel::Maildrop, name: "Maildrop", website: "maildrop.cx" },
@@ -53,6 +55,18 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::FakeLegal => ChannelInfo { channel: Channel::FakeLegal, name: "Fake Legal", website: "fake.legal" },
         Channel::Moakt => ChannelInfo { channel: Channel::Moakt, name: "Moakt", website: "moakt.com" },
         Channel::Etempmail => ChannelInfo { channel: Channel::Etempmail, name: "eTempMail", website: "etempmail.com" },
+        Channel::TwentyfourmailChacuo => ChannelInfo { channel: Channel::TwentyfourmailChacuo, name: "24Mail Chacuo", website: "24mail.chacuo.net" },
+        Channel::Email10min => ChannelInfo { channel: Channel::Email10min, name: "Email10Min", website: "email10min.com" },
+        Channel::MjjCm => ChannelInfo { channel: Channel::MjjCm, name: "MJJ Mail", website: "mjj.cm" },
+        Channel::MailXiuvi => ChannelInfo { channel: Channel::MailXiuvi, name: "Xiuvi Mail", website: "mail.xiuvi.cn" },
+        Channel::LinshiCo => ChannelInfo { channel: Channel::LinshiCo, name: "临时Co", website: "linshi.co" },
+        Channel::Harakirimail => ChannelInfo { channel: Channel::Harakirimail, name: "HarakiriMail", website: "harakirimail.com" },
+        Channel::TempmailPlus => ChannelInfo { channel: Channel::TempmailPlus, name: "TempMail Plus", website: "tempmail.plus" },
+        Channel::MailGw => ChannelInfo { channel: Channel::MailGw, name: "Mail.gw", website: "mail.gw" },
+        Channel::TempmailLolV2 => ChannelInfo { channel: Channel::TempmailLolV2, name: "TempMail LOL V2", website: "tempmail.lol" },
+        Channel::Sharklasers => ChannelInfo { channel: Channel::Sharklasers, name: "SharkLasers", website: "sharklasers.com" },
+        Channel::GrrLa => ChannelInfo { channel: Channel::GrrLa, name: "Grr.la", website: "grr.la" },
+        Channel::GuerrillamailInfo => ChannelInfo { channel: Channel::GuerrillamailInfo, name: "GuerrillaMail Info", website: "guerrillamail.info" },
     })
 }
 
@@ -131,20 +145,14 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::Tempmail => providers::tempmail::generate_email(duration),
         Channel::TempmailCn => providers::tempmail_cn::generate_email(domain),
         Channel::Tmpmails => providers::tmpmails::generate_email(domain),
-        Channel::Tempmailg => providers::tempmailg::generate_email(domain),
         Channel::TaEasy => providers::ta_easy::generate_email(),
-        Channel::TenmailWangtz => providers::tenmail_wangtz::generate_email(domain),
         Channel::TenminuteOne => providers::tenminute_one::generate_email(domain),
-        Channel::LinshiEmail => providers::linshi_email::generate_email(),
         Channel::Linshiyou => providers::linshiyou::generate_email(),
         Channel::Mffac => providers::mffac::generate_email(),
         Channel::TempmailLol => providers::tempmail_lol::generate_email(domain),
         Channel::ChatgptOrgUk => providers::chatgpt_org_uk::generate_email(),
-        Channel::TempMailIO => providers::temp_mail_io::generate_email(),
         Channel::Awamail => providers::awamail::generate_email(),
-        Channel::TemporaryEmailOrg => providers::temporary_email_org::generate_email(),
         Channel::MailTm => providers::mail_tm::generate_email(),
-        Channel::MailCx => providers::mail_cx::generate_email(domain),
         Channel::Dropmail => providers::dropmail::generate_email(),
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::Maildrop => providers::maildrop::generate_email(domain),
@@ -156,6 +164,18 @@ fn generate_email_once(channel: &Channel, duration: u32, domain: Option<&str>) -
         Channel::FakeLegal => providers::fake_legal::generate_email(domain),
         Channel::Moakt => providers::moakt::generate_email(domain),
         Channel::Etempmail => providers::etempmail::generate_email(),
+        Channel::TwentyfourmailChacuo => providers::twentyfourmail_chacuo::generate_email(),
+        Channel::Email10min => providers::email10min::generate_email(),
+        Channel::MjjCm => providers::socketio_mail::mjj_cm::generate_email(),
+        Channel::MailXiuvi => providers::socketio_mail::mail_xiuvi::generate_email(),
+        Channel::LinshiCo => providers::socketio_mail::linshi_co::generate_email(),
+        Channel::Harakirimail => providers::harakirimail::generate_email(),
+        Channel::TempmailPlus => providers::tempmail_plus::generate_email(),
+        Channel::MailGw => providers::mail_gw::generate_email(),
+        Channel::TempmailLolV2 => providers::tempmail_lol_v2::generate_email(),
+        Channel::Sharklasers => providers::guerrillamail_mirrors::sharklasers::generate_email(),
+        Channel::GrrLa => providers::guerrillamail_mirrors::grr_la::generate_email(),
+        Channel::GuerrillamailInfo => providers::guerrillamail_mirrors::guerrillamail_info::generate_email(),
     }
 }
 
@@ -236,23 +256,14 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
             let t = token.ok_or("token is required for tmpmails")?;
             providers::tmpmails::get_emails(t, email)
         },
-        Channel::Tempmailg => {
-            let t = token.ok_or("token is required for tempmailg")?;
-            providers::tempmailg::get_emails(t, email)
-        },
         Channel::TaEasy => {
             let t = token.ok_or("token is required for ta-easy")?;
             providers::ta_easy::get_emails(email, t)
         },
-        Channel::TenmailWangtz => providers::tenmail_wangtz::get_emails(email),
         Channel::TenminuteOne => {
             let t = token.ok_or("token is required for 10minute-one")?;
             providers::tenminute_one::get_emails(t, email)
         },
-        Channel::LinshiEmail => {
-            let t = token.ok_or("token is required for linshi-email")?;
-            providers::linshi_email::get_emails(t, email)
-        }
         Channel::Linshiyou => {
             let t = token.ok_or("token is required for linshiyou")?;
             providers::linshiyou::get_emails(t, email)
@@ -266,22 +277,13 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
             let t = token.ok_or("token is required for chatgpt-org-uk")?;
             providers::chatgpt_org_uk::get_emails(t, email)
         }
-        Channel::TempMailIO => providers::temp_mail_io::get_emails(email),
         Channel::Awamail => {
             let t = token.ok_or("token is required for awamail")?;
             providers::awamail::get_emails(t, email)
         }
-        Channel::TemporaryEmailOrg => {
-            let t = token.ok_or("token is required for temporary-email-org")?;
-            providers::temporary_email_org::get_emails(t, email)
-        }
         Channel::MailTm => {
             let t = token.ok_or("token is required for mail-tm")?;
             providers::mail_tm::get_emails(t, email)
-        }
-        Channel::MailCx => {
-            let t = token.ok_or("token is required for mail-cx")?;
-            providers::mail_cx::get_emails(t, email)
         }
         Channel::Dropmail => {
             let t = token.ok_or("token is required for dropmail")?;
@@ -320,6 +322,36 @@ fn get_emails_once(channel: &Channel, email: &str, token: Option<&str>) -> Resul
         Channel::Etempmail => {
             let t = token.ok_or("token is required for etempmail")?;
             providers::etempmail::get_emails(t, email)
+        }
+        Channel::TwentyfourmailChacuo => providers::twentyfourmail_chacuo::get_emails(email),
+        Channel::Email10min => {
+            let t = token.ok_or("token is required for email10min")?;
+            providers::email10min::get_emails(t, email)
+        }
+        Channel::MjjCm => providers::socketio_mail::mjj_cm::get_emails(email),
+        Channel::MailXiuvi => providers::socketio_mail::mail_xiuvi::get_emails(email),
+        Channel::LinshiCo => providers::socketio_mail::linshi_co::get_emails(email),
+        Channel::Harakirimail => providers::harakirimail::get_emails(email),
+        Channel::TempmailPlus => providers::tempmail_plus::get_emails(email),
+        Channel::MailGw => {
+            let t = token.ok_or("token is required for mail-gw")?;
+            providers::mail_gw::get_emails(t, email)
+        }
+        Channel::TempmailLolV2 => {
+            let t = token.ok_or("token is required for tempmail-lol-v2")?;
+            providers::tempmail_lol_v2::get_emails(t, email)
+        }
+        Channel::Sharklasers => {
+            let t = token.ok_or("token is required for sharklasers")?;
+            providers::guerrillamail_mirrors::sharklasers::get_emails(t, email)
+        }
+        Channel::GrrLa => {
+            let t = token.ok_or("token is required for grr-la")?;
+            providers::guerrillamail_mirrors::grr_la::get_emails(t, email)
+        }
+        Channel::GuerrillamailInfo => {
+            let t = token.ok_or("token is required for guerrillamail-info")?;
+            providers::guerrillamail_mirrors::guerrillamail_info::get_emails(t, email)
         }
     }
 }

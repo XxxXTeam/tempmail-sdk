@@ -13,16 +13,10 @@ pub enum Channel {
     TempmailCn,
     #[serde(rename = "tmpmails")]
     Tmpmails,
-    #[serde(rename = "tempmailg")]
-    Tempmailg,
     #[serde(rename = "ta-easy")]
     TaEasy,
-    #[serde(rename = "10mail-wangtz")]
-    TenmailWangtz,
     #[serde(rename = "10minute-one")]
     TenminuteOne,
-    #[serde(rename = "linshi-email")]
-    LinshiEmail,
     #[serde(rename = "linshiyou")]
     Linshiyou,
     #[serde(rename = "mffac")]
@@ -31,16 +25,10 @@ pub enum Channel {
     TempmailLol,
     #[serde(rename = "chatgpt-org-uk")]
     ChatgptOrgUk,
-    #[serde(rename = "temp-mail-io")]
-    TempMailIO,
     #[serde(rename = "awamail")]
     Awamail,
-    #[serde(rename = "temporary-email-org")]
-    TemporaryEmailOrg,
     #[serde(rename = "mail-tm")]
     MailTm,
-    #[serde(rename = "mail-cx")]
-    MailCx,
     #[serde(rename = "dropmail")]
     Dropmail,
     #[serde(rename = "guerrillamail")]
@@ -63,6 +51,30 @@ pub enum Channel {
     Moakt,
     #[serde(rename = "etempmail")]
     Etempmail,
+    #[serde(rename = "24mail-chacuo")]
+    TwentyfourmailChacuo,
+    #[serde(rename = "email10min")]
+    Email10min,
+    #[serde(rename = "mjj-cm")]
+    MjjCm,
+    #[serde(rename = "mail-xiuvi")]
+    MailXiuvi,
+    #[serde(rename = "linshi-co")]
+    LinshiCo,
+    #[serde(rename = "harakirimail")]
+    Harakirimail,
+    #[serde(rename = "tempmail-plus")]
+    TempmailPlus,
+    #[serde(rename = "mail-gw")]
+    MailGw,
+    #[serde(rename = "tempmail-lol-v2")]
+    TempmailLolV2,
+    #[serde(rename = "sharklasers")]
+    Sharklasers,
+    #[serde(rename = "grr-la")]
+    GrrLa,
+    #[serde(rename = "guerrillamail-info")]
+    GuerrillamailInfo,
 }
 
 impl std::fmt::Display for Channel {
@@ -71,20 +83,14 @@ impl std::fmt::Display for Channel {
             Channel::Tempmail => write!(f, "tempmail"),
             Channel::TempmailCn => write!(f, "tempmail-cn"),
             Channel::Tmpmails => write!(f, "tmpmails"),
-            Channel::Tempmailg => write!(f, "tempmailg"),
             Channel::TaEasy => write!(f, "ta-easy"),
-            Channel::TenmailWangtz => write!(f, "10mail-wangtz"),
             Channel::TenminuteOne => write!(f, "10minute-one"),
-            Channel::LinshiEmail => write!(f, "linshi-email"),
             Channel::Linshiyou => write!(f, "linshiyou"),
             Channel::Mffac => write!(f, "mffac"),
             Channel::TempmailLol => write!(f, "tempmail-lol"),
             Channel::ChatgptOrgUk => write!(f, "chatgpt-org-uk"),
-            Channel::TempMailIO => write!(f, "temp-mail-io"),
             Channel::Awamail => write!(f, "awamail"),
-            Channel::TemporaryEmailOrg => write!(f, "temporary-email-org"),
             Channel::MailTm => write!(f, "mail-tm"),
-            Channel::MailCx => write!(f, "mail-cx"),
             Channel::Dropmail => write!(f, "dropmail"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::Maildrop => write!(f, "maildrop"),
@@ -96,6 +102,18 @@ impl std::fmt::Display for Channel {
             Channel::FakeLegal => write!(f, "fake-legal"),
             Channel::Moakt => write!(f, "moakt"),
             Channel::Etempmail => write!(f, "etempmail"),
+            Channel::TwentyfourmailChacuo => write!(f, "24mail-chacuo"),
+            Channel::Email10min => write!(f, "email10min"),
+            Channel::MjjCm => write!(f, "mjj-cm"),
+            Channel::MailXiuvi => write!(f, "mail-xiuvi"),
+            Channel::LinshiCo => write!(f, "linshi-co"),
+            Channel::Harakirimail => write!(f, "harakirimail"),
+            Channel::TempmailPlus => write!(f, "tempmail-plus"),
+            Channel::MailGw => write!(f, "mail-gw"),
+            Channel::TempmailLolV2 => write!(f, "tempmail-lol-v2"),
+            Channel::Sharklasers => write!(f, "sharklasers"),
+            Channel::GrrLa => write!(f, "grr-la"),
+            Channel::GuerrillamailInfo => write!(f, "guerrillamail-info"),
         }
     }
 }

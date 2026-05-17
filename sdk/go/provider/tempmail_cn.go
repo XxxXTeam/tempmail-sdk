@@ -3,12 +3,14 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	fhttp "github.com/bogdanfinn/fhttp"
 	"github.com/gorilla/websocket"
 )
 
@@ -242,7 +244,7 @@ func tempmailCNRequestShortID(host string) (string, error) {
 	}
 	defer conn.Close()
 
-	if err := tempmailCNWriteEvent(conn, "request shortid", true); err != nil {
+	if err := tempmailCNWriteEvent(conn, "request mailbox", true); err != nil {
 		return "", err
 	}
 	if err := conn.SetReadDeadline(time.Now().Add(15 * time.Second)); err != nil {
@@ -263,7 +265,7 @@ func tempmailCNRequestShortID(host string) (string, error) {
 			continue
 		}
 		event, payload, ok := tempmailCNParseEvent(packet)
-		if !ok || event != "shortid" {
+		if !ok || event != "mailbox" {
 			continue
 		}
 		id, ok := payload.(string)
@@ -298,7 +300,7 @@ func tempmailCNReadLoop(email, local, host string, box *tempmailCNBox) {
 	}
 	defer conn.Close()
 
-	if err := tempmailCNWriteEvent(conn, "set shortid", local); err != nil {
+	if err := tempmailCNWriteEvent(conn, "set mailbox", local); err != nil {
 		return
 	}
 
@@ -336,27 +338,78 @@ func tempmailCNReadLoop(email, local, host string, box *tempmailCNBox) {
 }
 
 func TempmailCNGetEmails(email string) ([]NormEmail, error) {
-	local, host, err := tempmailCNParseAddress(email)
+	_, host, err := tempmailCNParseAddress(email)
 	if err != nil {
 		return nil, err
 	}
-	box := tempmailCNGetBox(email)
 
-	box.mu.Lock()
-	needStart := !box.started
-	if needStart {
-		box.started = true
+	apiURL := fmt.Sprintf("https://%s/api/mails/%s", host, url.QueryEscape(email))
+	req, err := fhttp.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, err
 	}
-	box.mu.Unlock()
+	req.Header.Set("User-Agent", GetCurrentUA())
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Pragma", "no-cache")
+	req.Header.Set("Referer", "https://"+host+"/")
 
-	if needStart {
-		go tempmailCNReadLoop(email, local, host, box)
-		time.Sleep(80 * time.Millisecond)
+	client := HTTPClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if err := CheckHTTPStatus(resp, "tempmail-cn get mails"); err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	box.mu.Lock()
-	defer box.mu.Unlock()
-	out := make([]NormEmail, len(box.emails))
-	copy(out, box.emails)
+	var data struct {
+		Mails []map[string]interface{} `json:"mails"`
+	}
+	if err := json.Unmarshal(body, &data); err != nil {
+		return nil, fmt.Errorf("tempmail-cn: invalid mails JSON: %w", err)
+	}
+
+	out := make([]NormEmail, 0, len(data.Mails))
+	for _, raw := range data.Mails {
+		headers, _ := raw["headers"].(map[string]interface{})
+		if headers == nil {
+			headers = map[string]interface{}{}
+		}
+		flat := map[string]interface{}{
+			"id":          tempmailCNString(raw["id"]),
+			"from":        tempmailCNString(raw["from"]),
+			"to":          email,
+			"subject":     tempmailCNString(raw["subject"]),
+			"text":        tempmailCNString(raw["text"]),
+			"html":        tempmailCNString(raw["html"]),
+			"date":        tempmailCNString(raw["date"]),
+			"isRead":      false,
+			"attachments": raw["attachments"],
+		}
+		if flat["id"] == "" {
+			flat["id"] = tempmailCNString(raw["_id"])
+		}
+		if flat["from"] == "" {
+			flat["from"] = tempmailCNString(headers["from"])
+		}
+		if flat["subject"] == "" {
+			flat["subject"] = tempmailCNString(headers["subject"])
+		}
+		if flat["date"] == "" {
+			flat["date"] = tempmailCNString(headers["date"])
+		}
+		if flat["text"] == "" {
+			flat["text"] = tempmailCNString(raw["body"])
+		}
+		out = append(out, NormalizeMap(flat, email))
+	}
 	return out, nil
 }

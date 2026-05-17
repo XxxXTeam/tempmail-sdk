@@ -255,10 +255,6 @@ func tenminuteItemNeedsDetail(m map[string]interface{}) bool {
 	if strings.TrimSpace(id) == "" {
 		return false
 	}
-	subj := strings.TrimSpace(fmt.Sprint(m["subject"]))
-	if subj == "" {
-		subj = strings.TrimSpace(fmt.Sprint(m["mail_title"]))
-	}
 	body := strings.TrimSpace(fmt.Sprint(m["text"]))
 	if body == "" {
 		body = strings.TrimSpace(fmt.Sprint(m["body"]))
@@ -269,7 +265,7 @@ func tenminuteItemNeedsDetail(m map[string]interface{}) bool {
 	if body == "" {
 		body = strings.TrimSpace(fmt.Sprint(m["mail_text"]))
 	}
-	return subj == "" && body == ""
+	return body == ""
 }
 
 // TenminuteOneGenerate 拉取 SSR 页面，解析 JWT 与域名列表，生成随机邮箱地址

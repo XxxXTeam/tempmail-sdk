@@ -66,14 +66,31 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   const data = await response.json();
   const list = Array.isArray(data.list) ? data.list : [];
 
-  return list.map((item: any) => normalizeEmail({
-    id: item.mail_id,
-    from: item.mail_from,
-    to: email,
-    subject: item.mail_subject,
-    text: item.mail_body || item.mail_excerpt || '',
-    html: item.mail_body || '',
-    date: item.mail_date || '',
-    isRead: item.mail_read === 1,
-  }, email));
+  const out: Email[] = [];
+  for (const item of list) {
+    let body = item.mail_body || '';
+    if (!body && item.mail_id) {
+      try {
+        const dr = await fetchWithTimeout(
+          `${BASE_URL}?f=fetch_email&sid_token=${encodeURIComponent(token)}&email_id=${encodeURIComponent(item.mail_id)}`,
+          { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' } },
+        );
+        if (dr.ok) {
+          const detail = await dr.json();
+          body = detail.mail_body || '';
+        }
+      } catch { /* keep empty */ }
+    }
+    out.push(normalizeEmail({
+      id: item.mail_id,
+      from: item.mail_from,
+      to: email,
+      subject: item.mail_subject,
+      text: item.mail_excerpt || body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+      html: body,
+      date: item.mail_date || '',
+      isRead: item.mail_read === 1,
+    }, email));
+  }
+  return out;
 }

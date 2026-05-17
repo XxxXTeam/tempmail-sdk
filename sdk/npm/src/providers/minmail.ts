@@ -174,7 +174,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error('minmail: empty address');
   }
   const boundVid =
-    data.visitorId ?? data.visitor_id ?? cookieValue(cookieStrMerged, 'visitorId') ?? visitorId;
+    data.visitorId ?? data.visitor_id ?? (cookieValue(cookieStrMerged, 'visitorId') || visitorId);
   const ck = data.ck ?? response.headers.get('ck') ?? cookieValue(cookieStrMerged, 'ck') ?? '';
   if (boundVid && !cookieValue(cookieStrMerged, 'visitorId')) {
     cookieStrMerged = mergeCookieHeader(`${cookieStrMerged}; visitorId=${boundVid}`, response.headers);

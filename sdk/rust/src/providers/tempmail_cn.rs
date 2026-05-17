@@ -1,7 +1,8 @@
 /*!
  * tempmail.cn：按 public 前端的 Socket.IO 事件协议工作
- * - `request shortid` -> `shortid`
- * - `set shortid` 持续订阅 `mail`
+ * - `request mailbox` -> `mailbox`
+ * - `set mailbox` 持续订阅 `mail`
+ * - 收信使用 REST API: GET https://{host}/api/mails/{email}
  */
 
 use std::collections::HashMap;
@@ -12,7 +13,7 @@ use std::time::Duration;
 use serde_json::{json, Value};
 use tungstenite::protocol::Message;
 
-use crate::config::get_current_ua;
+use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 
@@ -211,13 +212,13 @@ fn flatten_mail(raw: &Value, recipient: &str) -> Value {
 
 fn request_shortid(host: &str) -> Result<String, String> {
     let mut socket = connect_socket(host)?;
-    send_event(&mut socket, "request shortid", Value::Bool(true))?;
+    send_event(&mut socket, "request mailbox", Value::Bool(true))?;
 
     loop {
         let packet = socket
             .read()
             .map_err(|e| e.to_string())
-            .and_then(|msg| socket_text(msg).ok_or_else(|| "tempmail-cn: websocket closed before shortid".to_string()))?;
+            .and_then(|msg| socket_text(msg).ok_or_else(|| "tempmail-cn: websocket closed before mailbox".to_string()))?;
         if packet.is_empty() {
             continue;
         }
@@ -230,7 +231,7 @@ fn request_shortid(host: &str) -> Result<String, String> {
         let Some((event, payload)) = parse_event(&packet) else {
             continue;
         };
-        if event == "shortid" {
+        if event == "mailbox" {
             if let Some(id) = payload.as_str() {
                 if !id.trim().is_empty() {
                     return Ok(id.trim().to_string());
@@ -243,7 +244,7 @@ fn request_shortid(host: &str) -> Result<String, String> {
 fn ws_loop(email: String, local: String, host: String, arc: Arc<Mutex<TempmailCnBox>>) {
     let result = (|| -> Result<(), String> {
         let mut socket = connect_socket(&host)?;
-        send_event(&mut socket, "set shortid", Value::String(local))?;
+        send_event(&mut socket, "set mailbox", Value::String(local))?;
 
         loop {
             let packet = match socket.read() {
@@ -325,8 +326,49 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
 }
 
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
-    ensure_ws(email)?;
-    let arc = get_box(email);
-    let inner = arc.lock().map_err(|e| e.to_string())?;
-    Ok(inner.emails.clone())
+    let (_, host) = split_email(email)?;
+    let url = format!(
+        "https://{}/api/mails/{}",
+        host,
+        urlencoding::encode(email)
+    );
+    let ua = get_current_ua();
+    block_on(async {
+        let resp = http_client()
+            .get(&url)
+            .header("User-Agent", ua)
+            .header(
+                "Accept-Language",
+                "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            )
+            .header("Accept", "application/json")
+            .header("Referer", format!("https://{}/", host))
+            .header("Cache-Control", "no-cache")
+            .header("DNT", "1")
+            .header("Pragma", "no-cache")
+            .send()
+            .await
+            .map_err(|e| format!("tempmail-cn get mails: {}", e))?;
+        if !resp.status().is_success() {
+            return Err(format!("tempmail-cn: get mails failed: {}", resp.status()));
+        }
+        let data: Value = resp.json().await.map_err(|e| e.to_string())?;
+        let mails = data["mails"].as_array().cloned().unwrap_or_default();
+        let mut out = Vec::with_capacity(mails.len());
+        for raw in &mails {
+            let flat = serde_json::json!({
+                "id": value_string(raw.get("id").or(raw.get("_id"))),
+                "from": value_string(raw.get("from").or_else(|| raw.get("headers").and_then(|h| h.get("from")))),
+                "to": email,
+                "subject": value_string(raw.get("subject").or_else(|| raw.get("headers").and_then(|h| h.get("subject")))),
+                "text": value_string(raw.get("text").or(raw.get("body"))),
+                "html": value_string(raw.get("html")),
+                "date": value_string(raw.get("date").or_else(|| raw.get("headers").and_then(|h| h.get("date")))),
+                "isRead": false,
+                "attachments": raw.get("attachments").cloned().unwrap_or(Value::Array(vec![])),
+            });
+            out.push(normalize_email(&flat, email));
+        }
+        Ok(out)
+    })
 }

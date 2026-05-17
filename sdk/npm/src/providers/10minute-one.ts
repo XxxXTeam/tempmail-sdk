@@ -187,9 +187,8 @@ function encMailboxPath(email: string): string {
 function itemNeedsDetail(item: Record<string, unknown>): boolean {
   const id = item.id;
   if (id == null || String(id).trim() === '') return false;
-  const subj = String(item.subject ?? item.mail_title ?? '').trim();
   const body = String(item.text ?? item.body ?? item.html ?? item.mail_text ?? '').trim();
-  return subj === '' && body === '';
+  return body === '';
 }
 
 export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {

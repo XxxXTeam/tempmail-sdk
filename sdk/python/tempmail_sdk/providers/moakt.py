@@ -50,12 +50,22 @@ def _locale(domain: Optional[str]) -> str:
     return s
 
 
-def _bare_get(url: str, headers: dict) -> requests.Response:
+def _bare_get(url: str, headers: dict, **kwargs) -> requests.Response:
     c = get_config()
     kw: dict = {"timeout": c.timeout, "headers": headers, "verify": not c.insecure}
     if c.proxy:
         kw["proxies"] = {"http": c.proxy, "https": c.proxy}
+    kw.update(kwargs)
     return requests.get(url, **kw)
+
+
+def _bare_post(url: str, headers: dict, **kwargs) -> requests.Response:
+    c = get_config()
+    kw: dict = {"timeout": c.timeout, "headers": headers, "verify": not c.insecure}
+    if c.proxy:
+        kw["proxies"] = {"http": c.proxy, "https": c.proxy}
+    kw.update(kwargs)
+    return requests.post(url, **kw)
 
 
 def _parse_cookie_map(hdr: str) -> Dict[str, str]:
@@ -179,17 +189,32 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     r1.raise_for_status()
     cookie_hdr = _merge_cookie_hdr("", r1)
 
-    r2 = _bare_get(
+    # POST /inbox 创建邮箱，捕获 302 中的 tm_session cookie
+    r2 = _bare_post(
+        inbox,
+        {
+            **_page_headers(base, ua),
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Cookie": cookie_hdr,
+        },
+        data="random=1",
+        allow_redirects=False,
+    )
+    cookie_hdr = _merge_cookie_hdr(cookie_hdr, r2)
+
+    if "tm_session" not in _parse_cookie_map(cookie_hdr):
+        raise RuntimeError("moakt: missing tm_session cookie")
+
+    # GET /inbox 获取邮箱地址
+    r3 = _bare_get(
         inbox,
         {**_page_headers(base, ua), "Cookie": cookie_hdr},
     )
-    r2.raise_for_status()
-    cookie_hdr = _merge_cookie_hdr(cookie_hdr, r2)
-    html_s = r2.text
+    r3.raise_for_status()
+    cookie_hdr = _merge_cookie_hdr(cookie_hdr, r3)
+    html_s = r3.text
 
     email = _parse_inbox_email(html_s)
-    if "tm_session" not in _parse_cookie_map(cookie_hdr):
-        raise RuntimeError("moakt: missing tm_session cookie")
     tok = _encode_sess(loc, cookie_hdr)
     return EmailInfo(channel=CHANNEL, email=email, _token=tok)
 

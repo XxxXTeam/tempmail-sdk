@@ -197,7 +197,8 @@ func moaktParseMessageHTML(page string, id string, recipient string) map[string]
 	return raw
 }
 
-// MoaktGenerate GET /{locale} 再 GET /{locale}/inbox，解析 #email-address；token 内为 Cookie 快照。
+// MoaktGenerate GET /{locale} 再 POST /{locale}/inbox（random=1，不跟重定向取 tm_session）
+// 再 GET /{locale}/inbox 解析 #email-address；token 内为 Cookie 快照。
 // opts.Domain 为语言路径（如 zh、en），默认 zh。
 func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
 	loc := moaktLocale(domain)
@@ -221,33 +222,53 @@ func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
 	_, _ = io.Copy(io.Discard, resp.Body)
 	cookieHdr := moaktMergeCookies("", resp.Cookies())
 
-	req2, err := http.NewRequest("GET", inbox, nil)
+	// POST /{locale}/inbox with random=1，不跟随重定向以获取 tm_session cookie
+	noRedirectClient := HTTPClientNoRedirect()
+	req2, err := http.NewRequest("POST", inbox, strings.NewReader("random=1"))
 	if err != nil {
 		return nil, err
 	}
 	moaktSetPageHeaders(req2, base)
+	req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req2.Header.Set("Cookie", cookieHdr)
-	resp2, err := client.Do(req2)
+	resp2, err := noRedirectClient.Do(req2)
 	if err != nil {
 		return nil, err
 	}
 	defer resp2.Body.Close()
-	if err := CheckHTTPStatus(resp2, "moakt inbox"); err != nil {
-		return nil, err
+	_, _ = io.Copy(io.Discard, resp2.Body)
+	cookieHdr = moaktMergeCookies(cookieHdr, resp2.Cookies())
+
+	if moaktCookieMap(cookieHdr)["tm_session"] == "" {
+		return nil, fmt.Errorf("moakt: missing tm_session cookie")
 	}
-	body, err := io.ReadAll(resp2.Body)
+
+	// GET /{locale}/inbox 解析邮箱地址
+	req3, err := http.NewRequest("GET", inbox, nil)
 	if err != nil {
 		return nil, err
 	}
-	cookieHdr = moaktMergeCookies(cookieHdr, resp2.Cookies())
+	moaktSetPageHeaders(req3, base)
+	req3.Header.Set("Cookie", cookieHdr)
+	resp3, err := client.Do(req3)
+	if err != nil {
+		return nil, err
+	}
+	defer resp3.Body.Close()
+	if err := CheckHTTPStatus(resp3, "moakt inbox"); err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(resp3.Body)
+	if err != nil {
+		return nil, err
+	}
+	cookieHdr = moaktMergeCookies(cookieHdr, resp3.Cookies())
 	htmlStr := string(body)
 	emailAddr, err := moaktParseInboxEmail(htmlStr)
 	if err != nil {
 		return nil, err
 	}
-	if moaktCookieMap(cookieHdr)["tm_session"] == "" {
-		return nil, fmt.Errorf("moakt: missing tm_session cookie")
-	}
+
 	tok, err := moaktEncodeSess(&moaktSess{Locale: loc, CookieHdr: cookieHdr})
 	if err != nil {
 		return nil, err

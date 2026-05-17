@@ -10,20 +10,14 @@ const (
 	ChannelTempmail          Channel = "tempmail"            // tempmail.ing
 	ChannelTempmailCn        Channel = "tempmail-cn"         // tempmail.cn
 	ChannelTmpmails          Channel = "tmpmails"            // tmpmails.com
-	ChannelTempmailg         Channel = "tempmailg"           // tempmailg.com（凭证为首次 GET 下发的会话 Cookie，换新邮箱须重新 Generate）
 	ChannelTaEasy            Channel = "ta-easy"             // ta-easy.com
-	Channel10mailWangtz      Channel = "10mail-wangtz"       // 10mail.wangtz.cn
 	Channel10minuteOne       Channel = "10minute-one"        // 10minutemail.one（SSR JWT + web API）
-	ChannelLinshiEmail       Channel = "linshi-email"        // linshi-email.com
 	ChannelLinshiyou         Channel = "linshiyou"           // linshiyou.com
 	ChannelMffac             Channel = "mffac"               // mffac.com
 	ChannelTempmailLol       Channel = "tempmail-lol"        // tempmail.lol
 	ChannelChatgptOrgUk      Channel = "chatgpt-org-uk"      // mail.chatgpt.org.uk
-	ChannelTempMailIO        Channel = "temp-mail-io"        // temp-mail.io
 	ChannelAwamail           Channel = "awamail"             // awamail.com
-	ChannelTemporaryEmailOrg Channel = "temporary-email-org" // temporary-email.org
 	ChannelMailTm            Channel = "mail-tm"             // mail.tm
-	ChannelMailCx            Channel = "mail-cx"             // mail.cx
 	ChannelDropmail          Channel = "dropmail"            // dropmail.me
 	ChannelGuerrillaMail     Channel = "guerrillamail"       // guerrillamail.com
 	ChannelMaildrop          Channel = "maildrop"            // maildrop.cx
@@ -35,6 +29,18 @@ const (
 	ChannelFakeLegal         Channel = "fake-legal"          // fake.legal
 	ChannelMoakt             Channel = "moakt"               // moakt.com（HTML 收件箱 + tm_session Cookie）
 	ChannelEtempmail         Channel = "etempmail"           // etempmail.com（会话 Cookie + JSON API）
+	Channel24mailChacuo      Channel = "24mail-chacuo"       // 24mail.chacuo.net（POST 注册/刷新，HTTP only）
+	ChannelEmail10min        Channel = "email10min"          // email10min.com（CSRF + Cookie）
+	ChannelMjjCm             Channel = "mjj-cm"              // mjj.cm（Socket.IO）
+	ChannelMailXiuvi         Channel = "mail-xiuvi"          // mail.xiuvi.cn（Socket.IO）
+	ChannelLinshiCo          Channel = "linshi-co"           // linshi.co（Socket.IO）
+	ChannelHarakirimail      Channel = "harakirimail"        // harakirimail.com
+	ChannelTempmailPlus      Channel = "tempmail-plus"       // tempmail.plus
+	ChannelMailGw            Channel = "mail-gw"             // mail.gw（JWT 认证 REST API）
+	ChannelTempmailLolV2     Channel = "tempmail-lol-v2"     // tempmail.lol（V2 REST API）
+	ChannelSharklasers       Channel = "sharklasers"         // sharklasers.com（Guerrillamail 镜像）
+	ChannelGrrLa             Channel = "grr-la"              // grr.la（Guerrillamail 镜像）
+	ChannelGuerrillamailInfo Channel = "guerrillamail-info"  // guerrillamail.info（Guerrillamail 镜像）
 )
 
 /*

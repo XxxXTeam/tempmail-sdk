@@ -18,20 +18,14 @@ static const tm_channel_t g_channel_try_order[] = {
     CHANNEL_TEMPMAIL,
     CHANNEL_TEMPMAIL_CN,
     CHANNEL_TMPMAILS,
-    CHANNEL_TEMPMAILG,
     CHANNEL_TA_EASY,
-    CHANNEL_10MAIL_WANGTZ,
     CHANNEL_10MINUTE_ONE,
-    CHANNEL_LINSHI_EMAIL,
     CHANNEL_LINSHIYOU,
     CHANNEL_MFFAC,
     CHANNEL_TEMPMAIL_LOL,
     CHANNEL_CHATGPT_ORG_UK,
-    CHANNEL_TEMP_MAIL_IO,
     CHANNEL_AWAMAIL,
-    CHANNEL_TEMPORARY_EMAIL_ORG,
     CHANNEL_MAIL_TM,
-    CHANNEL_MAIL_CX,
     CHANNEL_DROPMAIL,
     CHANNEL_GUERRILLAMAIL,
     CHANNEL_MAILDROP,
@@ -43,6 +37,18 @@ static const tm_channel_t g_channel_try_order[] = {
     CHANNEL_FAKE_LEGAL,
     CHANNEL_MOAKT,
     CHANNEL_ETEMPMAIL,
+    CHANNEL_24MAIL_CHACUO,
+    CHANNEL_EMAIL10MIN,
+    CHANNEL_MJJ_CM,
+    CHANNEL_MAIL_XIUVI,
+    CHANNEL_LINSHI_CO,
+    CHANNEL_HARAKIRIMAIL,
+    CHANNEL_TEMPMAIL_PLUS,
+    CHANNEL_MAIL_GW,
+    CHANNEL_TEMPMAIL_LOL_V2,
+    CHANNEL_SHARKLASERS,
+    CHANNEL_GRR_LA,
+    CHANNEL_GUERRILLAMAIL_INFO,
 };
 
 #define TM_CHANNEL_TRY_N ((int)(sizeof(g_channel_try_order) / sizeof(g_channel_try_order[0])))
@@ -51,20 +57,14 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_TEMPMAIL,       "TempMail",       "tempmail.ing" },
     { CHANNEL_TEMPMAIL_CN,    "TempMail CN",    "tempmail.cn" },
     { CHANNEL_TMPMAILS,       "TmpMails",       "tmpmails.com" },
-    { CHANNEL_TEMPMAILG,      "TempMailG",      "tempmailg.com" },
     { CHANNEL_TA_EASY,        "TA Easy",        "ta-easy.com" },
-    { CHANNEL_10MAIL_WANGTZ,  "10mail Wangtz",  "10mail.wangtz.cn" },
     { CHANNEL_10MINUTE_ONE,   "10 Minute Email", "10minutemail.one" },
-    { CHANNEL_LINSHI_EMAIL,   "临时邮箱",       "linshi-email.com" },
     { CHANNEL_LINSHIYOU,      "临时邮",         "linshiyou.com" },
     { CHANNEL_MFFAC,          "MFFAC",          "mffac.com" },
     { CHANNEL_TEMPMAIL_LOL,   "TempMail LOL",   "tempmail.lol" },
     { CHANNEL_CHATGPT_ORG_UK, "ChatGPT Mail",   "mail.chatgpt.org.uk" },
-    { CHANNEL_TEMP_MAIL_IO,   "Temp Mail IO",   "temp-mail.io" },
     { CHANNEL_AWAMAIL,        "AwaMail",        "awamail.com" },
-    { CHANNEL_TEMPORARY_EMAIL_ORG, "Temporary Email", "temporary-email.org" },
     { CHANNEL_MAIL_TM,        "Mail.tm",        "mail.tm" },
-    { CHANNEL_MAIL_CX,        "Mail.cx",        "mail.cx" },
     { CHANNEL_DROPMAIL,       "DropMail",       "dropmail.me" },
     { CHANNEL_GUERRILLAMAIL,  "Guerrilla Mail", "guerrillamail.com" },
     { CHANNEL_MAILDROP,       "Maildrop",       "maildrop.cx" },
@@ -76,6 +76,18 @@ static const tm_channel_info_t g_channel_infos[] = {
     { CHANNEL_FAKE_LEGAL,     "Fake Legal",     "fake.legal" },
     { CHANNEL_MOAKT,          "Moakt",          "moakt.com" },
     { CHANNEL_ETEMPMAIL,      "eTempMail",      "etempmail.com" },
+    { CHANNEL_24MAIL_CHACUO,  "24Mail Chacuo",  "24mail.chacuo.net" },
+    { CHANNEL_EMAIL10MIN,     "Email10Min",     "email10min.com" },
+    { CHANNEL_MJJ_CM,         "MJJ Mail",       "mjj.cm" },
+    { CHANNEL_MAIL_XIUVI,     "Xiuvi Mail",     "mail.xiuvi.cn" },
+    { CHANNEL_LINSHI_CO,      "临时Co",         "linshi.co" },
+    { CHANNEL_HARAKIRIMAIL,   "HarakiriMail",   "harakirimail.com" },
+    { CHANNEL_TEMPMAIL_PLUS,  "TempMail Plus",  "tempmail.plus" },
+    { CHANNEL_MAIL_GW,        "Mail.gw",        "mail.gw" },
+    { CHANNEL_TEMPMAIL_LOL_V2, "TempMail LOL V2", "tempmail.lol" },
+    { CHANNEL_SHARKLASERS,    "SharkLasers",    "sharklasers.com" },
+    { CHANNEL_GRR_LA,         "Grr.la",         "grr.la" },
+    { CHANNEL_GUERRILLAMAIL_INFO, "GuerrillaMail Info", "guerrillamail.info" },
 };
 
 const tm_channel_info_t* tm_list_channels(int *count) {
@@ -96,14 +108,11 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
         switch (channel) {
             case CHANNEL_TEMPMAIL:       result = tm_provider_tempmail_generate(duration); break;
             case CHANNEL_TEMPMAIL_CN:    result = tm_provider_tempmail_cn_generate(domain); break;
-            case CHANNEL_LINSHI_EMAIL:   result = tm_provider_linshi_email_generate(); break;
             case CHANNEL_LINSHIYOU:      result = tm_provider_linshiyou_generate(); break;
             case CHANNEL_TEMPMAIL_LOL:   result = tm_provider_tempmail_lol_generate(domain); break;
             case CHANNEL_CHATGPT_ORG_UK: result = tm_provider_chatgpt_org_uk_generate(); break;
-            case CHANNEL_TEMP_MAIL_IO:   result = tm_provider_temp_mail_io_generate(); break;
             case CHANNEL_AWAMAIL:        result = tm_provider_awamail_generate(); break;
             case CHANNEL_MAIL_TM:        result = tm_provider_mail_tm_generate(); break;
-            case CHANNEL_MAIL_CX:        result = tm_provider_mail_cx_generate(domain); break;
             case CHANNEL_DROPMAIL:       result = tm_provider_dropmail_generate(); break;
             case CHANNEL_GUERRILLAMAIL:  result = tm_provider_guerrillamail_generate(); break;
             case CHANNEL_MAILDROP:       result = tm_provider_maildrop_generate(domain); break;
@@ -111,17 +120,26 @@ static tm_email_info_t* tm_try_generate(tm_channel_t channel, int duration, cons
             case CHANNEL_BOOMLIFY:       result = tm_provider_boomlify_generate(); break;
             case CHANNEL_MINMAIL:        result = tm_provider_minmail_generate(); break;
             case CHANNEL_VIP_215:        result = tm_provider_vip215_generate(); break;
-            case CHANNEL_TEMPORARY_EMAIL_ORG: result = tm_provider_temporary_email_org_generate(); break;
             case CHANNEL_ANONBOX:        result = tm_provider_anonbox_generate(); break;
             case CHANNEL_FAKE_LEGAL:     result = tm_provider_fake_legal_generate(domain); break;
             case CHANNEL_MFFAC:          result = tm_provider_mffac_generate(); break;
             case CHANNEL_TA_EASY:        result = tm_provider_ta_easy_generate(); break;
             case CHANNEL_TMPMAILS:       result = tm_provider_tmpmails_generate(domain); break;
-            case CHANNEL_TEMPMAILG:      result = tm_provider_tempmailg_generate(domain); break;
-            case CHANNEL_10MAIL_WANGTZ:  result = tm_provider_tenmail_wangtz_generate(domain); break;
             case CHANNEL_MOAKT:          result = tm_provider_moakt_generate(domain); break;
             case CHANNEL_ETEMPMAIL:      result = tm_provider_etempmail_generate(); break;
             case CHANNEL_10MINUTE_ONE:   result = tm_provider_tenminute_one_generate(domain); break;
+            case CHANNEL_24MAIL_CHACUO:  result = tm_provider_24mail_chacuo_generate(); break;
+            case CHANNEL_EMAIL10MIN:     result = tm_provider_email10min_generate(); break;
+            case CHANNEL_MJJ_CM:         /* Socket.IO 渠道 C SDK 不支持 */ break;
+            case CHANNEL_MAIL_XIUVI:     /* Socket.IO 渠道 C SDK 不支持 */ break;
+            case CHANNEL_LINSHI_CO:      /* Socket.IO 渠道 C SDK 不支持 */ break;
+            case CHANNEL_HARAKIRIMAIL:   result = tm_provider_harakirimail_generate(); break;
+            case CHANNEL_TEMPMAIL_PLUS:  result = tm_provider_tempmail_plus_generate(); break;
+            case CHANNEL_MAIL_GW:        result = tm_provider_mail_gw_generate(); break;
+            case CHANNEL_TEMPMAIL_LOL_V2: result = tm_provider_tempmail_lol_v2_generate(); break;
+            case CHANNEL_SHARKLASERS:    result = tm_provider_guerrillamail_mirror_generate(CHANNEL_SHARKLASERS, "https://www.sharklasers.com/ajax.php"); break;
+            case CHANNEL_GRR_LA:         result = tm_provider_guerrillamail_mirror_generate(CHANNEL_GRR_LA, "https://www.grr.la/ajax.php"); break;
+            case CHANNEL_GUERRILLAMAIL_INFO: result = tm_provider_guerrillamail_mirror_generate(CHANNEL_GUERRILLAMAIL_INFO, "https://www.guerrillamail.info/ajax.php"); break;
             default: return NULL;
         }
         if (result) {
@@ -234,23 +252,14 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
         switch (email_info->channel) {
             case CHANNEL_TEMPMAIL:       emails = tm_provider_tempmail_get_emails(email_info->email, &count); break;
             case CHANNEL_TEMPMAIL_CN:    emails = tm_provider_tempmail_cn_get_emails(email_info->email, &count); break;
-            case CHANNEL_LINSHI_EMAIL:
-                if (!email_info->token) { count = -1; break; }
-                emails = tm_provider_linshi_email_get_emails(email_info->token, email_info->email, &count);
-                break;
             case CHANNEL_LINSHIYOU:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_linshiyou_get_emails(email_info->token, email_info->email, &count);
                 break;
             case CHANNEL_TEMPMAIL_LOL:   emails = tm_provider_tempmail_lol_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_CHATGPT_ORG_UK: emails = tm_provider_chatgpt_org_uk_get_emails(email_info->token, email_info->email, &count); break;
-            case CHANNEL_TEMP_MAIL_IO:   emails = tm_provider_temp_mail_io_get_emails(email_info->email, &count); break;
             case CHANNEL_AWAMAIL:        emails = tm_provider_awamail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_MAIL_TM:        emails = tm_provider_mail_tm_get_emails(email_info->token, email_info->email, &count); break;
-            case CHANNEL_MAIL_CX:
-                if (!email_info->token) { count = -1; break; }
-                emails = tm_provider_mail_cx_get_emails(email_info->token, email_info->email, &count);
-                break;
             case CHANNEL_DROPMAIL:       emails = tm_provider_dropmail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_GUERRILLAMAIL:  emails = tm_provider_guerrillamail_get_emails(email_info->token, email_info->email, &count); break;
             case CHANNEL_MAILDROP:       emails = tm_provider_maildrop_get_emails(email_info->token, email_info->email, &count); break;
@@ -268,10 +277,6 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_VIP_215:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_vip215_get_emails(email_info->token, email_info->email, &count);
-                break;
-            case CHANNEL_TEMPORARY_EMAIL_ORG:
-                if (!email_info->token) { count = -1; break; }
-                emails = tm_provider_temporary_email_org_get_emails(email_info->token, email_info->email, &count);
                 break;
             case CHANNEL_ANONBOX:
                 if (!email_info->token) { count = -1; break; }
@@ -291,13 +296,6 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_tmpmails_get_emails(email_info->token, email_info->email, &count);
                 break;
-            case CHANNEL_TEMPMAILG:
-                if (!email_info->token) { count = -1; break; }
-                emails = tm_provider_tempmailg_get_emails(email_info->token, email_info->email, &count);
-                break;
-            case CHANNEL_10MAIL_WANGTZ:
-                emails = tm_provider_tenmail_wangtz_get_emails(email_info->email, &count);
-                break;
             case CHANNEL_MOAKT:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_moakt_get_emails(email_info->token, email_info->email, &count);
@@ -309,6 +307,42 @@ tm_get_emails_result_t* tm_get_emails(const tm_email_info_t *email_info, const t
             case CHANNEL_10MINUTE_ONE:
                 if (!email_info->token) { count = -1; break; }
                 emails = tm_provider_tenminute_one_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_24MAIL_CHACUO:
+                emails = tm_provider_24mail_chacuo_get_emails(email_info->email, &count);
+                break;
+            case CHANNEL_EMAIL10MIN:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_email10min_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_MJJ_CM:         /* Socket.IO 渠道 C SDK 不支持 */ count = -1; break;
+            case CHANNEL_MAIL_XIUVI:     /* Socket.IO 渠道 C SDK 不支持 */ count = -1; break;
+            case CHANNEL_LINSHI_CO:      /* Socket.IO 渠道 C SDK 不支持 */ count = -1; break;
+            case CHANNEL_HARAKIRIMAIL:
+                emails = tm_provider_harakirimail_get_emails(email_info->email, &count);
+                break;
+            case CHANNEL_TEMPMAIL_PLUS:
+                emails = tm_provider_tempmail_plus_get_emails(email_info->email, &count);
+                break;
+            case CHANNEL_MAIL_GW:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_mail_gw_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_TEMPMAIL_LOL_V2:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_tempmail_lol_v2_get_emails(email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_SHARKLASERS:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_guerrillamail_mirror_get_emails("https://www.sharklasers.com/ajax.php", email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_GRR_LA:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_guerrillamail_mirror_get_emails("https://www.grr.la/ajax.php", email_info->token, email_info->email, &count);
+                break;
+            case CHANNEL_GUERRILLAMAIL_INFO:
+                if (!email_info->token) { count = -1; break; }
+                emails = tm_provider_guerrillamail_mirror_get_emails("https://www.guerrillamail.info/ajax.php", email_info->token, email_info->email, &count);
                 break;
             default: break;
         }

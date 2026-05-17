@@ -6,12 +6,16 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #ifdef _WIN32
 #define strncasecmp _strnicmp
 #else
 #include <strings.h>
 #endif
+
+/* 伪造来源 IP 随机种子初始化标志 */
+static int g_srand_init = 0;
 
 /* ========== 全局配置 ========== */
 

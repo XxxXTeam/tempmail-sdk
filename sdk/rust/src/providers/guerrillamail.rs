@@ -54,18 +54,64 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
         let list = data["list"].as_array().cloned().unwrap_or_default();
 
-        Ok(list.iter().map(|item| {
+        let mut out = Vec::with_capacity(list.len());
+        for item in &list {
+            let mut body = item["mail_body"].as_str().unwrap_or("").to_string();
+            // 如果 body 为空，通过 fetch_email 接口获取完整邮件内容
+            if body.is_empty() {
+                let mid_s = item["mail_id"]
+                    .as_str()
+                    .map(|s| s.to_string())
+                    .or_else(|| item["mail_id"].as_i64().map(|n| n.to_string()))
+                    .or_else(|| item["mail_id"].as_u64().map(|n| n.to_string()))
+                    .unwrap_or_default();
+                if !mid_s.is_empty() {
+                    let detail_url = format!(
+                        "{}?f=fetch_email&sid_token={}&email_id={}",
+                        BASE_URL,
+                        urlencoding::encode(&token),
+                        urlencoding::encode(&mid_s)
+                    );
+                    if let Ok(dr) = http_client()
+                        .get(&detail_url)
+                        .header("User-Agent", get_current_ua())
+                        .send()
+                        .await
+                    {
+                        if dr.status().is_success() {
+                            if let Ok(detail) = dr.json::<Value>().await {
+                                if let Some(mb) = detail["mail_body"].as_str() {
+                                    if !mb.is_empty() {
+                                        body = mb.to_string();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            let text = if body.is_empty() {
+                item["mail_excerpt"].as_str().unwrap_or("").to_string()
+            } else {
+                // 去除 HTML 标签提取纯文本
+                let re = regex::Regex::new(r"<[^>]+>").unwrap_or_else(|_| regex::Regex::new("").unwrap());
+                let stripped = re.replace_all(&body, " ");
+                stripped.split_whitespace().collect::<Vec<_>>().join(" ")
+            };
+
             let flat = serde_json::json!({
                 "id": item["mail_id"],
                 "from": item["mail_from"],
                 "to": &email,
                 "subject": item["mail_subject"],
-                "text": item.get("mail_body").or(item.get("mail_excerpt")).unwrap_or(&Value::String(String::new())),
-                "html": item["mail_body"].as_str().unwrap_or(""),
+                "text": text,
+                "html": body,
                 "date": item["mail_date"].as_str().unwrap_or(""),
                 "isRead": item["mail_read"].as_i64() == Some(1),
             });
-            normalize_email(&flat, &email)
-        }).collect())
+            out.push(normalize_email(&flat, &email));
+        }
+        Ok(out)
     })
 }

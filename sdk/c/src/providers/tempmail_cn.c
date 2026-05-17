@@ -1,7 +1,8 @@
 /**
  * tempmail.cn：按 public 前端的 Socket.IO 事件协议工作
- * - `request shortid` -> `shortid`
- * - `set shortid` 持续订阅 `mail`
+ * - `request mailbox` -> `mailbox`
+ * - `set mailbox` 持续订阅 `mail`
+ * - 收信使用 REST API: GET https://{host}/api/mails/{email}
  */
 
 #include "tempmail_internal.h"
@@ -391,7 +392,7 @@ static void *tmcn_ws_thread(void *arg)
 #endif
     }
     curl = tmcn_connect_socket(e->host);
-    if (!curl || !tmcn_send_event(curl, "set shortid", cJSON_CreateString(e->local))) {
+    if (!curl || !tmcn_send_event(curl, "set mailbox", cJSON_CreateString(e->local))) {
         if (curl) curl_easy_cleanup(curl);
         tmcn_lock(); e->thread_started = 0; tmcn_unlock();
 #ifdef _WIN32
@@ -457,7 +458,7 @@ tm_email_info_t *tm_provider_tempmail_cn_generate(const char *domain) {
     {
         CURL *curl = tmcn_connect_socket(host);
         char packet[8192];
-        if (!curl || !tmcn_send_event(curl, "request shortid", cJSON_CreateBool(1))) {
+        if (!curl || !tmcn_send_event(curl, "request mailbox", cJSON_CreateBool(1))) {
             if (curl) curl_easy_cleanup(curl);
             free(host);
             return NULL;
@@ -471,7 +472,7 @@ tm_email_info_t *tm_provider_tempmail_cn_generate(const char *domain) {
                 cJSON *arr = cJSON_Parse(packet + 2);
                 cJSON *event = arr ? cJSON_GetArrayItem(arr, 0) : NULL;
                 cJSON *payload = arr ? cJSON_GetArrayItem(arr, 1) : NULL;
-                if (arr && cJSON_IsString(event) && strcmp(TM_JSON_STR(event, ""), "shortid") == 0 && cJSON_IsString(payload) && payload->valuestring && payload->valuestring[0]) {
+                if (arr && cJSON_IsString(event) && strcmp(TM_JSON_STR(event, ""), "mailbox") == 0 && cJSON_IsString(payload) && payload->valuestring && payload->valuestring[0]) {
                     size_t cap = strlen(payload->valuestring) + strlen(host) + 2;
                     char *email = (char*)malloc(cap);
                     if (email) {
@@ -497,32 +498,127 @@ tm_email_info_t *tm_provider_tempmail_cn_generate(const char *domain) {
 #endif
 }
 
+static char *tmcn_url_encode(const char *s) {
+    if (!s) return tm_strdup("");
+    size_t len = strlen(s);
+    /* 每个字符最多编为 %XX（3 字节） */
+    char *out = (char *)malloc(len * 3 + 1);
+    if (!out) return NULL;
+    size_t o = 0;
+    for (size_t i = 0; i < len; i++) {
+        unsigned char c = (unsigned char)s[i];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+            c == '-' || c == '_' || c == '.' || c == '~') {
+            out[o++] = (char)c;
+        } else {
+            static const char hex[] = "0123456789ABCDEF";
+            out[o++] = '%';
+            out[o++] = hex[(c >> 4) & 0xF];
+            out[o++] = hex[c & 0xF];
+        }
+    }
+    out[o] = '\0';
+    return out;
+}
+
 tm_email_t *tm_provider_tempmail_cn_get_emails(const char *email, int *count) {
     char *local = NULL;
     char *host = NULL;
-    tmcn_entry_t *e;
-    tm_email_t *dup;
-    int n;
     *count = -1;
     if (!email || !email[0]) return NULL;
-#ifndef TM_TMCN_USE_CURL_WS
-    *count = 0;
-    return NULL;
-#else
     if (!tmcn_split_email(email, &local, &host)) {
         free(local); free(host);
         return NULL;
     }
-    e = tmcn_find_or_create(email, local, host);
+
+    char *enc_email = tmcn_url_encode(email);
+    if (!enc_email) {
+        free(local); free(host);
+        return NULL;
+    }
+
+    char url[1024];
+    snprintf(url, sizeof(url), "https://%s/api/mails/%s", host, enc_email);
+    free(enc_email);
+
+    char origin[384];
+    char referer[384];
+    snprintf(origin, sizeof(origin), "Origin: https://%s", host);
+    snprintf(referer, sizeof(referer), "Referer: https://%s/", host);
+
+    const char *hdrs[] = {
+        tmcn_common_headers[0], /* User-Agent */
+        tmcn_common_headers[1], /* Accept-Language */
+        tmcn_common_headers[2], /* Cache-Control */
+        tmcn_common_headers[3], /* DNT */
+        tmcn_common_headers[4], /* Pragma */
+        "Accept: application/json",
+        referer,
+        NULL
+    };
+
+    int timeout = tm_get_config()->timeout_secs > 0 ? tm_get_config()->timeout_secs : 15;
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, url, hdrs, NULL, timeout);
+    if (!resp || resp->status != 200 || !resp->body) {
+        tm_http_response_free(resp);
+        free(local); free(host);
+        return NULL;
+    }
+
+    cJSON *json = cJSON_Parse(resp->body);
+    tm_http_response_free(resp);
     free(local); free(host);
-    if (!e) return NULL;
-    tmcn_start_reader(e);
-    tmcn_sleep_ms(80);
-    tmcn_lock();
-    n = e->count;
-    dup = tmcn_dup_list(e->list, n);
-    tmcn_unlock();
+    if (!json) return NULL;
+
+    cJSON *mails = cJSON_GetObjectItemCaseSensitive(json, "mails");
+    int n = cJSON_IsArray(mails) ? cJSON_GetArraySize(mails) : 0;
     *count = n;
-    return dup;
-#endif
+    if (n == 0) { cJSON_Delete(json); return NULL; }
+
+    tm_email_t *emails_out = tm_emails_new(n);
+    if (!emails_out) { cJSON_Delete(json); *count = -1; return NULL; }
+
+    for (int i = 0; i < n; i++) {
+        cJSON *raw = cJSON_GetArrayItem(mails, i);
+        cJSON *headers_obj = cJSON_GetObjectItemCaseSensitive(raw, "headers");
+
+        /* id：优先 id，再 _id */
+        const char *id_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "id"));
+        if (!id_s || !id_s[0]) id_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "_id"));
+        /* from：优先 raw.from，再 headers.from */
+        const char *from_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "from"));
+        if (!from_s && headers_obj)
+            from_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(headers_obj, "from"));
+        /* subject */
+        const char *subj_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "subject"));
+        if (!subj_s && headers_obj)
+            subj_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(headers_obj, "subject"));
+        /* text */
+        const char *text_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "text"));
+        if (!text_s) text_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "body"));
+        /* html */
+        const char *html_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "html"));
+        /* date */
+        const char *date_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(raw, "date"));
+        if (!date_s && headers_obj)
+            date_s = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(headers_obj, "date"));
+
+        cJSON *flat = cJSON_CreateObject();
+        cJSON_AddStringToObject(flat, "id", id_s ? id_s : "");
+        cJSON_AddStringToObject(flat, "from", from_s ? from_s : "");
+        cJSON_AddStringToObject(flat, "to", email);
+        cJSON_AddStringToObject(flat, "subject", subj_s ? subj_s : "");
+        cJSON_AddStringToObject(flat, "text", text_s ? text_s : "");
+        cJSON_AddStringToObject(flat, "html", html_s ? html_s : "");
+        cJSON_AddStringToObject(flat, "date", date_s ? date_s : "");
+        cJSON_AddBoolToObject(flat, "isRead", 0);
+        cJSON *att = cJSON_GetObjectItemCaseSensitive(raw, "attachments");
+        cJSON_AddItemToObject(flat, "attachments",
+            (att && cJSON_IsArray(att)) ? cJSON_Duplicate(att, 1) : cJSON_CreateArray());
+
+        emails_out[i] = tm_normalize_email(flat, email);
+        cJSON_Delete(flat);
+    }
+    cJSON_Delete(json);
+    return emails_out;
 }

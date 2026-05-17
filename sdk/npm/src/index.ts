@@ -1,19 +1,13 @@
 import * as tempmail from './providers/tempmail';
 import * as tempmailCn from './providers/tempmail-cn';
 import * as tmpmails from './providers/tmpmails';
-import * as tempmailg from './providers/tempmailg';
 import * as taEasy from './providers/ta-easy';
-import * as tenmailWangtz from './providers/10mail-wangtz';
-import * as linshiEmail from './providers/linshi-email';
 import * as linshiyou from './providers/linshiyou';
 import * as mffac from './providers/mffac';
 import * as tempmailLol from './providers/tempmail-lol';
 import * as chatgptOrgUk from './providers/chatgpt-org-uk';
-import * as tempMailIO from './providers/temp-mail-io';
 import * as awamail from './providers/awamail';
-import * as temporaryEmailOrg from './providers/temporary-email-org';
 import * as mailTm from './providers/mail-tm';
-import * as mailCx from './providers/mail-cx';
 import * as dropmail from './providers/dropmail';
 import * as guerrillamail from './providers/guerrillamail';
 import * as maildropProvider from './providers/maildrop';
@@ -26,6 +20,16 @@ import * as fakeLegal from './providers/fake-legal';
 import * as moakt from './providers/moakt';
 import * as tenminuteOne from './providers/10minute-one';
 import * as etempmail from './providers/etempmail';
+import * as twentyFourMailChacuo from './providers/24mail-chacuo';
+import * as email10min from './providers/email10min';
+import * as mjjCm from './providers/mjj-cm';
+import * as mailXiuvi from './providers/mail-xiuvi';
+import * as linshiCo from './providers/linshi-co';
+import * as harakirimail from './providers/harakirimail';
+import * as tempmailPlus from './providers/tempmail-plus';
+import * as mailGw from './providers/mail-gw';
+import * as tempmailLolV2 from './providers/tempmail-lol-v2';
+import { sharklasers, grrla, guerrillainfoMirror } from './providers/guerrillamail-mirrors';
 import { Channel, EmailInfo, InternalEmailInfo, Email, GetEmailsResult, GenerateEmailOptions, GetEmailsOptions } from './types';
 import { withRetry, withRetryWithAttempts } from './retry';
 import { reportTelemetry } from './telemetry';
@@ -47,16 +51,9 @@ export type { RetryWithAttemptsResult, FetchWithTimeoutOptions } from './retry';
 export { LogLevel, LogHandler, setLogLevel, getLogLevel, setLogger, logger } from './logger';
 export { SDKConfig, setConfig, getConfig } from './config';
 export { getSdkVersion } from './version';
-export type { SyntheticBrowserProfile } from './providers/linshi-token';
-export {
-  deriveLinshiApiPathKey,
-  randomSyntheticLinshiKey,
-  randomBrowserLikeProfile,
-  syntheticVisitorIdFromProfile,
-} from './providers/linshi-token';
 
 /** 所有支持的渠道列表，用于随机选择和遍历 */
-const allChannels: Channel[] = ['tempmail', 'tempmail-cn', 'tmpmails', 'tempmailg', 'ta-easy', '10mail-wangtz', '10minute-one', 'linshi-email', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org', 'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal', 'moakt', 'etempmail'];
+const allChannels: Channel[] = ['tempmail', 'tempmail-cn', 'tmpmails', 'ta-easy', '10minute-one', 'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal', 'moakt', 'etempmail', '24mail-chacuo', 'email10min', 'mjj-cm', 'mail-xiuvi', 'linshi-co', 'harakirimail', 'tempmail-plus', 'mail-gw', 'tempmail-lol-v2', 'sharklasers', 'grr-la', 'guerrillamail-info'];
 
 /**
  * 渠道信息，包含渠道标识、显示名称和对应网站
@@ -75,19 +72,13 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'tempmail': { channel: 'tempmail', name: 'TempMail', website: 'tempmail.ing' },
   'tempmail-cn': { channel: 'tempmail-cn', name: 'TempMail CN', website: 'tempmail.cn' },
   'tmpmails': { channel: 'tmpmails', name: 'TmpMails', website: 'tmpmails.com' },
-  'tempmailg': { channel: 'tempmailg', name: 'TempMailG', website: 'tempmailg.com' },
   'ta-easy': { channel: 'ta-easy', name: 'TA Easy', website: 'ta-easy.com' },
-  '10mail-wangtz': { channel: '10mail-wangtz', name: '10mail Wangtz', website: '10mail.wangtz.cn' },
   '10minute-one': { channel: '10minute-one', name: '10 Minute Email', website: '10minutemail.one' },
-  'linshi-email': { channel: 'linshi-email', name: '临时邮箱', website: 'linshi-email.com' },
   'linshiyou': { channel: 'linshiyou', name: '临时邮', website: 'linshiyou.com' },
   'tempmail-lol': { channel: 'tempmail-lol', name: 'TempMail LOL', website: 'tempmail.lol' },
   'chatgpt-org-uk': { channel: 'chatgpt-org-uk', name: 'ChatGPT Mail', website: 'mail.chatgpt.org.uk' },
-  'temp-mail-io': { channel: 'temp-mail-io', name: 'Temp Mail IO', website: 'temp-mail.io' },
   'awamail': { channel: 'awamail', name: 'AwaMail', website: 'awamail.com' },
-  'temporary-email-org': { channel: 'temporary-email-org', name: 'Temporary Email', website: 'temporary-email.org' },
   'mail-tm': { channel: 'mail-tm', name: 'Mail.tm', website: 'mail.tm' },
-  'mail-cx': { channel: 'mail-cx', name: 'Mail.cx', website: 'mail.cx' },
   'dropmail': { channel: 'dropmail', name: 'DropMail', website: 'dropmail.me' },
   'guerrillamail': { channel: 'guerrillamail', name: 'Guerrilla Mail', website: 'guerrillamail.com' },
   'maildrop': { channel: 'maildrop', name: 'Maildrop', website: 'maildrop.cx' },
@@ -100,6 +91,18 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
   'fake-legal': { channel: 'fake-legal', name: 'Fake Legal', website: 'fake.legal' },
   'moakt': { channel: 'moakt', name: 'Moakt', website: 'moakt.com' },
   'etempmail': { channel: 'etempmail', name: 'eTempMail', website: 'etempmail.com' },
+  '24mail-chacuo': { channel: '24mail-chacuo', name: '24Mail Chacuo', website: '24mail.chacuo.net' },
+  'email10min': { channel: 'email10min', name: 'Email10Min', website: 'email10min.com' },
+  'mjj-cm': { channel: 'mjj-cm', name: 'MJJ Mail', website: 'mjj.cm' },
+  'mail-xiuvi': { channel: 'mail-xiuvi', name: 'Xiuvi Mail', website: 'mail.xiuvi.cn' },
+  'linshi-co': { channel: 'linshi-co', name: '临时Co', website: 'linshi.co' },
+  'harakirimail': { channel: 'harakirimail', name: 'HarakiriMail', website: 'harakirimail.com' },
+  'tempmail-plus': { channel: 'tempmail-plus', name: 'TempMail Plus', website: 'tempmail.plus' },
+  'mail-gw': { channel: 'mail-gw', name: 'Mail.gw', website: 'mail.gw' },
+  'tempmail-lol-v2': { channel: 'tempmail-lol-v2', name: 'TempMail LOL V2', website: 'tempmail.lol' },
+  'sharklasers': { channel: 'sharklasers', name: 'SharkLasers', website: 'sharklasers.com' },
+  'grr-la': { channel: 'grr-la', name: 'Grr.la', website: 'grr.la' },
+  'guerrillamail-info': { channel: 'guerrillamail-info', name: 'GuerrillaMail Info', website: 'guerrillamail.info' },
 };
 
 /**
@@ -216,28 +219,18 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return tempmailCn.generateEmail(options.domain ?? null);
     case 'tmpmails':
       return tmpmails.generateEmail(options.domain ?? null);
-    case 'tempmailg':
-      return tempmailg.generateEmail(options.domain ?? null);
     case 'ta-easy':
       return taEasy.generateEmail();
-    case '10mail-wangtz':
-      return tenmailWangtz.generateEmail(options.domain ?? null);
     case '10minute-one':
       return tenminuteOne.generateEmail(options.domain ?? null);
-    case 'linshi-email':
-      return linshiEmail.generateEmail();
     case 'linshiyou':
       return linshiyou.generateEmail();
     case 'tempmail-lol':
       return tempmailLol.generateEmail(options.domain || null);
     case 'chatgpt-org-uk':
       return chatgptOrgUk.generateEmail();
-    case 'temp-mail-io':
-      return tempMailIO.generateEmail();
     case 'awamail':
       return awamail.generateEmail();
-    case 'temporary-email-org':
-      return temporaryEmailOrg.generateEmail();
     case 'mail-tm':
       return mailTm.generateEmail();
     case 'dropmail':
@@ -264,6 +257,30 @@ async function generateEmailOnce(channel: Channel, options: GenerateEmailOptions
       return moakt.generateEmail(options.domain ?? null);
     case 'etempmail':
       return etempmail.generateEmail();
+    case '24mail-chacuo':
+      return twentyFourMailChacuo.generateEmail();
+    case 'email10min':
+      return email10min.generateEmail();
+    case 'mjj-cm':
+      return mjjCm.generateEmail();
+    case 'mail-xiuvi':
+      return mailXiuvi.generateEmail();
+    case 'linshi-co':
+      return linshiCo.generateEmail();
+    case 'harakirimail':
+      return harakirimail.generateEmail();
+    case 'tempmail-plus':
+      return tempmailPlus.generateEmail();
+    case 'mail-gw':
+      return mailGw.generateEmail();
+    case 'tempmail-lol-v2':
+      return tempmailLolV2.generateEmail();
+    case 'sharklasers':
+      return sharklasers.generateEmail();
+    case 'grr-la':
+      return grrla.generateEmail();
+    case 'guerrillamail-info':
+      return guerrillainfoMirror.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -345,20 +362,12 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'tmpmails':
       if (!token) throw new Error('internal error: token missing for tmpmails');
       return tmpmails.getEmails(email, token);
-    case 'tempmailg':
-      if (!token) throw new Error('internal error: token missing for tempmailg');
-      return tempmailg.getEmails(email, token);
     case 'ta-easy':
       if (!token) throw new Error('internal error: token missing for ta-easy');
       return taEasy.getEmails(email, token);
-    case '10mail-wangtz':
-      return tenmailWangtz.getEmails(email);
     case '10minute-one':
       if (!token) throw new Error('internal error: token missing for 10minute-one');
       return tenminuteOne.getEmails(email, token);
-    case 'linshi-email':
-      if (!token) throw new Error('internal error: token missing for linshi-email');
-      return linshiEmail.getEmails(email, token);
     case 'linshiyou':
       if (!token) throw new Error('internal error: token missing for linshiyou');
       return linshiyou.getEmails(token, email);
@@ -368,20 +377,12 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'chatgpt-org-uk':
       if (!token) throw new Error('internal error: token missing for chatgpt-org-uk');
       return chatgptOrgUk.getEmails(token, email);
-    case 'temp-mail-io':
-      return tempMailIO.getEmails(email);
     case 'awamail':
       if (!token) throw new Error('internal error: token missing for awamail');
       return awamail.getEmails(token, email);
-    case 'temporary-email-org':
-      if (!token) throw new Error('internal error: token missing for temporary-email-org');
-      return temporaryEmailOrg.getEmails(email, token);
     case 'mail-tm':
       if (!token) throw new Error('internal error: token missing for mail-tm');
       return mailTm.getEmails(token, email);
-    case 'mail-cx':
-      if (!token) throw new Error('internal error: token missing for mail-cx');
-      return mailCx.getEmails(token, email);
     case 'dropmail':
       if (!token) throw new Error('internal error: token missing for dropmail');
       return dropmail.getEmails(token, email);
@@ -415,6 +416,36 @@ async function getEmailsOnce(channel: Channel, email: string, token?: string): P
     case 'etempmail':
       if (!token) throw new Error('internal error: token missing for etempmail');
       return etempmail.getEmails(email, token);
+    case '24mail-chacuo':
+      return twentyFourMailChacuo.getEmails(email, token);
+    case 'email10min':
+      if (!token) throw new Error('internal error: token missing for email10min');
+      return email10min.getEmails(email, token);
+    case 'mjj-cm':
+      return mjjCm.getEmails(email);
+    case 'mail-xiuvi':
+      return mailXiuvi.getEmails(email);
+    case 'linshi-co':
+      return linshiCo.getEmails(email);
+    case 'harakirimail':
+      return harakirimail.getEmails(email);
+    case 'tempmail-plus':
+      return tempmailPlus.getEmails(email);
+    case 'mail-gw':
+      if (!token) throw new Error('internal error: token missing for mail-gw');
+      return mailGw.getEmails(token, email);
+    case 'tempmail-lol-v2':
+      if (!token) throw new Error('internal error: token missing for tempmail-lol-v2');
+      return tempmailLolV2.getEmails(token, email);
+    case 'sharklasers':
+      if (!token) throw new Error('internal error: token missing for sharklasers');
+      return sharklasers.getEmails(token, email);
+    case 'grr-la':
+      if (!token) throw new Error('internal error: token missing for grr-la');
+      return grrla.getEmails(token, email);
+    case 'guerrillamail-info':
+      if (!token) throw new Error('internal error: token missing for guerrillamail-info');
+      return guerrillainfoMirror.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

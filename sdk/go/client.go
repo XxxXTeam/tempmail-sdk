@@ -12,20 +12,14 @@ var allChannels = []Channel{
 	ChannelTempmail,
 	ChannelTempmailCn,
 	ChannelTmpmails,
-	ChannelTempmailg,
 	ChannelTaEasy,
-	Channel10mailWangtz,
 	Channel10minuteOne,
-	ChannelLinshiEmail,
 	ChannelLinshiyou,
 	ChannelMffac,
 	ChannelTempmailLol,
 	ChannelChatgptOrgUk,
-	ChannelTempMailIO,
 	ChannelAwamail,
-	ChannelTemporaryEmailOrg,
 	ChannelMailTm,
-	ChannelMailCx,
 	ChannelDropmail,
 	ChannelGuerrillaMail,
 	ChannelMaildrop,
@@ -37,6 +31,18 @@ var allChannels = []Channel{
 	ChannelFakeLegal,
 	ChannelMoakt,
 	ChannelEtempmail,
+	Channel24mailChacuo,
+	ChannelEmail10min,
+	ChannelMjjCm,
+	ChannelMailXiuvi,
+	ChannelLinshiCo,
+	ChannelHarakirimail,
+	ChannelTempmailPlus,
+	ChannelMailGw,
+	ChannelTempmailLolV2,
+	ChannelSharklasers,
+	ChannelGrrLa,
+	ChannelGuerrillamailInfo,
 }
 
 /*
@@ -56,20 +62,14 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmail:          {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
 	ChannelTempmailCn:        {Channel: ChannelTempmailCn, Name: "TempMail CN", Website: "tempmail.cn"},
 	ChannelTmpmails:          {Channel: ChannelTmpmails, Name: "TmpMails", Website: "tmpmails.com"},
-	ChannelTempmailg:         {Channel: ChannelTempmailg, Name: "TempMailG", Website: "tempmailg.com"},
 	ChannelTaEasy:            {Channel: ChannelTaEasy, Name: "TA Easy", Website: "ta-easy.com"},
-	Channel10mailWangtz:      {Channel: Channel10mailWangtz, Name: "10mail Wangtz", Website: "10mail.wangtz.cn"},
 	Channel10minuteOne:       {Channel: Channel10minuteOne, Name: "10 Minute Email", Website: "10minutemail.one"},
-	ChannelLinshiEmail:       {Channel: ChannelLinshiEmail, Name: "临时邮箱", Website: "linshi-email.com"},
 	ChannelLinshiyou:         {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
 	ChannelMffac:             {Channel: ChannelMffac, Name: "MFFAC", Website: "mffac.com"},
 	ChannelTempmailLol:       {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
 	ChannelChatgptOrgUk:      {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
-	ChannelTempMailIO:        {Channel: ChannelTempMailIO, Name: "Temp Mail IO", Website: "temp-mail.io"},
 	ChannelAwamail:           {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
-	ChannelTemporaryEmailOrg: {Channel: ChannelTemporaryEmailOrg, Name: "Temporary Email", Website: "temporary-email.org"},
 	ChannelMailTm:            {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
-	ChannelMailCx:            {Channel: ChannelMailCx, Name: "Mail.cx", Website: "mail.cx"},
 	ChannelDropmail:          {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
 	ChannelGuerrillaMail:     {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
 	ChannelMaildrop:          {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cx"},
@@ -81,6 +81,18 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelFakeLegal:         {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
 	ChannelMoakt:             {Channel: ChannelMoakt, Name: "Moakt", Website: "moakt.com"},
 	ChannelEtempmail:         {Channel: ChannelEtempmail, Name: "eTempMail", Website: "etempmail.com"},
+	Channel24mailChacuo:      {Channel: Channel24mailChacuo, Name: "24Mail Chacuo", Website: "24mail.chacuo.net"},
+	ChannelEmail10min:        {Channel: ChannelEmail10min, Name: "Email10Min", Website: "email10min.com"},
+	ChannelMjjCm:             {Channel: ChannelMjjCm, Name: "MJJ Mail", Website: "mjj.cm"},
+	ChannelMailXiuvi:         {Channel: ChannelMailXiuvi, Name: "Xiuvi Mail", Website: "mail.xiuvi.cn"},
+	ChannelLinshiCo:          {Channel: ChannelLinshiCo, Name: "临时Co", Website: "linshi.co"},
+	ChannelHarakirimail:      {Channel: ChannelHarakirimail, Name: "HarakiriMail", Website: "harakirimail.com"},
+	ChannelTempmailPlus:      {Channel: ChannelTempmailPlus, Name: "TempMail Plus", Website: "tempmail.plus"},
+	ChannelMailGw:            {Channel: ChannelMailGw, Name: "Mail.gw", Website: "mail.gw"},
+	ChannelTempmailLolV2:     {Channel: ChannelTempmailLolV2, Name: "TempMail LOL V2", Website: "tempmail.lol"},
+	ChannelSharklasers:       {Channel: ChannelSharklasers, Name: "SharkLasers", Website: "sharklasers.com"},
+	ChannelGrrLa:             {Channel: ChannelGrrLa, Name: "Grr.la", Website: "grr.la"},
+	ChannelGuerrillamailInfo: {Channel: ChannelGuerrillamailInfo, Name: "GuerrillaMail Info", Website: "guerrillamail.info"},
 }
 
 /*
@@ -113,7 +125,7 @@ func GetChannelInfo(channel Channel) (ChannelInfo, bool) {
  * - 所有渠道均不可用时返回 nil（不返回 error）
  *
  * 示例:
- *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelTempMailIO})
+ *   info, _ := GenerateEmail(&GenerateEmailOptions{Channel: ChannelMailTm})
  *   if info != nil { fmt.Println(info.Email) }
  */
 func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
@@ -196,20 +208,11 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelTmpmails:
 		return fromMailbox(prov.TmpmailsGenerate(opts.Domain))
 
-	case ChannelTempmailg:
-		return fromMailbox(prov.TempmailgGenerate(opts.Domain))
-
 	case ChannelTaEasy:
 		return fromMailbox(prov.TaEasyGenerate())
 
-	case Channel10mailWangtz:
-		return fromMailbox(prov.TenmailWangtzGenerate(opts.Domain))
-
 	case Channel10minuteOne:
 		return fromMailbox(prov.TenminuteOneGenerate(opts.Domain))
-
-	case ChannelLinshiEmail:
-		return fromMailbox(prov.LinshiEmailGenerate())
 
 	case ChannelLinshiyou:
 		return fromMailbox(prov.LinshiyouGenerate())
@@ -223,20 +226,11 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelChatgptOrgUk:
 		return fromMailbox(prov.ChatgptOrgUkGenerate())
 
-	case ChannelTempMailIO:
-		return fromMailbox(prov.TempMailIOGenerate())
-
 	case ChannelAwamail:
 		return fromMailbox(prov.AwamailGenerate())
 
-	case ChannelTemporaryEmailOrg:
-		return fromMailbox(prov.TemporaryEmailOrgGenerate())
-
 	case ChannelMailTm:
 		return fromMailbox(prov.MailTmGenerate())
-
-	case ChannelMailCx:
-		return fromMailbox(prov.MailCxGenerate(opts.Domain))
 
 	case ChannelDropmail:
 		return fromMailbox(prov.DropmailGenerate())
@@ -270,6 +264,42 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelEtempmail:
 		return fromMailbox(prov.EtempmailGenerate())
+
+	case Channel24mailChacuo:
+		return fromMailbox(prov.TwentyfourmailChacuoGenerate())
+
+	case ChannelEmail10min:
+		return fromMailbox(prov.Email10minGenerate())
+
+	case ChannelMjjCm:
+		return fromMailbox(prov.MjjCmGenerate())
+
+	case ChannelMailXiuvi:
+		return fromMailbox(prov.MailXiuviGenerate())
+
+	case ChannelLinshiCo:
+		return fromMailbox(prov.LinshiCoGenerate())
+
+	case ChannelHarakirimail:
+		return fromMailbox(prov.HarakirimailGenerate())
+
+	case ChannelTempmailPlus:
+		return fromMailbox(prov.TempmailPlusGenerate())
+
+	case ChannelMailGw:
+		return fromMailbox(prov.MailGwGenerate())
+
+	case ChannelTempmailLolV2:
+		return fromMailbox(prov.TempmailLolV2Generate())
+
+	case ChannelSharklasers:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("sharklasers", "https://www.sharklasers.com/ajax.php"))
+
+	case ChannelGrrLa:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("grr-la", "https://www.grr.la/ajax.php"))
+
+	case ChannelGuerrillamailInfo:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-info", "https://www.guerrillamail.info/ajax.php"))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -365,32 +395,17 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.TmpmailsGetEmails(email, token))
 
-	case ChannelTempmailg:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for tempmailg channel")
-		}
-		return normEmailsResult(prov.TempmailgGetEmails(email, token))
-
 	case ChannelTaEasy:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for ta-easy channel")
 		}
 		return normEmailsResult(prov.TaEasyGetEmails(email, token))
 
-	case Channel10mailWangtz:
-		return normEmailsResult(prov.TenmailWangtzGetEmails(email, token))
-
 	case Channel10minuteOne:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for 10minute-one channel")
 		}
 		return normEmailsResult(prov.TenminuteOneGetEmails(email, token))
-
-	case ChannelLinshiEmail:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for linshi-email channel")
-		}
-		return normEmailsResult(prov.LinshiEmailGetEmails(token, email))
 
 	case ChannelLinshiyou:
 		if token == "" {
@@ -413,32 +428,17 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.ChatgptOrgUkGetEmails(email, token))
 
-	case ChannelTempMailIO:
-		return normEmailsResult(prov.TempMailIOGetEmails(email))
-
 	case ChannelAwamail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for awamail channel")
 		}
 		return normEmailsResult(prov.AwamailGetEmails(token, email))
 
-	case ChannelTemporaryEmailOrg:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for temporary-email-org channel")
-		}
-		return normEmailsResult(prov.TemporaryEmailOrgGetEmails(token, email))
-
 	case ChannelMailTm:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for mail-tm channel")
 		}
 		return normEmailsResult(prov.MailTmGetEmails(token, email))
-
-	case ChannelMailCx:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for mail-cx channel")
-		}
-		return normEmailsResult(prov.MailCxGetEmails(token, email))
 
 	case ChannelDropmail:
 		if token == "" {
@@ -500,10 +500,61 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.EtempmailGetEmails(email, token))
 
+	case Channel24mailChacuo:
+		return normEmailsResult(prov.TwentyfourmailChacuoGetEmails(email))
+
+	case ChannelEmail10min:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for email10min channel")
+		}
+		return normEmailsResult(prov.Email10minGetEmails(email, token))
+
+	case ChannelMjjCm:
+		return normEmailsResult(prov.MjjCmGetEmails(email))
+
+	case ChannelMailXiuvi:
+		return normEmailsResult(prov.MailXiuviGetEmails(email))
+
+	case ChannelLinshiCo:
+		return normEmailsResult(prov.LinshiCoGetEmails(email))
+
+	case ChannelHarakirimail:
+		return normEmailsResult(prov.HarakirimailGetEmails(email))
+
+	case ChannelTempmailPlus:
+		return normEmailsResult(prov.TempmailPlusGetEmails(email))
+
+	case ChannelMailGw:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-gw channel")
+		}
+		return normEmailsResult(prov.MailGwGetEmails(token, email))
+
+	case ChannelTempmailLolV2:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempmail-lol-v2 channel")
+		}
+		return normEmailsResult(prov.TempmailLolV2GetEmails(token, email))
+
+	case ChannelSharklasers:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for sharklasers channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.sharklasers.com/ajax.php", token, email))
+
+	case ChannelGrrLa:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for grr-la channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.grr.la/ajax.php", token, email))
+
+	case ChannelGuerrillamailInfo:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail-info channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.info/ajax.php", token, email))
+
 	default:
-		return nil, fmt.Errorf("unknown channel: %s", channel)
-	}
-}
 
 /*
  * EmailInfo.GetEmails 获取当前邮箱的邮件列表

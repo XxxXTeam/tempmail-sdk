@@ -175,16 +175,29 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
   let cookieHdr = mergeCookieHeader('', r1.headers);
 
   const r2 = await fetchWithTimeout(inbox, {
-    headers: { ...pageHeaders(base), Cookie: cookieHdr },
+    method: 'POST',
+    headers: {
+      ...pageHeaders(base),
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Cookie: cookieHdr,
+    },
+    body: 'random=1',
+    redirect: 'manual',
   });
-  if (!r2.ok) throw new Error(`moakt inbox: ${r2.status}`);
-  cookieHdr = mergeCookieHeader(cookieHdr, r2.headers);
-  const html = await r2.text();
 
-  const email = parseInboxEmail(html);
+  cookieHdr = mergeCookieHeader(cookieHdr, r2.headers);
   if (!parseCookieMap(cookieHdr).has('tm_session')) {
     throw new Error('moakt: missing tm_session cookie');
   }
+
+  const r3 = await fetchWithTimeout(inbox, {
+    headers: { ...pageHeaders(base), Cookie: cookieHdr },
+  });
+  if (!r3.ok) throw new Error(`moakt inbox: ${r3.status}`);
+  cookieHdr = mergeCookieHeader(cookieHdr, r3.headers);
+  const html = await r3.text();
+
+  const email = parseInboxEmail(html);
   const token = encSess(loc, cookieHdr);
   return { channel: CHANNEL, email, token };
 }

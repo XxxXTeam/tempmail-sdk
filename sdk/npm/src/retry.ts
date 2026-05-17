@@ -204,6 +204,20 @@ function resolveFetchForTls(
   }
 }
 
+function randomIPv4(): string {
+  const a = () => Math.floor(Math.random() * 254) + 1;
+  return `${a()}.${a()}.${a()}.${a()}`;
+}
+
+function spoofIPHeaders(): Record<string, string> {
+  const ip = randomIPv4();
+  return {
+    'X-Forwarded-For': ip,
+    'X-Real-IP': ip,
+    'X-Originating-IP': ip,
+  };
+}
+
 export async function fetchWithTimeout(
   url: string,
   init?: RequestInit,
@@ -216,10 +230,9 @@ export async function fetchWithTimeout(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
-  /*
-   * 如果调用方已提供 signal，需要同时监听两个信号（调用方 + 超时）
-   * 任一触发则中断请求
-   */
+  const spoofed = spoofIPHeaders();
+  const mergedHeaders = { ...spoofed, ...(init?.headers as Record<string, string>) };
+
   const externalSignal = init?.signal;
   if (externalSignal) {
     externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
@@ -228,6 +241,7 @@ export async function fetchWithTimeout(
   try {
     const response = await fetchImpl(url, {
       ...init,
+      headers: mergedHeaders,
       signal: controller.signal,
     });
     return response;

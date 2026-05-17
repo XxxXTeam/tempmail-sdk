@@ -242,26 +242,44 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         let mut cookie_hdr = merge_set_cookies("", &headers);
         let _ = resp.text().await;
 
-        let mut req2 = client.get(&inbox);
+        // POST /inbox with random=1 并手动处理重定向以获取 tm_session cookie
+        let no_redirect_client = wreq::Client::builder()
+            .redirect(wreq::redirect::Policy::none())
+            .build()
+            .map_err(|e| format!("moakt client: {}", e))?;
+        let mut req_post = no_redirect_client.post(&inbox);
         for (k, v) in page_headers(&base) {
-            req2 = req2.header(k, v);
+            req_post = req_post.header(k, v);
         }
-        req2 = req2.header("Cookie", &cookie_hdr);
-        let resp2 = req2
-            .send()
-            .await
-            .map_err(|e| format!("moakt inbox: {}", e))?;
-        if !resp2.status().is_success() {
-            return Err(format!("moakt inbox: {}", resp2.status()));
-        }
-        let headers2 = resp2.headers().clone();
-        let html = resp2.text().await.map_err(|e| e.to_string())?;
-        cookie_hdr = merge_set_cookies(&cookie_hdr, &headers2);
+        req_post = req_post
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header("Cookie", &cookie_hdr)
+            .body("random=1");
+        let resp_post = req_post.send().await.map_err(|e| format!("moakt inbox post: {}", e))?;
+        cookie_hdr = merge_set_cookies(&cookie_hdr, resp_post.headers());
 
-        let email = parse_inbox_address(&html)?;
         if !parse_cookie_header(&cookie_hdr).contains_key("tm_session") {
             return Err("moakt: missing tm_session cookie".into());
         }
+
+        // GET /inbox 获取邮箱地址
+        let mut req3 = client.get(&inbox);
+        for (k, v) in page_headers(&base) {
+            req3 = req3.header(k, v);
+        }
+        req3 = req3.header("Cookie", &cookie_hdr);
+        let resp3 = req3
+            .send()
+            .await
+            .map_err(|e| format!("moakt inbox: {}", e))?;
+        if !resp3.status().is_success() {
+            return Err(format!("moakt inbox: {}", resp3.status()));
+        }
+        let headers3 = resp3.headers().clone();
+        let html = resp3.text().await.map_err(|e| e.to_string())?;
+        cookie_hdr = merge_set_cookies(&cookie_hdr, &headers3);
+
+        let email = parse_inbox_address(&html)?;
         let tok = encode_sess(&MoaktSess {
             l: loc,
             c: cookie_hdr,

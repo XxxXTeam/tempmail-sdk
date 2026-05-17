@@ -18,17 +18,11 @@ add_library(tempmail_sdk STATIC
     src/providers/tempmail.c
     src/providers/tempmail_cn.c
     src/providers/tmpmails.c
-    src/providers/tempmailg.c
-    src/providers/linshi_email.c
     src/providers/linshiyou.c
-    src/providers/linshi_token.c
-    vendor/tm_sha256.c
     src/providers/tempmail_lol.c
     src/providers/chatgpt_org_uk.c
-    src/providers/temp_mail_io.c
     src/providers/awamail.c
     src/providers/mail_tm.c
-    src/providers/mail_cx.c
     src/providers/dropmail.c
     src/providers/guerrillamail.c
     src/providers/maildrop.c
@@ -36,15 +30,20 @@ add_library(tempmail_sdk STATIC
     src/providers/boomlify.c
     src/providers/minmail.c
     src/providers/vip_215.c
-    src/providers/temporary_email_org.c
     src/providers/anonbox.c
     src/providers/fake_legal.c
     src/providers/mffac.c
     src/providers/ta_easy.c
-    src/providers/tenmail_wangtz.c
     src/providers/moakt.c
     src/providers/etempmail.c
     src/providers/tenminute_one.c
+    src/providers/twentyfourmail_chacuo.c
+    src/providers/email10min.c
+    src/providers/harakirimail.c
+    src/providers/tempmail_plus.c
+    src/providers/mail_gw.c
+    src/providers/tempmail_lol_v2.c
+    src/providers/guerrillamail_mirrors.c
     vendor/cJSON.c
 )
 

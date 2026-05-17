@@ -168,12 +168,11 @@ def _api_headers(tok: str) -> Dict[str, str]:
 def _item_needs_detail(m: Dict[str, Any]) -> bool:
     if not str(m.get("id", "")).strip():
         return False
-    subj = str(m.get("subject") or m.get("mail_title") or "").strip()
     body = (
         str(m.get("text") or m.get("body") or m.get("html") or m.get("mail_text") or "")
         .strip()
     )
-    return not subj and not body
+    return not body
 
 
 def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:

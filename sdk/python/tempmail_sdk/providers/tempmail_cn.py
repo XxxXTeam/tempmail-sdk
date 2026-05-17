@@ -1,16 +1,19 @@
 """
 tempmail.cn：按 public 前端的 Socket.IO 事件协议工作
-- `request shortid` -> `shortid`
-- `set shortid` 持续订阅 `mail`
+- `request mailbox` -> `mailbox`
+- `set mailbox` 持续订阅 `mail`
+收信使用 REST API: GET https://{host}/api/mails/{email}
 """
 
 import json
 import threading
 import time
 from typing import Dict, List, Optional
+from urllib.parse import quote
 
 import websocket  # pyright: ignore[reportMissingImports]
 
+from .. import http as tm_http
 from ..normalize import normalize_email
 from ..types import Email, EmailInfo
 
@@ -184,7 +187,7 @@ def generate_email(domain: Optional[str] = None) -> EmailInfo:
     host = _normalize_host(domain)
     ws = _connect_socket(host)
     try:
-        _send_event(ws, "request shortid", True)
+        _send_event(ws, "request mailbox", True)
         while True:
             packet = ws.recv()
             if isinstance(packet, bytes):
@@ -198,7 +201,7 @@ def generate_email(domain: Optional[str] = None) -> EmailInfo:
             if not parsed:
                 continue
             event, payload = parsed
-            if event == "shortid" and isinstance(payload, str) and payload.strip():
+            if event == "mailbox" and isinstance(payload, str) and payload.strip():
                 return EmailInfo(channel=CHANNEL, email=f"{payload.strip()}@{host}")
     finally:
         try:
@@ -216,7 +219,7 @@ def _ws_run(email: str, local: str, host: str, box: _TempmailCnBox) -> None:
         return
 
     try:
-        _send_event(ws, "set shortid", local)
+        _send_event(ws, "set mailbox", local)
         while True:
             packet = ws.recv()
             if isinstance(packet, bytes):
@@ -265,7 +268,26 @@ def _ensure_ws(email: str) -> None:
 
 
 def get_emails(email: str) -> List[Email]:
-    _ensure_ws(email)
-    box = _get_box(email)
-    with _lock:
-        return list(box.emails)
+    _local, host = _split_email(email)
+    url = f"https://{host}/api/mails/{quote(email, safe='')}"
+    r = tm_http.get(
+        url,
+        headers={
+            **HEADERS,
+            "Accept": "application/json",
+            "Referer": f"https://{host}/",
+        },
+    )
+    r.raise_for_status()
+    data = r.json()
+    mails = data.get("mails") if isinstance(data, dict) else []
+    if not isinstance(mails, list):
+        mails = []
+    out: List[Email] = []
+    for raw in mails:
+        if not isinstance(raw, dict):
+            continue
+        em = normalize_email(_flatten_mail(raw, email), email)
+        if em.id:
+            out.append(em)
+    return out

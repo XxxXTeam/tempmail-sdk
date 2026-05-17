@@ -91,15 +91,6 @@ tm_email_t* tm_provider_tempmail_cn_get_emails(const char *email, int *count);
 tm_email_info_t* tm_provider_tmpmails_generate(const char *domain);
 tm_email_t* tm_provider_tmpmails_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_tempmailg_generate(const char *domain);
-tm_email_t* tm_provider_tempmailg_get_emails(const char *token, const char *email, int *count);
-
-int tm_linshi_random_api_path_key(char *out, size_t out_cap);
-void tm_linshi_derive_path_key(const char *visitor_id, char *out, size_t cap);
-
-tm_email_info_t* tm_provider_linshi_email_generate(void);
-tm_email_t* tm_provider_linshi_email_get_emails(const char *api_path_key, const char *email, int *count);
-
 tm_email_info_t* tm_provider_linshiyou_generate(void);
 tm_email_t* tm_provider_linshiyou_get_emails(const char *token, const char *email, int *count);
 
@@ -109,17 +100,11 @@ tm_email_t* tm_provider_tempmail_lol_get_emails(const char *token, const char *e
 tm_email_info_t* tm_provider_chatgpt_org_uk_generate(void);
 tm_email_t* tm_provider_chatgpt_org_uk_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_temp_mail_io_generate(void);
-tm_email_t* tm_provider_temp_mail_io_get_emails(const char *email, int *count);
-
 tm_email_info_t* tm_provider_awamail_generate(void);
 tm_email_t* tm_provider_awamail_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_mail_tm_generate(void);
 tm_email_t* tm_provider_mail_tm_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_mail_cx_generate(const char *domain);
-tm_email_t* tm_provider_mail_cx_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_dropmail_generate(void);
 tm_email_t* tm_provider_dropmail_get_emails(const char *token, const char *email, int *count);
@@ -145,9 +130,6 @@ void tm_vip215_module_cleanup(void);
 tm_email_info_t* tm_provider_vip215_generate(void);
 tm_email_t* tm_provider_vip215_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_temporary_email_org_generate(void);
-tm_email_t* tm_provider_temporary_email_org_get_emails(const char *token, const char *email, int *count);
-
 tm_email_info_t* tm_provider_anonbox_generate(void);
 tm_email_t* tm_provider_anonbox_get_emails(const char *token, const char *email, int *count);
 
@@ -159,9 +141,6 @@ tm_email_t* tm_provider_mffac_get_emails(const char *token, const char *email, i
 tm_email_info_t* tm_provider_ta_easy_generate(void);
 tm_email_t* tm_provider_ta_easy_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_tenmail_wangtz_generate(const char *domain);
-tm_email_t* tm_provider_tenmail_wangtz_get_emails(const char *email, int *count);
-
 tm_email_info_t* tm_provider_moakt_generate(const char *domain);
 tm_email_t* tm_provider_moakt_get_emails(const char *token, const char *email, int *count);
 
@@ -170,5 +149,26 @@ tm_email_t* tm_provider_tenminute_one_get_emails(const char *token, const char *
 
 tm_email_info_t* tm_provider_etempmail_generate(void);
 tm_email_t* tm_provider_etempmail_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_24mail_chacuo_generate(void);
+tm_email_t* tm_provider_24mail_chacuo_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_email10min_generate(void);
+tm_email_t* tm_provider_email10min_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_harakirimail_generate(void);
+tm_email_t* tm_provider_harakirimail_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_tempmail_plus_generate(void);
+tm_email_t* tm_provider_tempmail_plus_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_mail_gw_generate(void);
+tm_email_t* tm_provider_mail_gw_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_tempmail_lol_v2_generate(void);
+tm_email_t* tm_provider_tempmail_lol_v2_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_guerrillamail_mirror_generate(tm_channel_t channel, const char *base_url);
+tm_email_t* tm_provider_guerrillamail_mirror_get_emails(const char *base_url, const char *token, const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */
