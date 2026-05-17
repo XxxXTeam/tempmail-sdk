@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），支持 **27** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致，并与 Go / npm / Rust / C 对齐。
+临时邮箱 SDK（Python），支持 **34** 个邮箱服务提供商，顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致，并与 Go / npm / Rust / C 对齐。
 
 ## 安装
 
@@ -21,20 +21,14 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`GenerateEmailOptions.domain` 可指定自定义接入域名 |
 | `tmpmails` | tmpmails.com | ✅ | Next.js Server Action 收信；`domain` 可选语言路径 |
-| `tempmailg` | tempmailg.com | ✅ | 独立 `requests.Session` 建邮；`GET /public/{locale}` + `POST /public/get_messages`；Token `tmg1:` + Base64(JSON)；`domain` 可选语言路径 |
 | `ta-easy` | ta-easy.com | ✅ | REST `api-endpoint.ta-easy.com` |
-| `10mail-wangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；**默认跳过 TLS 证书校验** |
 | `10minute-one` | 10minutemail.one | ✅ | SSR / JWT + Web API；`GenerateEmailOptions.domain` 可选 |
-| `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | mailbox `id`；REST 24h |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
-| `temp-mail-io` | temp-mail.io | - | |
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
-| `temporary-email-org` | temporary-email.org | ✅ | `GET /zh/messages` Cookie + XHR 收信 |
 | `mail-tm` | mail.tm | ✅ | 自动注册账号获取 Bearer Token |
-| `mail-cx` | mail.cx | ✅ | `api.mail.cx` OpenAPI；`GenerateEmailOptions.domain` 可选 |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cx | ✅ | REST：`suffixes.php` + `emails.php`；`description`→`text` |
@@ -45,6 +39,19 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
 | `fake-legal` | fake.legal | - | `/api/domains` + `/api/inbox/new`；可选 `GenerateEmailOptions.domain` |
 | `moakt` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`domain` 可选语言路径；独立 `requests` 请求避免污染全局 Session Cookie |
+| `etempmail` | etempmail.com | ✅ | 会话 Cookie + JSON API |
+| `24mail-chacuo` | 24mail.chacuo.net | - | HTTP only；`POST /` 刷新收件箱，适合简单轮询 |
+| `email10min` | email10min.com | ✅ | Cookie + CSRF；`POST /messages` 获取邮箱与邮件 |
+| `mjj-cm` | mjj.cm | ✅ | Socket.IO：`request shortid` / `set shortid` / `mail` |
+| `mail-xiuvi` | mail.xiuvi.cn | ✅ | Socket.IO 克隆站，协议同 `mjj-cm` |
+| `linshi-co` | linshi.co | ✅ | Socket.IO 克隆站，协议同 `mjj-cm` |
+| `harakirimail` | harakirimail.com | - | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
+| `tempmail-plus` | tempmail.plus | - | 公开 REST：`GET /api/mails/?email=` 列表，`GET /api/mails/{id}?email=` 详情 |
+| `mail-gw` | mail.gw | ✅ | 自动注册账号获取 Bearer Token |
+| `tempmail-lol-v2` | tempmail.lol | ✅ | `GET /generate` 返回 address+token，`GET /auth/{token}` 拉取收件箱 |
+| `sharklasers` | sharklasers.com | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `grr-la` | grr.la | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamail-info` | guerrillamail.info | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 
 ## 快速开始
 
@@ -134,7 +141,7 @@ export TEMPMAIL_TELEMETRY_URL="https://example.com/v1/event"
 from tempmail_sdk import generate_email, GenerateEmailOptions, RetryConfig
 
 info = generate_email(GenerateEmailOptions(
-    channel="temp-mail-io",
+    channel="mail-gw",
     retry=RetryConfig(max_retries=3, initial_delay=2.0),
 ))
 ```

@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），支持 **27** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），支持 **34** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,27 +17,21 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **27** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同，并与 Go / Rust / Python / C 对齐）。
+共 **34** 个，顺序与 `listChannels()` / 随机尝试顺序一致（与 `src/index.ts` 中 `allChannels` 相同，并与 Go / Rust / Python / C 对齐）。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
 | `tempmail` | tempmail.ing | - | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | - | Socket.IO：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或自定义接入域名 |
 | `tmpmails` | tmpmails.com | ✅ | 首页 Cookie + Next.js Server Action；`domain` 可选语言路径（`zh`/`en`） |
-| `tempmailg` | tempmailg.com | ✅ | `GET /public/{locale}` + `POST /public/get_messages`；Token 为 `tmg1:` + Base64(JSON)；`domain` 可选语言路径；独立 fetch 会话，避免 Cookie 污染 |
 | `ta-easy` | ta-easy.com | ✅ | REST 创建 + 收件箱列表；`expiresAt` 毫秒时间戳 |
-| `10mail-wangtz` | 10mail.wangtz.cn | - | REST `/api/tempMail`、`/api/emailList`；**默认 `fetchWithInsecureTLS` 跳过证书校验** |
 | `10minute-one` | 10minutemail.one | ✅ | SSR / JWT + Web API；`domain` 可选 |
-| `linshi-email` | linshi-email.com | - | |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + `tmail-emails` 等 Cookie；HTML 分段解析 |
 | `mffac` | mffac.com | ✅ | `POST /api/mailboxes`；token 为 mailbox `id`；24h |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | ✅ | 首页注入 `__BROWSER_AUTH`，创建邮箱时须带 `X-Inbox-Token` + `gm_sid`（已自动处理） |
-| `temp-mail-io` | temp-mail.io | - | |
 | `awamail` | awamail.com | ✅ | Session Cookie 自动管理 |
-| `temporary-email-org` | temporary-email.org | ✅ | `GET /zh/messages` 下发 Cookie；收信须 `X-Requested-With: XMLHttpRequest` |
 | `mail-tm` | mail.tm / api.mail.tm | ✅ | 自动注册账号；请求与 **Internxt** 等站点前端一致（`GET /domains?page=1`、`GET /messages?page=1` 及常见浏览器头） |
-| `mail-cx` | mail.cx / api.mail.cx | ✅ | OpenAPI：`GET /api/domains`、`POST /api/accounts`（返回 JWT）、`GET /api/messages`；可选 `domain` 指定系统域名 |
 | `dropmail` | dropmail.me | ✅ | GraphQL API |
 | `guerrillamail` | guerrillamail.com | ✅ | 公开 JSON API |
 | `maildrop` | maildrop.cx | ✅ | REST：`suffixes.php`（排除 `transformer.edu.kg`）+ 随机前缀；`emails.php` 列表，`description`→`text` |
@@ -48,6 +42,19 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `anonbox` | anonbox.net | ✅ | `GET /en/` 解析 HTML + mbox 收信 |
 | `fake-legal` | fake.legal | - | `/api/domains` + `/api/inbox/new?domain=`；`/api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
 | `moakt` | moakt.com | ✅ | HTML 收件箱 + `tm_session`；`domain` 可选语言路径；Token 为 `mok1:` + Base64 JSON |
+| `etempmail` | etempmail.com | ✅ | 会话 Cookie + JSON API |
+| `24mail-chacuo` | 24mail.chacuo.net | - | HTTP only；`POST /` 刷新收件箱，适合简单轮询 |
+| `email10min` | email10min.com | ✅ | Cookie + CSRF；`POST /messages` 获取邮箱与邮件 |
+| `mjj-cm` | mjj.cm | ✅ | Socket.IO：`request shortid` / `set shortid` / `mail` |
+| `mail-xiuvi` | mail.xiuvi.cn | ✅ | Socket.IO 克隆站，协议同 `mjj-cm` |
+| `linshi-co` | linshi.co | ✅ | Socket.IO 克隆站，协议同 `mjj-cm` |
+| `harakirimail` | harakirimail.com | - | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
+| `tempmail-plus` | tempmail.plus | - | 公开 REST：`GET /api/mails/?email=` 列表，`GET /api/mails/{id}?email=` 详情 |
+| `mail-gw` | mail.gw | ✅ | 自动注册账号获取 Bearer Token |
+| `tempmail-lol-v2` | tempmail.lol | ✅ | `GET /generate` 返回 address+token，`GET /auth/{token}` 拉取收件箱 |
+| `sharklasers` | sharklasers.com | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `grr-la` | grr.la | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamail-info` | guerrillamail.info | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 
@@ -105,7 +112,7 @@ console.log(emailInfo);
 // { channel: 'tempmail', email: 'xxx@ibymail.com', expiresAt: '...' }
 
 // 从指定渠道获取邮箱
-const emailInfo2 = await generateEmail({ channel: 'linshi-email' });
+const emailInfo2 = await generateEmail({ channel: 'mail-gw' });
 
 // tempmail 渠道支持自定义有效期（分钟）
 const emailInfo3 = await generateEmail({ channel: 'tempmail', duration: 60 });
