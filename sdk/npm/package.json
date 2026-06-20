@@ -31,7 +31,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/ws": "^8.5.13",
     "@types/node": "^20.0.0",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^9.0.1",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   },
