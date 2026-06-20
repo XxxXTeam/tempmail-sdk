@@ -92,6 +92,52 @@ fn apply_headers(
     req
 }
 
+fn valid_generated_address(address: &str) -> bool {
+    if address.is_empty() || address.len() > 254 || address.trim() != address {
+        return false;
+    }
+    if address.matches('@').count() != 1 {
+        return false;
+    }
+    let mut parts = address.split('@');
+    let local = parts.next().unwrap_or("");
+    let domain = parts.next().unwrap_or("");
+    if local.is_empty()
+        || local.len() > 64
+        || local.starts_with('.')
+        || local.ends_with('.')
+        || local.contains("..")
+    {
+        return false;
+    }
+    if local
+        .chars()
+        .any(|ch| ch.is_whitespace() || ch.is_control())
+    {
+        return false;
+    }
+    valid_domain(domain)
+}
+
+fn valid_domain(domain: &str) -> bool {
+    if domain.is_empty() || domain.len() > 253 || domain.starts_with('.') || domain.ends_with('.') {
+        return false;
+    }
+    let labels: Vec<&str> = domain.split('.').collect();
+    if labels.len() < 2 {
+        return false;
+    }
+    labels.iter().all(|label| {
+        !label.is_empty()
+            && label.len() <= 63
+            && !label.starts_with('-')
+            && !label.ends_with('-')
+            && label
+                .chars()
+                .all(|ch| ch.is_ascii_alphanumeric() || ch == '-')
+    })
+}
+
 pub fn generate_email() -> Result<EmailInfo, String> {
     let client = http_client_no_cookie_jar();
     let hdrs = common_headers();
@@ -126,6 +172,9 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .to_string();
         if address.is_empty() {
             return Err("etempmail: no address".into());
+        }
+        if !valid_generated_address(&address) {
+            return Err("etempmail: invalid address in response".into());
         }
         let created_iso = data
             .get("creation_time")
@@ -165,7 +214,10 @@ pub fn get_emails(cookie: &str, email: &str) -> Result<Vec<Email>, String> {
             let from = raw["from"].as_str().unwrap_or("").to_string();
             let subj = raw["subject"].as_str().unwrap_or("").to_string();
             let dt = raw["date"].as_str().unwrap_or("").to_string();
-            let body = raw["body"].as_str().map(|s| s.to_string()).unwrap_or_default();
+            let body = raw["body"]
+                .as_str()
+                .map(|s| s.to_string())
+                .unwrap_or_default();
             let flat = json!({
                 "id": format!("{}\n{}\n{}\n{}\n{}", from, subj, dt, i, email),
                 "from": from,

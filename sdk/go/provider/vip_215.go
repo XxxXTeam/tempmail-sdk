@@ -283,6 +283,7 @@ func MailVip215Generate() (*CreatedMailbox, error) {
 	info := &CreatedMailbox{Channel: "vip-215", Email: parsed.Data.Address, Token: parsed.Data.Token}
 	info.CreatedAt = parsed.Data.CreatedAt
 	info.ExpiresAt = parsed.Data.ExpiresAt
+	vip215EnsureReader(info.Token, info.Email)
 	return info, nil
 }
 
@@ -354,7 +355,7 @@ func vip215WsLoop(jwt, recipient string, box *vip215Box) {
 	}
 }
 
-func MailVip215GetEmails(token, email string) ([]NormEmail, error) {
+func vip215EnsureReader(token, email string) *vip215Box {
 	box := getVip215Box(token)
 	box.mu.Lock()
 	needStart := !box.started
@@ -367,6 +368,11 @@ func MailVip215GetEmails(token, email string) ([]NormEmail, error) {
 		go vip215WsLoop(token, email, box)
 		time.Sleep(80 * time.Millisecond)
 	}
+	return box
+}
+
+func MailVip215GetEmails(token, email string) ([]NormEmail, error) {
+	box := vip215EnsureReader(token, email)
 
 	box.mu.Lock()
 	defer box.mu.Unlock()

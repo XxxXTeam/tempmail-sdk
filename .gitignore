@@ -39,6 +39,7 @@ coverage/
 # Rust
 target/
 Cargo.lock
+!sdk/rust/Cargo.lock
 
 # Python
 *.egg-info/
@@ -60,3 +61,6 @@ tag.txt
 server/
 .playwright-mcp/
 CLAUDE.md
+.claude/
+.serena/
+sdk/c/build-throwawaymail-check/

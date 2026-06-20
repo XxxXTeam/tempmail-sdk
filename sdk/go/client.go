@@ -11,43 +11,66 @@ import (
 var allChannels = []Channel{
 	ChannelTempmail,
 	ChannelTempmailCn,
-	ChannelTmpmails,
 	ChannelTaEasy,
 	Channel10minuteOne,
 	ChannelLinshiyou,
 	ChannelMffac,
 	ChannelTempmailLol,
 	ChannelChatgptOrgUk,
+	ChannelTempMailIo,
+	ChannelMailCx,
+	ChannelCatchmail,
+	ChannelCatchmailMailistry,
+	ChannelCatchmailZeppost,
+	ChannelMailforspam,
+	ChannelMailforspamTempmailIo,
+	ChannelMailforspamDisposable,
+	ChannelTempmailo,
+	ChannelTempmailc,
+	ChannelMailnesia,
+	ChannelThrowawaymail,
+	ChannelInboxkitten,
+	ChannelGetnada,
+	ChannelMail123,
+	ChannelOneSecMail,
+	ChannelFakemail,
+	ChannelOpeninbox,
+	ChannelInboxes,
+	ChannelUncorreotemporal,
 	ChannelAwamail,
 	ChannelMailTm,
 	ChannelDropmail,
 	ChannelGuerrillaMail,
+	ChannelGuerrillamailCom,
 	ChannelMaildrop,
 	ChannelSmailPw,
-	ChannelBoomlify,
-	ChannelMinmail,
 	ChannelVip215,
-	ChannelAnonbox,
 	ChannelFakeLegal,
 	ChannelMoakt,
-	ChannelEtempmail,
-	Channel24mailChacuo,
 	ChannelEmail10min,
 	ChannelMjjCm,
-	ChannelMailXiuvi,
 	ChannelLinshiCo,
 	ChannelHarakirimail,
 	ChannelTempmailPlus,
 	ChannelMailGw,
 	ChannelTempmailLolV2,
 	ChannelSharklasers,
+	ChannelSharklasersCom,
 	ChannelGrrLa,
+	ChannelGrrLaCom,
 	ChannelGuerrillamailInfo,
+	ChannelSpam4me,
+	ChannelGuerrillamailNet,
+	ChannelGuerrillamailOrg,
+	ChannelGuerrillamailBlock,
+	ChannelGuerrillamailComWww,
 }
 
 /*
  * ChannelInfo 渠道信息，包含渠道标识、显示名称和对应网站
  */
+func fixedDomain(domain string) *string { return &domain }
+
 type ChannelInfo struct {
 	/* 渠道标识 */
 	Channel Channel
@@ -59,40 +82,61 @@ type ChannelInfo struct {
 
 /* 渠道信息映射表 */
 var channelInfoMap = map[Channel]ChannelInfo{
-	ChannelTempmail:          {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
-	ChannelTempmailCn:        {Channel: ChannelTempmailCn, Name: "TempMail CN", Website: "tempmail.cn"},
-	ChannelTmpmails:          {Channel: ChannelTmpmails, Name: "TmpMails", Website: "tmpmails.com"},
-	ChannelTaEasy:            {Channel: ChannelTaEasy, Name: "TA Easy", Website: "ta-easy.com"},
-	Channel10minuteOne:       {Channel: Channel10minuteOne, Name: "10 Minute Email", Website: "10minutemail.one"},
-	ChannelLinshiyou:         {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
-	ChannelMffac:             {Channel: ChannelMffac, Name: "MFFAC", Website: "mffac.com"},
-	ChannelTempmailLol:       {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
-	ChannelChatgptOrgUk:      {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
-	ChannelAwamail:           {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
-	ChannelMailTm:            {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
-	ChannelDropmail:          {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
-	ChannelGuerrillaMail:     {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
-	ChannelMaildrop:          {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cx"},
-	ChannelSmailPw:           {Channel: ChannelSmailPw, Name: "Smail.pw", Website: "smail.pw"},
-	ChannelBoomlify:          {Channel: ChannelBoomlify, Name: "Boomlify", Website: "boomlify.com"},
-	ChannelMinmail:           {Channel: ChannelMinmail, Name: "MinMail", Website: "minmail.app"},
-	ChannelVip215:            {Channel: ChannelVip215, Name: "VIP 215", Website: "vip.215.im"},
-	ChannelAnonbox:           {Channel: ChannelAnonbox, Name: "Anonbox", Website: "anonbox.net"},
-	ChannelFakeLegal:         {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
-	ChannelMoakt:             {Channel: ChannelMoakt, Name: "Moakt", Website: "moakt.com"},
-	ChannelEtempmail:         {Channel: ChannelEtempmail, Name: "eTempMail", Website: "etempmail.com"},
-	Channel24mailChacuo:      {Channel: Channel24mailChacuo, Name: "24Mail Chacuo", Website: "24mail.chacuo.net"},
-	ChannelEmail10min:        {Channel: ChannelEmail10min, Name: "Email10Min", Website: "email10min.com"},
-	ChannelMjjCm:             {Channel: ChannelMjjCm, Name: "MJJ Mail", Website: "mjj.cm"},
-	ChannelMailXiuvi:         {Channel: ChannelMailXiuvi, Name: "Xiuvi Mail", Website: "mail.xiuvi.cn"},
-	ChannelLinshiCo:          {Channel: ChannelLinshiCo, Name: "临时Co", Website: "linshi.co"},
-	ChannelHarakirimail:      {Channel: ChannelHarakirimail, Name: "HarakiriMail", Website: "harakirimail.com"},
-	ChannelTempmailPlus:      {Channel: ChannelTempmailPlus, Name: "TempMail Plus", Website: "tempmail.plus"},
-	ChannelMailGw:            {Channel: ChannelMailGw, Name: "Mail.gw", Website: "mail.gw"},
-	ChannelTempmailLolV2:     {Channel: ChannelTempmailLolV2, Name: "TempMail LOL V2", Website: "tempmail.lol"},
-	ChannelSharklasers:       {Channel: ChannelSharklasers, Name: "SharkLasers", Website: "sharklasers.com"},
-	ChannelGrrLa:             {Channel: ChannelGrrLa, Name: "Grr.la", Website: "grr.la"},
-	ChannelGuerrillamailInfo: {Channel: ChannelGuerrillamailInfo, Name: "GuerrillaMail Info", Website: "guerrillamail.info"},
+	ChannelTempmail:              {Channel: ChannelTempmail, Name: "TempMail", Website: "tempmail.ing"},
+	ChannelTempmailCn:            {Channel: ChannelTempmailCn, Name: "TempMail CN", Website: "tempmail.cn"},
+	ChannelTaEasy:                {Channel: ChannelTaEasy, Name: "TA Easy", Website: "ta-easy.com"},
+	Channel10minuteOne:           {Channel: Channel10minuteOne, Name: "10 Minute Email", Website: "10minutemail.one"},
+	ChannelLinshiyou:             {Channel: ChannelLinshiyou, Name: "临时邮", Website: "linshiyou.com"},
+	ChannelMffac:                 {Channel: ChannelMffac, Name: "MFFAC", Website: "mffac.com"},
+	ChannelTempmailLol:           {Channel: ChannelTempmailLol, Name: "TempMail LOL", Website: "tempmail.lol"},
+	ChannelChatgptOrgUk:          {Channel: ChannelChatgptOrgUk, Name: "ChatGPT Mail", Website: "mail.chatgpt.org.uk"},
+	ChannelTempMailIo:            {Channel: ChannelTempMailIo, Name: "Temp-Mail.io", Website: "temp-mail.io"},
+	ChannelMailCx:                {Channel: ChannelMailCx, Name: "Mail.cx", Website: "mail.cx"},
+	ChannelCatchmail:             {Channel: ChannelCatchmail, Name: "Catchmail", Website: "catchmail.io"},
+	ChannelCatchmailMailistry:    {Channel: ChannelCatchmailMailistry, Name: "Catchmail Mailistry", Website: "mailistry.com"},
+	ChannelCatchmailZeppost:      {Channel: ChannelCatchmailZeppost, Name: "Catchmail Zeppost", Website: "zeppost.com"},
+	ChannelMailforspam:           {Channel: ChannelMailforspam, Name: "MailForSpam", Website: "mailforspam.com"},
+	ChannelMailforspamTempmailIo: {Channel: ChannelMailforspamTempmailIo, Name: "MailForSpam TempMail.io", Website: "tempmail.io"},
+	ChannelMailforspamDisposable: {Channel: ChannelMailforspamDisposable, Name: "MailForSpam Disposable", Website: "disposable.email"},
+	ChannelTempmailo:             {Channel: ChannelTempmailo, Name: "Tempmailo", Website: "tempmailo.com"},
+	ChannelTempmailc:             {Channel: ChannelTempmailc, Name: "TempMailC", Website: "tempmailc.com"},
+	ChannelMailnesia:             {Channel: ChannelMailnesia, Name: "Mailnesia", Website: "mailnesia.com"},
+	ChannelThrowawaymail:         {Channel: ChannelThrowawaymail, Name: "ThrowawayMail", Website: "throwawaymail.app"},
+	ChannelInboxkitten:           {Channel: ChannelInboxkitten, Name: "InboxKitten", Website: "inboxkitten.com"},
+	ChannelGetnada:               {Channel: ChannelGetnada, Name: "GetNada", Website: "getnada.net"},
+	ChannelMail123:               {Channel: ChannelMail123, Name: "Mail123", Website: "mail123.fr"},
+	ChannelOneSecMail:            {Channel: ChannelOneSecMail, Name: "1SecMail", Website: "1sec-mail.com"},
+	ChannelFakemail:              {Channel: ChannelFakemail, Name: "FakeMail", Website: "fakemail.net"},
+	ChannelOpeninbox:             {Channel: ChannelOpeninbox, Name: "OpenInbox", Website: "openinbox.io"},
+	ChannelInboxes:               {Channel: ChannelInboxes, Name: "Inboxes", Website: "inboxes.com"},
+	ChannelUncorreotemporal:      {Channel: ChannelUncorreotemporal, Name: "UnCorreoTemporal", Website: "uncorreotemporal.com"},
+	ChannelAwamail:               {Channel: ChannelAwamail, Name: "AwaMail", Website: "awamail.com"},
+	ChannelMailTm:                {Channel: ChannelMailTm, Name: "Mail.tm", Website: "mail.tm"},
+	ChannelDropmail:              {Channel: ChannelDropmail, Name: "DropMail", Website: "dropmail.me"},
+	ChannelGuerrillaMail:         {Channel: ChannelGuerrillaMail, Name: "Guerrilla Mail", Website: "guerrillamail.com"},
+	ChannelGuerrillamailCom:      {Channel: ChannelGuerrillamailCom, Name: "GuerrillaMail Root", Website: "guerrillamail.com"},
+	ChannelMaildrop:              {Channel: ChannelMaildrop, Name: "Maildrop", Website: "maildrop.cx"},
+	ChannelSmailPw:               {Channel: ChannelSmailPw, Name: "Smail.pw", Website: "smail.pw"},
+	ChannelVip215:                {Channel: ChannelVip215, Name: "VIP 215", Website: "vip.215.im"},
+	ChannelFakeLegal:             {Channel: ChannelFakeLegal, Name: "Fake Legal", Website: "fake.legal"},
+	ChannelMoakt:                 {Channel: ChannelMoakt, Name: "Moakt", Website: "moakt.com"},
+	ChannelEmail10min:            {Channel: ChannelEmail10min, Name: "Email10Min", Website: "email10min.com"},
+	ChannelMjjCm:                 {Channel: ChannelMjjCm, Name: "MJJ Mail", Website: "mjj.cm"},
+	ChannelLinshiCo:              {Channel: ChannelLinshiCo, Name: "临时Co", Website: "linshi.co"},
+	ChannelHarakirimail:          {Channel: ChannelHarakirimail, Name: "HarakiriMail", Website: "harakirimail.com"},
+	ChannelTempmailPlus:          {Channel: ChannelTempmailPlus, Name: "TempMail Plus", Website: "tempmail.plus"},
+	ChannelMailGw:                {Channel: ChannelMailGw, Name: "Mail.gw", Website: "mail.gw"},
+	ChannelTempmailLolV2:         {Channel: ChannelTempmailLolV2, Name: "TempMail LOL V2", Website: "tempmail.lol"},
+	ChannelSharklasers:           {Channel: ChannelSharklasers, Name: "SharkLasers", Website: "sharklasers.com"},
+	ChannelSharklasersCom:        {Channel: ChannelSharklasersCom, Name: "SharkLasers Root", Website: "sharklasers.com"},
+	ChannelGrrLa:                 {Channel: ChannelGrrLa, Name: "Grr.la", Website: "grr.la"},
+	ChannelGrrLaCom:              {Channel: ChannelGrrLaCom, Name: "Grr.la Root", Website: "grr.la"},
+	ChannelGuerrillamailInfo:     {Channel: ChannelGuerrillamailInfo, Name: "GuerrillaMail Info", Website: "guerrillamail.info"},
+	ChannelSpam4me:               {Channel: ChannelSpam4me, Name: "Spam4.me", Website: "spam4.me"},
+	ChannelGuerrillamailNet:      {Channel: ChannelGuerrillamailNet, Name: "GuerrillaMail Net", Website: "guerrillamail.net"},
+	ChannelGuerrillamailOrg:      {Channel: ChannelGuerrillamailOrg, Name: "GuerrillaMail Org", Website: "guerrillamail.org"},
+	ChannelGuerrillamailBlock:    {Channel: ChannelGuerrillamailBlock, Name: "GuerrillaMailBlock", Website: "guerrillamailblock.com"},
+	ChannelGuerrillamailComWww:   {Channel: ChannelGuerrillamailComWww, Name: "GuerrillaMail WWW", Website: "guerrillamail.com"},
 }
 
 /*
@@ -204,10 +248,6 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelTempmailCn:
 		return fromMailbox(prov.TempmailCNGenerate(opts.Domain))
-
-	case ChannelTmpmails:
-		return fromMailbox(prov.TmpmailsGenerate(opts.Domain))
-
 	case ChannelTaEasy:
 		return fromMailbox(prov.TaEasyGenerate())
 
@@ -226,6 +266,66 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelChatgptOrgUk:
 		return fromMailbox(prov.ChatgptOrgUkGenerate())
 
+	case ChannelTempMailIo:
+		return fromMailbox(prov.TempMailIoGenerate())
+
+	case ChannelMailCx:
+		return fromMailbox(prov.MailCxGenerate(opts.Domain))
+
+	case ChannelCatchmail:
+		return fromMailbox(prov.CatchmailGenerate(opts.Domain))
+
+	case ChannelCatchmailMailistry:
+		return fromMailbox(prov.CatchmailGenerate(fixedDomain("mailistry.com"), string(ChannelCatchmailMailistry)))
+
+	case ChannelCatchmailZeppost:
+		return fromMailbox(prov.CatchmailGenerate(fixedDomain("zeppost.com"), string(ChannelCatchmailZeppost)))
+
+	case ChannelMailforspam:
+		return fromMailbox(prov.MailforspamGenerate(opts.Domain))
+
+	case ChannelMailforspamTempmailIo:
+		return fromMailbox(prov.MailforspamGenerate(fixedDomain("tempmail.io"), string(ChannelMailforspamTempmailIo)))
+
+	case ChannelMailforspamDisposable:
+		return fromMailbox(prov.MailforspamGenerate(fixedDomain("disposable.email"), string(ChannelMailforspamDisposable)))
+
+	case ChannelTempmailo:
+		return fromMailbox(prov.TempmailoGenerate())
+
+	case ChannelTempmailc:
+		return fromMailbox(prov.TempmailcGenerate())
+
+	case ChannelMailnesia:
+		return fromMailbox(prov.MailnesiaGenerate())
+
+	case ChannelThrowawaymail:
+		return fromMailbox(prov.ThrowawaymailGenerate())
+
+	case ChannelInboxkitten:
+		return fromMailbox(prov.InboxkittenGenerate())
+
+	case ChannelGetnada:
+		return fromMailbox(prov.GetnadaGenerate())
+
+	case ChannelMail123:
+		return fromMailbox(prov.Mail123Generate())
+
+	case ChannelOneSecMail:
+		return fromMailbox(prov.OneSecMailGenerate())
+
+	case ChannelFakemail:
+		return fromMailbox(prov.FakemailGenerate())
+
+	case ChannelOpeninbox:
+		return fromMailbox(prov.OpeninboxGenerate())
+
+	case ChannelInboxes:
+		return fromMailbox(prov.InboxesGenerate(opts.Domain))
+
+	case ChannelUncorreotemporal:
+		return fromMailbox(prov.UncorreotemporalGenerate())
+
 	case ChannelAwamail:
 		return fromMailbox(prov.AwamailGenerate())
 
@@ -238,45 +338,26 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelGuerrillaMail:
 		return fromMailbox(prov.GuerrillaMailGenerate())
 
+	case ChannelGuerrillamailCom:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-com", "https://guerrillamail.com/ajax.php"))
+
 	case ChannelMaildrop:
 		return fromMailbox(prov.MaildropGenerate(opts.Domain))
 
 	case ChannelSmailPw:
 		return fromMailbox(prov.SmailPwGenerate())
-
-	case ChannelBoomlify:
-		return fromMailbox(prov.BoomlifyGenerate())
-
-	case ChannelMinmail:
-		return fromMailbox(prov.MinmailGenerate())
-
 	case ChannelVip215:
 		return fromMailbox(prov.MailVip215Generate())
-
-	case ChannelAnonbox:
-		return fromMailbox(prov.AnonboxGenerate())
-
 	case ChannelFakeLegal:
 		return fromMailbox(prov.FakeLegalGenerate(opts.Domain))
 
 	case ChannelMoakt:
 		return fromMailbox(prov.MoaktGenerate(opts.Domain))
-
-	case ChannelEtempmail:
-		return fromMailbox(prov.EtempmailGenerate())
-
-	case Channel24mailChacuo:
-		return fromMailbox(prov.TwentyfourmailChacuoGenerate())
-
 	case ChannelEmail10min:
 		return fromMailbox(prov.Email10minGenerate())
 
 	case ChannelMjjCm:
 		return fromMailbox(prov.MjjCmGenerate())
-
-	case ChannelMailXiuvi:
-		return fromMailbox(prov.MailXiuviGenerate())
-
 	case ChannelLinshiCo:
 		return fromMailbox(prov.LinshiCoGenerate())
 
@@ -295,11 +376,32 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelSharklasers:
 		return fromMailbox(prov.GuerrillamailMirrorGenerate("sharklasers", "https://www.sharklasers.com/ajax.php"))
 
+	case ChannelSharklasersCom:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("sharklasers-com", "https://sharklasers.com/ajax.php"))
+
 	case ChannelGrrLa:
 		return fromMailbox(prov.GuerrillamailMirrorGenerate("grr-la", "https://www.grr.la/ajax.php"))
 
+	case ChannelGrrLaCom:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("grr-la-com", "https://grr.la/ajax.php"))
+
 	case ChannelGuerrillamailInfo:
 		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-info", "https://www.guerrillamail.info/ajax.php"))
+
+	case ChannelSpam4me:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("spam4me", "https://www.spam4.me/ajax.php"))
+
+	case ChannelGuerrillamailNet:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-net", "https://www.guerrillamail.net/ajax.php"))
+
+	case ChannelGuerrillamailOrg:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-org", "https://www.guerrillamail.org/ajax.php"))
+
+	case ChannelGuerrillamailBlock:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamailblock", "https://www.guerrillamailblock.com/ajax.php"))
+
+	case ChannelGuerrillamailComWww:
+		return fromMailbox(prov.GuerrillamailMirrorGenerate("guerrillamail-com-www", "https://www.guerrillamail.com/ajax.php"))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -388,13 +490,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 
 	case ChannelTempmailCn:
 		return normEmailsResult(prov.TempmailCNGetEmails(email))
-
-	case ChannelTmpmails:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for tmpmails channel")
-		}
-		return normEmailsResult(prov.TmpmailsGetEmails(email, token))
-
 	case ChannelTaEasy:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for ta-easy channel")
@@ -428,6 +523,78 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.ChatgptOrgUkGetEmails(email, token))
 
+	case ChannelTempMailIo:
+		return normEmailsResult(prov.TempMailIoGetEmails(email))
+
+	case ChannelMailCx:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mail-cx channel")
+		}
+		return normEmailsResult(prov.MailCxGetEmails(token, email))
+
+	case ChannelCatchmail, ChannelCatchmailMailistry, ChannelCatchmailZeppost:
+		return normEmailsResult(prov.CatchmailGetEmails(email))
+
+	case ChannelMailforspam, ChannelMailforspamTempmailIo, ChannelMailforspamDisposable:
+		return normEmailsResult(prov.MailforspamGetEmails(email))
+
+	case ChannelTempmailo:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempmailo channel")
+		}
+		return normEmailsResult(prov.TempmailoGetEmails(token, email))
+
+	case ChannelTempmailc:
+		return normEmailsResult(prov.TempmailcGetEmails(email))
+
+	case ChannelMailnesia:
+		return normEmailsResult(prov.MailnesiaGetEmails(email))
+
+	case ChannelThrowawaymail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for throwawaymail channel")
+		}
+		return normEmailsResult(prov.ThrowawaymailGetEmails(token, email))
+
+	case ChannelInboxkitten:
+		return normEmailsResult(prov.InboxkittenGetEmails(email))
+
+	case ChannelGetnada:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for getnada channel")
+		}
+		return normEmailsResult(prov.GetnadaGetEmails(token, email))
+
+	case ChannelMail123:
+		return normEmailsResult(prov.Mail123GetEmails(email))
+
+	case ChannelOneSecMail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for 1sec-mail channel")
+		}
+		return normEmailsResult(prov.OneSecMailGetEmails(token, email))
+
+	case ChannelFakemail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for fakemail channel")
+		}
+		return normEmailsResult(prov.FakemailGetEmails(token, email))
+
+	case ChannelOpeninbox:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for openinbox channel")
+		}
+		return normEmailsResult(prov.OpeninboxGetEmails(token, email))
+
+	case ChannelInboxes:
+		return normEmailsResult(prov.InboxesGetEmails(email))
+
+	case ChannelUncorreotemporal:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for uncorreotemporal channel")
+		}
+		return normEmailsResult(prov.UncorreotemporalGetEmails(token, email))
+
 	case ChannelAwamail:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for awamail channel")
@@ -452,6 +619,12 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.GuerrillaMailGetEmails(token, email))
 
+	case ChannelGuerrillamailCom:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail-com channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://guerrillamail.com/ajax.php", token, email))
+
 	case ChannelMaildrop:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for maildrop channel")
@@ -463,28 +636,11 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for smail-pw channel")
 		}
 		return normEmailsResult(prov.SmailPwGetEmails(token, email))
-
-	case ChannelBoomlify:
-		return normEmailsResult(prov.BoomlifyGetEmails(email))
-
-	case ChannelMinmail:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for minmail channel")
-		}
-		return normEmailsResult(prov.MinmailGetEmails(email, token))
-
 	case ChannelVip215:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for vip-215 channel")
 		}
 		return normEmailsResult(prov.MailVip215GetEmails(token, email))
-
-	case ChannelAnonbox:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for anonbox channel")
-		}
-		return normEmailsResult(prov.AnonboxGetEmails(token, email))
-
 	case ChannelFakeLegal:
 		return normEmailsResult(prov.FakeLegalGetEmails(email))
 
@@ -493,16 +649,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for moakt channel")
 		}
 		return normEmailsResult(prov.MoaktGetEmails(email, token))
-
-	case ChannelEtempmail:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for etempmail channel")
-		}
-		return normEmailsResult(prov.EtempmailGetEmails(email, token))
-
-	case Channel24mailChacuo:
-		return normEmailsResult(prov.TwentyfourmailChacuoGetEmails(email))
-
 	case ChannelEmail10min:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for email10min channel")
@@ -511,10 +657,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 
 	case ChannelMjjCm:
 		return normEmailsResult(prov.MjjCmGetEmails(email))
-
-	case ChannelMailXiuvi:
-		return normEmailsResult(prov.MailXiuviGetEmails(email))
-
 	case ChannelLinshiCo:
 		return normEmailsResult(prov.LinshiCoGetEmails(email))
 
@@ -542,17 +684,59 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		}
 		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.sharklasers.com/ajax.php", token, email))
 
+	case ChannelSharklasersCom:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for sharklasers-com channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://sharklasers.com/ajax.php", token, email))
+
 	case ChannelGrrLa:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for grr-la channel")
 		}
 		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.grr.la/ajax.php", token, email))
 
+	case ChannelGrrLaCom:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for grr-la-com channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://grr.la/ajax.php", token, email))
+
 	case ChannelGuerrillamailInfo:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for guerrillamail-info channel")
 		}
 		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.info/ajax.php", token, email))
+
+	case ChannelSpam4me:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for spam4me channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.spam4.me/ajax.php", token, email))
+
+	case ChannelGuerrillamailNet:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail-net channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.net/ajax.php", token, email))
+
+	case ChannelGuerrillamailOrg:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail-org channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.org/ajax.php", token, email))
+
+	case ChannelGuerrillamailBlock:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamailblock channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamailblock.com/ajax.php", token, email))
+
+	case ChannelGuerrillamailComWww:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for guerrillamail-com-www channel")
+		}
+		return normEmailsResult(prov.GuerrillamailMirrorGetEmails("https://www.guerrillamail.com/ajax.php", token, email))
 
 	default:
 		return nil, fmt.Errorf("unsupported channel: %s", channel)

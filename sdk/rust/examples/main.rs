@@ -1,7 +1,6 @@
 /**
  * 示例: 使用 Rust SDK 创建临时邮箱并获取邮件
  */
-
 use tempmail_sdk::*;
 
 fn main() {
@@ -20,9 +19,16 @@ fn main() {
 
             /* 获取邮件 */
             let result = get_emails(&info, None);
-            println!("获取邮件 success={} count={}", result.success, result.emails.len());
+            println!(
+                "获取邮件 success={} count={}",
+                result.success,
+                result.emails.len()
+            );
             for (i, email) in result.emails.iter().enumerate() {
-                println!("  [{}] from={} subject={}", i, email.from_addr, email.subject);
+                println!(
+                    "  [{}] from={} subject={}",
+                    i, email.from_addr, email.subject
+                );
             }
         }
         None => {

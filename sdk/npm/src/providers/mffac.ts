@@ -19,6 +19,40 @@ const DEFAULT_HEADERS = {
   'sec-fetch-site': 'same-origin',
 };
 
+const GET_HEADERS = Object.fromEntries(
+  Object.entries(DEFAULT_HEADERS).filter(([key]) => key.toLowerCase() !== 'content-type'),
+) as Record<string, string>;
+
+function receivedAtToIso(value: unknown): string {
+  const seconds = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return '';
+  return new Date(seconds * 1000).toISOString();
+}
+
+function flattenEmail(raw: any, recipient: string): Record<string, unknown> {
+  return {
+    id: raw.id,
+    from: raw.fromAddress,
+    to: raw.toAddress || recipient,
+    subject: raw.subject || '',
+    text: raw.textContent || '',
+    html: raw.htmlContent || '',
+    date: receivedAtToIso(raw.receivedAt),
+    isRead: raw.isRead,
+    attachments: [],
+  };
+}
+
+async function fetchEmailDetail(id: string): Promise<any | null> {
+  const response = await fetchWithTimeout(`${BASE_URL}/emails/${encodeURIComponent(id)}`, {
+    method: 'GET',
+    headers: GET_HEADERS,
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data && data.success && data.email && typeof data.email === 'object' ? data.email : null;
+}
+
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetchWithTimeout(`${BASE_URL}/mailboxes`, {
     method: 'POST',
@@ -52,7 +86,7 @@ export async function getEmails(email: string, _token?: string): Promise<Email[]
   const address = email.split('@')[0];
   const response = await fetchWithTimeout(`${BASE_URL}/mailboxes/${address}/emails`, {
     method: 'GET',
-    headers: DEFAULT_HEADERS,
+    headers: GET_HEADERS,
   });
 
   if (!response.ok) {
@@ -66,15 +100,11 @@ export async function getEmails(email: string, _token?: string): Promise<Email[]
   }
 
   const rawEmails = data.emails || [];
-  return rawEmails.map((raw: any) => normalizeEmail({
-    id: raw.id,
-    from: raw.fromAddress,
-    to: raw.toAddress,
-    subject: raw.subject || '',
-    date: raw.receivedAt ? new Date(raw.receivedAt * 1000).toISOString() : new Date().toISOString(),
-    isRead: raw.isRead,
-    text: '',
-    html: '',
-    attachments: [],
-  }));
+  const emails: Email[] = [];
+  for (const raw of rawEmails) {
+    const id = String(raw?.id || '').trim();
+    const detail = id ? await fetchEmailDetail(id) : null;
+    emails.push(normalizeEmail(flattenEmail(detail || raw, email), email));
+  }
+  return emails;
 }

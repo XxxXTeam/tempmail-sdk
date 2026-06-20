@@ -2,7 +2,15 @@ import { TempEmailClient, setConfig } from '../src';
 
 setConfig({ telemetryEnabled: false });
 
-const channels = ['24mail-chacuo', 'email10min', 'mjj-cm', 'mail-xiuvi', 'linshi-co'] as const;
+const channels = [
+  'catchmail-mailistry',
+  'catchmail-zeppost',
+  'mailforspam-tempmail-io',
+  'mailforspam-disposable',
+  'guerrillamail-com',
+  'sharklasers-com',
+  'grr-la-com',
+] as const;
 
 async function main() {
   for (const ch of channels) {

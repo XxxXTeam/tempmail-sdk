@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"regexp"
+	"strings"
 )
 
 /**
@@ -119,7 +121,28 @@ func GuerrillamailMirrorGetEmails(baseURL string, token string, email string) ([
 			}
 		}
 
-		out = append(out, NormalizeMap(item, email))
+		out = append(out, NormalizeMap(guerrillamailMirrorFlatten(item, email), email))
 	}
 	return out, nil
+}
+
+var guerrillamailMirrorTagRe = regexp.MustCompile(`<[^>]+>`)
+
+func guerrillamailMirrorFlatten(item map[string]interface{}, email string) map[string]interface{} {
+	body, _ := item["mail_body"].(string)
+	excerpt, _ := item["mail_excerpt"].(string)
+	text := strings.Join(strings.Fields(guerrillamailMirrorTagRe.ReplaceAllString(body, " ")), " ")
+	if text == "" {
+		text = excerpt
+	}
+	return map[string]interface{}{
+		"id":      item["mail_id"],
+		"from":    item["mail_from"],
+		"to":      email,
+		"subject": item["mail_subject"],
+		"text":    text,
+		"html":    body,
+		"date":    item["mail_date"],
+		"isRead":  item["mail_read"],
+	}
 }

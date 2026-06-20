@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	http "github.com/bogdanfinn/fhttp"
 )
@@ -28,6 +30,57 @@ func etempmailSetHeaders(req *http.Request) {
 	req.Header.Set("sec-fetch-site", "same-origin")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0")
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+}
+
+func etempmailValidGeneratedAddress(address string) bool {
+	if address == "" || len(address) > 254 || strings.TrimSpace(address) != address {
+		return false
+	}
+	if strings.Count(address, "@") != 1 {
+		return false
+	}
+	parts := strings.Split(address, "@")
+	local, domain := parts[0], parts[1]
+	if local == "" || len(local) > 64 ||
+		strings.HasPrefix(local, ".") ||
+		strings.HasSuffix(local, ".") ||
+		strings.Contains(local, "..") {
+		return false
+	}
+	for _, r := range local {
+		if unicode.IsSpace(r) || unicode.IsControl(r) {
+			return false
+		}
+	}
+	return etempmailValidDomain(domain)
+}
+
+func etempmailValidDomain(domain string) bool {
+	if domain == "" || len(domain) > 253 ||
+		strings.HasPrefix(domain, ".") ||
+		strings.HasSuffix(domain, ".") {
+		return false
+	}
+	labels := strings.Split(domain, ".")
+	if len(labels) < 2 {
+		return false
+	}
+	for _, label := range labels {
+		if label == "" || len(label) > 63 ||
+			strings.HasPrefix(label, "-") ||
+			strings.HasSuffix(label, "-") {
+			return false
+		}
+		for _, r := range label {
+			if (r < 'A' || r > 'Z') &&
+				(r < 'a' || r > 'z') &&
+				(r < '0' || r > '9') &&
+				r != '-' {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // EtempmailGenerate etempmail.com：先 GET /zh 拿会话 Cookie，再 POST /getEmailAddress；Token 为 Cookie 串供 getInbox 使用。
@@ -80,6 +133,9 @@ func EtempmailGenerate() (*CreatedMailbox, error) {
 	}
 	if data.Address == "" {
 		return nil, fmt.Errorf("etempmail: no address in response")
+	}
+	if !etempmailValidGeneratedAddress(data.Address) {
+		return nil, fmt.Errorf("etempmail: invalid address in response")
 	}
 	mb := &CreatedMailbox{Channel: "etempmail", Email: data.Address, Token: cookieHdr}
 	if sec, err := strconv.ParseInt(data.CreationTime, 10, 64); err == nil && sec > 0 {

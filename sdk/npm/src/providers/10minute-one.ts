@@ -191,6 +191,29 @@ function itemNeedsDetail(item: Record<string, unknown>): boolean {
   return body === '';
 }
 
+function normalizeInboxRow(row: Record<string, unknown>, recipient: string): Email {
+  const body = row.body;
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const b = body as Record<string, unknown>;
+    return normalizeEmail(
+      {
+        ...row,
+        to: Array.isArray(row.to) ? row.to.join(', ') : row.to,
+        text: typeof b.text === 'string' ? b.text : '',
+        html: typeof b.html === 'string' ? b.html : '',
+      },
+      recipient,
+    );
+  }
+  return normalizeEmail(
+    {
+      ...row,
+      to: Array.isArray(row.to) ? row.to.join(', ') : row.to,
+    },
+    recipient,
+  );
+}
+
 export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
   const locale = pickLocale(domain ?? undefined);
   const pageUrl = `${SITE_ORIGIN}/${encodeURIComponent(locale)}`;
@@ -251,7 +274,7 @@ export async function getEmails(email: string, token: string): Promise<Email[]> 
         }
       }
     }
-    out.push(normalizeEmail(row, email));
+    out.push(normalizeInboxRow(row, email));
   }
   return out;
 }

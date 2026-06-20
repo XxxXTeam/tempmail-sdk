@@ -4,11 +4,11 @@
 
 use std::sync::OnceLock;
 
+use crate::config::{block_on, get_current_ua, http_client};
+use crate::normalize::normalize_email;
+use crate::types::{Channel, Email, EmailInfo};
 use regex::Regex;
 use serde_json::{json, Value};
-use crate::types::{Channel, EmailInfo, Email};
-use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua};
 
 const ROOT_DATA_URL: &str = "https://smail.pw/_root.data";
 
@@ -55,13 +55,19 @@ fn re_mail_block2() -> &'static Regex {
 fn smail_headers() -> Vec<(&'static str, String)> {
     vec![
         ("Accept", "*/*".into()),
-        ("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6".into()),
+        (
+            "accept-language",
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6".into(),
+        ),
         ("cache-control", "no-cache".into()),
         ("dnt", "1".into()),
         ("origin", "https://smail.pw".into()),
         ("pragma", "no-cache".into()),
         ("referer", "https://smail.pw/".into()),
-        ("sec-ch-ua", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#.into()),
+        (
+            "sec-ch-ua",
+            r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#.into(),
+        ),
         ("sec-ch-ua-mobile", "?0".into()),
         ("sec-ch-ua-platform", r#""Windows""#.into()),
         ("sec-fetch-dest", "empty".into()),
@@ -71,10 +77,7 @@ fn smail_headers() -> Vec<(&'static str, String)> {
     ]
 }
 
-fn apply_headers(
-    b: wreq::RequestBuilder,
-    extra: &[(&str, &str)],
-) -> wreq::RequestBuilder {
+fn apply_headers(b: wreq::RequestBuilder, extra: &[(&str, &str)]) -> wreq::RequestBuilder {
     let mut r = b;
     for (k, v) in smail_headers() {
         r = r.header(k, v);
@@ -100,7 +103,10 @@ fn is_flight_deferred(obj: &serde_json::Map<String, Value>) -> bool {
     !obj.is_empty() && obj.keys().all(|k| k.starts_with('_'))
 }
 
-fn resolve_flight_deferred(root: &[Value], obj: &serde_json::Map<String, Value>) -> Option<serde_json::Map<String, Value>> {
+fn resolve_flight_deferred(
+    root: &[Value],
+    obj: &serde_json::Map<String, Value>,
+) -> Option<serde_json::Map<String, Value>> {
     let mut fields = serde_json::Map::new();
     for (k, v) in obj {
         if !k.starts_with('_') {
@@ -111,7 +117,10 @@ fn resolve_flight_deferred(root: &[Value], obj: &serde_json::Map<String, Value>)
         let key = root.get(key_idx)?.as_str()?;
         let val = root.get(val_idx)?;
         if key == "time" {
-            if let Some(n) = val.as_i64().or_else(|| val.as_str().and_then(|s| s.parse().ok())) {
+            if let Some(n) = val
+                .as_i64()
+                .or_else(|| val.as_str().and_then(|s| s.parse().ok()))
+            {
                 fields.insert("time".into(), json!(n));
             }
         } else if let Some(s) = val.as_str() {
@@ -157,10 +166,14 @@ fn parse_flight_root(root: &[Value], recipient: &str) -> Vec<Value> {
         if root[i].as_str() != Some("emails") {
             continue;
         }
-        let Some(refs) = root[i + 1].as_array() else { break };
+        let Some(refs) = root[i + 1].as_array() else {
+            break;
+        };
         for r in refs {
             let Some(idx) = r.as_u64() else { continue };
-            let Some(node) = root.get(idx as usize) else { continue };
+            let Some(node) = root.get(idx as usize) else {
+                continue;
+            };
             if let Value::Object(obj) = node {
                 if is_flight_deferred(obj) {
                     if let Some(fields) = resolve_flight_deferred(root, obj) {
@@ -245,7 +258,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             &[],
         );
 
-        let resp = req.send().await.map_err(|e| format!("smail.pw generate: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("smail.pw generate: {}", e))?;
         if !resp.status().is_success() {
             return Err(format!("smail.pw generate HTTP {}", resp.status()));
         }
@@ -280,7 +296,10 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             http_client().get(ROOT_DATA_URL).header("Cookie", token),
             &[],
         );
-        let resp = req.send().await.map_err(|e| format!("smail.pw poll: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("smail.pw poll: {}", e))?;
         if !resp.status().is_success() {
             return Err(format!("smail.pw poll HTTP {}", resp.status()));
         }

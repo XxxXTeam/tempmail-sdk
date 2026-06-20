@@ -593,6 +593,16 @@ tm_email_info_t* tm_provider_vip215_generate(void) {
     if (cJSON_IsString(ca) && ca->valuestring)
         info->created_at = tm_strdup(ca->valuestring);
 
+#ifdef TM_VIP215_USE_CURL_WS
+    vip215_entry_t *entry = vip215_find_or_create(info->token, info->email);
+    vip215_start_reader(entry);
+#ifdef _WIN32
+    Sleep(80);
+#else
+    usleep(80000);
+#endif
+#endif
+
     cJSON_Delete(json);
     return info;
 }

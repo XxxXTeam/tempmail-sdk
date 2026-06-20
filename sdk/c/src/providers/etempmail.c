@@ -42,6 +42,54 @@ static int et_has_ci_session(const char *ck) {
     return ck && strstr(ck, "ci_session=");
 }
 
+static int et_is_domain_char(unsigned char ch) {
+    return (ch >= 'A' && ch <= 'Z') ||
+           (ch >= 'a' && ch <= 'z') ||
+           (ch >= '0' && ch <= '9') ||
+           ch == '-';
+}
+
+static int et_valid_domain(const char *domain) {
+    if (!domain || !domain[0]) return 0;
+    size_t len = strlen(domain);
+    if (len > 253 || domain[0] == '.' || domain[len - 1] == '.') return 0;
+
+    int labels = 0;
+    const char *start = domain;
+    for (const char *p = domain;; p++) {
+        if (*p == '.' || *p == '\0') {
+            size_t label_len = (size_t)(p - start);
+            if (label_len == 0 || label_len > 63) return 0;
+            if (start[0] == '-' || p[-1] == '-') return 0;
+            for (const char *q = start; q < p; q++) {
+                if (!et_is_domain_char((unsigned char)*q)) return 0;
+            }
+            labels++;
+            if (*p == '\0') break;
+            start = p + 1;
+        }
+    }
+    return labels >= 2;
+}
+
+static int et_valid_generated_address(const char *addr) {
+    if (!addr || !addr[0]) return 0;
+    size_t len = strlen(addr);
+    if (len > 254) return 0;
+    const char *at = strchr(addr, '@');
+    if (!at || strchr(at + 1, '@')) return 0;
+
+    size_t local_len = (size_t)(at - addr);
+    if (local_len == 0 || local_len > 64) return 0;
+    if (addr[0] == '.' || at[-1] == '.') return 0;
+    for (const char *p = addr; p < at; p++) {
+        unsigned char ch = (unsigned char)*p;
+        if (ch <= 32 || ch == 127) return 0;
+        if (p + 1 < at && p[0] == '.' && p[1] == '.') return 0;
+    }
+    return et_valid_domain(at + 1);
+}
+
 tm_email_info_t *tm_provider_etempmail_generate(void) {
     tm_http_response_t *r = tm_http_request(TM_HTTP_GET, ET_BASE "/zh", et_hdrs, NULL, 15);
     if (!r || r->status < 200 || r->status >= 300) {
@@ -89,6 +137,11 @@ tm_email_info_t *tm_provider_etempmail_generate(void) {
     }
     const char *addr = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(cj, "address"));
     if (!addr || !addr[0]) {
+        cJSON_Delete(cj);
+        free(cookie);
+        return NULL;
+    }
+    if (!et_valid_generated_address(addr)) {
         cJSON_Delete(cj);
         free(cookie);
         return NULL;

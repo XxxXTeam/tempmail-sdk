@@ -11,8 +11,6 @@ pub enum Channel {
     Tempmail,
     #[serde(rename = "tempmail-cn")]
     TempmailCn,
-    #[serde(rename = "tmpmails")]
-    Tmpmails,
     #[serde(rename = "ta-easy")]
     TaEasy,
     #[serde(rename = "10minute-one")]
@@ -25,6 +23,46 @@ pub enum Channel {
     TempmailLol,
     #[serde(rename = "chatgpt-org-uk")]
     ChatgptOrgUk,
+    #[serde(rename = "temp-mail-io")]
+    TempMailIo,
+    #[serde(rename = "mail-cx")]
+    MailCx,
+    #[serde(rename = "catchmail")]
+    Catchmail,
+    #[serde(rename = "catchmail-mailistry")]
+    CatchmailMailistry,
+    #[serde(rename = "catchmail-zeppost")]
+    CatchmailZeppost,
+    #[serde(rename = "mailforspam")]
+    Mailforspam,
+    #[serde(rename = "mailforspam-tempmail-io")]
+    MailforspamTempmailIo,
+    #[serde(rename = "mailforspam-disposable")]
+    MailforspamDisposable,
+    #[serde(rename = "tempmailo")]
+    Tempmailo,
+    #[serde(rename = "tempmailc")]
+    Tempmailc,
+    #[serde(rename = "mailnesia")]
+    Mailnesia,
+    #[serde(rename = "throwawaymail")]
+    Throwawaymail,
+    #[serde(rename = "inboxkitten")]
+    Inboxkitten,
+    #[serde(rename = "getnada")]
+    Getnada,
+    #[serde(rename = "mail123")]
+    Mail123,
+    #[serde(rename = "1sec-mail")]
+    OneSecMail,
+    #[serde(rename = "fakemail")]
+    Fakemail,
+    #[serde(rename = "openinbox")]
+    Openinbox,
+    #[serde(rename = "inboxes")]
+    Inboxes,
+    #[serde(rename = "uncorreotemporal")]
+    Uncorreotemporal,
     #[serde(rename = "awamail")]
     Awamail,
     #[serde(rename = "mail-tm")]
@@ -33,32 +71,22 @@ pub enum Channel {
     Dropmail,
     #[serde(rename = "guerrillamail")]
     GuerrillaMail,
+    #[serde(rename = "guerrillamail-com")]
+    GuerrillamailCom,
     #[serde(rename = "maildrop")]
     Maildrop,
     #[serde(rename = "smail-pw")]
     SmailPw,
-    #[serde(rename = "boomlify")]
-    Boomlify,
-    #[serde(rename = "minmail")]
-    Minmail,
     #[serde(rename = "vip-215")]
     Vip215,
-    #[serde(rename = "anonbox")]
-    Anonbox,
     #[serde(rename = "fake-legal")]
     FakeLegal,
     #[serde(rename = "moakt")]
     Moakt,
-    #[serde(rename = "etempmail")]
-    Etempmail,
-    #[serde(rename = "24mail-chacuo")]
-    TwentyfourmailChacuo,
     #[serde(rename = "email10min")]
     Email10min,
     #[serde(rename = "mjj-cm")]
     MjjCm,
-    #[serde(rename = "mail-xiuvi")]
-    MailXiuvi,
     #[serde(rename = "linshi-co")]
     LinshiCo,
     #[serde(rename = "harakirimail")]
@@ -71,10 +99,24 @@ pub enum Channel {
     TempmailLolV2,
     #[serde(rename = "sharklasers")]
     Sharklasers,
+    #[serde(rename = "sharklasers-com")]
+    SharklasersCom,
     #[serde(rename = "grr-la")]
     GrrLa,
+    #[serde(rename = "grr-la-com")]
+    GrrLaCom,
     #[serde(rename = "guerrillamail-info")]
     GuerrillamailInfo,
+    #[serde(rename = "spam4me")]
+    Spam4me,
+    #[serde(rename = "guerrillamail-net")]
+    GuerrillamailNet,
+    #[serde(rename = "guerrillamail-org")]
+    GuerrillamailOrg,
+    #[serde(rename = "guerrillamailblock")]
+    Guerrillamailblock,
+    #[serde(rename = "guerrillamail-com-www")]
+    GuerrillamailComWww,
 }
 
 impl std::fmt::Display for Channel {
@@ -82,38 +124,59 @@ impl std::fmt::Display for Channel {
         match self {
             Channel::Tempmail => write!(f, "tempmail"),
             Channel::TempmailCn => write!(f, "tempmail-cn"),
-            Channel::Tmpmails => write!(f, "tmpmails"),
             Channel::TaEasy => write!(f, "ta-easy"),
             Channel::TenminuteOne => write!(f, "10minute-one"),
             Channel::Linshiyou => write!(f, "linshiyou"),
             Channel::Mffac => write!(f, "mffac"),
             Channel::TempmailLol => write!(f, "tempmail-lol"),
             Channel::ChatgptOrgUk => write!(f, "chatgpt-org-uk"),
+            Channel::TempMailIo => write!(f, "temp-mail-io"),
+            Channel::MailCx => write!(f, "mail-cx"),
+            Channel::Catchmail => write!(f, "catchmail"),
+            Channel::CatchmailMailistry => write!(f, "catchmail-mailistry"),
+            Channel::CatchmailZeppost => write!(f, "catchmail-zeppost"),
+            Channel::Mailforspam => write!(f, "mailforspam"),
+            Channel::MailforspamTempmailIo => write!(f, "mailforspam-tempmail-io"),
+            Channel::MailforspamDisposable => write!(f, "mailforspam-disposable"),
+            Channel::Tempmailo => write!(f, "tempmailo"),
+            Channel::Tempmailc => write!(f, "tempmailc"),
+            Channel::Mailnesia => write!(f, "mailnesia"),
+            Channel::Throwawaymail => write!(f, "throwawaymail"),
+            Channel::Inboxkitten => write!(f, "inboxkitten"),
+            Channel::Getnada => write!(f, "getnada"),
+            Channel::Mail123 => write!(f, "mail123"),
+            Channel::OneSecMail => write!(f, "1sec-mail"),
+            Channel::Fakemail => write!(f, "fakemail"),
+            Channel::Openinbox => write!(f, "openinbox"),
+            Channel::Inboxes => write!(f, "inboxes"),
+            Channel::Uncorreotemporal => write!(f, "uncorreotemporal"),
             Channel::Awamail => write!(f, "awamail"),
             Channel::MailTm => write!(f, "mail-tm"),
             Channel::Dropmail => write!(f, "dropmail"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
+            Channel::GuerrillamailCom => write!(f, "guerrillamail-com"),
             Channel::Maildrop => write!(f, "maildrop"),
             Channel::SmailPw => write!(f, "smail-pw"),
-            Channel::Boomlify => write!(f, "boomlify"),
-            Channel::Minmail => write!(f, "minmail"),
             Channel::Vip215 => write!(f, "vip-215"),
-            Channel::Anonbox => write!(f, "anonbox"),
             Channel::FakeLegal => write!(f, "fake-legal"),
             Channel::Moakt => write!(f, "moakt"),
-            Channel::Etempmail => write!(f, "etempmail"),
-            Channel::TwentyfourmailChacuo => write!(f, "24mail-chacuo"),
             Channel::Email10min => write!(f, "email10min"),
             Channel::MjjCm => write!(f, "mjj-cm"),
-            Channel::MailXiuvi => write!(f, "mail-xiuvi"),
             Channel::LinshiCo => write!(f, "linshi-co"),
             Channel::Harakirimail => write!(f, "harakirimail"),
             Channel::TempmailPlus => write!(f, "tempmail-plus"),
             Channel::MailGw => write!(f, "mail-gw"),
             Channel::TempmailLolV2 => write!(f, "tempmail-lol-v2"),
             Channel::Sharklasers => write!(f, "sharklasers"),
+            Channel::SharklasersCom => write!(f, "sharklasers-com"),
             Channel::GrrLa => write!(f, "grr-la"),
+            Channel::GrrLaCom => write!(f, "grr-la-com"),
             Channel::GuerrillamailInfo => write!(f, "guerrillamail-info"),
+            Channel::Spam4me => write!(f, "spam4me"),
+            Channel::GuerrillamailNet => write!(f, "guerrillamail-net"),
+            Channel::GuerrillamailOrg => write!(f, "guerrillamail-org"),
+            Channel::Guerrillamailblock => write!(f, "guerrillamailblock"),
+            Channel::GuerrillamailComWww => write!(f, "guerrillamail-com-www"),
         }
     }
 }
@@ -215,7 +278,7 @@ pub struct GenerateEmailOptions {
     pub channel: Option<Channel>,
     /// tempmail 渠道的有效期（分钟）
     pub duration: Option<u32>,
-    /// 指定邮箱域名/接入域名（如 tempmail-cn、tempmail-lol）；tmpmails 为语言路径（zh、en）
+    /// 指定邮箱域名/接入域名（如 tempmail-cn、tempmail-lol、catchmail、mailforspam）
     pub domain: Option<String>,
     /// 重试配置
     pub retry: Option<RetryConfig>,

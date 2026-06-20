@@ -4,6 +4,8 @@
 """
 
 from datetime import datetime, timezone
+from html import escape, unescape
+import re
 from typing import Any, Dict, List
 from .types import Email, EmailAttachment
 
@@ -22,6 +24,10 @@ def normalize_email(raw: Dict[str, Any], recipient_email: str = "") -> Email:
     if text and not html and _is_html_content(text):
         html = text
         text = ""
+    if not text and html:
+        text = _html_to_text(html)
+    if text and not html:
+        html = _text_to_html(text)
 
     return Email(
         id=_normalize_id(raw),
@@ -48,6 +54,16 @@ def _is_html_content(content: str) -> bool:
     if "<p" in trimmed and "</p>" in trimmed and "<" in trimmed:
         return True
     return False
+
+
+def _html_to_text(html: str) -> str:
+    cleaned = re.sub(r"(?is)<script[\s\S]*?</script>", " ", html)
+    cleaned = re.sub(r"(?s)<[^>]+>", " ", cleaned)
+    return " ".join(unescape(cleaned).split())
+
+
+def _text_to_html(text: str) -> str:
+    return f"<html><body><pre>{escape(text)}</pre></body></html>"
 
 
 def _get_str(raw: Dict[str, Any], *keys: str) -> str:

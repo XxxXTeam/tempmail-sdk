@@ -56,17 +56,26 @@ fn merge_set_cookies(prev: &str, headers: &HeaderMap) -> String {
 
 fn encode_token(cookie: &str, csrf: &str) -> String {
     let raw = serde_json::json!({"c": cookie, "t": csrf}).to_string();
-    format!("{}{}", TOK_PREFIX, base64::Engine::encode(&base64::engine::general_purpose::STANDARD, raw.as_bytes()))
+    format!(
+        "{}{}",
+        TOK_PREFIX,
+        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, raw.as_bytes())
+    )
 }
 
 fn decode_token(token: &str) -> Result<(String, String), String> {
     if !token.starts_with(TOK_PREFIX) {
         return Err("email10min: invalid session token".into());
     }
-    let decoded = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &token[TOK_PREFIX.len()..])
-        .map_err(|_| "email10min: invalid session token".to_string())?;
-    let raw = String::from_utf8(decoded).map_err(|_| "email10min: invalid session token".to_string())?;
-    let data: Value = serde_json::from_str(&raw).map_err(|_| "email10min: invalid session token".to_string())?;
+    let decoded = base64::Engine::decode(
+        &base64::engine::general_purpose::STANDARD,
+        &token[TOK_PREFIX.len()..],
+    )
+    .map_err(|_| "email10min: invalid session token".to_string())?;
+    let raw =
+        String::from_utf8(decoded).map_err(|_| "email10min: invalid session token".to_string())?;
+    let data: Value =
+        serde_json::from_str(&raw).map_err(|_| "email10min: invalid session token".to_string())?;
     let cookie = data["c"].as_str().unwrap_or("").trim().to_string();
     let csrf = data["t"].as_str().unwrap_or("").trim().to_string();
     if cookie.is_empty() || csrf.is_empty() {
@@ -154,7 +163,10 @@ fn ajax_headers() -> Vec<(&'static str, String)> {
     ]
 }
 
-fn apply_headers(mut req: wreq::RequestBuilder, pairs: &[(&'static str, String)]) -> wreq::RequestBuilder {
+fn apply_headers(
+    mut req: wreq::RequestBuilder,
+    pairs: &[(&'static str, String)],
+) -> wreq::RequestBuilder {
     for (k, v) in pairs {
         req = req.header(*k, v);
     }
@@ -218,22 +230,27 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
 
         let mut out = Vec::new();
         for (i, raw) in messages.iter().enumerate() {
-            let msg_id = raw["id"].as_str()
+            let msg_id = raw["id"]
+                .as_str()
                 .or_else(|| raw["message_id"].as_str())
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| i.to_string());
-            let from = raw["from"].as_str()
+            let from = raw["from"]
+                .as_str()
                 .or_else(|| raw["sender"].as_str())
                 .unwrap_or("");
             let to = raw["to"].as_str().unwrap_or(email);
             let subject = raw["subject"].as_str().unwrap_or("");
-            let text = raw["text"].as_str()
+            let text = raw["text"]
+                .as_str()
                 .or_else(|| raw["body"].as_str())
                 .unwrap_or("");
-            let html_content = raw["html"].as_str()
+            let html_content = raw["html"]
+                .as_str()
                 .or_else(|| raw["body_html"].as_str())
                 .unwrap_or("");
-            let date = raw["date"].as_str()
+            let date = raw["date"]
+                .as_str()
                 .or_else(|| raw["created_at"].as_str())
                 .unwrap_or("");
 

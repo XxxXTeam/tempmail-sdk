@@ -1,14 +1,11 @@
 import * as e10 from '../src/providers/email10min';
-import nodemailer from 'nodemailer';
+import { sendSmtp } from './smtp-env';
 
 (async () => {
   const r = await e10.generateEmail();
   console.log('email:', r.email, 'token:', !!r.token);
-  const t = nodemailer.createTransport({host:'smtp.exmail.qq.com',port:465,secure:true,
-    auth:{user:'supper@openel.top',pass:'PKZT5rgvUvGdgcxe'},connectionTimeout:15000});
   const mk = 'dbg-'+Date.now();
-  await t.sendMail({from:'supper@openel.top',to:r.email,
-    subject:`Debug [${mk}]`,text:`Text body ${mk}`,html:`<p>HTML <b>${mk}</b></p>`});
+  await sendSmtp(r.email, `Debug [${mk}]`, `Text body ${mk}`, `<p>HTML <b>${mk}</b></p>`);
   console.log('sent, waiting...');
   for (let i=0;i<6;i++) {
     await new Promise(r=>setTimeout(r,5000));

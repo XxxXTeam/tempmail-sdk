@@ -250,6 +250,7 @@ def generate_email() -> EmailInfo:
     tok = data.get("token")
     if not address or not tok:
         raise RuntimeError("vip-215: missing address or token")
+    _ensure_ws(tok, address)
     return EmailInfo(
         channel=CHANNEL,
         email=address,

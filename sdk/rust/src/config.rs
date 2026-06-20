@@ -10,11 +10,14 @@
  *   TEMPMAIL_TELEMETRY_URL - 自定义上报端点
  */
 
-use std::sync::{RwLock, OnceLock, atomic::{AtomicU64, Ordering}};
+use rand::Rng;
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    OnceLock, RwLock,
+};
 use std::time::Duration;
 use wreq::Client;
 use wreq_util::Emulation;
-use rand::Rng;
 
 /// SDK 全局配置
 #[derive(Debug, Clone)]
@@ -111,25 +114,37 @@ pub fn get_current_ua() -> &'static str {
  * TEMPMAIL_PROXY / TEMPMAIL_TIMEOUT / TEMPMAIL_INSECURE
  */
 fn load_env_config() -> SDKConfig {
-    let proxy = std::env::var("TEMPMAIL_PROXY").ok().filter(|s| !s.is_empty());
-    let timeout_secs = std::env::var("TEMPMAIL_TIMEOUT").ok()
+    let proxy = std::env::var("TEMPMAIL_PROXY")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let timeout_secs = std::env::var("TEMPMAIL_TIMEOUT")
+        .ok()
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(15);
-    let insecure = std::env::var("TEMPMAIL_INSECURE").ok()
+    let insecure = std::env::var("TEMPMAIL_INSECURE")
+        .ok()
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
-    let dropmail_auth_token = std::env::var("DROPMAIL_AUTH_TOKEN").ok()
+    let dropmail_auth_token = std::env::var("DROPMAIL_AUTH_TOKEN")
+        .ok()
         .filter(|s| !s.trim().is_empty())
-        .or_else(|| std::env::var("DROPMAIL_API_TOKEN").ok().filter(|s| !s.trim().is_empty()));
-    let dropmail_disable_auto_token = std::env::var("DROPMAIL_NO_AUTO_TOKEN").ok()
+        .or_else(|| {
+            std::env::var("DROPMAIL_API_TOKEN")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+        });
+    let dropmail_disable_auto_token = std::env::var("DROPMAIL_NO_AUTO_TOKEN")
+        .ok()
         .map(|v| {
             let v = v.trim().to_ascii_lowercase();
             v == "1" || v == "true" || v == "yes"
         })
         .unwrap_or(false);
-    let dropmail_renew_lifetime = std::env::var("DROPMAIL_RENEW_LIFETIME").ok()
+    let dropmail_renew_lifetime = std::env::var("DROPMAIL_RENEW_LIFETIME")
+        .ok()
         .filter(|s| !s.trim().is_empty());
-    let telemetry_enabled = std::env::var("TEMPMAIL_TELEMETRY_ENABLED").ok()
+    let telemetry_enabled = std::env::var("TEMPMAIL_TELEMETRY_ENABLED")
+        .ok()
         .map(|s| s.trim().to_ascii_lowercase())
         .filter(|s| !s.is_empty())
         .and_then(|s| match s.as_str() {
@@ -137,7 +152,8 @@ fn load_env_config() -> SDKConfig {
             "true" | "1" | "yes" => Some(true),
             _ => None,
         });
-    let telemetry_url = std::env::var("TEMPMAIL_TELEMETRY_URL").ok()
+    let telemetry_url = std::env::var("TEMPMAIL_TELEMETRY_URL")
+        .ok()
         .filter(|s| !s.trim().is_empty());
     SDKConfig {
         proxy,
@@ -227,7 +243,11 @@ pub fn http_client() -> Client {
     let cfg = get_config();
     let bc = pick_random_browser();
 
-    log::debug!("创建 wreq 客户端, emulation={:?}, ua={}", bc.emulation, bc.ua);
+    log::debug!(
+        "创建 wreq 客户端, emulation={:?}, ua={}",
+        bc.emulation,
+        bc.ua
+    );
 
     let mut builder = Client::builder()
         .emulation(bc.emulation)
@@ -274,7 +294,10 @@ pub fn http_client_no_cookie_jar() -> Client {
     let cfg = get_config();
     let bc = pick_random_browser();
 
-    log::debug!("创建 wreq 客户端 (无 Cookie 罐), emulation={:?}", bc.emulation);
+    log::debug!(
+        "创建 wreq 客户端 (无 Cookie 罐), emulation={:?}",
+        bc.emulation
+    );
 
     let mut builder = Client::builder()
         .emulation(bc.emulation)
@@ -318,7 +341,10 @@ pub fn http_client_tenmail_wangtz() -> Client {
 
     let cfg = get_config();
     let bc = pick_random_browser();
-    log::debug!("创建 wreq 客户端 (10mail-wangtz, 跳过证书校验), emulation={:?}", bc.emulation);
+    log::debug!(
+        "创建 wreq 客户端 (10mail-wangtz, 跳过证书校验), emulation={:?}",
+        bc.emulation
+    );
 
     let mut builder = Client::builder()
         .emulation(bc.emulation)

@@ -3,18 +3,20 @@
  * 流程: 获取域名 → 生成随机邮箱/密码 → 创建账号 → 获取 Bearer Token
  */
 
-use serde_json::Value;
-use rand::Rng;
-use crate::types::{Channel, EmailInfo, Email};
+use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua};
+use crate::types::{Channel, Email, EmailInfo};
+use rand::Rng;
+use serde_json::Value;
 
 const BASE_URL: &str = "https://api.mail.tm";
 
 fn random_string(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
     let mut rng = rand::thread_rng();
-    (0..len).map(|_| chars[rng.gen_range(0..chars.len())]).collect()
+    (0..len)
+        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .collect()
 }
 
 fn get_domains() -> Result<Vec<String>, String> {
@@ -23,14 +25,26 @@ fn get_domains() -> Result<Vec<String>, String> {
             .get(format!("{}/domains", BASE_URL))
             .header("Accept", "application/json")
             .header("User-Agent", get_current_ua())
-            .send().await.map_err(|e| format!("mail-tm domains failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("mail-tm domains failed: {}", e))?;
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
-        let members = if data.is_array() { data } else {
-            data.get("hydra:member").cloned().unwrap_or(Value::Array(vec![]))
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
+        let members = if data.is_array() {
+            data
+        } else {
+            data.get("hydra:member")
+                .cloned()
+                .unwrap_or(Value::Array(vec![]))
         };
 
-        Ok(members.as_array().unwrap_or(&vec![]).iter()
+        Ok(members
+            .as_array()
+            .unwrap_or(&vec![])
+            .iter()
             .filter(|d| d["isActive"].as_bool() == Some(true))
             .filter_map(|d| d["domain"].as_str().map(|s| s.to_string()))
             .collect())
@@ -38,18 +52,36 @@ fn get_domains() -> Result<Vec<String>, String> {
 }
 
 fn flatten_message(msg: &Value, recipient: &str) -> Value {
-    let from = msg.get("from")
-        .and_then(|f| if f.is_object() { f["address"].as_str() } else { f.as_str() })
+    let from = msg
+        .get("from")
+        .and_then(|f| {
+            if f.is_object() {
+                f["address"].as_str()
+            } else {
+                f.as_str()
+            }
+        })
         .unwrap_or("");
 
-    let to = msg.get("to")
+    let to = msg
+        .get("to")
         .and_then(|t| t.as_array())
         .and_then(|arr| arr.first())
-        .and_then(|t| if t.is_object() { t["address"].as_str() } else { t.as_str() })
+        .and_then(|t| {
+            if t.is_object() {
+                t["address"].as_str()
+            } else {
+                t.as_str()
+            }
+        })
         .unwrap_or(recipient);
 
     let html = match msg.get("html") {
-        Some(Value::Array(arr)) => arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join(""),
+        Some(Value::Array(arr)) => arr
+            .iter()
+            .filter_map(|v| v.as_str())
+            .collect::<Vec<_>>()
+            .join(""),
         Some(Value::String(s)) => s.clone(),
         _ => String::new(),
     };
@@ -85,14 +117,19 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .header("Content-Type", "application/ld+json")
             .header("User-Agent", get_current_ua())
             .json(&serde_json::json!({"address": &address, "password": &password}))
-            .send().await.map_err(|e| format!("mail-tm create account failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("mail-tm create account failed: {}", e))?;
 
         if !resp.status().is_success() {
             let text = resp.text().await.unwrap_or_default();
             return Err(format!("mail-tm create account failed: {}", text));
         }
 
-        let account: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let account: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
 
         /* 获取 token */
         let resp = http_client()
@@ -100,13 +137,18 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .header("Content-Type", "application/json")
             .header("User-Agent", get_current_ua())
             .json(&serde_json::json!({"address": &address, "password": &password}))
-            .send().await.map_err(|e| format!("mail-tm get token failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("mail-tm get token failed: {}", e))?;
 
         if !resp.status().is_success() {
             return Err(format!("mail-tm get token failed: {}", resp.status()));
         }
 
-        let token_data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let token_data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
 
         Ok(EmailInfo {
             channel: Channel::MailTm,
@@ -127,25 +169,48 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .header("Accept", "application/json")
             .header("User-Agent", get_current_ua())
             .header("Authorization", format!("Bearer {}", token))
-            .send().await.map_err(|e| format!("mail-tm request failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("mail-tm request failed: {}", e))?;
 
         if !resp.status().is_success() {
             return Err(format!("mail-tm get emails failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
-        let messages = if data.is_array() { data.as_array().cloned().unwrap_or_default() }
-        else { data.get("hydra:member").and_then(|v| v.as_array()).cloned().unwrap_or_default() };
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
+        let messages = if data.is_array() {
+            data.as_array().cloned().unwrap_or_default()
+        } else {
+            data.get("hydra:member")
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default()
+        };
 
         let mut result = Vec::new();
         for msg in &messages {
             let detail = http_client()
-                .get(format!("{}/messages/{}", BASE_URL, msg["id"].as_str().unwrap_or("")))
+                .get(format!(
+                    "{}/messages/{}",
+                    BASE_URL,
+                    msg["id"].as_str().unwrap_or("")
+                ))
                 .header("Accept", "application/json")
                 .header("User-Agent", get_current_ua())
                 .header("Authorization", format!("Bearer {}", token))
-                .send().await.ok()
-                .and_then(|r| if r.status().is_success() { Some(r) } else { None });
+                .send()
+                .await
+                .ok()
+                .and_then(|r| {
+                    if r.status().is_success() {
+                        Some(r)
+                    } else {
+                        None
+                    }
+                });
 
             let detail_json = if let Some(r) = detail {
                 r.json::<Value>().await.ok()

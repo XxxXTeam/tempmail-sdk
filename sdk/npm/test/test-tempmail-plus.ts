@@ -1,5 +1,5 @@
 import { TempEmailClient, setConfig } from '../src';
-import nodemailer from 'nodemailer';
+import { sendSmtp } from './smtp-env';
 
 setConfig({ telemetryEnabled: false });
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
@@ -12,10 +12,7 @@ const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
   console.log(`✅ email: ${i.email}`);
 
   const mk = `plus-${Date.now()}`;
-  const t = nodemailer.createTransport({ host: 'smtp.exmail.qq.com', port: 465, secure: true,
-    auth: { user: 'supper@openel.top', pass: 'PKZT5rgvUvGdgcxe' }, connectionTimeout: 15000 });
-  await t.sendMail({ from: 'supper@openel.top', to: i.email,
-    subject: `Plus Test [${mk}]`, text: `纯文本正文 ${mk}`, html: `<h1>HTML正文</h1><p>marker: <b>${mk}</b></p>` });
+  await sendSmtp(i.email, `Plus Test [${mk}]`, `纯文本正文 ${mk}`, `<h1>HTML正文</h1><p>marker: <b>${mk}</b></p>`);
   console.log('SMTP 已发送, 等待收信...');
 
   for (let j = 0; j < 10; j++) {

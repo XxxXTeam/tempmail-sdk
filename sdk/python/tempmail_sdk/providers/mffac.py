@@ -1,5 +1,9 @@
 """MFFAC — https://www.mffac.com/api"""
 
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+from urllib.parse import quote
+
 from .. import http as tm_http
 from ..normalize import normalize_email
 from ..types import EmailInfo, Email
@@ -22,6 +26,39 @@ _HEADERS = {
 }
 
 _GET_HEADERS = {k: v for k, v in _HEADERS.items() if k != "Content-Type"}
+
+
+def _received_at_to_iso(value: Any) -> str:
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if seconds <= 0:
+        return ""
+    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _flatten_email(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
+    return {
+        "id": raw.get("id", ""),
+        "from": raw.get("fromAddress", ""),
+        "to": raw.get("toAddress") or recipient,
+        "subject": raw.get("subject", ""),
+        "text": raw.get("textContent", ""),
+        "html": raw.get("htmlContent", ""),
+        "date": _received_at_to_iso(raw.get("receivedAt")),
+        "isRead": raw.get("isRead", False),
+        "attachments": [],
+    }
+
+
+def _fetch_email_detail(message_id: str) -> Optional[Dict[str, Any]]:
+    r = tm_http.get(f"{BASE}/emails/{quote(message_id, safe='')}", headers=_GET_HEADERS)
+    if not r.ok:
+        return None
+    data = r.json()
+    email = data.get("email") if isinstance(data, dict) and data.get("success") else None
+    return email if isinstance(email, dict) else None
 
 
 def generate_email(**kwargs) -> EmailInfo:
@@ -57,5 +94,7 @@ def get_emails(email: str, token: str = "", **kwargs) -> list:
     out: list = []
     for raw in raw_list:
         if isinstance(raw, dict):
-            out.append(normalize_email(raw, email))
+            message_id = str(raw.get("id") or "").strip()
+            detail = _fetch_email_detail(message_id) if message_id else None
+            out.append(normalize_email(_flatten_email(detail or raw, email), email))
     return out

@@ -17,7 +17,6 @@ add_library(tempmail_sdk STATIC
     src/telemetry.c
     src/providers/tempmail.c
     src/providers/tempmail_cn.c
-    src/providers/tmpmails.c
     src/providers/linshiyou.c
     src/providers/tempmail_lol.c
     src/providers/chatgpt_org_uk.c
@@ -27,23 +26,34 @@ add_library(tempmail_sdk STATIC
     src/providers/guerrillamail.c
     src/providers/maildrop.c
     src/providers/smail_pw.c
-    src/providers/boomlify.c
-    src/providers/minmail.c
     src/providers/vip_215.c
-    src/providers/anonbox.c
     src/providers/fake_legal.c
     src/providers/mffac.c
     src/providers/ta_easy.c
     src/providers/moakt.c
-    src/providers/etempmail.c
     src/providers/tenminute_one.c
-    src/providers/twentyfourmail_chacuo.c
     src/providers/email10min.c
     src/providers/harakirimail.c
     src/providers/tempmail_plus.c
     src/providers/mail_gw.c
     src/providers/tempmail_lol_v2.c
     src/providers/guerrillamail_mirrors.c
+    src/providers/temp_mail_io.c
+    src/providers/mail_cx.c
+    src/providers/catchmail.c
+    src/providers/mailforspam.c
+    src/providers/tempmailo.c
+    src/providers/tempmailc.c
+    src/providers/mailnesia.c
+    src/providers/throwawaymail.c
+    src/providers/inboxkitten.c
+    src/providers/getnada.c
+    src/providers/mail123.c
+    src/providers/one_sec_mail.c
+    src/providers/fakemail.c
+    src/providers/openinbox.c
+    src/providers/inboxes.c
+    src/providers/uncorreotemporal.c
     vendor/cJSON.c
 )
 

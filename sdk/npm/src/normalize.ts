@@ -24,6 +24,12 @@ export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
     html = text;
     text = '';
   }
+  if (!text && html) {
+    text = htmlToText(html);
+  }
+  if (text && !html) {
+    html = textToHtml(text);
+  }
 
   return {
     id: normalizeId(raw),
@@ -50,6 +56,37 @@ function isHtmlContent(content: string): boolean {
     (trimmed.includes('<div') && trimmed.includes('</div>')) ||
     (trimmed.includes('<table') && trimmed.includes('</table>')) ||
     (trimmed.includes('<p') && trimmed.includes('</p>') && trimmed.includes('<'));
+}
+
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function htmlToText(html: string): string {
+  return decodeHtmlEntities(html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function textToHtml(text: string): string {
+  return `<html><body><pre>${escapeHtml(text)}</pre></body></html>`;
 }
 
 /**

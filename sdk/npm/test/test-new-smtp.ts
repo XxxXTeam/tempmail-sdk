@@ -1,19 +1,13 @@
 import { TempEmailClient, Channel, setConfig } from '../src';
-import nodemailer from 'nodemailer';
+import { sendSmtp } from './smtp-env';
 
 setConfig({ telemetryEnabled: false });
 
 function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
 
 async function sendEmail(to: string, marker: string): Promise<boolean> {
-  const t = nodemailer.createTransport({
-    host: 'smtp.exmail.qq.com', port: 465, secure: true,
-    auth: { user: 'supper@openel.top', pass: 'PKZT5rgvUvGdgcxe' }, connectionTimeout: 15000,
-  });
   try {
-    await t.sendMail({ from: 'supper@openel.top', to, subject: `NewCh [${marker}]`,
-      text: `Body ${marker}`, html: `<p>Body <b>${marker}</b></p>` });
-    return true;
+    return await sendSmtp(to, `NewCh [${marker}]`, `Body ${marker}`, `<p>Body <b>${marker}</b></p>`);
   } catch (e: any) { console.log(`  SMTP失败: ${e.message.substring(0,60)}`); return false; }
 }
 
@@ -41,7 +35,15 @@ async function test(ch: Channel) {
 }
 
 async function main() {
-  const chs: Channel[] = ['24mail-chacuo', 'email10min', 'mjj-cm', 'mail-xiuvi', 'linshi-co'];
+  const chs: Channel[] = [
+    'catchmail-mailistry',
+    'catchmail-zeppost',
+    'mailforspam-tempmail-io',
+    'mailforspam-disposable',
+    'guerrillamail-com',
+    'sharklasers-com',
+    'grr-la-com',
+  ];
   for (const ch of chs) await test(ch);
 }
 main().catch(console.error);

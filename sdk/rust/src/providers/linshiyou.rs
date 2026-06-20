@@ -7,21 +7,19 @@ use std::sync::LazyLock;
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use regex::Regex;
 
-use crate::types::{Channel, Email, EmailAttachment, EmailInfo};
 use crate::config::{block_on, get_current_ua, http_client};
+use crate::types::{Channel, Email, EmailAttachment, EmailInfo};
 
 const ORIGIN: &str = "https://linshiyou.com";
 
 static RE_LIST_ID: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"id="tmail-email-list-([a-f0-9]+)""#).unwrap());
-static RE_DIV_CLASS: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?i)<div class="([^"]+)"[^>]*>([\s\S]*?)</div>"#).unwrap()
-});
+static RE_DIV_CLASS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(?i)<div class="([^"]+)"[^>]*>([\s\S]*?)</div>"#).unwrap());
 static RE_SRCDOC: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?i)\ssrcdoc="([^"]*)""#).unwrap());
-static RE_DOWNLOAD: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"href="(/api/download\?id=[^"]+)""#).unwrap()
-});
+static RE_DOWNLOAD: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"href="(/api/download\?id=[^"]+)""#).unwrap());
 static RE_TAGS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"<[^>]+>"#).unwrap());
 
 fn decode_html_entities(s: &str) -> String {
@@ -47,7 +45,10 @@ fn decode_html_entities(s: &str) -> String {
                 .unwrap_or_default()
         })
         .into_owned();
-    out = out.replace("&quot;", "\"").replace("&lt;", "<").replace("&gt;", ">");
+    out = out
+        .replace("&quot;", "\"")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">");
     out.replace("&amp;", "&")
 }
 
@@ -196,7 +197,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         let resp = http_client()
             .get(format!("{ORIGIN}/api/user?user"))
             .header("User-Agent", get_current_ua())
-            .header("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+            .header(
+                "accept-language",
+                "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            )
             .header("cache-control", "no-cache")
             .header("dnt", "1")
             .header("pragma", "no-cache")
@@ -219,9 +223,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             return Err(format!("linshiyou generate failed: {}", resp.status()));
         }
 
-        let nexus = extract_nexus_token(resp.headers()).ok_or_else(|| {
-            "linshiyou: NEXUS_TOKEN not found in Set-Cookie".to_string()
-        })?;
+        let nexus = extract_nexus_token(resp.headers())
+            .ok_or_else(|| "linshiyou: NEXUS_TOKEN not found in Set-Cookie".to_string())?;
 
         let email = resp.text().await.map_err(|e| e.to_string())?;
         let email = email.trim().to_string();
@@ -250,7 +253,10 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .header("User-Agent", get_current_ua())
             .header("Cookie", &token)
             .header("x-requested-with", "XMLHttpRequest")
-            .header("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+            .header(
+                "accept-language",
+                "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            )
             .header("cache-control", "no-cache")
             .header("dnt", "1")
             .header("pragma", "no-cache")

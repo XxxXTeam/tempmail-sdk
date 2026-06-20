@@ -20,7 +20,7 @@ async function testChannel(channel: Channel) {
 }
 
 async function main() {
-  const channels: Channel[] = ['moakt', 'temporary-email-org', 'tempmail-cn', 'minmail'];
+  const channels: Channel[] = ['moakt', 'catchmail-mailistry', 'tempmail-cn', 'mailforspam-disposable'];
   for (const ch of channels) {
     await testChannel(ch);
   }

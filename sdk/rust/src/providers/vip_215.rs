@@ -7,8 +7,8 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 
 use serde_json::Value;
-use wreq::header::HeaderMap;
 use tungstenite::protocol::Message;
+use wreq::header::HeaderMap;
 
 use crate::config::{block_on, get_current_ua, http_client_no_cookie_jar};
 use crate::normalize::normalize_email;
@@ -55,7 +55,10 @@ fn merge_set_cookies(prev: &str, headers: &HeaderMap) -> String {
 fn vip215_api_headers(ua: &str) -> Vec<(&'static str, String)> {
     vec![
         ("accept", "*/*".into()),
-        ("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6".into()),
+        (
+            "accept-language",
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6".into(),
+        ),
         ("cache-control", "no-cache".into()),
         ("content-type", "application/json".into()),
         ("dnt", "1".into()),
@@ -97,7 +100,10 @@ fn fetch_ws_ticket(client: &wreq::Client, ua: &str, jwt: &str) -> Result<String,
         let mut req = client.get(format!("{HTTP_BASE}/v1/auth/ws-ticket"));
         req = apply_vip215_api_headers(req, ua, None);
         req = req.header("Authorization", format!("Bearer {jwt}"));
-        let resp = req.send().await.map_err(|e| format!("vip-215 ws-ticket: {e}"))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("vip-215 ws-ticket: {e}"))?;
         if !resp.status().is_success() {
             let status = resp.status();
             let t = resp.text().await.unwrap_or_default();
@@ -295,7 +301,9 @@ fn ws_loop(jwt: String, recipient: String, arc: Arc<Mutex<Vip215Box>>) {
         if outer.get("type").and_then(|v| v.as_str()) != Some("message.new") {
             continue;
         }
-        let Some(data) = outer.get("data") else { continue };
+        let Some(data) = outer.get("data") else {
+            continue;
+        };
         let (syn_text, syn_html) = vip215_synthetic_bodies(&recipient, data);
         let raw = serde_json::json!({
             "id": data.get("id"),
@@ -355,7 +363,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
                 "Accept",
                 "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             )
-            .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+            .header(
+                "Accept-Language",
+                "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            )
             .header("Cache-Control", "no-cache")
             .header("DNT", "1")
             .header("Pragma", "no-cache")
@@ -411,6 +422,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .get("token")
             .and_then(|v| v.as_str())
             .ok_or("vip-215: missing token")?;
+
+        ensure_ws(tok, address);
 
         Ok(EmailInfo {
             channel: Channel::Vip215,

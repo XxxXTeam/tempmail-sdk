@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，支持 **34** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。`ListChannels` / 随机尝试顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的列表顺序对齐。
+Go 语言临时邮箱 SDK，支持 **55** 个邮箱服务提供商，所有渠道返回**统一标准化格式**。`ListChannels` / 随机尝试顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的列表顺序对齐。
 
 ## 安装
 
@@ -17,38 +17,59 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 |------|--------|------|------|
 | `tempmail` | tempmail.ing | `ChannelTempmail` | 支持自定义有效期 |
 | `tempmail-cn` | tempmail.cn | `ChannelTempmailCn` | Socket.IO：`request shortid` / `set shortid` / `mail`；`Domain` 可指定 `tempmail.cn` 或自定义接入域名 |
-| `tmpmails` | tmpmails.com | `ChannelTmpmails` | `user_sign` Cookie + Next.js Server Action 收信；`Domain` 可选语言路径（`zh`/`en` 等） |
 | `ta-easy` | ta-easy.com | `ChannelTaEasy` | REST：`api-endpoint.ta-easy.com`；需 Token；`ExpiresAt` 毫秒时间戳 |
 | `10minute-one` | 10minutemail.one | `Channel10minuteOne` | SSR / JWT + Web API；`Domain` 可选（见实现） |
 | `linshiyou` | linshiyou.com | `ChannelLinshiyou` | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
-| `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；24h |
+| `mffac` | mffac.com | `ChannelMffac` | REST mailbox `id` 作 token；`/api/emails/{id}` 详情补齐 `text` / `html`；24h |
 | `tempmail-lol` | tempmail.lol | `ChannelTempmailLol` | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | `ChannelChatgptOrgUk` | Inbox Token 等请求头已封装 |
+| `temp-mail-io` | temp-mail.io | `ChannelTempMailIo` | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3` |
+| `mail-cx` | mail.cx | `ChannelMailCx` | 匿名 Web API：`/v1/config` 获取系统域名，`/v1/inbox/{email}` 长轮询收信，内部保存 `X-Client-ID` |
+| `catchmail` | catchmail.io | `ChannelCatchmail` | 公开 REST：`/api/v1/mailbox?address=` + `/api/v1/message/{id}?mailbox=`；详情含 `body.text` / `body.html` |
+| `catchmail-mailistry` | mailistry.com | `ChannelCatchmailMailistry` | Catchmail API 固定域名 `mailistry.com` |
+| `catchmail-zeppost` | zeppost.com | `ChannelCatchmailZeppost` | Catchmail API 固定域名 `zeppost.com` |
+| `mailforspam` | mailforspam.com | `ChannelMailforspam` | 公开 REST：`/api/mailboxes/{email}/emails` + `/api/mailboxes/{email}/emails/{id}`；详情含 `body_text` / `body_html` |
+| `mailforspam-tempmail-io` | tempmail.io | `ChannelMailforspamTempmailIo` | MailForSpam API 固定域名 `tempmail.io` |
+| `mailforspam-disposable` | disposable.email | `ChannelMailforspamDisposable` | MailForSpam API 固定域名 `disposable.email` |
+| `tempmailo` | tempmailo.com | `ChannelTempmailo` | `GET /changemail` 建址，`POST /` 传 `mail` 拉信；返回对象直接含 `text` / `html` |
+| `tempmailc` | tempmailc.com | `ChannelTempmailc` | Public API：`GET /api/v1/new` 建址，`GET /api/v1/inbox` 拉列表，`GET /api/v1/message` 读取 `text` / `html` 正文 |
+| `mailnesia` | mailnesia.com | `ChannelMailnesia` | 任意 `{local}@mailnesia.com` 建址；HTML 列表 `tr.emailheader` + 详情 `text_plain_{id}` / `text_html_{id}` 正文 |
+| `throwawaymail` | throwawaymail.app | `ChannelThrowawaymail` | Web API 建址并轮询收信；Token 由 SDK 内部维护 |
+| `inboxkitten` | inboxkitten.com | `ChannelInboxkitten` | 公开 API 拉取收件箱列表与详情 |
+| `getnada` | getnada.net | `ChannelGetnada` | `POST /api/inbox/open` 建箱；`GET /api/inbox/messages` 列表；`GET /api/inbox/message` 详情含 `text_plain` / `html_sanitized` |
+| `mail123` | mail123.fr | `ChannelMail123` | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
+| `1sec-mail` | 1sec-mail.com | `ChannelOneSecMail` | CSRF + Cookie；`POST /get_messages` 拉列表；详情由 `content` / `html` 映射，缺失正文由 normalize 反向生成 |
+| `fakemail` | fakemail.net | `ChannelFakemail` | `/index/index` 建址，`/index/refresh` 拉列表，`/index/email` 详情；`telo` HTML 正文 |
+| `openinbox` | openinbox.io | `ChannelOpeninbox` | `POST /api/inbox` 建箱；`GET /emails/inbox/{id}` 列表；`GET /emails/{emailId}` 详情含 `textBody` / `htmlBody` |
+| `inboxes` | inboxes.com | `ChannelInboxes` | 公开 v2：`GET /api/v2/domain` 域名，`GET /api/v2/inbox/{email}` 列表，`GET /api/v2/message/{uid}` 详情含 `text` / `html` |
+| `uncorreotemporal` | uncorreotemporal.com | `ChannelUncorreotemporal` | `POST /api/v1/mailboxes` 建箱；`X-Session-Token` 拉取列表和详情；详情含 `body_text` / `body_html` |
 | `awamail` | awamail.com | `ChannelAwamail` | Session Cookie 自动管理 |
 | `mail-tm` | mail.tm | `ChannelMailTm` | 自动注册（`api.mail.tm`），Bearer Token |
 | `dropmail` | dropmail.me | `ChannelDropmail` | GraphQL，Session ID |
 | `guerrillamail` | guerrillamail.com | `ChannelGuerrillaMail` | 公开 JSON API |
+| `guerrillamail-com` | guerrillamail.com | `ChannelGuerrillamailCom` | GuerrillaMail 裸域 JSON API 入口 |
 | `maildrop` | maildrop.cx | `ChannelMaildrop` | REST：`suffixes.php`（排除 `transformer.edu.kg`）+ `emails.php`；`description`→`text` |
 | `smail-pw` | smail.pw | `ChannelSmailPw` | `_root.data` + `__session`；RSC/Flight 解析 |
-| `boomlify` | boomlify.com | `ChannelBoomlify` | `domains/public` + `emails/public/create`，地址 `{UUID}@{域名}` |
-| `minmail` | minmail.app | `ChannelMinmail` | Token 为 JSON（visitorId + ck 等） |
 | `vip-215` | vip.215.im | `ChannelVip215` | `POST` 建箱 + WebSocket；无正文时 synthetic 兜底 |
-| `anonbox` | anonbox.net | `ChannelAnonbox` | `GET /en/` 解析 HTML + mbox 收信 |
 | `fake-legal` | fake.legal | `ChannelFakeLegal` | `/api/domains` + `/api/inbox/new`；可选域名 |
 | `moakt` | moakt.com | `ChannelMoakt` | `GET /{locale}` → `/inbox` 解析 `#email-address`；Token 为 `mok1:` + Base64 JSON（`locale` + Cookie，须含 `tm_session`）；收信逐封 `GET .../email/{uuid}/html`；`HTTPClientNoCookieJar`；`Domain` 可选语言路径 |
-| `etempmail` | etempmail.com | `ChannelEtempmail` | 会话 Cookie + JSON API |
-| `24mail-chacuo` | 24mail.chacuo.net | `Channel24mailChacuo` | HTTP only；`POST /` 传 `data=<邮箱>&type=refresh&arg=` 创建/刷新 |
 | `email10min` | email10min.com | `ChannelEmail10min` | CSRF + Cookie；`POST /messages` 获取邮箱与邮件 |
 | `mjj-cm` | mjj.cm | `ChannelMjjCm` | Socket.IO：`request shortid` / `set shortid` / `mail` |
-| `mail-xiuvi` | mail.xiuvi.cn | `ChannelMailXiuvi` | Socket.IO 克隆站，协议同 `mjj-cm` |
 | `linshi-co` | linshi.co | `ChannelLinshiCo` | Socket.IO 克隆站，协议同 `mjj-cm` |
 | `harakirimail` | harakirimail.com | `ChannelHarakirimail` | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
 | `tempmail-plus` | tempmail.plus | `ChannelTempmailPlus` | 公开 REST：`GET /api/mails/?email=` 列表，`GET /api/mails/{id}?email=` 详情 |
 | `mail-gw` | mail.gw | `ChannelMailGw` | 自动注册（`api.mail.gw`），JWT Bearer Token |
 | `tempmail-lol-v2` | tempmail.lol | `ChannelTempmailLolV2` | `GET /generate` 返回 address+token，`GET /auth/{token}` 拉取收件箱 |
 | `sharklasers` | sharklasers.com | `ChannelSharklasers` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `sharklasers-com` | sharklasers.com | `ChannelSharklasersCom` | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
 | `grr-la` | grr.la | `ChannelGrrLa` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `grr-la-com` | grr.la | `ChannelGrrLaCom` | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
 | `guerrillamail-info` | guerrillamail.info | `ChannelGuerrillamailInfo` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `spam4me` | spam4.me | `ChannelSpam4me` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamail-net` | guerrillamail.net | `ChannelGuerrillamailNet` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamail-org` | guerrillamail.org | `ChannelGuerrillamailOrg` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamailblock` | guerrillamailblock.com | `ChannelGuerrillamailBlock` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
+| `guerrillamail-com-www` | guerrillamail.com | `ChannelGuerrillamailComWww` | GuerrillaMail `www` JSON API 入口 |
 
 > **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 
@@ -249,7 +270,7 @@ export TEMPMAIL_TELEMETRY_URL="https://example.com/v1/event"
 |------|------|------|
 | `Channel` | `Channel` | 指定渠道（可选，不指定则随机） |
 | `Duration` | `int` | 有效期分钟数（仅 `tempmail` 渠道） |
-| `Domain` | `*string` | 指定域名或接入参数（`tempmail-cn`、`tempmail-lol`、`maildrop`、`fake-legal`、`tmpmails` / `moakt` 语言路径、`24mail-chacuo` 完整邮箱、`10minute-one` 站点参数等） |
+| `Domain` | `*string` | 指定域名或接入参数（`tempmail-cn`、`tempmail-lol`、`maildrop`、`fake-legal`、`catchmail` / `mailforspam` 固定域名、`moakt` 语言路径、`10minute-one` 站点参数等） |
 | `Retry` | `*RetryOptions` | 创建邮箱时的 HTTP 重试，nil 使用默认 |
 
 **返回值:** `*EmailInfo`

@@ -1,28 +1,13 @@
-import { generateEmail, getEmails, TempEmailClient, Channel, setConfig } from '../src';
-import nodemailer from 'nodemailer';
+import { TempEmailClient, Channel, setConfig } from '../src';
+import { sendSmtp } from './smtp-env';
 
 setConfig({ telemetryEnabled: false });
-
-const SMTP_HOST = 'smtp.exmail.qq.com';
-const SMTP_PORT = 465;
-const SMTP_USER = 'supper@openel.top';
-const SMTP_PASS = 'PKZT5rgvUvGdgcxe';
 
 function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
 
 async function sendEmail(to: string, marker: string): Promise<boolean> {
-  const transport = nodemailer.createTransport({
-    host: SMTP_HOST, port: SMTP_PORT, secure: true,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }, connectionTimeout: 15000,
-  });
   try {
-    await transport.sendMail({
-      from: SMTP_USER, to,
-      subject: `Fix Test [${marker}]`,
-      text: `正文测试 marker: ${marker}`,
-      html: `<h1>Fix Test</h1><p>正文测试 marker: <b>${marker}</b></p>`,
-    });
-    return true;
+    return await sendSmtp(to, `Fix Test [${marker}]`, `正文测试 marker: ${marker}`, `<h1>Fix Test</h1><p>正文测试 marker: <b>${marker}</b></p>`);
   } catch (e: any) { console.log(`  SMTP失败: ${e.message}`); return false; }
 }
 

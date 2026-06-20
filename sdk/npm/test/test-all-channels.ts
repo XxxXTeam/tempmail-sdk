@@ -1,23 +1,7 @@
-import { generateEmail, getEmails, TempEmailClient, Channel, setConfig } from '../src';
-import nodemailer from 'nodemailer';
+import { TempEmailClient, Channel, setConfig, listChannels } from '../src';
+import { sendSmtp } from './smtp-env';
 
-// SMTP 配置
-const SMTP_HOST = 'smtp.exmail.qq.com';
-const SMTP_PORT = 465;
-const SMTP_USER = 'supper@openel.top';
-const SMTP_PASS = 'PKZT5rgvUvGdgcxe';
-const SMTP_FROM = 'supper@openel.top';
-const SMTP_SECURE = true;
-
-// 所有 28 个渠道
-const allChannels: Channel[] = [
-  'tempmail', 'tempmail-cn', 'tmpmails', 'tempmailg', 'ta-easy',
-  '10mail-wangtz', '10minute-one', 'linshi-email', 'linshiyou', 'mffac',
-  'tempmail-lol', 'chatgpt-org-uk', 'temp-mail-io', 'awamail', 'temporary-email-org',
-  'mail-tm', 'mail-cx', 'dropmail', 'guerrillamail', 'maildrop',
-  'smail-pw', 'boomlify', 'minmail', 'vip-215', 'anonbox',
-  'fake-legal', 'moakt', 'etempmail',
-];
+const allChannels: Channel[] = listChannels().map((info) => info.channel);
 
 interface ChannelResult {
   channel: string;
@@ -40,23 +24,13 @@ function createTraceId(): string {
 }
 
 async function sendSmtpEmail(to: string, marker: string): Promise<boolean> {
-  const transport = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    connectionTimeout: 15000,
-  });
-
   try {
-    await transport.sendMail({
-      from: SMTP_FROM,
+    return await sendSmtp(
       to,
-      subject: `SDK Test [${marker}]`,
-      text: `Test email marker: ${marker}`,
-      html: `<p>Test email marker: <b>${marker}</b></p>`,
-    });
-    return true;
+      `SDK Test [${marker}]`,
+      `Test email marker: ${marker}`,
+      `<p>Test email marker: <b>${marker}</b></p>`,
+    );
   } catch (e: any) {
     console.log(`    SMTP 发送失败: ${e.message}`);
     return false;

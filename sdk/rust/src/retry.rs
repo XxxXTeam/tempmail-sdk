@@ -3,9 +3,9 @@
  * 提供请求重试、超时控制、指数退避等错误恢复机制
  */
 
+use crate::types::RetryConfig;
 use std::thread;
 use std::time::Duration;
-use crate::types::RetryConfig;
 
 /// 判断错误是否应该重试
 fn should_retry(err: &str) -> bool {
@@ -13,9 +13,16 @@ fn should_retry(err: &str) -> bool {
 
     // 网络级别错误
     let keywords = [
-        "connection", "timeout", "timed out", "dns",
-        "eof", "broken pipe", "refused", "reset",
-        "network", "ssl",
+        "connection",
+        "timeout",
+        "timed out",
+        "dns",
+        "eof",
+        "broken pipe",
+        "refused",
+        "reset",
+        "network",
+        "ssl",
     ];
     for kw in &keywords {
         if msg.contains(kw) {
@@ -46,7 +53,10 @@ fn should_retry(err: &str) -> bool {
 /// - 指数退避策略避免短时间内过度请求
 /// - 不可恢复的错误（SDK 内部参数校验错误等）直接返回
 /// 与 `with_retry` 相同；失败时返回 `(错误信息, 尝试次数)`
-pub(crate) fn with_retry_with_attempts<T, F>(f: F, config: Option<&RetryConfig>) -> Result<(T, u32), (String, u32)>
+pub(crate) fn with_retry_with_attempts<T, F>(
+    f: F,
+    config: Option<&RetryConfig>,
+) -> Result<(T, u32), (String, u32)>
 where
     F: Fn() -> Result<T, String>,
 {
@@ -74,13 +84,13 @@ where
                     return Err((e, attempts));
                 }
 
-                let delay_ms = std::cmp::min(
-                    cfg.initial_delay_ms * 2u64.pow(attempt),
-                    cfg.max_delay_ms,
-                );
+                let delay_ms =
+                    std::cmp::min(cfg.initial_delay_ms * 2u64.pow(attempt), cfg.max_delay_ms);
                 log::warn!(
                     "请求失败 ({})，{}ms 后第 {} 次重试...",
-                    e, delay_ms, attempt + 2
+                    e,
+                    delay_ms,
+                    attempt + 2
                 );
                 thread::sleep(Duration::from_millis(delay_ms));
             }

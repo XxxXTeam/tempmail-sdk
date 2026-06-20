@@ -317,6 +317,8 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error('vip-215: invalid API response');
   }
 
+  await ensureWs(body.data.token, body.data.address);
+
   return {
     channel: CHANNEL,
     email: body.data.address,

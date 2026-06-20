@@ -87,7 +87,10 @@ async fn fetch_inbox_action_id(html: &str) -> Result<String, String> {
     if !resp.status().is_success() {
         return Err(format!("tmpmails chunk: {}", resp.status()));
     }
-    let js = resp.text().await.map_err(|e| format!("tmpmails chunk body: {}", e))?;
+    let js = resp
+        .text()
+        .await
+        .map_err(|e| format!("tmpmails chunk body: {}", e))?;
     let cap = INBOX_ACTION_RE
         .captures(&js)
         .ok_or_else(|| "tmpmails: getInboxList action not found".to_string())?;

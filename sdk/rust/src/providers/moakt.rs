@@ -24,23 +24,22 @@ struct MoaktSess {
     c: String,
 }
 
-static EMAIL_DIV_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?is)<div\s+id="email-address"\s*>([^<]+)</div>"#).expect("re")
-});
+static EMAIL_DIV_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(?is)<div\s+id="email-address"\s*>([^<]+)</div>"#).expect("re"));
 static HREF_EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r#"href="(/[^"]+/email/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})""#,
     )
     .expect("re")
 });
-static TITLE_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?is)<li\s+class="title"\s*>([^<]*)</li>"#).expect("re")
-});
+static TITLE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(?is)<li\s+class="title"\s*>([^<]*)</li>"#).expect("re"));
 static DATE_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?is)<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)</span>"#).expect("re")
 });
 static SENDER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>"#).expect("re")
+    Regex::new(r#"(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>"#)
+        .expect("re")
 });
 static BODY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?is)<div\s+class="email-body"\s*>([\s\S]*?)</div>"#).expect("re")
@@ -255,7 +254,10 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("Cookie", &cookie_hdr)
             .body("random=1");
-        let resp_post = req_post.send().await.map_err(|e| format!("moakt inbox post: {}", e))?;
+        let resp_post = req_post
+            .send()
+            .await
+            .map_err(|e| format!("moakt inbox post: {}", e))?;
         cookie_hdr = merge_set_cookies(&cookie_hdr, resp_post.headers());
 
         if !parse_cookie_header(&cookie_hdr).contains_key("tm_session") {

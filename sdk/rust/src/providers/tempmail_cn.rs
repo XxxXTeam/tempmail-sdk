@@ -88,7 +88,10 @@ fn socket_request(host: &str, version: u8) -> Result<tungstenite::http::Request<
         .header("Origin", format!("https://{host}"))
         .header("Referer", format!("https://{host}/"))
         .header("User-Agent", ua)
-        .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+        .header(
+            "Accept-Language",
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        )
         .body(())
         .map_err(|e| e.to_string())
 }
@@ -128,7 +131,8 @@ fn connect_socket(host: &str) -> Result<WsSocket, String> {
                     }
                 };
                 if !first.starts_with('0') {
-                    last_err = format!("tempmail-cn: unexpected open packet for EIO={version}: {first}");
+                    last_err =
+                        format!("tempmail-cn: unexpected open packet for EIO={version}: {first}");
                     continue;
                 }
                 if let Err(e) = socket.send(Message::Text("40".into())) {
@@ -215,10 +219,10 @@ fn request_shortid(host: &str) -> Result<String, String> {
     send_event(&mut socket, "request mailbox", Value::Bool(true))?;
 
     loop {
-        let packet = socket
-            .read()
-            .map_err(|e| e.to_string())
-            .and_then(|msg| socket_text(msg).ok_or_else(|| "tempmail-cn: websocket closed before mailbox".to_string()))?;
+        let packet = socket.read().map_err(|e| e.to_string()).and_then(|msg| {
+            socket_text(msg)
+                .ok_or_else(|| "tempmail-cn: websocket closed before mailbox".to_string())
+        })?;
         if packet.is_empty() {
             continue;
         }
@@ -327,11 +331,7 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
 
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     let (_, host) = split_email(email)?;
-    let url = format!(
-        "https://{}/api/mails/{}",
-        host,
-        urlencoding::encode(email)
-    );
+    let url = format!("https://{}/api/mails/{}", host, urlencoding::encode(email));
     let ua = get_current_ua();
     block_on(async {
         let resp = http_client()

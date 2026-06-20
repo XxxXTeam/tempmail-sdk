@@ -5,12 +5,12 @@
 
 use std::sync::OnceLock;
 
-use rand::Rng;
-use regex::Regex;
-use serde_json::{json, Value};
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
+use rand::Rng;
+use regex::Regex;
+use serde_json::{json, Value};
 
 const BASE: &str = "https://v1.boomlify.com";
 
@@ -33,7 +33,10 @@ fn fetch_domains() -> Result<Vec<(String, String)>, String> {
             .header("Origin", "https://boomlify.com")
             .header("Referer", "https://boomlify.com/")
             .header("User-Agent", get_current_ua())
-            .header("sec-ch-ua", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#)
+            .header(
+                "sec-ch-ua",
+                r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#,
+            )
             .header("sec-ch-ua-mobile", "?0")
             .header("sec-ch-ua-platform", r#""Windows""#)
             .header("sec-fetch-dest", "empty")
@@ -75,7 +78,10 @@ fn create_public_inbox(domain_id: &str) -> Result<String, String> {
             .header("Origin", "https://boomlify.com")
             .header("Referer", "https://boomlify.com/")
             .header("User-Agent", get_current_ua())
-            .header("sec-ch-ua", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#)
+            .header(
+                "sec-ch-ua",
+                r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#,
+            )
             .header("sec-ch-ua-mobile", "?0")
             .header("sec-ch-ua-platform", r#""Windows""#)
             .header("sec-fetch-dest", "empty")
@@ -118,10 +124,7 @@ fn inbox_path_segment(email: &str) -> String {
         Regex::new(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
             .expect("inbox uuid regex")
     });
-    let local = email
-        .rsplit_once('@')
-        .map(|(a, _)| a)
-        .unwrap_or(email);
+    let local = email.rsplit_once('@').map(|(a, _)| a).unwrap_or(email);
     if re.is_match(local.trim()) {
         local.trim().to_string()
     } else {
@@ -159,7 +162,10 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
             .header("Origin", "https://boomlify.com")
             .header("Referer", "https://boomlify.com/")
             .header("User-Agent", get_current_ua())
-            .header("sec-ch-ua", r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#)
+            .header(
+                "sec-ch-ua",
+                r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#,
+            )
             .header("sec-ch-ua-mobile", "?0")
             .header("sec-ch-ua-platform", r#""Windows""#)
             .header("sec-fetch-dest", "empty")

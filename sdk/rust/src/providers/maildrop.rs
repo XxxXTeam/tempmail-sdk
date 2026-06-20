@@ -1,15 +1,18 @@
-use rand::Rng;
-use serde_json::Value;
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
+use rand::Rng;
+use serde_json::Value;
 
 const BASE: &str = "https://maildrop.cx";
 const EXCLUDED_SUFFIX: &str = "transformer.edu.kg";
 
 fn md_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
     b.header("Accept", "application/json, text/plain, */*")
-        .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+        .header(
+            "Accept-Language",
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        )
         .header("Cache-Control", "no-cache")
         .header("DNT", "1")
         .header("Pragma", "no-cache")
@@ -30,7 +33,9 @@ fn md_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
 fn random_local(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
     let mut rng = rand::thread_rng();
-    (0..len).map(|_| chars[rng.gen_range(0..chars.len())]).collect()
+    (0..len)
+        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .collect()
 }
 
 fn fetch_suffixes() -> Result<Vec<String>, String> {
@@ -97,11 +102,7 @@ pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
         return Err("maildrop: empty address".into());
     }
     let q = urlencoding::encode(addr);
-    let url = format!(
-        "{}/api/emails.php?addr={}&page=1&limit=20",
-        BASE,
-        q
-    );
+    let url = format!("{}/api/emails.php?addr={}&page=1&limit=20", BASE, q);
     block_on(async {
         let resp = md_headers(http_client().get(url))
             .send()
@@ -117,9 +118,6 @@ pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
             .cloned()
             .unwrap_or_default();
 
-        Ok(rows
-            .iter()
-            .map(|raw| normalize_email(raw, addr))
-            .collect())
+        Ok(rows.iter().map(|raw| normalize_email(raw, addr)).collect())
     })
 }

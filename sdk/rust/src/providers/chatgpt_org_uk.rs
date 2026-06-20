@@ -125,7 +125,10 @@ fn fetch_inbox_token_once(email: &str, gm_sid: &str) -> Result<String, String> {
             .map_err(|e| format!("chatgpt-org-uk inbox-token request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("chatgpt-org-uk inbox-token failed: {}", resp.status()));
+            return Err(format!(
+                "chatgpt-org-uk inbox-token failed: {}",
+                resp.status()
+            ));
         }
 
         let data: Value = resp
@@ -254,7 +257,10 @@ fn fetch_emails(inbox: &str, email: &str, gm_sid: &str) -> Result<Vec<Email>, St
             .map_err(|e| format!("chatgpt-org-uk request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("chatgpt-org-uk get emails failed: {}", resp.status()));
+            return Err(format!(
+                "chatgpt-org-uk get emails failed: {}",
+                resp.status()
+            ));
         }
 
         let data: Value = resp
@@ -267,11 +273,7 @@ fn fetch_emails(inbox: &str, email: &str, gm_sid: &str) -> Result<Vec<Email>, St
 
         Ok(data["data"]["emails"]
             .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .map(|raw| normalize_email(raw, &email))
-                    .collect()
-            })
+            .map(|arr| arr.iter().map(|raw| normalize_email(raw, &email)).collect())
             .unwrap_or_default())
     })
 }

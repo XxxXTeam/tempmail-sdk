@@ -3,7 +3,9 @@ package tempemail
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"math"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -42,6 +44,12 @@ func normalizeRawEmail(raw map[string]interface{}, recipientEmail string) Email 
 		html = text
 		text = ""
 	}
+	if text == "" && html != "" {
+		text = htmlToText(html)
+	}
+	if text != "" && html == "" {
+		html = textToHTML(text)
+	}
 
 	return Email{
 		ID:          normalizeID(raw),
@@ -77,6 +85,21 @@ func isHTMLContent(content string) bool {
 		return true
 	}
 	return false
+}
+
+var (
+	htmlScriptRe = regexp.MustCompile(`(?is)<script[\s\S]*?</script>`)
+	htmlTagRe    = regexp.MustCompile(`(?s)<[^>]+>`)
+)
+
+func htmlToText(src string) string {
+	cleaned := htmlScriptRe.ReplaceAllString(src, " ")
+	cleaned = htmlTagRe.ReplaceAllString(cleaned, " ")
+	return strings.Join(strings.Fields(html.UnescapeString(cleaned)), " ")
+}
+
+func textToHTML(src string) string {
+	return "<html><body><pre>" + html.EscapeString(src) + "</pre></body></html>"
 }
 
 /*

@@ -154,6 +154,7 @@ class SocketIoMailProvider:
         host = self.default_host
         shortid = self._request_shortid(host)
         email_addr = f"{shortid}@{host}"
+        self._ensure_mailbox(email_addr)
         return EmailInfo(channel=self.channel, email=email_addr)
 
     def _get_state(self, email: str) -> _BoxState:

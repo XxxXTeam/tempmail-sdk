@@ -5,12 +5,12 @@
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 use serde_json::{json, Value};
-use tungstenite::{connect, Message};
 use tungstenite::http::Request;
+use tungstenite::{connect, Message};
 
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
@@ -36,7 +36,11 @@ fn parse_event_packet(packet: &str) -> Option<(String, Value)> {
     Some((event, arr[1].clone()))
 }
 
-fn send_event(ws: &mut tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>, event: &str, payload: &Value) -> Result<(), String> {
+fn send_event(
+    ws: &mut tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>,
+    event: &str,
+    payload: &Value,
+) -> Result<(), String> {
     let arr = json!([event, payload]);
     let msg = format!("42{}", arr);
     ws.send(Message::Text(msg)).map_err(|e| e.to_string())
@@ -47,23 +51,53 @@ fn flatten_mail(raw: &Value, recipient_email: &str) -> Value {
     let empty_map = serde_json::Map::new();
     let hdrs = headers.unwrap_or(&empty_map);
 
-    let id = raw.get("id").and_then(|v| v.as_str())
+    let id = raw
+        .get("id")
+        .and_then(|v| v.as_str())
         .or_else(|| raw.get("messageId").and_then(|v| v.as_str()))
         .or_else(|| hdrs.get("message-id").and_then(|v| v.as_str()))
         .or_else(|| hdrs.get("messageId").and_then(|v| v.as_str()))
         .map(|s| s.to_string())
         .unwrap_or_else(|| {
-            let from = hdrs.get("from").or_else(|| raw.get("from")).and_then(|v| v.as_str()).unwrap_or("");
-            let subj = hdrs.get("subject").or_else(|| raw.get("subject")).and_then(|v| v.as_str()).unwrap_or("");
-            let dt = hdrs.get("date").or_else(|| raw.get("date")).and_then(|v| v.as_str()).unwrap_or("");
+            let from = hdrs
+                .get("from")
+                .or_else(|| raw.get("from"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let subj = hdrs
+                .get("subject")
+                .or_else(|| raw.get("subject"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let dt = hdrs
+                .get("date")
+                .or_else(|| raw.get("date"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             format!("{}\n{}\n{}\n{}", from, subj, dt, recipient_email)
         });
 
-    let from = hdrs.get("from").or_else(|| raw.get("from")).and_then(|v| v.as_str()).unwrap_or("");
-    let subject = hdrs.get("subject").or_else(|| raw.get("subject")).and_then(|v| v.as_str()).unwrap_or("");
-    let text = raw.get("text").or_else(|| raw.get("body")).and_then(|v| v.as_str()).unwrap_or("");
+    let from = hdrs
+        .get("from")
+        .or_else(|| raw.get("from"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let subject = hdrs
+        .get("subject")
+        .or_else(|| raw.get("subject"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let text = raw
+        .get("text")
+        .or_else(|| raw.get("body"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
     let html = raw.get("html").and_then(|v| v.as_str()).unwrap_or("");
-    let date = hdrs.get("date").or_else(|| raw.get("date")).and_then(|v| v.as_str()).unwrap_or("");
+    let date = hdrs
+        .get("date")
+        .or_else(|| raw.get("date"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
 
     json!({
         "id": id,
@@ -101,7 +135,13 @@ impl SocketIoMailProvider {
         }
     }
 
-    fn connect_socket(&self, host: &str) -> Result<tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>, String> {
+    fn connect_socket(
+        &self,
+        host: &str,
+    ) -> Result<
+        tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>,
+        String,
+    > {
         let mut last_err = None;
         for &version in SOCKET_IO_VERSIONS {
             let url = socket_url(host, version);
@@ -118,7 +158,10 @@ impl SocketIoMailProvider {
 
             let request = match request {
                 Ok(r) => r,
-                Err(e) => { last_err = Some(e); continue; }
+                Err(e) => {
+                    last_err = Some(e);
+                    continue;
+                }
             };
 
             match connect(request) {
@@ -133,7 +176,10 @@ impl SocketIoMailProvider {
                                 }
                                 if !sent_connect {
                                     if !packet.starts_with('0') {
-                                        last_err = Some(format!("{}: unexpected open packet for EIO={}", self.channel_str, version));
+                                        last_err = Some(format!(
+                                            "{}: unexpected open packet for EIO={}",
+                                            self.channel_str, version
+                                        ));
                                         let _ = ws.close(None);
                                         break;
                                     }
@@ -186,7 +232,10 @@ impl SocketIoMailProvider {
                 Ok(_) => continue,
                 Err(e) => {
                     let _ = ws.close(None);
-                    return Err(format!("{}: 等待 shortid 时连接断开: {}", self.channel_str, e));
+                    return Err(format!(
+                        "{}: 等待 shortid 时连接断开: {}",
+                        self.channel_str, e
+                    ));
                 }
             }
         }
@@ -198,6 +247,7 @@ impl SocketIoMailProvider {
         let host = &self.default_host;
         let shortid = self.request_shortid(host)?;
         let email = format!("{}@{}", shortid, host);
+        self.ensure_mailbox(&email)?;
         Ok(EmailInfo {
             channel: self.channel.clone(),
             email,
@@ -210,13 +260,15 @@ impl SocketIoMailProvider {
     fn get_state(&self, email: &str) -> Arc<Mutex<BoxState>> {
         let key = email.trim().to_lowercase();
         let mut map = self.mailboxes.lock().unwrap();
-        map.entry(key).or_insert_with(|| {
-            Arc::new(Mutex::new(BoxState {
-                emails: Vec::new(),
-                seen_ids: HashSet::new(),
-                connected: false,
-            }))
-        }).clone()
+        map.entry(key)
+            .or_insert_with(|| {
+                Arc::new(Mutex::new(BoxState {
+                    emails: Vec::new(),
+                    seen_ids: HashSet::new(),
+                    connected: false,
+                }))
+            })
+            .clone()
     }
 
     fn ensure_mailbox(&self, email: &str) -> Result<(), String> {
@@ -228,13 +280,19 @@ impl SocketIoMailProvider {
             }
         }
 
-        let at_idx = email.find('@').ok_or_else(|| format!("{}: invalid email address", self.channel_str))?;
+        let at_idx = email
+            .find('@')
+            .ok_or_else(|| format!("{}: invalid email address", self.channel_str))?;
         if at_idx == 0 {
             return Err(format!("{}: invalid email address", self.channel_str));
         }
         let local = &email[..at_idx];
         let host = &email[at_idx + 1..];
-        let host = if host.is_empty() { &self.default_host } else { host };
+        let host = if host.is_empty() {
+            &self.default_host
+        } else {
+            host
+        };
 
         let mut ws = self.connect_socket(host)?;
         send_event(&mut ws, "set shortid", &json!(local))?;
@@ -246,32 +304,30 @@ impl SocketIoMailProvider {
 
         let state_clone = state.clone();
         let email_clone = email.to_string();
-        thread::spawn(move || {
-            loop {
-                match ws.read() {
-                    Ok(Message::Text(packet)) => {
-                        if packet == "2" {
-                            let _ = ws.send(Message::Text("3".into()));
-                            continue;
-                        }
-                        if let Some((event, payload)) = parse_event_packet(&packet) {
-                            if event == "mail" {
-                                let flat = flatten_mail(&payload, &email_clone);
-                                let normalized = normalize_email(&flat, &email_clone);
-                                let mut st = state_clone.lock().unwrap();
-                                if !normalized.id.is_empty() && !st.seen_ids.contains(&normalized.id) {
-                                    st.seen_ids.insert(normalized.id.clone());
-                                    st.emails.push(normalized);
-                                }
+        thread::spawn(move || loop {
+            match ws.read() {
+                Ok(Message::Text(packet)) => {
+                    if packet == "2" {
+                        let _ = ws.send(Message::Text("3".into()));
+                        continue;
+                    }
+                    if let Some((event, payload)) = parse_event_packet(&packet) {
+                        if event == "mail" {
+                            let flat = flatten_mail(&payload, &email_clone);
+                            let normalized = normalize_email(&flat, &email_clone);
+                            let mut st = state_clone.lock().unwrap();
+                            if !normalized.id.is_empty() && !st.seen_ids.contains(&normalized.id) {
+                                st.seen_ids.insert(normalized.id.clone());
+                                st.emails.push(normalized);
                             }
                         }
                     }
-                    Ok(_) => continue,
-                    Err(_) => {
-                        let mut st = state_clone.lock().unwrap();
-                        st.connected = false;
-                        break;
-                    }
+                }
+                Ok(_) => continue,
+                Err(_) => {
+                    let mut st = state_clone.lock().unwrap();
+                    st.connected = false;
+                    break;
                 }
             }
         });
@@ -297,24 +353,6 @@ pub mod mjj_cm {
     fn provider() -> &'static SocketIoMailProvider {
         static INSTANCE: OnceLock<SocketIoMailProvider> = OnceLock::new();
         INSTANCE.get_or_init(|| SocketIoMailProvider::new(Channel::MjjCm, "mjj.cm"))
-    }
-
-    pub fn generate_email() -> Result<EmailInfo, String> {
-        provider().generate_email()
-    }
-
-    pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
-        provider().get_emails(email)
-    }
-}
-
-pub mod mail_xiuvi {
-    use super::*;
-    use std::sync::OnceLock;
-
-    fn provider() -> &'static SocketIoMailProvider {
-        static INSTANCE: OnceLock<SocketIoMailProvider> = OnceLock::new();
-        INSTANCE.get_or_init(|| SocketIoMailProvider::new(Channel::MailXiuvi, "mail.xiuvi.cn"))
     }
 
     pub fn generate_email() -> Result<EmailInfo, String> {

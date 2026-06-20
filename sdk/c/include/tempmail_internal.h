@@ -51,6 +51,15 @@ tm_http_response_t* tm_http_request_skip_cert_verify(
     int timeout_secs
 );
 
+/* 与 tm_http_request 相同，但强制 IPv4（部分 Cloudflare 站点 IPv6 TLS 会断开） */
+tm_http_response_t* tm_http_request_ipv4(
+    tm_http_method_t method,
+    const char *url,
+    const char **headers,
+    const char *body,
+    int timeout_secs
+);
+
 /* 释放 HTTP 响应 */
 void tm_http_response_free(tm_http_response_t *resp);
 
@@ -88,9 +97,6 @@ void tm_tempmail_cn_module_cleanup(void);
 tm_email_info_t* tm_provider_tempmail_cn_generate(const char *domain);
 tm_email_t* tm_provider_tempmail_cn_get_emails(const char *email, int *count);
 
-tm_email_info_t* tm_provider_tmpmails_generate(const char *domain);
-tm_email_t* tm_provider_tmpmails_get_emails(const char *token, const char *email, int *count);
-
 tm_email_info_t* tm_provider_linshiyou_generate(void);
 tm_email_t* tm_provider_linshiyou_get_emails(const char *token, const char *email, int *count);
 
@@ -118,20 +124,11 @@ tm_email_t* tm_provider_maildrop_get_emails(const char *token, const char *email
 tm_email_info_t* tm_provider_smail_pw_generate(void);
 tm_email_t* tm_provider_smail_pw_get_emails(const char *token, const char *email, int *count);
 
-tm_email_info_t* tm_provider_boomlify_generate(void);
-tm_email_t* tm_provider_boomlify_get_emails(const char *email, int *count);
-
-tm_email_info_t* tm_provider_minmail_generate(void);
-tm_email_t* tm_provider_minmail_get_emails(const char *token, const char *email, int *count);
-
 void tm_vip215_module_init(void);
 void tm_vip215_module_cleanup(void);
 
 tm_email_info_t* tm_provider_vip215_generate(void);
 tm_email_t* tm_provider_vip215_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_anonbox_generate(void);
-tm_email_t* tm_provider_anonbox_get_emails(const char *token, const char *email, int *count);
 
 tm_email_info_t* tm_provider_fake_legal_generate(const char *domain);
 tm_email_info_t* tm_provider_mffac_generate(void);
@@ -146,12 +143,6 @@ tm_email_t* tm_provider_moakt_get_emails(const char *token, const char *email, i
 
 tm_email_info_t* tm_provider_tenminute_one_generate(const char *domain);
 tm_email_t* tm_provider_tenminute_one_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_etempmail_generate(void);
-tm_email_t* tm_provider_etempmail_get_emails(const char *token, const char *email, int *count);
-
-tm_email_info_t* tm_provider_24mail_chacuo_generate(void);
-tm_email_t* tm_provider_24mail_chacuo_get_emails(const char *email, int *count);
 
 tm_email_info_t* tm_provider_email10min_generate(void);
 tm_email_t* tm_provider_email10min_get_emails(const char *token, const char *email, int *count);
@@ -170,5 +161,53 @@ tm_email_t* tm_provider_tempmail_lol_v2_get_emails(const char *token, const char
 
 tm_email_info_t* tm_provider_guerrillamail_mirror_generate(tm_channel_t channel, const char *base_url);
 tm_email_t* tm_provider_guerrillamail_mirror_get_emails(const char *base_url, const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_temp_mail_io_generate(void);
+tm_email_t* tm_provider_temp_mail_io_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_mail_cx_generate(const char *domain);
+tm_email_t* tm_provider_mail_cx_get_emails(const char *client_id, const char *email, int *count);
+
+tm_email_info_t* tm_provider_catchmail_generate(const char *domain);
+tm_email_t* tm_provider_catchmail_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_mailforspam_generate(const char *domain);
+tm_email_t* tm_provider_mailforspam_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_tempmailo_generate(void);
+tm_email_t* tm_provider_tempmailo_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_tempmailc_generate(void);
+tm_email_t* tm_provider_tempmailc_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_mailnesia_generate(void);
+tm_email_t* tm_provider_mailnesia_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_throwawaymail_generate(void);
+tm_email_t* tm_provider_throwawaymail_get_emails(const char *mailbox_id, const char *email, int *count);
+
+tm_email_info_t* tm_provider_inboxkitten_generate(void);
+tm_email_t* tm_provider_inboxkitten_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_getnada_generate(void);
+tm_email_t* tm_provider_getnada_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_mail123_generate(void);
+tm_email_t* tm_provider_mail123_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_one_sec_mail_generate(void);
+tm_email_t* tm_provider_one_sec_mail_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_fakemail_generate(void);
+tm_email_t* tm_provider_fakemail_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_openinbox_generate(void);
+tm_email_t* tm_provider_openinbox_get_emails(const char *token, const char *email, int *count);
+
+tm_email_info_t* tm_provider_inboxes_generate(const char *domain);
+tm_email_t* tm_provider_inboxes_get_emails(const char *email, int *count);
+
+tm_email_info_t* tm_provider_uncorreotemporal_generate(void);
+tm_email_t* tm_provider_uncorreotemporal_get_emails(const char *token, const char *email, int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

@@ -1,32 +1,15 @@
-import { TempEmailClient, Channel, setConfig } from '../src';
-import nodemailer from 'nodemailer';
+import { TempEmailClient, Channel, setConfig, listChannels } from '../src';
+import { sendSmtp } from './smtp-env';
 
 setConfig({ telemetryEnabled: false });
 
-const SMTP = {
-  host: 'smtp.exmail.qq.com', port: 465, secure: true,
-  user: 'supper@openel.top', pass: 'PKZT5rgvUvGdgcxe',
-};
-
-const allChannels: Channel[] = [
-  'tempmail', 'tempmail-cn', 'tmpmails', 'ta-easy', '10minute-one',
-  'linshiyou', 'mffac', 'tempmail-lol', 'chatgpt-org-uk', 'awamail',
-  'mail-tm', 'dropmail', 'guerrillamail', 'maildrop', 'smail-pw',
-  'boomlify', 'minmail', 'vip-215', 'anonbox', 'fake-legal',
-  'moakt', 'etempmail',
-];
+const allChannels: Channel[] = listChannels().map((info) => info.channel);
 
 function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
 
 async function sendEmail(to: string, marker: string): Promise<boolean> {
-  const t = nodemailer.createTransport({
-    host: SMTP.host, port: SMTP.port, secure: SMTP.secure,
-    auth: { user: SMTP.user, pass: SMTP.pass }, connectionTimeout: 15000,
-  });
   try {
-    await t.sendMail({ from: SMTP.user, to, subject: `Regression [${marker}]`,
-      text: `Body ${marker}`, html: `<p>Body <b>${marker}</b></p>` });
-    return true;
+    return await sendSmtp(to, `Regression [${marker}]`, `Body ${marker}`, `<p>Body <b>${marker}</b></p>`);
   } catch { return false; }
 }
 

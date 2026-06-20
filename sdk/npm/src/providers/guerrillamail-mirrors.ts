@@ -38,12 +38,15 @@ function createMirrorProvider(channel: Channel, apiBase: string) {
           if (dr.ok) { const d = await dr.json() as any; body = d.mail_body || ''; }
         } catch {}
       }
+      const text = body
+        ? body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        : (item.mail_excerpt || '');
       out.push(normalizeEmail({
         id: item.mail_id,
         from: item.mail_from,
         to: email,
         subject: item.mail_subject,
-        text: item.mail_excerpt || body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+        text,
         html: body,
         date: item.mail_date || '',
         isRead: item.mail_read === 1,
@@ -56,7 +59,27 @@ function createMirrorProvider(channel: Channel, apiBase: string) {
 }
 
 const sharklasers = createMirrorProvider('sharklasers', 'https://www.sharklasers.com/ajax.php');
+const sharklasersCom = createMirrorProvider('sharklasers-com', 'https://sharklasers.com/ajax.php');
 const grrla = createMirrorProvider('grr-la', 'https://www.grr.la/ajax.php');
+const grrlaCom = createMirrorProvider('grr-la-com', 'https://grr.la/ajax.php');
 const guerrillainfoMirror = createMirrorProvider('guerrillamail-info', 'https://www.guerrillamail.info/ajax.php');
+const spam4meMirror = createMirrorProvider('spam4me', 'https://www.spam4.me/ajax.php');
+const guerrillamailNetMirror = createMirrorProvider('guerrillamail-net', 'https://www.guerrillamail.net/ajax.php');
+const guerrillamailOrgMirror = createMirrorProvider('guerrillamail-org', 'https://www.guerrillamail.org/ajax.php');
+const guerrillamailBlockMirror = createMirrorProvider('guerrillamailblock', 'https://www.guerrillamailblock.com/ajax.php');
+const guerrillamailComMirror = createMirrorProvider('guerrillamail-com', 'https://guerrillamail.com/ajax.php');
+const guerrillamailComWwwMirror = createMirrorProvider('guerrillamail-com-www', 'https://www.guerrillamail.com/ajax.php');
 
-export { sharklasers, grrla, guerrillainfoMirror };
+export {
+  sharklasers,
+  sharklasersCom,
+  grrla,
+  grrlaCom,
+  guerrillainfoMirror,
+  spam4meMirror,
+  guerrillamailNetMirror,
+  guerrillamailOrgMirror,
+  guerrillamailBlockMirror,
+  guerrillamailComMirror,
+  guerrillamailComWwwMirror,
+};

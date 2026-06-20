@@ -18,9 +18,9 @@ async function main() {
     console.log(e.stack);
   }
 
-  console.log('\n=== minmail getEmails debug ===');
+  console.log('\n=== catchmail-mailistry getEmails debug ===');
   const c2 = new TempEmailClient();
-  const i2 = await c2.generate({ channel: 'minmail', channelFallback: false });
+  const i2 = await c2.generate({ channel: 'catchmail-mailistry', channelFallback: false });
   if (!i2) { console.log('GENERATE FAILED'); return; }
   console.log(`Email: ${i2.email}`);
 

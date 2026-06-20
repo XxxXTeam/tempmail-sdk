@@ -656,30 +656,65 @@ jobs:
             
             ### 支持的渠道
             
-            共 **20** 个渠道，五种 SDK 一致。详见仓库根目录 `README.md`。
+            共 **55** 个渠道，五种 SDK 一致。详见仓库根目录 `README.md`。
             
             | 渠道 | 服务商 |
             |------|--------|
             | `tempmail` | tempmail.ing |
-            | `linshi-email` | linshi-email.com |
+            | `tempmail-cn` | tempmail.cn |
+            | `ta-easy` | ta-easy.com |
+            | `10minute-one` | 10minutemail.one |
             | `linshiyou` | linshiyou.com |
             | `mffac` | mffac.com |
             | `tempmail-lol` | tempmail.lol |
             | `chatgpt-org-uk` | mail.chatgpt.org.uk |
             | `temp-mail-io` | temp-mail.io |
-            | `awamail` | awamail.com |
-            | `temporary-email-org` | temporary-email.org |
-            | `mail-tm` | mail.tm |
             | `mail-cx` | mail.cx |
+            | `catchmail` | catchmail.io |
+            | `catchmail-mailistry` | mailistry.com |
+            | `catchmail-zeppost` | zeppost.com |
+            | `mailforspam` | mailforspam.com |
+            | `mailforspam-tempmail-io` | tempmail.io |
+            | `mailforspam-disposable` | disposable.email |
+            | `tempmailo` | tempmailo.com |
+            | `tempmailc` | tempmailc.com |
+            | `mailnesia` | mailnesia.com |
+            | `throwawaymail` | throwawaymail.app |
+            | `inboxkitten` | inboxkitten.com |
+            | `getnada` | getnada.net |
+            | `mail123` | mail123.fr |
+            | `1sec-mail` | 1sec-mail.com |
+            | `fakemail` | fakemail.net |
+            | `openinbox` | openinbox.io |
+            | `inboxes` | inboxes.com |
+            | `uncorreotemporal` | uncorreotemporal.com |
+            | `awamail` | awamail.com |
+            | `mail-tm` | mail.tm |
             | `dropmail` | dropmail.me |
             | `guerrillamail` | guerrillamail.com |
+            | `guerrillamail-com` | guerrillamail.com |
             | `maildrop` | maildrop.cx |
             | `smail-pw` | smail.pw |
-            | `boomlify` | boomlify.com |
-            | `minmail` | minmail.app |
             | `vip-215` | vip.215.im |
-            | `anonbox` | anonbox.net |
             | `fake-legal` | fake.legal |
+            | `moakt` | moakt.com |
+            | `email10min` | email10min.com |
+            | `mjj-cm` | mjj.cm |
+            | `linshi-co` | linshi.co |
+            | `harakirimail` | harakirimail.com |
+            | `tempmail-plus` | tempmail.plus |
+            | `mail-gw` | mail.gw |
+            | `tempmail-lol-v2` | tempmail.lol |
+            | `sharklasers` | sharklasers.com |
+            | `sharklasers-com` | sharklasers.com |
+            | `grr-la` | grr.la |
+            | `grr-la-com` | grr.la |
+            | `guerrillamail-info` | guerrillamail.info |
+            | `spam4me` | spam4.me |
+            | `guerrillamail-net` | guerrillamail.net |
+            | `guerrillamail-org` | guerrillamail.org |
+            | `guerrillamailblock` | guerrillamailblock.com |
+            | `guerrillamail-com-www` | guerrillamail.com |
           draft: false
           prerelease: ${{ needs.release-meta.outputs.is_prerelease == 'true' }}
         env:

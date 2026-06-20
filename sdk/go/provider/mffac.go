@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
 	http "github.com/bogdanfinn/fhttp"
 )
@@ -70,6 +73,90 @@ func MffacGenerate() (*CreatedMailbox, error) {
 	return info, nil
 }
 
+func mffacReceivedAtToISO(value any) string {
+	var seconds int64
+	switch v := value.(type) {
+	case float64:
+		seconds = int64(v)
+	case int64:
+		seconds = v
+	case int:
+		seconds = int64(v)
+	case json.Number:
+		n, err := v.Int64()
+		if err != nil {
+			return ""
+		}
+		seconds = n
+	case string:
+		n, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
+		if err != nil {
+			return ""
+		}
+		seconds = int64(n)
+	default:
+		return ""
+	}
+	if seconds <= 0 {
+		return ""
+	}
+	return time.Unix(seconds, 0).UTC().Format(time.RFC3339)
+}
+
+func mffacFlattenEmail(raw map[string]any, recipient string) map[string]any {
+	flat := map[string]any{
+		"id":          raw["id"],
+		"from":        raw["fromAddress"],
+		"to":          raw["toAddress"],
+		"subject":     raw["subject"],
+		"text":        raw["textContent"],
+		"html":        raw["htmlContent"],
+		"date":        mffacReceivedAtToISO(raw["receivedAt"]),
+		"isRead":      raw["isRead"],
+		"attachments": []any{},
+	}
+	if flat["to"] == nil || strings.TrimSpace(fmt.Sprint(flat["to"])) == "" {
+		flat["to"] = recipient
+	}
+	return flat
+}
+
+func mffacFetchEmailDetail(id string) (map[string]any, error) {
+	u := fmt.Sprintf("%s/emails/%s", mffacAPIBase, url.PathEscape(id))
+	req, err := http.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+	mffacDefaultHeaders(req)
+	req.Header.Del("Content-Type")
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("mffac detail: %d", resp.StatusCode)
+	}
+
+	var parsed struct {
+		Success bool           `json:"success"`
+		Email   map[string]any `json:"email"`
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, err
+	}
+	if !parsed.Success || parsed.Email == nil {
+		return nil, fmt.Errorf("mffac detail: invalid response")
+	}
+	return parsed.Email, nil
+}
+
 func MffacGetEmails(email string, _token string) ([]NormEmail, error) {
 	local := email
 	if i := strings.LastIndex(email, "@"); i > 0 {
@@ -108,11 +195,22 @@ func MffacGetEmails(email string, _token string) ([]NormEmail, error) {
 		return nil, fmt.Errorf("mffac: success false")
 	}
 
-	var rawList []json.RawMessage
+	var rawList []map[string]any
 	if len(parsed.Emails) > 0 && string(parsed.Emails) != "null" {
 		if err := json.Unmarshal(parsed.Emails, &rawList); err != nil {
 			return nil, err
 		}
 	}
-	return NormalizeRawMessages(rawList, email)
+	out := make([]NormEmail, 0, len(rawList))
+	for _, raw := range rawList {
+		detail := raw
+		id := strings.TrimSpace(fmt.Sprint(raw["id"]))
+		if id != "" {
+			if fetched, err := mffacFetchEmailDetail(id); err == nil {
+				detail = fetched
+			}
+		}
+		out = append(out, NormalizeMap(mffacFlattenEmail(detail, email), email))
+	}
+	return out, nil
 }

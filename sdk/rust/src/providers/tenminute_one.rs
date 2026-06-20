@@ -31,11 +31,7 @@ static JWT_RE: LazyLock<Regex> = LazyLock::new(|| {
 
 fn enc_mailbox_email(email: &str) -> String {
     if let Some((l, d)) = email.split_once('@') {
-        format!(
-            "{}%40{}",
-            urlencoding::encode(l),
-            urlencoding::encode(d)
-        )
+        format!("{}%40{}", urlencoding::encode(l), urlencoding::encode(d))
     } else {
         urlencoding::encode(email).into_owned()
     }
@@ -180,7 +176,9 @@ fn jwt_exp_unix(token: &str) -> Option<i64> {
     let mid = token.split('.').nth(1)?;
     let bytes = URL_SAFE_NO_PAD.decode(mid).ok()?;
     let v: Value = serde_json::from_slice(&bytes).ok()?;
-    v.get("exp")?.as_i64().or_else(|| v.get("exp")?.as_f64().map(|x| x as i64))
+    v.get("exp")?
+        .as_i64()
+        .or_else(|| v.get("exp")?.as_f64().map(|x| x as i64))
 }
 
 fn api_headers(token: &str) -> Vec<(&'static str, String)> {
@@ -225,11 +223,7 @@ fn item_needs_detail(m: &serde_json::Map<String, Value>) -> bool {
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
     block_on(async {
         let loc = pick_locale(domain);
-        let page_url = format!(
-            "{}/{}",
-            SITE_ORIGIN,
-            urlencoding::encode(&loc)
-        );
+        let page_url = format!("{}/{}", SITE_ORIGIN, urlencoding::encode(&loc));
         let resp = http_client()
             .get(&page_url)
             .header("User-Agent", get_current_ua())
@@ -255,11 +249,7 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
 
         let mut domains = parse_quoted_json_array(&html, "emailDomains");
         if domains.is_empty() {
-            domains = vec![
-                "xghff.com".into(),
-                "oqqaj.com".into(),
-                "psovv.com".into(),
-            ];
+            domains = vec!["xghff.com".into(), "oqqaj.com".into(), "psovv.com".into()];
         }
 
         let mut blocked: HashMap<String, ()> = HashMap::new();
@@ -324,11 +314,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 let id_s = serde_json::to_string(&id).unwrap_or_default();
                 let id_s = id_s.trim_matches('"');
                 let mid = urlencoding::encode(id_s);
-                let du = format!(
-                    "{API_BASE}/mailbox/{}/{}",
-                    enc_mailbox_email(email),
-                    mid
-                );
+                let du = format!("{API_BASE}/mailbox/{}/{}", enc_mailbox_email(email), mid);
                 let mut dreq = client.get(&du);
                 for (k, v) in api_headers(token) {
                     dreq = dreq.header(k, v);

@@ -34,6 +34,39 @@ HEADERS = {
 }
 
 
+def _valid_generated_address(address: str) -> bool:
+    if not address or len(address) > 254 or address.strip() != address:
+        return False
+    if address.count("@") != 1:
+        return False
+    local, domain = address.split("@", 1)
+    if not local or len(local) > 64:
+        return False
+    if local.startswith(".") or local.endswith(".") or ".." in local:
+        return False
+    if any(ch.isspace() or ord(ch) < 32 or ord(ch) == 127 for ch in local):
+        return False
+    return _valid_domain(domain)
+
+
+def _valid_domain(domain: str) -> bool:
+    if not domain or len(domain) > 253 or domain.startswith(".") or domain.endswith("."):
+        return False
+    labels = domain.split(".")
+    if len(labels) < 2:
+        return False
+    for label in labels:
+        if not label or len(label) > 63:
+            return False
+        if label.startswith("-") or label.endswith("-"):
+            return False
+        if not label.isascii():
+            return False
+        if any(not (ch.isalnum() or ch == "-") for ch in label):
+            return False
+    return True
+
+
 def _cookie_header_from_response(r) -> str:
     parts = []
     for c in r.cookies:
@@ -73,6 +106,8 @@ def generate_email() -> EmailInfo:
     addr = data.get("address")
     if not addr:
         raise RuntimeError("etempmail: no address in response")
+    if not isinstance(addr, str) or not _valid_generated_address(addr):
+        raise RuntimeError("etempmail: invalid address in response")
     created = None
     ct = data.get("creation_time")
     if ct is not None:

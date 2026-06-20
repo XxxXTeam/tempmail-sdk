@@ -3,13 +3,13 @@
  * 建箱与列表均需客户端 visitor-id 请求头绑定会话。
  */
 
+use crate::config::{block_on, get_current_ua, http_client};
+use crate::normalize::normalize_email;
+use crate::types::{Channel, Email, EmailInfo};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::config::{block_on, get_current_ua, http_client};
-use crate::normalize::normalize_email;
-use crate::types::{Channel, Email, EmailInfo};
 
 const BASE: &str = "https://minmail.app/api";
 
@@ -26,7 +26,9 @@ struct MinmailToken {
 fn random_seg(n: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
     let mut rng = rand::thread_rng();
-    (0..n).map(|_| chars[rng.gen_range(0..chars.len())]).collect()
+    (0..n)
+        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .collect()
 }
 
 fn visitor_id() -> String {
@@ -112,7 +114,10 @@ fn base_headers(b: wreq::RequestBuilder, cookie_line: &str) -> wreq::RequestBuil
         .header("dnt", "1")
         .header("pragma", "no-cache")
         .header("priority", "u=1, i")
-        .header("sec-ch-ua", r#""Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99""#)
+        .header(
+            "sec-ch-ua",
+            r#""Chromium";v="148", "Microsoft Edge";v="148", "Not/A)Brand";v="99""#,
+        )
         .header("sec-ch-ua-mobile", "?0")
         .header("sec-ch-ua-platform", r#""Windows""#)
         .header("sec-fetch-dest", "empty")
@@ -164,7 +169,11 @@ fn parse_minmail_token(s: &str) -> (String, String, String) {
     (t.to_string(), String::new(), String::new())
 }
 
-fn encode_minmail_token(visitor_id: &str, ck: &str, cookie_line: &str) -> Result<String, serde_json::Error> {
+fn encode_minmail_token(
+    visitor_id: &str,
+    ck: &str,
+    cookie_line: &str,
+) -> Result<String, serde_json::Error> {
     serde_json::to_string(&MinmailToken {
         visitor_id: visitor_id.to_string(),
         ck: ck.to_string(),
@@ -205,9 +214,9 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             &vid,
             &cook,
         )
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
         if !resp.status().is_success() {
             return Err(format!("minmail address {}", resp.status()));
         }
@@ -255,7 +264,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         if !bound_vid.is_empty() && cookie_get(&cook_merged, "visitorId").is_empty() {
             cook_merged = merge_cookie_line(&cook_merged, &format!("visitorId={bound_vid}"));
         }
-        let token = encode_minmail_token(&bound_vid, &ck_owned, &cook_merged).map_err(|e| e.to_string())?;
+        let token =
+            encode_minmail_token(&bound_vid, &ck_owned, &cook_merged).map_err(|e| e.to_string())?;
         let expire_min = data["expire"].as_i64().unwrap_or(0);
         let expires_at = if expire_min > 0 {
             let now = SystemTime::now()

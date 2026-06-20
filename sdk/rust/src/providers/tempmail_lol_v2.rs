@@ -3,10 +3,10 @@
  * API: https://api.tempmail.lol
  */
 
-use serde_json::Value;
-use crate::types::{Channel, EmailInfo, Email};
+use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua};
+use crate::types::{Channel, Email, EmailInfo};
+use serde_json::Value;
 
 const API_BASE: &str = "https://api.tempmail.lol";
 
@@ -16,13 +16,21 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .get(format!("{}/generate", API_BASE))
             .header("User-Agent", get_current_ua())
             .header("Accept", "application/json")
-            .send().await.map_err(|e| format!("tempmail-lol-v2 request failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("tempmail-lol-v2 request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("tempmail-lol-v2 generate failed: {}", resp.status()));
+            return Err(format!(
+                "tempmail-lol-v2 generate failed: {}",
+                resp.status()
+            ));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
         let address = data["address"].as_str().unwrap_or("");
         let token = data["token"].as_str().unwrap_or("");
 
@@ -48,18 +56,27 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .get(format!("{}/auth/{}", API_BASE, urlencoding::encode(&token)))
             .header("User-Agent", get_current_ua())
             .header("Accept", "application/json")
-            .send().await.map_err(|e| format!("tempmail-lol-v2 request failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("tempmail-lol-v2 request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("tempmail-lol-v2 get emails failed: {}", resp.status()));
+            return Err(format!(
+                "tempmail-lol-v2 get emails failed: {}",
+                resp.status()
+            ));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
         let list = data["email"].as_array().cloned().unwrap_or_default();
 
         let mut out = Vec::with_capacity(list.len());
         for raw in &list {
-            let from = raw["from"].as_str()
+            let from = raw["from"]
+                .as_str()
                 .or_else(|| raw["sender"].as_str())
                 .unwrap_or("");
             let flat = serde_json::json!({

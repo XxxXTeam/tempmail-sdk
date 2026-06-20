@@ -39,25 +39,60 @@ body:
       options:
         - 全部/不确定
         - tempmail
-        - linshi-email
+        - tempmail-cn
+        - ta-easy
+        - 10minute-one
         - linshiyou
         - mffac
         - tempmail-lol
         - chatgpt-org-uk
         - temp-mail-io
-        - awamail
-        - temporary-email-org
-        - mail-tm
         - mail-cx
+        - catchmail
+        - catchmail-mailistry
+        - catchmail-zeppost
+        - mailforspam
+        - mailforspam-tempmail-io
+        - mailforspam-disposable
+        - tempmailo
+        - tempmailc
+        - mailnesia
+        - throwawaymail
+        - inboxkitten
+        - getnada
+        - mail123
+        - 1sec-mail
+        - fakemail
+        - openinbox
+        - inboxes
+        - uncorreotemporal
+        - awamail
+        - mail-tm
         - dropmail
         - guerrillamail
+        - guerrillamail-com
         - maildrop
         - smail-pw
-        - boomlify
-        - minmail
         - vip-215
-        - anonbox
         - fake-legal
+        - moakt
+        - email10min
+        - mjj-cm
+        - linshi-co
+        - harakirimail
+        - tempmail-plus
+        - mail-gw
+        - tempmail-lol-v2
+        - sharklasers
+        - sharklasers-com
+        - grr-la
+        - grr-la-com
+        - guerrillamail-info
+        - spam4me
+        - guerrillamail-net
+        - guerrillamail-org
+        - guerrillamailblock
+        - guerrillamail-com-www
     validations:
       required: true
 

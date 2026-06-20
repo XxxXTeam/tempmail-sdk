@@ -1,5 +1,5 @@
 import { fetchWithTimeout } from '../src/retry';
-import nodemailer from 'nodemailer';
+import { sendSmtp } from './smtp-env';
 
 (async () => {
   const r1 = await fetchWithTimeout('https://email10min.com/zh', {headers:{'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}});
@@ -15,9 +15,7 @@ import nodemailer from 'nodemailer';
   const email = d1.mailbox;
   console.log('email:', email);
 
-  const t = nodemailer.createTransport({host:'smtp.exmail.qq.com',port:465,secure:true,
-    auth:{user:'supper@openel.top',pass:'PKZT5rgvUvGdgcxe'},connectionTimeout:15000});
-  await t.sendMail({from:'supper@openel.top',to:email,subject:'RawTest',text:'TextBody123',html:'<p>HtmlBody123</p>'});
+  await sendSmtp(email, 'RawTest', 'TextBody123', '<p>HtmlBody123</p>');
   console.log('sent, waiting 15s...');
   await new Promise(r=>setTimeout(r,15000));
 

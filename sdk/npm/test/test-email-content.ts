@@ -1,11 +1,5 @@
-import { generateEmail, getEmails, TempEmailClient, Channel, setConfig } from '../src';
-import nodemailer from 'nodemailer';
-
-const SMTP_HOST = 'smtp.exmail.qq.com';
-const SMTP_PORT = 465;
-const SMTP_USER = 'supper@openel.top';
-const SMTP_PASS = 'PKZT5rgvUvGdgcxe';
-const SMTP_FROM = 'supper@openel.top';
+import { TempEmailClient, Channel, setConfig } from '../src';
+import { sendSmtp } from './smtp-env';
 
 // 上次测试 SMTP 收信成功的 12 个渠道
 const smtpWorkingChannels: Channel[] = [
@@ -23,23 +17,13 @@ function createMarker(): string {
 }
 
 async function sendEmail(to: string, marker: string): Promise<boolean> {
-  const transport = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: true,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    connectionTimeout: 15000,
-  });
-
   try {
-    await transport.sendMail({
-      from: SMTP_FROM,
+    return await sendSmtp(
       to,
-      subject: `Content Test [${marker}]`,
-      text: `这是正文内容测试。标记: ${marker}\n第二行内容用于验证正文完整性。`,
-      html: `<h1>内容测试</h1><p>这是正文内容测试。标记: <b>${marker}</b></p><p>第二行内容用于验证正文完整性。</p>`,
-    });
-    return true;
+      `Content Test [${marker}]`,
+      `这是正文内容测试。标记: ${marker}\n第二行内容用于验证正文完整性。`,
+      `<h1>内容测试</h1><p>这是正文内容测试。标记: <b>${marker}</b></p><p>第二行内容用于验证正文完整性。</p>`,
+    );
   } catch (e: any) {
     console.log(`  SMTP 发送失败: ${e.message}`);
     return false;

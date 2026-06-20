@@ -6,10 +6,10 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use serde_json::{json, Value};
-use crate::types::{Channel, EmailInfo, Email};
+use crate::config::{block_on, get_config, get_current_ua, http_client};
 use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua, get_config};
+use crate::types::{Channel, Email, EmailInfo};
+use serde_json::{json, Value};
 
 const TOKEN_GENERATE_URL: &str = "https://dropmail.me/api/token/generate";
 const TOKEN_RENEW_URL: &str = "https://dropmail.me/api/token/renew";
@@ -31,15 +31,24 @@ fn explicit_dropmail_auth_token() -> Option<String> {
             return Some(s.to_string());
         }
     }
-    std::env::var("DROPMAIL_AUTH_TOKEN").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
-        .or_else(|| std::env::var("DROPMAIL_API_TOKEN").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()))
+    std::env::var("DROPMAIL_AUTH_TOKEN")
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .or_else(|| {
+            std::env::var("DROPMAIL_API_TOKEN")
+                .ok()
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+        })
 }
 
 fn dropmail_auto_token_disabled() -> bool {
     if get_config().dropmail_disable_auto_token {
         return true;
     }
-    std::env::var("DROPMAIL_NO_AUTO_TOKEN").ok()
+    std::env::var("DROPMAIL_NO_AUTO_TOKEN")
+        .ok()
         .map(|v| {
             let v = v.trim().to_ascii_lowercase();
             v == "1" || v == "true" || v == "yes"
@@ -48,10 +57,16 @@ fn dropmail_auto_token_disabled() -> bool {
 }
 
 fn dropmail_renew_lifetime() -> String {
-    get_config().dropmail_renew_lifetime.as_ref()
+    get_config()
+        .dropmail_renew_lifetime
+        .as_ref()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
-        .or_else(|| std::env::var("DROPMAIL_RENEW_LIFETIME").ok().filter(|s| !s.trim().is_empty()))
+        .or_else(|| {
+            std::env::var("DROPMAIL_RENEW_LIFETIME")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+        })
         .unwrap_or_else(|| "1d".to_string())
 }
 
@@ -79,28 +94,43 @@ async fn post_json_token_api(url: &str, body: Value) -> Result<Value, String> {
         .header("Referer", "https://dropmail.me/api/")
         .header("User-Agent", get_current_ua())
         .json(&body)
-        .send().await.map_err(|e| format!("dropmail token request failed: {}", e))?;
+        .send()
+        .await
+        .map_err(|e| format!("dropmail token request failed: {}", e))?;
 
     if !resp.status().is_success() {
         return Err(format!("dropmail token HTTP {}", resp.status()));
     }
-    resp.json().await.map_err(|e| format!("dropmail token parse: {}", e))
+    resp.json()
+        .await
+        .map_err(|e| format!("dropmail token parse: {}", e))
 }
 
 async fn fetch_af_generate() -> Result<String, String> {
-    let v = post_json_token_api(TOKEN_GENERATE_URL, json!({"type": "af", "lifetime": "1h"})).await?;
+    let v =
+        post_json_token_api(TOKEN_GENERATE_URL, json!({"type": "af", "lifetime": "1h"})).await?;
     let tok = v["token"].as_str().unwrap_or("").trim();
     if tok.is_empty() || !tok.starts_with("af_") {
-        return Err(v["error"].as_str().unwrap_or("DropMail token/generate 未返回有效 af_ 令牌").to_string());
+        return Err(v["error"]
+            .as_str()
+            .unwrap_or("DropMail token/generate 未返回有效 af_ 令牌")
+            .to_string());
     }
     Ok(tok.to_string())
 }
 
 async fn fetch_af_renew(current: &str, lifetime: &str) -> Result<String, String> {
-    let v = post_json_token_api(TOKEN_RENEW_URL, json!({"token": current, "lifetime": lifetime})).await?;
+    let v = post_json_token_api(
+        TOKEN_RENEW_URL,
+        json!({"token": current, "lifetime": lifetime}),
+    )
+    .await?;
     let tok = v["token"].as_str().unwrap_or("").trim();
     if tok.is_empty() || !tok.starts_with("af_") {
-        return Err(v["error"].as_str().unwrap_or("DropMail token/renew 未返回有效 af_ 令牌").to_string());
+        return Err(v["error"]
+            .as_str()
+            .unwrap_or("DropMail token/renew 未返回有效 af_ 令牌")
+            .to_string());
     }
     Ok(tok.to_string())
 }
@@ -117,7 +147,9 @@ fn resolve_dropmail_auth_token() -> Result<String, String> {
     let renew_life = dropmail_renew_lifetime();
 
     let old_for_renew = {
-        let guard = DM_AF_CACHE.lock().map_err(|_| "DropMail 内部锁错误".to_string())?;
+        let guard = DM_AF_CACHE
+            .lock()
+            .map_err(|_| "DropMail 内部锁错误".to_string())?;
         if let Some(ref c) = *guard {
             if now < c.valid_until - RENEW_BEFORE {
                 return Ok(c.token.clone());
@@ -129,14 +161,19 @@ fn resolve_dropmail_auth_token() -> Result<String, String> {
     let tok: (String, Duration) = block_on(async move {
         if let Some(ref t) = old_for_renew {
             if let Ok(x) = fetch_af_renew(t, &renew_life).await {
-                return Ok::<(String, Duration), String>((x, cache_duration_for_lifetime(&renew_life)));
+                return Ok::<(String, Duration), String>((
+                    x,
+                    cache_duration_for_lifetime(&renew_life),
+                ));
             }
         }
         let g = fetch_af_generate().await?;
         Ok::<(String, Duration), String>((g, AUTO_TOKEN_CACHE))
     })?;
 
-    let mut guard = DM_AF_CACHE.lock().map_err(|_| "DropMail 内部锁错误".to_string())?;
+    let mut guard = DM_AF_CACHE
+        .lock()
+        .map_err(|_| "DropMail 内部锁错误".to_string())?;
     *guard = Some(AfCache {
         token: tok.0.clone(),
         valid_until: Instant::now() + tok.1,
@@ -145,7 +182,10 @@ fn resolve_dropmail_auth_token() -> Result<String, String> {
 }
 
 fn graphql_url(af: &str) -> String {
-    format!("https://dropmail.me/api/graphql/{}", urlencoding::encode(af))
+    format!(
+        "https://dropmail.me/api/graphql/{}",
+        urlencoding::encode(af)
+    )
 }
 
 fn graphql_request(query: &str, variables: Option<&Value>) -> Result<Value, String> {
@@ -163,16 +203,24 @@ fn graphql_request(query: &str, variables: Option<&Value>) -> Result<Value, Stri
             .post(&url)
             .header("User-Agent", get_current_ua())
             .form(&params)
-            .send().await.map_err(|e| format!("dropmail request failed: {}", e))?;
+            .send()
+            .await
+            .map_err(|e| format!("dropmail request failed: {}", e))?;
 
         if !resp.status().is_success() {
             return Err(format!("dropmail request failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
         if let Some(errors) = data["errors"].as_array() {
             if !errors.is_empty() {
-                return Err(format!("GraphQL error: {}", errors[0]["message"].as_str().unwrap_or("unknown")));
+                return Err(format!(
+                    "GraphQL error: {}",
+                    errors[0]["message"].as_str().unwrap_or("unknown")
+                ));
             }
         }
 
@@ -187,7 +235,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     )?;
 
     let session = &data["introduceSession"];
-    let addr = session["addresses"][0]["address"].as_str()
+    let addr = session["addresses"][0]["address"]
+        .as_str()
         .ok_or("Failed to generate email")?;
 
     Ok(EmailInfo {
@@ -204,13 +253,19 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
     let vars = serde_json::json!({"id": token});
     let data = graphql_request(query, Some(&vars))?;
 
-    let mails = data["session"]["mails"].as_array().cloned().unwrap_or_default();
-    Ok(mails.iter().map(|m| {
-        let flat = serde_json::json!({
-            "id": m["id"], "from": m["fromAddr"], "to": m["toAddr"].as_str().unwrap_or(email),
-            "subject": m["headerSubject"], "text": m["text"], "html": m["html"],
-            "received_at": m["receivedAt"],
-        });
-        normalize_email(&flat, email)
-    }).collect())
+    let mails = data["session"]["mails"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    Ok(mails
+        .iter()
+        .map(|m| {
+            let flat = serde_json::json!({
+                "id": m["id"], "from": m["fromAddr"], "to": m["toAddr"].as_str().unwrap_or(email),
+                "subject": m["headerSubject"], "text": m["text"], "html": m["html"],
+                "received_at": m["receivedAt"],
+            });
+            normalize_email(&flat, email)
+        })
+        .collect())
 }

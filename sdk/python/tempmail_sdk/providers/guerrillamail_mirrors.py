@@ -67,7 +67,7 @@ def _create_mirror_provider(channel: str, base_url: str):
                         body = detail.get("mail_body") or ""
                 except Exception:  # noqa: BLE001
                     pass
-            text = item.get("mail_excerpt") or re.sub(r"<[^>]+>", " ", body).strip()
+            text = re.sub(r"<[^>]+>", " ", body).strip() if body else item.get("mail_excerpt", "")
             text = re.sub(r"\s+", " ", text).strip()
             out.append(normalize_email({
                 "id": item.get("mail_id"),
@@ -93,4 +93,28 @@ grrla_generate, grrla_get_emails = _create_mirror_provider(
 )
 guerrillamail_info_generate, guerrillamail_info_get_emails = _create_mirror_provider(
     "guerrillamail-info", "https://www.guerrillamail.info/ajax.php"
+)
+spam4me_generate, spam4me_get_emails = _create_mirror_provider(
+    "spam4me", "https://www.spam4.me/ajax.php"
+)
+guerrillamail_com_generate, guerrillamail_com_get_emails = _create_mirror_provider(
+    "guerrillamail-com", "https://guerrillamail.com/ajax.php"
+)
+sharklasers_com_generate, sharklasers_com_get_emails = _create_mirror_provider(
+    "sharklasers-com", "https://sharklasers.com/ajax.php"
+)
+grrla_com_generate, grrla_com_get_emails = _create_mirror_provider(
+    "grr-la-com", "https://grr.la/ajax.php"
+)
+guerrillamail_net_generate, guerrillamail_net_get_emails = _create_mirror_provider(
+    "guerrillamail-net", "https://www.guerrillamail.net/ajax.php"
+)
+guerrillamail_org_generate, guerrillamail_org_get_emails = _create_mirror_provider(
+    "guerrillamail-org", "https://www.guerrillamail.org/ajax.php"
+)
+guerrillamailblock_generate, guerrillamailblock_get_emails = _create_mirror_provider(
+    "guerrillamailblock", "https://www.guerrillamailblock.com/ajax.php"
+)
+guerrillamail_com_www_generate, guerrillamail_com_www_get_emails = _create_mirror_provider(
+    "guerrillamail-com-www", "https://www.guerrillamail.com/ajax.php"
 )

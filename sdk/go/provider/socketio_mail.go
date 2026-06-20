@@ -192,6 +192,9 @@ func (p *sioProvider) Generate() (*CreatedMailbox, error) {
 		return nil, err
 	}
 	email := fmt.Sprintf("%s@%s", shortid, host)
+	if err := p.ensureMailbox(email); err != nil {
+		return nil, err
+	}
 	return &CreatedMailbox{
 		Channel: p.channel,
 		Email:   email,

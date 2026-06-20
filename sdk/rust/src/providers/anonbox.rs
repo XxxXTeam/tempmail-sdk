@@ -12,7 +12,8 @@ const PAGE_URL: &str = "https://anonbox.net/en/";
 const BASE: &str = "https://anonbox.net";
 
 static MAIL_LINK_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"<a href="https://anonbox\.net/([^/]+)/([^"]+)">https://anonbox\.net/[^"]+</a>"#).unwrap()
+    Regex::new(r#"<a href="https://anonbox\.net/([^/]+)/([^"]+)">https://anonbox\.net/[^"]+</a>"#)
+        .unwrap()
 });
 static DD_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?is)<dd([^>]*)>([\s\S]*?)</dd>").unwrap());
@@ -71,7 +72,9 @@ fn parse_en_page(html: &str) -> Result<(String, String, Option<String>), String>
             continue;
         }
         let inner = cap.get(2).map(|m| m.as_str()).unwrap_or("");
-        let Some(pm) = P_RE.captures(inner) else { continue };
+        let Some(pm) = P_RE.captures(inner) else {
+            continue;
+        };
         let p_inner = pm.get(1).map(|m| m.as_str()).unwrap_or("");
         if !p_inner.contains('@') {
             continue;
@@ -87,7 +90,9 @@ fn parse_en_page(html: &str) -> Result<(String, String, Option<String>), String>
     }
     let addr = address_html.ok_or_else(|| "anonbox: address paragraph not found".to_string())?;
     let merged = strip_tags(&addr);
-    let at = merged.find('@').ok_or_else(|| "anonbox: bad address".to_string())?;
+    let at = merged
+        .find('@')
+        .ok_or_else(|| "anonbox: bad address".to_string())?;
     let local = merged[..at].trim();
     if local.is_empty() {
         return Err("anonbox: empty local part".into());
@@ -117,7 +122,8 @@ fn decode_qp_if_needed(body: &str, header_block: &str) -> String {
             let a = s[i + 1];
             let b = s[i + 2];
             if a.is_ascii_hexdigit() && b.is_ascii_hexdigit() {
-                let v = u8::from_str_radix(std::str::from_utf8(&[a, b]).unwrap_or("00"), 16).unwrap_or(0);
+                let v = u8::from_str_radix(std::str::from_utf8(&[a, b]).unwrap_or("00"), 16)
+                    .unwrap_or(0);
                 out.push(v);
                 i += 3;
                 continue;
@@ -126,7 +132,9 @@ fn decode_qp_if_needed(body: &str, header_block: &str) -> String {
         out.push(s[i]);
         i += 1;
     }
-    String::from_utf8_lossy(&out).trim_end_matches(['\r', '\n']).to_string()
+    String::from_utf8_lossy(&out)
+        .trim_end_matches(['\r', '\n'])
+        .to_string()
 }
 
 fn mbox_block_to_email(block: &str, recipient: &str) -> Email {
@@ -167,7 +175,12 @@ fn mbox_block_to_email(block: &str, recipient: &str) -> Email {
     let mut html = String::new();
     if ct.contains("multipart/") {
         let b_re = Regex::new(r#"(?i)boundary="?([^";\s]+)"?"#).unwrap();
-        if let Some(bm) = b_re.captures(headers.get("content-type").map(|s| s.as_str()).unwrap_or("")) {
+        if let Some(bm) = b_re.captures(
+            headers
+                .get("content-type")
+                .map(|s| s.as_str())
+                .unwrap_or(""),
+        ) {
             let boundary = bm.get(1).map(|m| m.as_str()).unwrap_or("");
             let esc = regex::escape(boundary);
             let part_re = Regex::new(&format!(r"\r?\n--{esc}(?:--)?\r?\n")).unwrap();
@@ -195,14 +208,29 @@ fn mbox_block_to_email(block: &str, recipient: &str) -> Email {
     }
     if text.is_empty() && html.is_empty() {
         if ct.contains("text/html") {
-            html = decode_qp_if_needed(&body, headers.get("content-type").map(|s| s.as_str()).unwrap_or(""));
+            html = decode_qp_if_needed(
+                &body,
+                headers
+                    .get("content-type")
+                    .map(|s| s.as_str())
+                    .unwrap_or(""),
+            );
         } else {
-            text = decode_qp_if_needed(&body, headers.get("content-type").map(|s| s.as_str()).unwrap_or(""));
+            text = decode_qp_if_needed(
+                &body,
+                headers
+                    .get("content-type")
+                    .map(|s| s.as_str())
+                    .unwrap_or(""),
+            );
         }
     }
 
     let from = headers.get("from").cloned().unwrap_or_default();
-    let to = headers.get("to").cloned().unwrap_or_else(|| recipient.to_string());
+    let to = headers
+        .get("to")
+        .cloned()
+        .unwrap_or_else(|| recipient.to_string());
     let subject = headers.get("subject").cloned().unwrap_or_default();
     let date = headers
         .get("date")
@@ -288,6 +316,9 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
-        Ok(blocks.iter().map(|b| mbox_block_to_email(b, email)).collect())
+        Ok(blocks
+            .iter()
+            .map(|b| mbox_block_to_email(b, email))
+            .collect())
     })
 }

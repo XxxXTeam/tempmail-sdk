@@ -1,22 +1,22 @@
 /*!
  * 临时邮箱 SDK (Rust)
- * 支持 24 个邮箱服务提供商，所有渠道返回统一标准化格式
+ * 支持 55 个邮箱服务提供商，所有渠道返回统一标准化格式
  */
 
-pub mod types;
+mod client;
+pub mod config;
 pub mod logger;
-pub mod retry;
 pub mod normalize;
 pub mod providers;
-pub mod config;
-mod client;
+pub mod retry;
 mod telemetry;
+pub mod types;
 mod version;
 
-pub use types::*;
 pub use client::*;
+pub use config::{block_on, get_config, get_current_ua, http_client, set_config, SDKConfig};
 pub use logger::{set_log_level, LogLevelFilter};
-pub use retry::with_retry;
 pub use normalize::normalize_email;
-pub use config::{SDKConfig, set_config, get_config, http_client, block_on, get_current_ua};
+pub use retry::with_retry;
+pub use types::*;
 pub use version::sdk_version;

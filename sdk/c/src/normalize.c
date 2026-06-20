@@ -113,6 +113,45 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
         }
     }
 
+    if ((!email.text || email.text[0] == '\0') && email.html && email.html[0] != '\0') {
+        size_t len = strlen(email.html);
+        char *text = (char*)malloc(len + 1);
+        if (text) {
+            int in_tag = 0;
+            size_t j = 0;
+            for (size_t i = 0; i < len; i++) {
+                char c = email.html[i];
+                if (c == '<') { in_tag = 1; text[j++] = ' '; continue; }
+                if (c == '>') { in_tag = 0; text[j++] = ' '; continue; }
+                if (!in_tag) text[j++] = c;
+            }
+            text[j] = '\0';
+            free(email.text);
+            email.text = text;
+        }
+    }
+
+    if (email.text && email.text[0] != '\0' && (!email.html || email.html[0] == '\0')) {
+        size_t len = strlen(email.text);
+        size_t cap = len * 6 + 38;
+        char *html = (char*)malloc(cap);
+        if (html) {
+            char *w = html;
+            w += sprintf(w, "<html><body><pre>");
+            for (size_t i = 0; i < len; i++) {
+                char c = email.text[i];
+                if (c == '&') { memcpy(w, "&amp;", 5); w += 5; }
+                else if (c == '<') { memcpy(w, "&lt;", 4); w += 4; }
+                else if (c == '>') { memcpy(w, "&gt;", 4); w += 4; }
+                else if (c == '"') { memcpy(w, "&quot;", 6); w += 6; }
+                else { *w++ = c; }
+            }
+            w += sprintf(w, "</pre></body></html>");
+            free(email.html);
+            email.html = html;
+        }
+    }
+
     /* Date（含数字型毫秒时间戳，如 ta-easy received_at） */
     email.date = tm_normalize_date_json(raw);
 

@@ -3,10 +3,10 @@
  * API: https://api-endpoint.ta-easy.com/temp-email/
  */
 
-use serde_json::Value;
-use crate::types::{Channel, EmailInfo, Email};
+use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua};
+use crate::types::{Channel, Email, EmailInfo};
+use serde_json::Value;
 
 const API_BASE: &str = "https://api-endpoint.ta-easy.com";
 const ORIGIN: &str = "https://www.ta-easy.com";
@@ -28,7 +28,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             return Err(format!("ta-easy generate failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
         if data["status"].as_str() != Some("success") {
             let msg = data["message"].as_str().unwrap_or("create failed");
             return Err(format!("ta-easy: {}", msg));
@@ -72,7 +75,10 @@ pub fn get_emails(email: &str, token: &str) -> Result<Vec<Email>, String> {
             return Err(format!("ta-easy inbox failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
         if data["status"].as_str() != Some("success") {
             let msg = data["message"].as_str().unwrap_or("inbox failed");
             return Err(format!("ta-easy: {}", msg));

@@ -14,63 +14,84 @@ from .retry import with_retry, with_retry_with_attempts
 from .telemetry import report_telemetry
 from .logger import get_logger
 from .providers import (
-    tempmail, tempmail_cn, tmpmails, ta_easy, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
+    tempmail, tempmail_cn, ta_easy, linshiyou, mffac, tempmail_lol, chatgpt_org_uk,
     awamail, mail_tm,
     dropmail, guerrillamail, maildrop, smail_pw,
-    boomlify, minmail, vip_215, anonbox, fake_legal, moakt, tenminute_one, etempmail,
-    twentyfourmail_chacuo, email10min, mjj_cm, mail_xiuvi, linshi_co,
+    vip_215, fake_legal, moakt, tenminute_one,
+    email10min, mjj_cm, linshi_co,
     harakirimail, tempmail_plus,
-    mail_gw, tempmail_lol_v2, guerrillamail_mirrors,
+    mail_gw, tempmail_lol_v2, guerrillamail_mirrors, temp_mail_io, mail_cx,
+    catchmail, mailforspam, tempmailo, tempmailc, mailnesia, throwawaymail, inboxkitten, getnada, mail123, one_sec_mail, fakemail, openinbox, inboxes, uncorreotemporal,
 )
 
 # 所有支持的渠道列表
 ALL_CHANNELS = [
-    "tempmail", "tempmail-cn", "tmpmails", "ta-easy", "10minute-one", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
-    "awamail", "mail-tm",
-    "dropmail", "guerrillamail", "maildrop", "smail-pw",
-    "boomlify", "minmail", "vip-215", "anonbox", "fake-legal", "moakt", "etempmail",
-    "24mail-chacuo", "email10min", "mjj-cm", "mail-xiuvi", "linshi-co",
-    "harakirimail",
-    "tempmail-plus",
-    "mail-gw", "tempmail-lol-v2", "sharklasers", "grr-la", "guerrillamail-info",
+    "tempmail", "tempmail-cn", "ta-easy", "10minute-one", "linshiyou", "mffac", "tempmail-lol", "chatgpt-org-uk",
+    "temp-mail-io", "mail-cx", "catchmail", "catchmail-mailistry", "catchmail-zeppost", "mailforspam", "mailforspam-tempmail-io", "mailforspam-disposable", "tempmailo", "tempmailc", "mailnesia", "throwawaymail", "inboxkitten", "getnada", "mail123", "1sec-mail", "fakemail", "openinbox", "inboxes", "uncorreotemporal",
+    "awamail", "mail-tm", "dropmail", "guerrillamail", "guerrillamail-com", "maildrop", "smail-pw",
+    "vip-215", "fake-legal", "moakt", "email10min", "mjj-cm", "linshi-co",
+    "harakirimail", "tempmail-plus",
+    "mail-gw", "tempmail-lol-v2", "sharklasers", "sharklasers-com", "grr-la", "grr-la-com", "guerrillamail-info", "spam4me",
+    "guerrillamail-net", "guerrillamail-org", "guerrillamailblock", "guerrillamail-com-www",
 ]
 
 # 渠道信息映射表
 CHANNEL_INFO_MAP = {
     "tempmail": ChannelInfo(channel="tempmail", name="TempMail", website="tempmail.ing"),
     "tempmail-cn": ChannelInfo(channel="tempmail-cn", name="TempMail CN", website="tempmail.cn"),
-    "tmpmails": ChannelInfo(channel="tmpmails", name="TmpMails", website="tmpmails.com"),
     "ta-easy": ChannelInfo(channel="ta-easy", name="TA Easy", website="ta-easy.com"),
     "10minute-one": ChannelInfo(channel="10minute-one", name="10 Minute Email", website="10minutemail.one"),
     "linshiyou": ChannelInfo(channel="linshiyou", name="临时邮", website="linshiyou.com"),
     "mffac": ChannelInfo(channel="mffac", name="MFFAC", website="mffac.com"),
     "tempmail-lol": ChannelInfo(channel="tempmail-lol", name="TempMail LOL", website="tempmail.lol"),
     "chatgpt-org-uk": ChannelInfo(channel="chatgpt-org-uk", name="ChatGPT Mail", website="mail.chatgpt.org.uk"),
+    "temp-mail-io": ChannelInfo(channel="temp-mail-io", name="Temp-Mail.io", website="temp-mail.io"),
+    "mail-cx": ChannelInfo(channel="mail-cx", name="Mail.cx", website="mail.cx"),
+    "catchmail": ChannelInfo(channel="catchmail", name="Catchmail", website="catchmail.io"),
+    "catchmail-mailistry": ChannelInfo(channel="catchmail-mailistry", name="Catchmail Mailistry", website="mailistry.com"),
+    "catchmail-zeppost": ChannelInfo(channel="catchmail-zeppost", name="Catchmail Zeppost", website="zeppost.com"),
+    "mailforspam": ChannelInfo(channel="mailforspam", name="MailForSpam", website="mailforspam.com"),
+    "mailforspam-tempmail-io": ChannelInfo(channel="mailforspam-tempmail-io", name="MailForSpam TempMail.io", website="tempmail.io"),
+    "mailforspam-disposable": ChannelInfo(channel="mailforspam-disposable", name="MailForSpam Disposable", website="disposable.email"),
+    "tempmailo": ChannelInfo(channel="tempmailo", name="Tempmailo", website="tempmailo.com"),
+    "tempmailc": ChannelInfo(channel="tempmailc", name="TempMailC", website="tempmailc.com"),
+    "mailnesia": ChannelInfo(channel="mailnesia", name="Mailnesia", website="mailnesia.com"),
+    "throwawaymail": ChannelInfo(channel="throwawaymail", name="ThrowawayMail", website="throwawaymail.app"),
+    "inboxkitten": ChannelInfo(channel="inboxkitten", name="InboxKitten", website="inboxkitten.com"),
+    "getnada": ChannelInfo(channel="getnada", name="GetNada", website="getnada.net"),
+    "mail123": ChannelInfo(channel="mail123", name="Mail123", website="mail123.fr"),
+    "1sec-mail": ChannelInfo(channel="1sec-mail", name="1SecMail", website="1sec-mail.com"),
+    "fakemail": ChannelInfo(channel="fakemail", name="FakeMail", website="fakemail.net"),
+    "openinbox": ChannelInfo(channel="openinbox", name="OpenInbox", website="openinbox.io"),
+    "inboxes": ChannelInfo(channel="inboxes", name="Inboxes", website="inboxes.com"),
+    "uncorreotemporal": ChannelInfo(channel="uncorreotemporal", name="UnCorreoTemporal", website="uncorreotemporal.com"),
     "awamail": ChannelInfo(channel="awamail", name="AwaMail", website="awamail.com"),
     "mail-tm": ChannelInfo(channel="mail-tm", name="Mail.tm", website="mail.tm"),
     "dropmail": ChannelInfo(channel="dropmail", name="DropMail", website="dropmail.me"),
     "guerrillamail": ChannelInfo(channel="guerrillamail", name="Guerrilla Mail", website="guerrillamail.com"),
+    "guerrillamail-com": ChannelInfo(channel="guerrillamail-com", name="GuerrillaMail Root", website="guerrillamail.com"),
     "maildrop": ChannelInfo(channel="maildrop", name="Maildrop", website="maildrop.cx"),
     "smail-pw": ChannelInfo(channel="smail-pw", name="Smail.pw", website="smail.pw"),
-    "boomlify": ChannelInfo(channel="boomlify", name="Boomlify", website="boomlify.com"),
-    "minmail": ChannelInfo(channel="minmail", name="MinMail", website="minmail.app"),
     "vip-215": ChannelInfo(channel="vip-215", name="VIP 215", website="vip.215.im"),
-    "anonbox": ChannelInfo(channel="anonbox", name="Anonbox", website="anonbox.net"),
     "fake-legal": ChannelInfo(channel="fake-legal", name="Fake Legal", website="fake.legal"),
     "moakt": ChannelInfo(channel="moakt", name="Moakt", website="moakt.com"),
-    "etempmail": ChannelInfo(channel="etempmail", name="eTempMail", website="etempmail.com"),
-    "24mail-chacuo": ChannelInfo(channel="24mail-chacuo", name="24Mail Chacuo", website="24mail.chacuo.net"),
     "email10min": ChannelInfo(channel="email10min", name="Email10Min", website="email10min.com"),
     "mjj-cm": ChannelInfo(channel="mjj-cm", name="MJJ Mail", website="mjj.cm"),
-    "mail-xiuvi": ChannelInfo(channel="mail-xiuvi", name="Xiuvi Mail", website="mail.xiuvi.cn"),
     "linshi-co": ChannelInfo(channel="linshi-co", name="临时Co", website="linshi.co"),
     "harakirimail": ChannelInfo(channel="harakirimail", name="HarakiriMail", website="harakirimail.com"),
     "tempmail-plus": ChannelInfo(channel="tempmail-plus", name="TempMail Plus", website="tempmail.plus"),
     "mail-gw": ChannelInfo(channel="mail-gw", name="Mail.gw", website="mail.gw"),
     "tempmail-lol-v2": ChannelInfo(channel="tempmail-lol-v2", name="TempMail LOL V2", website="tempmail.lol"),
     "sharklasers": ChannelInfo(channel="sharklasers", name="SharkLasers", website="sharklasers.com"),
+    "sharklasers-com": ChannelInfo(channel="sharklasers-com", name="SharkLasers Root", website="sharklasers.com"),
     "grr-la": ChannelInfo(channel="grr-la", name="Grr.la", website="grr.la"),
+    "grr-la-com": ChannelInfo(channel="grr-la-com", name="Grr.la Root", website="grr.la"),
     "guerrillamail-info": ChannelInfo(channel="guerrillamail-info", name="GuerrillaMail Info", website="guerrillamail.info"),
+    "spam4me": ChannelInfo(channel="spam4me", name="Spam4.me", website="spam4.me"),
+    "guerrillamail-net": ChannelInfo(channel="guerrillamail-net", name="GuerrillaMail Net", website="guerrillamail.net"),
+    "guerrillamail-org": ChannelInfo(channel="guerrillamail-org", name="GuerrillaMail Org", website="guerrillamail.org"),
+    "guerrillamailblock": ChannelInfo(channel="guerrillamailblock", name="GuerrillaMailBlock", website="guerrillamailblock.com"),
+    "guerrillamail-com-www": ChannelInfo(channel="guerrillamail-com-www", name="GuerrillaMail WWW", website="guerrillamail.com"),
 }
 
 
@@ -82,6 +103,11 @@ def list_channels() -> List[ChannelInfo]:
 def get_channel_info(channel: str) -> Optional[ChannelInfo]:
     """获取指定渠道的详细信息"""
     return CHANNEL_INFO_MAP.get(channel)
+
+
+def _with_channel(info: EmailInfo, channel: str) -> EmailInfo:
+    info.channel = channel
+    return info
 
 
 def generate_email(options: Optional[GenerateEmailOptions] = None) -> Optional[EmailInfo]:
@@ -150,8 +176,6 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return tempmail.generate_email(options.duration)
     elif channel == "tempmail-cn":
         return tempmail_cn.generate_email(options.domain)
-    elif channel == "tmpmails":
-        return tmpmails.generate_email(options.domain)
     elif channel == "ta-easy":
         return ta_easy.generate_email()
     elif channel == "10minute-one":
@@ -164,6 +188,46 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return tempmail_lol.generate_email(options.domain)
     elif channel == "chatgpt-org-uk":
         return chatgpt_org_uk.generate_email()
+    elif channel == "temp-mail-io":
+        return temp_mail_io.generate_email()
+    elif channel == "mail-cx":
+        return mail_cx.generate_email(options.domain)
+    elif channel == "catchmail":
+        return catchmail.generate_email(options.domain)
+    elif channel == "catchmail-mailistry":
+        return _with_channel(catchmail.generate_email("mailistry.com"), "catchmail-mailistry")
+    elif channel == "catchmail-zeppost":
+        return _with_channel(catchmail.generate_email("zeppost.com"), "catchmail-zeppost")
+    elif channel == "mailforspam":
+        return mailforspam.generate_email(options.domain)
+    elif channel == "mailforspam-tempmail-io":
+        return _with_channel(mailforspam.generate_email("tempmail.io"), "mailforspam-tempmail-io")
+    elif channel == "mailforspam-disposable":
+        return _with_channel(mailforspam.generate_email("disposable.email"), "mailforspam-disposable")
+    elif channel == "tempmailo":
+        return tempmailo.generate_email()
+    elif channel == "tempmailc":
+        return tempmailc.generate_email()
+    elif channel == "mailnesia":
+        return mailnesia.generate_email()
+    elif channel == "throwawaymail":
+        return throwawaymail.generate_email()
+    elif channel == "inboxkitten":
+        return inboxkitten.generate_email()
+    elif channel == "getnada":
+        return getnada.generate_email()
+    elif channel == "mail123":
+        return mail123.generate_email()
+    elif channel == "1sec-mail":
+        return one_sec_mail.generate_email()
+    elif channel == "fakemail":
+        return fakemail.generate_email()
+    elif channel == "openinbox":
+        return openinbox.generate_email()
+    elif channel == "inboxes":
+        return inboxes.generate_email(options.domain)
+    elif channel == "uncorreotemporal":
+        return uncorreotemporal.generate_email()
     elif channel == "awamail":
         return awamail.generate_email()
     elif channel == "mail-tm":
@@ -172,32 +236,22 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return dropmail.generate_email()
     elif channel == "guerrillamail":
         return guerrillamail.generate_email()
+    elif channel == "guerrillamail-com":
+        return guerrillamail_mirrors.guerrillamail_com_generate()
     elif channel == "maildrop":
         return maildrop.generate_email(options.domain)
     elif channel == "smail-pw":
         return smail_pw.generate_email()
-    elif channel == "boomlify":
-        return boomlify.generate_email()
-    elif channel == "minmail":
-        return minmail.generate_email()
     elif channel == "vip-215":
         return vip_215.generate_email()
-    elif channel == "anonbox":
-        return anonbox.generate_email()
     elif channel == "fake-legal":
         return fake_legal.generate_email(options.domain)
     elif channel == "moakt":
         return moakt.generate_email(options.domain)
-    elif channel == "etempmail":
-        return etempmail.generate_email()
-    elif channel == "24mail-chacuo":
-        return twentyfourmail_chacuo.generate_email()
     elif channel == "email10min":
         return email10min.generate_email()
     elif channel == "mjj-cm":
         return mjj_cm.generate_email()
-    elif channel == "mail-xiuvi":
-        return mail_xiuvi.generate_email()
     elif channel == "linshi-co":
         return linshi_co.generate_email()
     elif channel == "harakirimail":
@@ -210,10 +264,24 @@ def _generate_email_once(channel: str, options: GenerateEmailOptions) -> EmailIn
         return tempmail_lol_v2.generate_email()
     elif channel == "sharklasers":
         return guerrillamail_mirrors.sharklasers_generate()
+    elif channel == "sharklasers-com":
+        return guerrillamail_mirrors.sharklasers_com_generate()
     elif channel == "grr-la":
         return guerrillamail_mirrors.grrla_generate()
+    elif channel == "grr-la-com":
+        return guerrillamail_mirrors.grrla_com_generate()
     elif channel == "guerrillamail-info":
         return guerrillamail_mirrors.guerrillamail_info_generate()
+    elif channel == "spam4me":
+        return guerrillamail_mirrors.spam4me_generate()
+    elif channel == "guerrillamail-net":
+        return guerrillamail_mirrors.guerrillamail_net_generate()
+    elif channel == "guerrillamail-org":
+        return guerrillamail_mirrors.guerrillamail_org_generate()
+    elif channel == "guerrillamailblock":
+        return guerrillamail_mirrors.guerrillamailblock_generate()
+    elif channel == "guerrillamail-com-www":
+        return guerrillamail_mirrors.guerrillamail_com_www_generate()
     else:
         raise ValueError(f"Unknown channel: {channel}")
 
@@ -280,10 +348,6 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         return tempmail.get_emails(email)
     elif channel == "tempmail-cn":
         return tempmail_cn.get_emails(email)
-    elif channel == "tmpmails":
-        if not token:
-            raise ValueError("token is required for tmpmails channel")
-        return tmpmails.get_emails(email, token)
     elif channel == "ta-easy":
         if not token:
             raise ValueError("token is required for ta-easy channel")
@@ -302,6 +366,62 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for chatgpt-org-uk channel")
         return chatgpt_org_uk.get_emails(token, email)
+    elif channel == "temp-mail-io":
+        return temp_mail_io.get_emails(email)
+    elif channel == "mail-cx":
+        if not token:
+            raise ValueError("token is required for mail-cx channel")
+        return mail_cx.get_emails(token, email)
+    elif channel == "catchmail":
+        return catchmail.get_emails(email)
+    elif channel == "catchmail-mailistry":
+        return catchmail.get_emails(email)
+    elif channel == "catchmail-zeppost":
+        return catchmail.get_emails(email)
+    elif channel == "mailforspam":
+        return mailforspam.get_emails(email)
+    elif channel == "mailforspam-tempmail-io":
+        return mailforspam.get_emails(email)
+    elif channel == "mailforspam-disposable":
+        return mailforspam.get_emails(email)
+    elif channel == "tempmailo":
+        if not token:
+            raise ValueError("token is required for tempmailo channel")
+        return tempmailo.get_emails(token, email)
+    elif channel == "tempmailc":
+        return tempmailc.get_emails(email)
+    elif channel == "mailnesia":
+        return mailnesia.get_emails(email)
+    elif channel == "throwawaymail":
+        if not token:
+            raise ValueError("token is required for throwawaymail channel")
+        return throwawaymail.get_emails(token, email)
+    elif channel == "inboxkitten":
+        return inboxkitten.get_emails(email)
+    elif channel == "getnada":
+        if not token:
+            raise ValueError("token is required for getnada channel")
+        return getnada.get_emails(token, email)
+    elif channel == "mail123":
+        return mail123.get_emails(email)
+    elif channel == "1sec-mail":
+        if not token:
+            raise ValueError("token is required for 1sec-mail channel")
+        return one_sec_mail.get_emails(token, email)
+    elif channel == "fakemail":
+        if not token:
+            raise ValueError("token is required for fakemail channel")
+        return fakemail.get_emails(token, email)
+    elif channel == "openinbox":
+        if not token:
+            raise ValueError("token is required for openinbox channel")
+        return openinbox.get_emails(token, email)
+    elif channel == "inboxes":
+        return inboxes.get_emails(email)
+    elif channel == "uncorreotemporal":
+        if not token:
+            raise ValueError("token is required for uncorreotemporal channel")
+        return uncorreotemporal.get_emails(token, email)
     elif channel == "awamail":
         if not token:
             raise ValueError("token is required for awamail channel")
@@ -318,6 +438,10 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for guerrillamail channel")
         return guerrillamail.get_emails(token, email)
+    elif channel == "guerrillamail-com":
+        if not token:
+            raise ValueError("token is required for guerrillamail-com channel")
+        return guerrillamail_mirrors.guerrillamail_com_get_emails(token, email)
     elif channel == "maildrop":
         if not token:
             raise ValueError("token is required for maildrop channel")
@@ -326,44 +450,26 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for smail-pw channel")
         return smail_pw.get_emails(token, email)
-    elif channel == "boomlify":
-        return boomlify.get_emails(email)
-    elif channel == "minmail":
-        if not token:
-            raise ValueError("token is required for minmail channel")
-        return minmail.get_emails(email, token)
     elif channel == "vip-215":
         if not token:
             raise ValueError("token is required for vip-215 channel")
         return vip_215.get_emails(token, email)
-    elif channel == "anonbox":
-        if not token:
-            raise ValueError("token is required for anonbox channel")
-        return anonbox.get_emails(token, email)
     elif channel == "fake-legal":
         return fake_legal.get_emails(email)
     elif channel == "moakt":
         if not token:
             raise ValueError("token is required for moakt channel")
         return moakt.get_emails(email, token)
-    elif channel == "etempmail":
-        if not token:
-            raise ValueError("token is required for etempmail channel")
-        return etempmail.get_emails(email, token)
     elif channel == "10minute-one":
         if not token:
             raise ValueError("token is required for 10minute-one channel")
         return tenminute_one.get_emails(email, token)
-    elif channel == "24mail-chacuo":
-        return twentyfourmail_chacuo.get_emails(email)
     elif channel == "email10min":
         if not token:
             raise ValueError("token is required for email10min channel")
         return email10min.get_emails(email, token)
     elif channel == "mjj-cm":
         return mjj_cm.get_emails(email)
-    elif channel == "mail-xiuvi":
-        return mail_xiuvi.get_emails(email)
     elif channel == "linshi-co":
         return linshi_co.get_emails(email)
     elif channel == "harakirimail":
@@ -382,14 +488,42 @@ def _get_emails_once(channel: str, email: str, token: Optional[str]) -> List[Ema
         if not token:
             raise ValueError("token is required for sharklasers channel")
         return guerrillamail_mirrors.sharklasers_get_emails(token, email)
+    elif channel == "sharklasers-com":
+        if not token:
+            raise ValueError("token is required for sharklasers-com channel")
+        return guerrillamail_mirrors.sharklasers_com_get_emails(token, email)
     elif channel == "grr-la":
         if not token:
             raise ValueError("token is required for grr-la channel")
         return guerrillamail_mirrors.grrla_get_emails(token, email)
+    elif channel == "grr-la-com":
+        if not token:
+            raise ValueError("token is required for grr-la-com channel")
+        return guerrillamail_mirrors.grrla_com_get_emails(token, email)
     elif channel == "guerrillamail-info":
         if not token:
             raise ValueError("token is required for guerrillamail-info channel")
         return guerrillamail_mirrors.guerrillamail_info_get_emails(token, email)
+    elif channel == "spam4me":
+        if not token:
+            raise ValueError("token is required for spam4me channel")
+        return guerrillamail_mirrors.spam4me_get_emails(token, email)
+    elif channel == "guerrillamail-net":
+        if not token:
+            raise ValueError("token is required for guerrillamail-net channel")
+        return guerrillamail_mirrors.guerrillamail_net_get_emails(token, email)
+    elif channel == "guerrillamail-org":
+        if not token:
+            raise ValueError("token is required for guerrillamail-org channel")
+        return guerrillamail_mirrors.guerrillamail_org_get_emails(token, email)
+    elif channel == "guerrillamailblock":
+        if not token:
+            raise ValueError("token is required for guerrillamailblock channel")
+        return guerrillamail_mirrors.guerrillamailblock_get_emails(token, email)
+    elif channel == "guerrillamail-com-www":
+        if not token:
+            raise ValueError("token is required for guerrillamail-com-www channel")
+        return guerrillamail_mirrors.guerrillamail_com_www_get_emails(token, email)
     else:
         raise ValueError(f"Unknown channel: {channel}")
 

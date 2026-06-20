@@ -372,9 +372,11 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
   async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
     const host = normalizeHost(domain);
     const shortid = await requestShortId(host);
+    const email = `${shortid}@${host}`;
+    await ensureMailbox(email);
     return {
       channel,
-      email: `${shortid}@${host}`,
+      email,
     };
   }
 

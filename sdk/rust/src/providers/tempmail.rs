@@ -2,10 +2,10 @@
  * tempmail.ing 渠道实现
  */
 
-use serde_json::Value;
-use crate::types::{Channel, EmailInfo, Email};
+use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
-use crate::config::{http_client, block_on, get_current_ua};
+use crate::types::{Channel, Email, EmailInfo};
+use serde_json::Value;
 
 const BASE_URL: &str = "https://api.tempmail.ing/api";
 
@@ -18,14 +18,18 @@ pub fn generate_email(duration: u32) -> Result<EmailInfo, String> {
             .header("Referer", "https://tempmail.ing/")
             .header("DNT", "1")
             .json(&serde_json::json!({"duration": duration}))
-            .send().await
+            .send()
+            .await
             .map_err(|e| format!("tempmail request failed: {}", e))?;
 
         if !resp.status().is_success() {
             return Err(format!("tempmail generate failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
 
         if !data["success"].as_bool().unwrap_or(false) {
             return Err("Failed to generate email".into());
@@ -45,28 +49,41 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     let email = email.to_string();
     block_on(async {
         let resp = http_client()
-            .get(format!("{}/emails/{}", BASE_URL, urlencoding::encode(&email)))
+            .get(format!(
+                "{}/emails/{}",
+                BASE_URL,
+                urlencoding::encode(&email)
+            ))
             .header("User-Agent", get_current_ua())
             .header("Referer", "https://tempmail.ing/")
             .header("DNT", "1")
-            .send().await
+            .send()
+            .await
             .map_err(|e| format!("tempmail request failed: {}", e))?;
 
         if !resp.status().is_success() {
             return Err(format!("tempmail get emails failed: {}", resp.status()));
         }
 
-        let data: Value = resp.json().await.map_err(|e| format!("parse failed: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
 
         if !data["success"].as_bool().unwrap_or(false) {
             return Err("Failed to get emails".into());
         }
 
-        let emails = data["emails"].as_array()
-            .map(|arr| arr.iter().map(|raw| {
-                let flat = flatten_message(raw, &email);
-                normalize_email(&flat, &email)
-            }).collect())
+        let emails = data["emails"]
+            .as_array()
+            .map(|arr| {
+                arr.iter()
+                    .map(|raw| {
+                        let flat = flatten_message(raw, &email);
+                        normalize_email(&flat, &email)
+                    })
+                    .collect()
+            })
             .unwrap_or_default();
 
         Ok(emails)

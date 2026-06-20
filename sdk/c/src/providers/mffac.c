@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MF_BASE "https://www.mffac.com/api"
 
@@ -65,6 +66,78 @@ static void mf_local_part(const char *email, char *out, size_t cap) {
         strncpy(out, email, cap - 1);
         out[cap - 1] = '\0';
     }
+}
+
+static char *mf_received_at_to_iso(const cJSON *item) {
+    if (!cJSON_IsNumber(item) || item->valuedouble <= 0) return tm_strdup("");
+    time_t sec = (time_t)(item->valuedouble + 0.5);
+    char buf[48];
+    struct tm tmu;
+#ifdef _WIN32
+    if (gmtime_s(&tmu, &sec) != 0) memset(&tmu, 0, sizeof(tmu));
+#else
+    gmtime_r(&sec, &tmu);
+#endif
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tmu);
+    return tm_strdup(buf);
+}
+
+static cJSON *mf_fetch_detail(const char *id) {
+    if (!id || !id[0]) return NULL;
+    char *esc = mf_escape(id);
+    if (!esc) return NULL;
+
+    char url[640];
+    snprintf(url, sizeof(url), "%s/emails/%s", MF_BASE, esc);
+    free(esc);
+
+    tm_http_response_t *resp = tm_http_request(TM_HTTP_GET, url, mf_get_headers, NULL, 15);
+    if (!resp || resp->status < 200 || resp->status >= 300) {
+        tm_http_response_free(resp);
+        return NULL;
+    }
+
+    cJSON *root = cJSON_Parse(resp->body);
+    tm_http_response_free(resp);
+    if (!root) return NULL;
+
+    const cJSON *ok = cJSON_GetObjectItemCaseSensitive(root, "success");
+    cJSON *email = cJSON_GetObjectItemCaseSensitive(root, "email");
+    if (!cJSON_IsBool(ok) || !cJSON_IsTrue(ok) || !cJSON_IsObject(email)) {
+        cJSON_Delete(root);
+        return NULL;
+    }
+
+    cJSON *copy = cJSON_Duplicate(email, 1);
+    cJSON_Delete(root);
+    return copy;
+}
+
+static cJSON *mf_flatten_email(const cJSON *raw, const char *recipient) {
+    cJSON *flat = cJSON_CreateObject();
+    if (!flat) return NULL;
+
+    cJSON *id = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "id");
+    cJSON *from = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "fromAddress");
+    cJSON *to = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "toAddress");
+    cJSON *subject = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "subject");
+    cJSON *text = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "textContent");
+    cJSON *html = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "htmlContent");
+    cJSON *received_at = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "receivedAt");
+    cJSON *is_read = cJSON_GetObjectItemCaseSensitive((cJSON*)raw, "isRead");
+
+    char *date = mf_received_at_to_iso(received_at);
+    cJSON_AddStringToObject(flat, "id", TM_JSON_STR(id, ""));
+    cJSON_AddStringToObject(flat, "from", TM_JSON_STR(from, ""));
+    cJSON_AddStringToObject(flat, "to", TM_JSON_STR(to, recipient));
+    cJSON_AddStringToObject(flat, "subject", TM_JSON_STR(subject, ""));
+    cJSON_AddStringToObject(flat, "text", TM_JSON_STR(text, ""));
+    cJSON_AddStringToObject(flat, "html", TM_JSON_STR(html, ""));
+    cJSON_AddStringToObject(flat, "date", date ? date : "");
+    cJSON_AddBoolToObject(flat, "isRead", cJSON_IsBool(is_read) ? cJSON_IsTrue(is_read) : 0);
+    cJSON_AddItemToObject(flat, "attachments", cJSON_CreateArray());
+    free(date);
+    return flat;
 }
 
 tm_email_info_t *tm_provider_mffac_generate(void) {
@@ -161,7 +234,12 @@ tm_email_t *tm_provider_mffac_get_emails(const char *token, const char *email, i
 
     for (int i = 0; i < n; i++) {
         cJSON *raw = cJSON_GetArrayItem(arr, i);
-        emails[i] = tm_normalize_email(raw, email);
+        const char *id = TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(raw, "id"), "");
+        cJSON *detail = id[0] ? mf_fetch_detail(id) : NULL;
+        cJSON *flat = mf_flatten_email(detail ? detail : raw, email);
+        emails[i] = tm_normalize_email(flat ? flat : raw, email);
+        if (flat) cJSON_Delete(flat);
+        if (detail) cJSON_Delete(detail);
     }
     cJSON_Delete(root);
     return emails;

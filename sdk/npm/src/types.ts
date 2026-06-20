@@ -2,7 +2,7 @@
  * 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商
  */
-export type Channel = 'tempmail' | 'tempmail-cn' | 'tmpmails' | 'ta-easy' | '10minute-one' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'awamail' | 'mail-tm' | 'dropmail' | 'guerrillamail' | 'maildrop' | 'smail-pw' | 'boomlify' | 'minmail' | 'vip-215' | 'anonbox' | 'fake-legal' | 'moakt' | 'etempmail' | '24mail-chacuo' | 'email10min' | 'mjj-cm' | 'mail-xiuvi' | 'linshi-co' | 'harakirimail' | 'tempmail-plus' | 'mail-gw' | 'tempmail-lol-v2' | 'sharklasers' | 'grr-la' | 'guerrillamail-info';
+export type Channel = 'tempmail' | 'tempmail-cn' | 'ta-easy' | '10minute-one' | 'linshiyou' | 'mffac' | 'tempmail-lol' | 'chatgpt-org-uk' | 'temp-mail-io' | 'mail-cx' | 'catchmail' | 'catchmail-mailistry' | 'catchmail-zeppost' | 'mailforspam' | 'mailforspam-tempmail-io' | 'mailforspam-disposable' | 'tempmailo' | 'tempmailc' | 'mailnesia' | 'throwawaymail' | 'inboxkitten' | 'getnada' | 'mail123' | '1sec-mail' | 'fakemail' | 'openinbox' | 'inboxes' | 'uncorreotemporal' | 'awamail' | 'mail-tm' | 'dropmail' | 'guerrillamail' | 'guerrillamail-com' | 'maildrop' | 'smail-pw' | 'vip-215' | 'fake-legal' | 'moakt' | 'email10min' | 'mjj-cm' | 'linshi-co' | 'harakirimail' | 'tempmail-plus' | 'mail-gw' | 'tempmail-lol-v2' | 'sharklasers' | 'sharklasers-com' | 'grr-la' | 'grr-la-com' | 'guerrillamail-info' | 'spam4me' | 'guerrillamail-net' | 'guerrillamail-org' | 'guerrillamailblock' | 'guerrillamail-com-www';
 
 /**
  * 创建临时邮箱后返回的邮箱信息

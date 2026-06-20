@@ -1,4 +1,4 @@
-import { generateEmail, getEmails, TempEmailClient, Channel } from '../src';
+import { generateEmail, getEmails, TempEmailClient, Channel, listChannels } from '../src';
 import nodemailer from 'nodemailer';
 
 type SmtpConfig = {
@@ -157,20 +157,8 @@ async function pollForEmail(client: TempEmailClient, marker: string): Promise<bo
 async function testGenerateEmail() {
   console.log('=== Test Generate Email ===\n');
 
-  // Test each channel（与 src/index.ts allChannels 一致）
-  const channels: Channel[] = [
-    'tempmail',
-    'linshi-email',
-    'tempmail-lol',
-    'chatgpt-org-uk',
-    'temp-mail-io',
-    'awamail',
-    'mail-tm',
-    'dropmail',
-    'guerrillamail',
-    'maildrop',
-    'smail-pw',
-  ];
+  // 与 src/index.ts allChannels 一致
+  const channels: Channel[] = listChannels().map((info) => info.channel);
 
   for (const channel of channels) {
     try {
