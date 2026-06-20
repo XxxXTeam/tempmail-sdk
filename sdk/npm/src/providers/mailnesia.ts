@@ -1,6 +1,7 @@
 import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 import { fetchWithTimeout } from '../retry';
+import { decodeHtmlEntitiesOnce, htmlToText } from '../html';
 
 const CHANNEL: Channel = 'mailnesia';
 const BASE_URL = 'https://mailnesia.com';
@@ -13,20 +14,8 @@ function randomLocal(): string {
   return out;
 }
 
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-}
-
 function cleanHtmlText(raw: string): string {
-  return decodeHtmlEntities(raw.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+  return htmlToText(raw);
 }
 
 function localPart(email: string): string {
@@ -95,7 +84,7 @@ function extractDivById(page: string, id: string, nextId?: string): string {
 function parsePlain(page: string, id: string): string {
   const re = new RegExp(`<div\\s+id="text_plain_${id}"[^>]*>\\s*<pre>([\\s\\S]*?)<\\/pre>\\s*<\\/div>`, 'i');
   const m = page.match(re);
-  return m ? decodeHtmlEntities(m[1]).trim() : '';
+  return m ? decodeHtmlEntitiesOnce(m[1]).trim() : '';
 }
 
 async function fetchDetail(local: string, row: Record<string, unknown>): Promise<Record<string, unknown>> {

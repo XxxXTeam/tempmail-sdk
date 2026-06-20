@@ -11,6 +11,10 @@ const CONNECT_TIMEOUT_MS = 15000;
 const HANDSHAKE_WAIT_MS = 1000;
 const INITIAL_SYNC_WAIT_MS = 80;
 const SOCKET_IO_VERSIONS = [4, 3];
+const SOCKET_HOST_BY_CHANNEL: Partial<Record<Channel, string>> = {
+  'mjj-cm': 'mjj.cm',
+  'linshi-co': 'linshi.co',
+};
 
 const DEFAULT_HEADERS: Record<string, string> = {
   'User-Agent':
@@ -42,6 +46,26 @@ function socketHeaders(host: string): Record<string, string> {
     Origin: `https://${host}`,
     Referer: `https://${host}/`,
   };
+}
+
+function hostFromInput(value: string): string {
+  let host = value.trim();
+  if (/^https?:\/\//i.test(host)) {
+    host = new URL(host).host;
+  } else if (host.includes('/')) {
+    host = new URL(`https://${host}`).host;
+  }
+  const at = host.lastIndexOf('@');
+  if (at >= 0) host = host.slice(at + 1);
+  return host.replace(/^\.+|\.+$/g, '').toLowerCase();
+}
+
+function fixedSocketHost(channel: Channel, defaultHost: string): string {
+  const expected = SOCKET_HOST_BY_CHANNEL[channel];
+  if (!expected || expected !== defaultHost) {
+    throw new Error(`${channel}: unsupported Socket.IO host`);
+  }
+  return expected;
 }
 
 function sendEvent(ws: WebSocket, event: string, payload: unknown): void {
@@ -95,6 +119,7 @@ function flattenMail(raw: any, recipientEmail: string): any {
  * @param defaultHost - 默认服务主机名
  */
 export function createSocketIoMailProvider(channel: Channel, defaultHost: string) {
+  const fixedHost = fixedSocketHost(channel, defaultHost);
   const mailboxes = new Map<string, BoxState>();
 
   function getState(email: string): BoxState {
@@ -110,30 +135,18 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
   function normalizeHost(domain?: string | null): string {
     const raw = String(domain || '').trim();
     if (!raw) {
-      return defaultHost;
+      return fixedHost;
     }
 
-    let host = raw;
-    if (/^https?:\/\//i.test(host)) {
-      try {
-        host = new URL(host).host;
-      } catch {
-        host = raw;
+    try {
+      const host = hostFromInput(raw);
+      if (host === fixedHost) {
+        return fixedHost;
       }
-    } else if (host.includes('/')) {
-      try {
-        host = new URL(`https://${host}`).host;
-      } catch {
-        host = host.split('/')[0];
-      }
+    } catch {
+      /* fall through to the fixed-host rejection below */
     }
-
-    host = host.replace(/^\.+|\.+$/g, '');
-    const at = host.lastIndexOf('@');
-    if (at >= 0) {
-      host = host.slice(at + 1);
-    }
-    return host || defaultHost;
+    throw new Error(`${channel}: host must be ${fixedHost}`);
   }
 
   function splitAddress(email: string): { local: string; host: string } {
@@ -149,14 +162,15 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
   }
 
   async function connectSocket(host: string): Promise<WebSocket> {
+    normalizeHost(host);
     let lastError: Error | null = null;
 
     for (const version of SOCKET_IO_VERSIONS) {
       try {
         return await new Promise<WebSocket>((resolve, reject) => {
-          const ws = new WebSocket(socketUrl(host, version), {
+          const ws = new WebSocket(socketUrl(fixedHost, version), {
             handshakeTimeout: CONNECT_TIMEOUT_MS,
-            headers: socketHeaders(host),
+            headers: socketHeaders(fixedHost),
           });
 
           let timer: NodeJS.Timeout | undefined;

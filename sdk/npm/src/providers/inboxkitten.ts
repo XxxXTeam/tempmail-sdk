@@ -1,6 +1,7 @@
 import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 import { fetchWithTimeout } from '../retry';
+import { htmlToText } from '../html';
 
 const CHANNEL: Channel = 'inboxkitten';
 const API_BASE = 'https://inboxkitten.com/api/v1/mail';
@@ -36,24 +37,6 @@ function randomLocal(): string {
   let out = 'sdk';
   for (let i = 0; i < 16; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
-}
-
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-}
-
-function htmlToText(html: string): string {
-  return decodeHtmlEntities(html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 function localPart(email: string): string {

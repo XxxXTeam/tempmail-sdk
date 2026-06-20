@@ -4,6 +4,7 @@ import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'getnada';
 const API_BASE = 'https://getnada.net/api';
+const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
 
 interface DomainsResponse {
   domains?: string[];
@@ -59,8 +60,16 @@ function flattenMessage(raw: Record<string, unknown>, recipient: string): Record
 
 async function pickDomain(): Promise<string> {
   const data = await fetchJSON<DomainsResponse>(`${API_BASE}/public/domains`);
-  const domains = Array.isArray(data.domains) ? data.domains : [];
-  return domains.includes('getnada.net') ? 'getnada.net' : String(domains[0] || '').trim();
+  const domains = (Array.isArray(data.domains) ? data.domains : [])
+    .map((domain) => String(domain || '').trim().toLowerCase())
+    .filter(isMailDomain);
+  return domains.find((domain) => domain === 'getnada.net') ?? domains[0] ?? '';
+}
+
+function isMailDomain(domain: string): boolean {
+  if (!domain || domain.length > 253 || domain.includes('..')) return false;
+  const labels = domain.split('.');
+  return labels.length >= 2 && labels.every((label) => DOMAIN_LABEL_RE.test(label));
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {

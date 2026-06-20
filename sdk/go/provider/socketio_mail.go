@@ -22,6 +22,12 @@ const (
 
 var sioVersions = []int{4, 3}
 
+var sioHosts = map[string]string{
+	"mjj-cm":     "mjj.cm",
+	"mail-xiuvi": "mail.xiuvi.cn",
+	"linshi-co":  "linshi.co",
+}
+
 type sioBoxState struct {
 	mu      sync.Mutex
 	emails  []NormEmail
@@ -39,15 +45,30 @@ type sioProvider struct {
 }
 
 func newSioProvider(channel, defaultHost string) *sioProvider {
+	fixedHost, ok := sioHosts[channel]
+	if !ok || fixedHost != defaultHost {
+		panic(fmt.Sprintf("%s: unsupported Socket.IO host", channel))
+	}
 	return &sioProvider{
 		channel:     channel,
-		defaultHost: defaultHost,
+		defaultHost: fixedHost,
 		mailboxes:   make(map[string]*sioBoxState),
 	}
 }
 
 func sioSocketURL(host string, eio int) string {
 	return fmt.Sprintf("wss://%s/socket.io/?EIO=%d&transport=websocket", host, eio)
+}
+
+func (p *sioProvider) safeHost(host string) (string, error) {
+	value := strings.Trim(strings.ToLower(strings.TrimSpace(host)), ".")
+	if value == "" {
+		return p.defaultHost, nil
+	}
+	if value != strings.ToLower(p.defaultHost) {
+		return "", fmt.Errorf("%s: host must be %s", p.channel, p.defaultHost)
+	}
+	return p.defaultHost, nil
 }
 
 func sioParseEventPacket(packet string) (event string, payload json.RawMessage, ok bool) {
@@ -75,6 +96,10 @@ func sioSendEvent(ws *websocket.Conn, event string, payload interface{}) error {
 }
 
 func (p *sioProvider) connectSocket(host string) (*websocket.Conn, error) {
+	safeHost, err := p.safeHost(host)
+	if err != nil {
+		return nil, err
+	}
 	var lastErr error
 	dialer := websocket.Dialer{
 		HandshakeTimeout: sioConnectTimeout,
@@ -85,11 +110,11 @@ func (p *sioProvider) connectSocket(host string) (*websocket.Conn, error) {
 		"Cache-Control":   {"no-cache"},
 		"DNT":             {"1"},
 		"Pragma":          {"no-cache"},
-		"Origin":          {fmt.Sprintf("https://%s", host)},
+		"Origin":          {fmt.Sprintf("https://%s", safeHost)},
 	}
 
 	for _, version := range sioVersions {
-		url := sioSocketURL(host, version)
+		url := sioSocketURL(safeHost, version)
 		ws, _, err := dialer.Dial(url, headers)
 		if err != nil {
 			lastErr = err
@@ -300,9 +325,9 @@ func (p *sioProvider) ensureMailbox(email string) error {
 		return fmt.Errorf("%s: invalid email address", p.channel)
 	}
 	local := email[:atIdx]
-	host := email[atIdx+1:]
-	if host == "" {
-		host = p.defaultHost
+	host, err := p.safeHost(email[atIdx+1:])
+	if err != nil {
+		return err
 	}
 
 	ws, err := p.connectSocket(host)

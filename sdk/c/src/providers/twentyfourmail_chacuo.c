@@ -1,6 +1,6 @@
 /**
- * 24mail-chacuo — http://24mail.chacuo.net
- * POST 注册/刷新同一接口，HTTP only。
+ * 24mail-chacuo — https://24mail.chacuo.net
+ * POST 注册/刷新同一接口。
  */
 #include "tempmail_internal.h"
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <string.h>
 #include <time.h>
 
-#define CHACUO_BASE "http://24mail.chacuo.net"
+#define CHACUO_BASE "https://24mail.chacuo.net"
 
 static const char *chacuo_domains[] = {"chacuo.net", "027168.com"};
 #define CHACUO_DOMAIN_COUNT 2
@@ -17,8 +17,8 @@ static const char *chacuo_hdrs[] = {
     "Accept: application/json, text/javascript, */*; q=0.01",
     "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
     "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
-    "Origin: http://24mail.chacuo.net",
-    "Referer: http://24mail.chacuo.net/",
+    "Origin: https://24mail.chacuo.net",
+    "Referer: https://24mail.chacuo.net/",
     "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
     "x-requested-with: XMLHttpRequest",
     NULL

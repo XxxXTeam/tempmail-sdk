@@ -3,12 +3,11 @@ InboxKitten 渠道 — https://inboxkitten.com
 """
 
 import random
-import re
-from html import unescape
 from typing import Any, Dict, List
 from urllib.parse import quote
 
 from .. import http as tm_http
+from ..html_utils import html_to_text
 from ..normalize import normalize_email
 from ..types import Email, EmailInfo
 
@@ -25,9 +24,7 @@ def _random_local() -> str:
 
 
 def _html_to_text(html: str) -> str:
-    cleaned = re.sub(r"(?is)<script[\s\S]*?</script>", " ", html)
-    cleaned = re.sub(r"(?s)<[^>]+>", " ", cleaned)
-    return " ".join(unescape(cleaned).split())
+    return html_to_text(html)
 
 
 def _local_part(email: str) -> str:

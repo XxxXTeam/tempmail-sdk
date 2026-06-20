@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../retry';
 const CHANNEL: Channel = 'inboxes';
 const API_BASE = 'https://inboxes.com/api/v2';
 const DEFAULT_DOMAIN = 'blondmail.com';
+const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
 
 const HEADERS: Record<string, string> = {
   Accept: 'application/json',
@@ -63,16 +64,22 @@ function pickDomain(domains: string[], preferred?: string | null): string {
     const hit = domains.find((d) => d.toLowerCase() === wanted);
     if (hit) return hit;
   }
-  return domains.includes(DEFAULT_DOMAIN) ? DEFAULT_DOMAIN : domains[0] || DEFAULT_DOMAIN;
+  return domains.find((d) => d === DEFAULT_DOMAIN) ?? domains[0] ?? DEFAULT_DOMAIN;
 }
 
 async function getDomains(): Promise<string[]> {
   const data = await fetchJSON<DomainsResponse>(`${API_BASE}/domain`);
   const domains = (Array.isArray(data.domains) ? data.domains : [])
-    .map((item) => String(item.qdn || '').trim())
-    .filter(Boolean);
+    .map((item) => String(item.qdn || '').trim().toLowerCase())
+    .filter(isMailDomain);
   if (domains.length === 0) throw new Error('inboxes: no domains');
   return domains;
+}
+
+function isMailDomain(domain: string): boolean {
+  if (!domain || domain.length > 253 || domain.includes('..')) return false;
+  const labels = domain.split('.');
+  return labels.length >= 2 && labels.every((label) => DOMAIN_LABEL_RE.test(label));
 }
 
 function flatten(raw: InboxesDetail | InboxesListMessage, recipient: string): Record<string, unknown> {

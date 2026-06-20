@@ -4,9 +4,9 @@
 """
 
 from datetime import datetime, timezone
-from html import escape, unescape
-import re
+from html import escape
 from typing import Any, Dict, List
+from .html_utils import html_to_text
 from .types import Email, EmailAttachment
 
 
@@ -57,9 +57,7 @@ def _is_html_content(content: str) -> bool:
 
 
 def _html_to_text(html: str) -> str:
-    cleaned = re.sub(r"(?is)<script[\s\S]*?</script>", " ", html)
-    cleaned = re.sub(r"(?s)<[^>]+>", " ", cleaned)
-    return " ".join(unescape(cleaned).split())
+    return html_to_text(html)
 
 
 def _text_to_html(text: str) -> str:

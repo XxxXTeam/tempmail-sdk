@@ -14,7 +14,8 @@ PAGE_URL = "https://anonbox.net/en/"
 BASE = "https://anonbox.net"
 
 _MAIL_LINK = re.compile(
-    r'<a href="https://anonbox\.net/([^/]+)/([^"]+)">https://anonbox\.net/[^"]+</a>'
+    r'<a href="https://anonbox\.net/([a-z0-9-]+)/([A-Za-z0-9._~-]+)">https://anonbox\.net/[^"]+</a>',
+    re.I,
 )
 _DD = re.compile(r"(?is)<dd([^>]*)>([\s\S]*?)</dd>")
 _DISPLAY_NONE = re.compile(r"display\s*:\s*none", re.I)
@@ -66,17 +67,24 @@ def _parse_en_page(html: str) -> tuple[str, str, str | None]:
         if not pm:
             continue
         p_inner = pm.group(1)
-        if "@" not in p_inner:
+        display = _strip_tags(p_inner)
+        if "@" not in display:
             continue
-        if "googlemail.com" in p_inner.lower():
+        at = display.rfind("@")
+        local = display[:at].strip()
+        domain = display[at + 1 :].strip().lower()
+        if domain == "googlemail.com":
             continue
-        if "anonbox" not in p_inner.lower():
+        expected_domain = f"{inbox}.anonbox.net".lower()
+        if domain != expected_domain:
             continue
-        address_html = p_inner
+        if not local:
+            continue
+        address_html = display
         break
     if not address_html:
         raise RuntimeError("anonbox: address paragraph not found")
-    merged = _strip_tags(address_html)
+    merged = address_html
     at = merged.find("@")
     if at < 0:
         raise RuntimeError("anonbox: bad address")

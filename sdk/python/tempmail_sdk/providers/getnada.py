@@ -3,6 +3,7 @@ GetNada 渠道 -- https://getnada.net
 """
 
 import random
+import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -14,6 +15,7 @@ CHANNEL = "getnada"
 API_BASE = "https://getnada.net/api"
 HEADERS_JSON = {"Accept": "application/json"}
 HEADERS_POST = {"Accept": "application/json", "Content-Type": "application/json"}
+_DOMAIN_LABEL_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$", re.I)
 
 
 def _random_local() -> str:
@@ -28,13 +30,26 @@ def _pick_domain() -> str:
     domains = data.get("domains") if isinstance(data, dict) else []
     if not isinstance(domains, list):
         domains = []
-    if "getnada.net" in domains:
-        return "getnada.net"
-    for domain in domains:
-        value = str(domain or "").strip()
-        if value:
-            return value
+    cleaned = [_clean_domain(domain) for domain in domains]
+    cleaned = [domain for domain in cleaned if domain]
+    for domain in cleaned:
+        if domain == "getnada.net":
+            return domain
+    if cleaned:
+        return cleaned[0]
     raise ValueError("getnada: no domain available")
+
+
+def _clean_domain(value: Any) -> str:
+    domain = str(value or "").strip().lower()
+    if not domain or len(domain) > 253 or ".." in domain:
+        return ""
+    labels = domain.split(".")
+    if len(labels) < 2:
+        return ""
+    if not all(_DOMAIN_LABEL_RE.fullmatch(label) for label in labels):
+        return ""
+    return domain
 
 
 def _flatten_message(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:

@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   # 从 tag 解析版本与是否为 semver 预发布（如 v1.0.0-beta.1 → 测试版）
   release-meta:

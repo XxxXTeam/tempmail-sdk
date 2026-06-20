@@ -1,4 +1,5 @@
 import { Email, EmailAttachment } from './types';
+import { htmlToText } from './html';
 
 /**
  * 将各提供商返回的原始邮件数据标准化为统一的 Email 格式
@@ -56,24 +57,6 @@ function isHtmlContent(content: string): boolean {
     (trimmed.includes('<div') && trimmed.includes('</div>')) ||
     (trimmed.includes('<table') && trimmed.includes('</table>')) ||
     (trimmed.includes('<p') && trimmed.includes('</p>') && trimmed.includes('<'));
-}
-
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-}
-
-function htmlToText(html: string): string {
-  return decodeHtmlEntities(html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 function escapeHtml(text: string): string {
