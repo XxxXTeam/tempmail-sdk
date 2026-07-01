@@ -14,10 +14,10 @@ import (
 const tempyEmailBase = "https://tempy.email/api/v1"
 
 type tempyEmailCreateResponse struct {
-	Email        string  `json:"email"`
-	ExpiresAt    string  `json:"expires_at"`
-	WebURL       string  `json:"web_url"`
-	WebhookURL   *string `json:"webhook_url"`
+	Email         string  `json:"email"`
+	ExpiresAt     string  `json:"expires_at"`
+	WebURL        string  `json:"web_url"`
+	WebhookURL    *string `json:"webhook_url"`
 	WebhookFormat *string `json:"webhook_format"`
 }
 

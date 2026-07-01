@@ -32,7 +32,9 @@ func altmailsBrowserHeaders(req *http.Request) {
 /* altmailsFetchCSRF 访问首页建立 session 并从 HTML inline script 中提取 CSRF token
  * 返回提取到的 CSRF token 值
  */
-func altmailsFetchCSRF(client interface{ Do(*http.Request) (*http.Response, error) }) (string, error) {
+func altmailsFetchCSRF(client interface {
+	Do(*http.Request) (*http.Response, error)
+}) (string, error) {
 	req, err := http.NewRequest("GET", altmailsBaseURL+"/", nil)
 	if err != nil {
 		return "", fmt.Errorf("altmails: 创建首页请求失败: %w", err)

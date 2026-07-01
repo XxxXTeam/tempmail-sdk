@@ -175,7 +175,9 @@ func TempemailCoGetEmails(email, token string) ([]NormEmail, error) {
 /* tempemailCoFetchMailDetail 获取单封邮件的详情
  * GET /mail/info?id={id} → {result, mail: {fromName, fromAddress, subject, textHtml, displayDate}}
  */
-func tempemailCoFetchMailDetail(client interface{ Do(*http.Request) (*http.Response, error) }, mailID, recipientEmail string) *NormEmail {
+func tempemailCoFetchMailDetail(client interface {
+	Do(*http.Request) (*http.Response, error)
+}, mailID, recipientEmail string) *NormEmail {
 	if mailID == "" {
 		return nil
 	}

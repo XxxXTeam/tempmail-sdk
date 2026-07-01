@@ -18,10 +18,10 @@ type devmailUKGenerateResponse struct {
 }
 
 type devmailUKInboxResponse struct {
-	Mailbox string            `json:"mailbox"`
-	Detail  bool              `json:"detail"`
-	Count   int               `json:"count"`
-	Emails  []map[string]any  `json:"emails"`
+	Mailbox string           `json:"mailbox"`
+	Detail  bool             `json:"detail"`
+	Count   int              `json:"count"`
+	Emails  []map[string]any `json:"emails"`
 }
 
 func devmailUKGetJSON(u string) ([]byte, error) {

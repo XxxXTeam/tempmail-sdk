@@ -318,7 +318,9 @@ func MohmalGetEmails(email string, token string) ([]NormEmail, error) {
 }
 
 /* mohmalFetchDetail 获取单封邮件详情页 */
-func mohmalFetchDetail(client interface{ Do(*http.Request) (*http.Response, error) }, cookie string, id string, recipient string) map[string]interface{} {
+func mohmalFetchDetail(client interface {
+	Do(*http.Request) (*http.Response, error)
+}, cookie string, id string, recipient string) map[string]interface{} {
 	raw := map[string]interface{}{"id": id, "to": recipient}
 
 	detailURL := mohmalBase + "/en/message/" + id

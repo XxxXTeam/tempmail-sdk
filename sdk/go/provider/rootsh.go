@@ -234,7 +234,9 @@ func RootshGetEmails(email, token string) ([]NormEmail, error) {
 }
 
 /* rootshFetchMailBody 获取单封邮件的 HTML 正文 */
-func rootshFetchMailBody(client interface{ Do(*http.Request) (*http.Response, error) }, fid, email string) string {
+func rootshFetchMailBody(client interface {
+	Do(*http.Request) (*http.Response, error)
+}, fid, email string) string {
 	if fid == "" {
 		return ""
 	}

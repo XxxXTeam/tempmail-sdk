@@ -32,7 +32,9 @@ func mailgolemBrowserHeaders(req *http.Request) {
 /* mailgolemFetchCSRF 访问首页建立 session 并从 HTML 中提取 CSRF token
  * 返回提取到的 CSRF token 值
  */
-func mailgolemFetchCSRF(client interface{ Do(*http.Request) (*http.Response, error) }) (string, error) {
+func mailgolemFetchCSRF(client interface {
+	Do(*http.Request) (*http.Response, error)
+}) (string, error) {
 	req, err := http.NewRequest("GET", mailgolemBaseURL+"/", nil)
 	if err != nil {
 		return "", fmt.Errorf("mailgolem: 创建首页请求失败: %w", err)
