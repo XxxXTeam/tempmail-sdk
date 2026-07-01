@@ -59,6 +59,7 @@ function pickSuffix(suffixes: string[], preferred?: string | null): string {
     const p = preferred.trim().toLowerCase();
     const hit = suffixes.find((d) => d.toLowerCase() === p);
     if (hit) return hit;
+    throw new Error(`maildrop: domain not available: ${p}`);
   }
   return suffixes[Math.floor(Math.random() * suffixes.length)];
 }

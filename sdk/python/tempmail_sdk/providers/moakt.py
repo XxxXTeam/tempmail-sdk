@@ -7,11 +7,13 @@ import base64
 import html
 import json
 import re
+import secrets
 from typing import Dict, List, Optional, Tuple
 
 import requests
 
 from ..config import get_config
+from .. import http
 from ..normalize import normalize_email
 from ..types import Email, EmailInfo
 
@@ -20,6 +22,10 @@ ORIGIN = "https://www.moakt.com"
 TOK_PREFIX = "mok1:"
 
 _EMAIL_DIV_RE = re.compile(r'(?is)<div\s+id="email-address"\s*>([^<]+)</div>')
+_DOMAIN_OPTION_RE = re.compile(r'(?is)<option\s+value="([^"]+)">\s*@[^<]+</option>')
+_MAIL_DOMAIN_RE = re.compile(
+    r"(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
 _HREF_EMAIL_RE = re.compile(
     r'href="(/[^"]+/email/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"'
 )
@@ -43,29 +49,41 @@ _DEFAULT_HEADERS = {
 }
 
 
-def _locale(domain: Optional[str]) -> str:
+def _request_parts(domain: Optional[str]) -> Tuple[str, str]:
     s = (domain or "").strip()
     if not s or any(c in s for c in "/?#\\"):
-        return "zh"
-    return s
+        return "zh", ""
+    if _MAIL_DOMAIN_RE.match(s):
+        return "zh", s.lstrip("@").lower()
+    return s, ""
+
+
+def _parse_server_domains(page: str) -> set[str]:
+    return {
+        m.group(1).strip().lstrip("@").lower()
+        for m in _DOMAIN_OPTION_RE.finditer(page)
+        if m.group(1).strip()
+    }
+
+
+def _random_local(length: int = 12) -> str:
+    chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+    return "".join(secrets.choice(chars) for _ in range(length))
+
+
+def _email_domain(email: str) -> str:
+    _, sep, domain = email.rpartition("@")
+    return domain.strip().lower() if sep else ""
 
 
 def _bare_get(url: str, headers: dict, **kwargs) -> requests.Response:
-    c = get_config()
-    kw: dict = {"timeout": c.timeout, "headers": headers, "verify": not c.insecure}
-    if c.proxy:
-        kw["proxies"] = {"http": c.proxy, "https": c.proxy}
-    kw.update(kwargs)
-    return requests.get(url, **kw)
+    """使用共享HTTP客户端发起GET请求（复用连接池）"""
+    return http.get(url, headers=headers, **kwargs)
 
 
 def _bare_post(url: str, headers: dict, **kwargs) -> requests.Response:
-    c = get_config()
-    kw: dict = {"timeout": c.timeout, "headers": headers, "verify": not c.insecure}
-    if c.proxy:
-        kw["proxies"] = {"http": c.proxy, "https": c.proxy}
-    kw.update(kwargs)
-    return requests.post(url, **kw)
+    """使用共享HTTP客户端发起POST请求（复用连接池）"""
+    return http.post(url, headers=headers, **kwargs)
 
 
 def _parse_cookie_map(hdr: str) -> Dict[str, str]:
@@ -176,7 +194,7 @@ def _parse_detail(page: str, mid: str, recipient: str) -> dict:
 
 
 def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
-    loc = _locale(domain)
+    loc, mail_domain = _request_parts(domain)
     base = f"{ORIGIN}/{loc}"
     inbox = f"{base}/inbox"
     c = get_config()
@@ -189,6 +207,18 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     r1.raise_for_status()
     cookie_hdr = _merge_cookie_hdr("", r1)
 
+    if mail_domain:
+        if mail_domain not in _parse_server_domains(r1.text):
+            raise RuntimeError(f"moakt: unsupported domain {mail_domain}")
+        post_data: dict = {
+            "setemail": "",
+            "username": _random_local(),
+            "domain": mail_domain,
+            "preferred_domain": "",
+        }
+    else:
+        post_data = {"random": "1"}
+
     # POST /inbox 创建邮箱，捕获 302 中的 tm_session cookie
     r2 = _bare_post(
         inbox,
@@ -197,7 +227,7 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
             "Content-Type": "application/x-www-form-urlencoded",
             "Cookie": cookie_hdr,
         },
-        data="random=1",
+        data=post_data,
         allow_redirects=False,
     )
     cookie_hdr = _merge_cookie_hdr(cookie_hdr, r2)
@@ -215,6 +245,10 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     html_s = r3.text
 
     email = _parse_inbox_email(html_s)
+    if mail_domain and _email_domain(email) != mail_domain:
+        raise RuntimeError(
+            f"moakt: domain mismatch expected={mail_domain} actual={_email_domain(email)}"
+        )
     tok = _encode_sess(loc, cookie_hdr)
     return EmailInfo(channel=CHANNEL, email=email, _token=tok)
 

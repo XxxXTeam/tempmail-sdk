@@ -11,7 +11,7 @@ use rand::Rng;
 use serde_json::Value;
 
 const API_BASE: &str = "https://tempmail.plus/api/mails";
-const DOMAIN: &str = "mailto.plus";
+const DEFAULT_DOMAIN: &str = "mailto.plus";
 
 /// 随机生成 12 位字母数字字符串作为本地部分
 fn random_local() -> String {
@@ -22,9 +22,13 @@ fn random_local() -> String {
         .collect()
 }
 
-pub fn generate_email() -> Result<EmailInfo, String> {
+pub fn generate_email(domain: Option<&str>, channel: Channel) -> Result<EmailInfo, String> {
+    let selected_domain = domain
+        .map(str::trim)
+        .filter(|d| !d.is_empty())
+        .unwrap_or(DEFAULT_DOMAIN);
     let local = random_local();
-    let email = format!("{}@{}", local, DOMAIN);
+    let email = format!("{}@{}", local, selected_domain);
 
     // 调用列表接口验证地址可用
     block_on(async {
@@ -41,7 +45,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             return Err(format!("tempmail-plus: 验证邮箱失败 {}", resp.status()));
         }
         Ok(EmailInfo {
-            channel: Channel::TempmailPlus,
+            channel,
             email,
             token: None,
             expires_at: None,

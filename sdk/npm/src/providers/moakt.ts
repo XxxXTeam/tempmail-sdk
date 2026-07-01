@@ -7,6 +7,7 @@ const ORIGIN = 'https://www.moakt.com';
 const TOK_PREFIX = 'mok1:';
 
 const EMAIL_DIV_RE = /<div\s+id="email-address"\s*>([^<]+)<\/div>/is;
+const DOMAIN_OPTION_RE = /<option\s+value="([^"]+)">\s*@[^<]+<\/option>/gi;
 const HREF_EMAIL_RE =
   /href="(\/[^"]+\/email\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/gi;
 const TITLE_RE = /<li\s+class="title"\s*>([^<]*)<\/li>/is;
@@ -25,10 +26,40 @@ function setCookieLines(headers: Headers): string[] {
   return one ? [one] : [];
 }
 
-function localeFromDomain(domain?: string | null): string {
+function isMailDomain(value: string): boolean {
+  return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(value);
+}
+
+function requestParts(domain?: string | null): { locale: string; mailDomain: string } {
   const s = String(domain ?? '').trim();
-  if (!s || /[/?#\\]/.test(s)) return 'zh';
-  return s;
+  if (!s || /[/?#\\]/.test(s)) return { locale: 'zh', mailDomain: '' };
+  if (isMailDomain(s)) return { locale: 'zh', mailDomain: s.replace(/^@/, '').toLowerCase() };
+  return { locale: s, mailDomain: '' };
+}
+
+function parseServerDomains(html: string): string[] {
+  const out: string[] = [];
+  DOMAIN_OPTION_RE.lastIndex = 0;
+  let cap: RegExpExecArray | null;
+  while ((cap = DOMAIN_OPTION_RE.exec(html)) !== null) {
+    const value = (cap[1] ?? '').trim().replace(/^@/, '').toLowerCase();
+    if (value && !out.includes(value)) out.push(value);
+  }
+  return out;
+}
+
+function randomLocal(length = 12): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let out = '';
+  for (let i = 0; i < length; i++) out += chars[bytes[i] % chars.length];
+  return out;
+}
+
+function emailDomain(email: string): string {
+  const at = email.lastIndexOf('@');
+  return at >= 0 ? email.slice(at + 1).trim().toLowerCase() : '';
 }
 
 function parseCookieMap(hdr: string): Map<string, string> {
@@ -166,13 +197,28 @@ function parseDetail(page: string, id: string, recipient: string): Record<string
 }
 
 export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
-  const loc = localeFromDomain(domain);
+  const { locale: loc, mailDomain } = requestParts(domain);
   const base = `${ORIGIN}/${loc}`;
   const inbox = `${base}/inbox`;
 
   const r1 = await fetchWithTimeout(base, { headers: pageHeaders(base) });
   if (!r1.ok) throw new Error(`moakt generate: ${r1.status}`);
+  const page = await r1.text();
   let cookieHdr = mergeCookieHeader('', r1.headers);
+
+  const body = new URLSearchParams();
+  if (mailDomain) {
+    const domains = parseServerDomains(page);
+    if (!domains.includes(mailDomain)) {
+      throw new Error(`moakt: unsupported domain ${mailDomain}`);
+    }
+    body.set('setemail', '');
+    body.set('username', randomLocal());
+    body.set('domain', mailDomain);
+    body.set('preferred_domain', '');
+  } else {
+    body.set('random', '1');
+  }
 
   const r2 = await fetchWithTimeout(inbox, {
     method: 'POST',
@@ -181,7 +227,7 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
       'Content-Type': 'application/x-www-form-urlencoded',
       Cookie: cookieHdr,
     },
-    body: 'random=1',
+    body: body.toString(),
     redirect: 'manual',
   });
 
@@ -198,6 +244,9 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
   const html = await r3.text();
 
   const email = parseInboxEmail(html);
+  if (mailDomain && emailDomain(email) !== mailDomain) {
+    throw new Error(`moakt: domain mismatch expected=${mailDomain} actual=${emailDomain(email)}`);
+  }
   const token = encSess(loc, cookieHdr);
   return { channel: CHANNEL, email, token };
 }

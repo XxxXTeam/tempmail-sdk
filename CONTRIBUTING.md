@@ -114,7 +114,7 @@ tempmail-sdk/
 
 ## 添加新渠道
 
-当前各 SDK **对外公开的渠道**以根目录 `README.md`「支持的渠道」表及各端 `Channel` / `ALL_CHANNELS` / `allChannels` / `client.c` 中 `g_channel_try_order`（与 `tm_list_channels` 一致）为准。**Go、npm、Rust、Python、C** 五端渠道**标识字符串与数量须一致**（当前共 **27** 个），`listChannels` / 随机尝试顺序须与 Go `allChannels` 一致。C 的 `tm_channel_t` **枚举数值顺序**可与列表顺序不同（历史 ABI），以 `tempmail_sdk.h` 为准；**不得**仅在单一语言增加或下线通用渠道。新增或下线渠道时须**五端同步实现**并更新根目录与各子目录 README。
+当前各 SDK **对外公开的渠道**以根目录 `README.md`「支持的渠道」表及各端 `Channel` / `ALL_CHANNELS` / `allChannels` / `client.c` 中 `g_channel_try_order`（与 `tm_list_channels` 一致）为准。**Go、npm、Rust、Python、C** 五端渠道**标识字符串与数量须一致**（当前共 **176** 个公开 `channel` 标识，按独立服务商合并为 **67** 个 provider），`listChannels` 顺序须与 Go `allChannels` 一致；随机生成邮箱时各端应独立打乱尝试顺序，不需要与公共列表顺序或其他 SDK 的随机顺序一致，也不以跨 SDK 随机顺序一致作为验收条件。渠道数量统计必须区分公开 `channel` 标识和独立服务商，同一 provider 的固定域名、裸域、镜像域名和同 API 多域名不得重复计入服务商数量。C 的 `tm_channel_t` **枚举数值顺序**可与列表顺序不同（历史 ABI），以 `tempmail_sdk.h` 为准；**不得**仅在单一语言增加或下线通用渠道。新增或下线渠道时须**五端同步实现**并更新根目录与各子目录 README。
 
 添加新的临时邮箱服务商需要在**全部 5 个 SDK** 中实现。每个渠道需要实现两个核心函数：
 
@@ -243,7 +243,7 @@ perf(rust): 缓存 HTTP 客户端复用连接池
 2. **一个 PR 只做一件事** — 不要混合功能开发和 Bug 修复
 3. **保持向后兼容** — 公共 API 变更需要讨论
 4. **更新文档** — 新功能和 API 变更必须同步更新文档
-5. **跨 SDK 一致性** — 新功能尽量在全部 5 个 SDK 中同步实现
+5. **跨 SDK 功能一致性** — 新功能、公共渠道和 API 尽量在全部 5 个 SDK 中同步实现；随机尝试顺序由各端独立打乱，不纳入一致性要求
 
 ### Review 标准
 

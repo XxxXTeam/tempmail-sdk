@@ -25,7 +25,6 @@ var allChannels = []Channel{
 	ChannelMailforspam,
 	ChannelMailforspamTempmailIo,
 	ChannelMailforspamDisposable,
-	ChannelTempmailo,
 	ChannelTempmailc,
 	ChannelMailnesia,
 	ChannelThrowawaymail,
@@ -52,7 +51,6 @@ var allChannels = []Channel{
 	ChannelLinshiCo,
 	ChannelHarakirimail,
 	ChannelTempmailPlus,
-	ChannelMailGw,
 	ChannelTempmailLolV2,
 	ChannelSharklasers,
 	ChannelSharklasersCom,
@@ -98,7 +96,6 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelMailforspam:           {Channel: ChannelMailforspam, Name: "MailForSpam", Website: "mailforspam.com"},
 	ChannelMailforspamTempmailIo: {Channel: ChannelMailforspamTempmailIo, Name: "MailForSpam TempMail.io", Website: "tempmail.io"},
 	ChannelMailforspamDisposable: {Channel: ChannelMailforspamDisposable, Name: "MailForSpam Disposable", Website: "disposable.email"},
-	ChannelTempmailo:             {Channel: ChannelTempmailo, Name: "Tempmailo", Website: "tempmailo.com"},
 	ChannelTempmailc:             {Channel: ChannelTempmailc, Name: "TempMailC", Website: "tempmailc.com"},
 	ChannelMailnesia:             {Channel: ChannelMailnesia, Name: "Mailnesia", Website: "mailnesia.com"},
 	ChannelThrowawaymail:         {Channel: ChannelThrowawaymail, Name: "ThrowawayMail", Website: "throwawaymail.app"},
@@ -125,7 +122,6 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelLinshiCo:              {Channel: ChannelLinshiCo, Name: "临时Co", Website: "linshi.co"},
 	ChannelHarakirimail:          {Channel: ChannelHarakirimail, Name: "HarakiriMail", Website: "harakirimail.com"},
 	ChannelTempmailPlus:          {Channel: ChannelTempmailPlus, Name: "TempMail Plus", Website: "tempmail.plus"},
-	ChannelMailGw:                {Channel: ChannelMailGw, Name: "Mail.gw", Website: "mail.gw"},
 	ChannelTempmailLolV2:         {Channel: ChannelTempmailLolV2, Name: "TempMail LOL V2", Website: "tempmail.lol"},
 	ChannelSharklasers:           {Channel: ChannelSharklasers, Name: "SharkLasers", Website: "sharklasers.com"},
 	ChannelSharklasersCom:        {Channel: ChannelSharklasersCom, Name: "SharkLasers Root", Website: "sharklasers.com"},
@@ -290,9 +286,6 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelMailforspamDisposable:
 		return fromMailbox(prov.MailforspamGenerate(fixedDomain("disposable.email"), string(ChannelMailforspamDisposable)))
 
-	case ChannelTempmailo:
-		return fromMailbox(prov.TempmailoGenerate())
-
 	case ChannelTempmailc:
 		return fromMailbox(prov.TempmailcGenerate())
 
@@ -306,7 +299,7 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		return fromMailbox(prov.InboxkittenGenerate())
 
 	case ChannelGetnada:
-		return fromMailbox(prov.GetnadaGenerate())
+		return fromMailbox(prov.GetnadaGenerate(opts.Domain))
 
 	case ChannelMail123:
 		return fromMailbox(prov.Mail123Generate())
@@ -365,10 +358,7 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		return fromMailbox(prov.HarakirimailGenerate())
 
 	case ChannelTempmailPlus:
-		return fromMailbox(prov.TempmailPlusGenerate())
-
-	case ChannelMailGw:
-		return fromMailbox(prov.MailGwGenerate())
+		return fromMailbox(prov.TempmailPlusGenerate(opts.Domain))
 
 	case ChannelTempmailLolV2:
 		return fromMailbox(prov.TempmailLolV2Generate())
@@ -538,12 +528,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 	case ChannelMailforspam, ChannelMailforspamTempmailIo, ChannelMailforspamDisposable:
 		return normEmailsResult(prov.MailforspamGetEmails(email))
 
-	case ChannelTempmailo:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for tempmailo channel")
-		}
-		return normEmailsResult(prov.TempmailoGetEmails(token, email))
-
 	case ChannelTempmailc:
 		return normEmailsResult(prov.TempmailcGetEmails(email))
 
@@ -665,12 +649,6 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 
 	case ChannelTempmailPlus:
 		return normEmailsResult(prov.TempmailPlusGetEmails(email))
-
-	case ChannelMailGw:
-		if token == "" {
-			return nil, fmt.Errorf("internal error: token missing for mail-gw channel")
-		}
-		return normEmailsResult(prov.MailGwGetEmails(token, email))
 
 	case ChannelTempmailLolV2:
 		if token == "" {

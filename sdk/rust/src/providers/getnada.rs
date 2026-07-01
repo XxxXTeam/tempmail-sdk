@@ -20,7 +20,7 @@ fn random_local() -> String {
     out
 }
 
-fn pick_domain() -> Result<String, String> {
+fn pick_domain(preferred: Option<&str>) -> Result<String, String> {
     block_on(async {
         let resp = http_client()
             .get(format!("{}/public/domains", API_BASE))
@@ -32,20 +32,29 @@ fn pick_domain() -> Result<String, String> {
             return Err(format!("getnada domains {}", resp.status()));
         }
         let data: Value = resp.json().await.map_err(|e| e.to_string())?;
-        let domains = data
+        let domains: Vec<String> = data
             .get("domains")
             .and_then(|x| x.as_array())
             .cloned()
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|domain| domain.as_str().map(|x| x.trim().to_lowercase()))
+            .filter(|domain| !domain.is_empty())
+            .collect();
+        if let Some(preferred) = preferred {
+            let wanted = preferred.trim().trim_start_matches('@').to_lowercase();
+            if let Some(found) = domains.iter().find(|domain| **domain == wanted) {
+                return Ok(found.clone());
+            }
+            return Err(format!("getnada: domain not available: {}", wanted));
+        }
         for domain in &domains {
-            if domain.as_str().map(str::trim) == Some("getnada.net") {
+            if domain == "getnada.net" {
                 return Ok("getnada.net".to_string());
             }
         }
-        for domain in domains {
-            if let Some(value) = domain.as_str().map(str::trim).filter(|x| !x.is_empty()) {
-                return Ok(value.to_string());
-            }
+        if let Some(first) = domains.first() {
+            return Ok(first.clone());
         }
         Err("getnada: no domain available".into())
     })
@@ -87,9 +96,9 @@ fn flatten_message(raw: &Value, recipient: &str) -> Value {
     Value::Object(out)
 }
 
-pub fn generate_email() -> Result<EmailInfo, String> {
-    let domain = pick_domain()?;
-    let requested = format!("{}@{}", random_local(), domain);
+pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
+    let selected_domain = pick_domain(domain)?;
+    let requested = format!("{}@{}", random_local(), selected_domain);
     block_on(async {
         let resp = http_client()
             .post(format!("{}/inbox/open", API_BASE))

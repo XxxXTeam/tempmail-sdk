@@ -2,7 +2,7 @@
  * moakt.com：tm_session Cookie + HTML 收件箱；详情页 /{locale}/email/{uuid}/html
  */
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::sync::LazyLock;
 
 use base64::Engine;
@@ -26,6 +26,15 @@ struct MoaktSess {
 
 static EMAIL_DIV_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?is)<div\s+id="email-address"\s*>([^<]+)</div>"#).expect("re"));
+static DOMAIN_OPTION_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?is)<option\s+value="([^"]+)">\s*@[^<]+</option>"#).expect("re")
+});
+static MAIL_DOMAIN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r#"(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"#,
+    )
+    .expect("re")
+});
 static HREF_EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r#"href="(/[^"]+/email/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})""#,
@@ -49,15 +58,46 @@ static FROM_ADDR_RE: LazyLock<Regex> = LazyLock::new(|| {
 });
 static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"<[^>]+>"#).expect("re"));
 
-fn locale_from_domain(domain: Option<&str>) -> String {
+fn request_parts(domain: Option<&str>) -> (String, String) {
     let s = domain.unwrap_or("").trim();
     if s.is_empty() {
-        return "zh".to_string();
+        return ("zh".to_string(), String::new());
     }
     if s.contains('/') || s.contains('?') || s.contains('#') || s.contains('\\') {
-        return "zh".to_string();
+        return ("zh".to_string(), String::new());
     }
-    s.to_string()
+    if MAIL_DOMAIN_RE.is_match(s) {
+        return ("zh".to_string(), s.trim_start_matches('@').to_lowercase());
+    }
+    (s.to_string(), String::new())
+}
+
+fn parse_server_domains(page: &str) -> HashSet<String> {
+    DOMAIN_OPTION_RE
+        .captures_iter(page)
+        .filter_map(|c| {
+            c.get(1)
+                .map(|m| m.as_str().trim().trim_start_matches('@').to_lowercase())
+        })
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
+fn random_local(len: usize) -> String {
+    const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+    (0..len)
+        .map(|_| {
+            let b = rand::random::<u8>();
+            CHARS[(b as usize) % CHARS.len()] as char
+        })
+        .collect()
+}
+
+fn email_domain(email: &str) -> String {
+    email
+        .rsplit_once('@')
+        .map(|(_, d)| d.trim().to_lowercase())
+        .unwrap_or_default()
 }
 
 fn light_unescape(s: &str) -> String {
@@ -224,7 +264,7 @@ fn page_headers(referer: &str) -> Vec<(&'static str, String)> {
 }
 
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
-    let loc = locale_from_domain(domain);
+    let (loc, mail_domain) = request_parts(domain);
     let base = format!("{ORIGIN}/{loc}");
     let inbox = format!("{base}/inbox");
     block_on(async {
@@ -239,7 +279,21 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         }
         let headers = resp.headers().clone();
         let mut cookie_hdr = merge_set_cookies("", &headers);
-        let _ = resp.text().await;
+        let page = resp.text().await.map_err(|e| e.to_string())?;
+
+        let post_body = if mail_domain.is_empty() {
+            "random=1".to_string()
+        } else {
+            let domains = parse_server_domains(&page);
+            if !domains.contains(&mail_domain) {
+                return Err(format!("moakt: unsupported domain {}", mail_domain));
+            }
+            format!(
+                "setemail=&username={}&domain={}&preferred_domain=",
+                random_local(12),
+                mail_domain
+            )
+        };
 
         // POST /inbox with random=1 并手动处理重定向以获取 tm_session cookie
         let no_redirect_client = wreq::Client::builder()
@@ -253,7 +307,7 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         req_post = req_post
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("Cookie", &cookie_hdr)
-            .body("random=1");
+            .body(post_body);
         let resp_post = req_post
             .send()
             .await
@@ -282,6 +336,13 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         cookie_hdr = merge_set_cookies(&cookie_hdr, &headers3);
 
         let email = parse_inbox_address(&html)?;
+        if !mail_domain.is_empty() && email_domain(&email) != mail_domain {
+            return Err(format!(
+                "moakt: domain mismatch expected={} actual={}",
+                mail_domain,
+                email_domain(&email)
+            ));
+        }
         let tok = encode_sess(&MoaktSess {
             l: loc,
             c: cookie_hdr,

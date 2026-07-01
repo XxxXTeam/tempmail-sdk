@@ -3,7 +3,7 @@ import { normalizeEmail } from '../normalize';
 import { fetchWithTimeout } from '../retry';
 
 const CHANNEL: Channel = 'fake-legal';
-const BASE = 'https://fake.legal';
+const BASE = 'https://imgui.de';
 
 const DEFAULT_HEADERS: Record<string, string> = {
   Accept: 'application/json, text/plain, */*',
@@ -11,7 +11,7 @@ const DEFAULT_HEADERS: Record<string, string> = {
   'Cache-Control': 'no-cache',
   DNT: '1',
   Pragma: 'no-cache',
-  Referer: 'https://fake.legal/',
+  Referer: 'https://imgui.de/',
   'sec-ch-ua': '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"Windows"',
@@ -58,20 +58,47 @@ function pickDomain(domains: string[], preferred?: string | null): string {
     const p = preferred.trim().toLowerCase();
     const hit = domains.find((d) => d.toLowerCase() === p);
     if (hit) return hit;
+    throw new Error(`fake-legal: domain not available: ${p}`);
   }
   return domains[Math.floor(Math.random() * domains.length)];
 }
 
+function generateRandomUsername(length: number): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 /**
- * GET /api/inbox/new?domain= — 返回完整地址
+ * 创建收件箱：fake-legal 用 GET /api/inbox/new，imgui-de/pulsewebmenu-de 用 POST /api/inbox/custom
  */
-export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+export async function generateEmail(domain?: string | null, channel: Channel = CHANNEL): Promise<InternalEmailInfo> {
   const domains = await fetchDomains();
   const d = pickDomain(domains, domain ?? undefined);
-  const url = `${BASE}/api/inbox/new?domain=${encodeURIComponent(d)}`;
+
+  let url: string;
+  let method: string;
+  let body: string | undefined;
+  const headers = { ...DEFAULT_HEADERS };
+
+  if (d === 'imgui.de' || d === 'pulsewebmenu.de') {
+    url = `${BASE}/api/inbox/custom`;
+    method = 'POST';
+    const username = generateRandomUsername(12);
+    body = JSON.stringify({ username, domain: d });
+    headers['Content-Type'] = 'application/json';
+  } else {
+    url = `${BASE}/api/inbox/new?domain=${encodeURIComponent(d)}`;
+    method = 'GET';
+  }
+
   const response = await fetchWithTimeout(url, {
-    method: 'GET',
-    headers: DEFAULT_HEADERS,
+    method,
+    headers,
+    body,
   });
   if (!response.ok) {
     throw new Error(`fake-legal: 创建收件箱失败 HTTP ${response.status}`);
@@ -81,7 +108,7 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
     throw new Error('fake-legal: 创建收件箱返回无效');
   }
   return {
-    channel: CHANNEL,
+    channel,
     email: data.address.trim(),
   };
 }

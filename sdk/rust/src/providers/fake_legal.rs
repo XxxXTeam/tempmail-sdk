@@ -1,5 +1,5 @@
 /*!
- * Fake Legal — https://fake.legal
+ * Fake Legal — https://imgui.de
  */
 
 use crate::config::{block_on, get_current_ua, http_client};
@@ -7,8 +7,9 @@ use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use rand::Rng;
 use serde_json::Value;
+use serde_json::json;
 
-const BASE: &str = "https://fake.legal";
+const BASE: &str = "https://imgui.de";
 
 fn fl_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
     b.header("Accept", "application/json, text/plain, */*")
@@ -16,7 +17,7 @@ fn fl_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
         .header("Cache-Control", "no-cache")
         .header("DNT", "1")
         .header("Pragma", "no-cache")
-        .header("Referer", "https://fake.legal/")
+        .header("Referer", "https://imgui.de/")
         .header(
             "sec-ch-ua",
             r#""Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146""#,
@@ -27,6 +28,14 @@ fn fl_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
         .header("sec-fetch-mode", "cors")
         .header("sec-fetch-site", "same-origin")
         .header("User-Agent", get_current_ua())
+}
+
+fn random_username(len: usize) -> String {
+    const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let mut rng = rand::thread_rng();
+    (0..len)
+        .map(|_| ALPHANUM[rng.gen_range(0..ALPHANUM.len())] as char)
+        .collect()
 }
 
 fn fetch_domains() -> Result<Vec<String>, String> {
@@ -59,29 +68,41 @@ fn fetch_domains() -> Result<Vec<String>, String> {
     })
 }
 
-fn pick_domain(domains: &[String], preferred: Option<&str>) -> String {
+fn pick_domain(domains: &[String], preferred: Option<&str>) -> Result<String, String> {
     if let Some(p) = preferred {
         let pl = p.trim().to_lowercase();
         if !pl.is_empty() {
             if let Some(hit) = domains.iter().find(|d| d.to_lowercase() == pl) {
-                return hit.clone();
+                return Ok(hit.clone());
             }
+            return Err(format!("fake-legal: domain not available: {}", pl));
         }
     }
     let mut rng = rand::thread_rng();
-    domains[rng.gen_range(0..domains.len())].clone()
+    Ok(domains[rng.gen_range(0..domains.len())].clone())
 }
 
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
     let domains = fetch_domains()?;
-    let d = pick_domain(&domains, domain);
-    let q = urlencoding::encode(&d);
-    let url = format!("{}/api/inbox/new?domain={}", BASE, q);
+    let d = pick_domain(&domains, domain)?;
     block_on(async {
-        let resp = fl_headers(http_client().get(url))
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
+        let resp = if d == "imgui.de" || d == "pulsewebmenu.de" {
+            let username = random_username(12);
+            let body = json!({ "username": username, "domain": d });
+            fl_headers(http_client().post(format!("{}/api/inbox/custom", BASE)))
+                .header("Content-Type", "application/json")
+                .body(body.to_string())
+                .send()
+                .await
+                .map_err(|e| e.to_string())?
+        } else {
+            let q = urlencoding::encode(&d);
+            let url = format!("{}/api/inbox/new?domain={}", BASE, q);
+            fl_headers(http_client().get(url))
+                .send()
+                .await
+                .map_err(|e| e.to_string())?
+        };
         if !resp.status().is_success() {
             return Err(format!("fake-legal new inbox {}", resp.status()));
         }

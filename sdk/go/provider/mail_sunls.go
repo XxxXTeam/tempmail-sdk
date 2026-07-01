@@ -1,0 +1,144 @@
+package provider
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"math/rand"
+	"strings"
+
+	http "github.com/bogdanfinn/fhttp"
+)
+
+/**
+ * MailSunls — https://mail.sunls.de
+ * 纯 GET 无认证，随机生成用户名 + 从 API 获取的域名
+ * 获取域名列表: GET https://mail.sunls.de/api/domain
+ * 获取邮件列表: GET https://mail.sunls.de/api/fetch?to={email}
+ * 获取单封邮件: GET https://mail.sunls.de/api/fetch/{id}
+ */
+
+const mailSunlsBase = "https://mail.sunls.de"
+
+/* mailSunlsRandomLocal 生成随机用户名 */
+func mailSunlsRandomLocal(n int) string {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+/* mailSunlsDefaultHeaders 设置通用请求头 */
+func mailSunlsDefaultHeaders(req *http.Request) {
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Pragma", "no-cache")
+	req.Header.Set("Referer", "https://mail.sunls.de/")
+	req.Header.Set("User-Agent", getCurrentUA())
+}
+
+/* mailSunlsFetchDomains 获取可用域名列表 */
+func mailSunlsFetchDomains() ([]string, error) {
+	req, err := http.NewRequest("GET", mailSunlsBase+"/api/domain", nil)
+	if err != nil {
+		return nil, err
+	}
+	mailSunlsDefaultHeaders(req)
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("mail-sunls domains: %d", resp.StatusCode)
+	}
+
+	var domains []string
+	if err := json.Unmarshal(body, &domains); err != nil {
+		return nil, err
+	}
+
+	/* 过滤空字符串 */
+	var result []string
+	for _, d := range domains {
+		s := strings.TrimSpace(d)
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("mail-sunls: no domains available")
+	}
+	return result, nil
+}
+
+/*
+ * MailSunlsGenerate 创建 mail.sunls.de 临时邮箱
+ * 1. GET /api/domain 获取可用域名列表
+ * 2. 随机选取域名，生成 randomLocal(10) + "@" + 域名
+ * 无需 token，无需 session
+ */
+func MailSunlsGenerate(channel ...string) (*CreatedMailbox, error) {
+	domains, err := mailSunlsFetchDomains()
+	if err != nil {
+		return nil, err
+	}
+	domain := domains[rand.Intn(len(domains))]
+	user := mailSunlsRandomLocal(10)
+	email := user + "@" + domain
+
+	ch := "mail-sunls"
+	if len(channel) > 0 && channel[0] != "" {
+		ch = channel[0]
+	}
+	return &CreatedMailbox{Channel: ch, Email: email, Token: ""}, nil
+}
+
+/*
+ * MailSunlsGetEmails 获取 mail.sunls.de 邮件列表
+ * GET https://mail.sunls.de/api/fetch?to={email}
+ * 响应: JSON 数组（邮件列表）
+ */
+func MailSunlsGetEmails(email string) ([]NormEmail, error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return nil, fmt.Errorf("mail-sunls: empty email")
+	}
+
+	u := fmt.Sprintf("%s/api/fetch?to=%s", mailSunlsBase, email)
+	req, err := http.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+	mailSunlsDefaultHeaders(req)
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("mail-sunls fetch: %d", resp.StatusCode)
+	}
+
+	var rawMails []map[string]interface{}
+	if err := json.Unmarshal(body, &rawMails); err != nil {
+		return nil, err
+	}
+	return normEmailsFromMaps(rawMails, email), nil
+}

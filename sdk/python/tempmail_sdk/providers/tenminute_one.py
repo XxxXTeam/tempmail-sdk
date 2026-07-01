@@ -17,6 +17,7 @@ from ..types import EmailInfo, Email
 CHANNEL = "10minute-one"
 SITE_ORIGIN = "https://10minutemail.one"
 API_BASE = "https://web.10minutemail.one/api/v1"
+KNOWN_EMAIL_DOMAINS = ["xghff.com", "oqqaj.com", "psovv.com", "dbwot.com", "ygwpr.com", "imxwe.com"]
 _DEFAULT_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -195,9 +196,9 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     arr = _parse_nuxt_array(html)
     token = _parse_mail_service_token(arr)
 
-    domains = _parse_quoted_json_array(html, "emailDomains")
+    domains = list(dict.fromkeys(_parse_quoted_json_array(html, "emailDomains") + KNOWN_EMAIL_DOMAINS))
     if not domains:
-        domains = ["xghff.com", "oqqaj.com", "psovv.com"]
+        domains = KNOWN_EMAIL_DOMAINS
 
     blocked = {u.lower() for u in _parse_quoted_json_array(html, "blockedUsernames")}
 

@@ -2,9 +2,9 @@ import { InternalEmailInfo, Email, Channel } from '../types';
 import { normalizeEmail } from '../normalize';
 import { fetchWithTimeout } from '../retry';
 
-const CHANNEL: Channel = 'tempmail-plus';
+const DEFAULT_CHANNEL: Channel = 'tempmail-plus';
 const API_BASE = 'https://tempmail.plus/api/mails';
-const DOMAIN = 'mailto.plus';
+const DEFAULT_DOMAIN = 'mailto.plus';
 
 const HEADERS: Record<string, string> = {
   'Accept': 'application/json',
@@ -20,12 +20,12 @@ function randomLocal(len: number): string {
   return s;
 }
 
-export async function generateEmail(): Promise<InternalEmailInfo> {
+export async function generateEmail(domain: string = DEFAULT_DOMAIN, channel: Channel = DEFAULT_CHANNEL): Promise<InternalEmailInfo> {
   const local = randomLocal(12);
-  const email = `${local}@${DOMAIN}`;
+  const email = `${local}@${domain}`;
   const res = await fetchWithTimeout(`${API_BASE}/?email=${encodeURIComponent(email)}&epin=`, { headers: HEADERS });
   if (!res.ok) throw new Error(`tempmail-plus: generate failed: ${res.status}`);
-  return { channel: CHANNEL, email };
+  return { channel, email };
 }
 
 export async function getEmails(email: string): Promise<Email[]> {

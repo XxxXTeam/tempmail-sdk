@@ -68,17 +68,28 @@ static void getnada_random_local(char *buf, size_t cap) {
     buf[len] = '\0';
 }
 
-static char *getnada_pick_domain(void) {
+static char *getnada_pick_domain(const char *preferred) {
     cJSON *root = getnada_json(TM_HTTP_GET, GETNADA_BASE "/public/domains", NULL);
     if (!root) return NULL;
     cJSON *domains = cJSON_GetObjectItemCaseSensitive(root, "domains");
     char *first = NULL;
+    char wanted[256];
+    wanted[0] = '\0';
+    if (preferred && preferred[0]) {
+        snprintf(wanted, sizeof(wanted), "%s", preferred[0] == '@' ? preferred + 1 : preferred);
+        for (char *p = wanted; *p; p++) if (*p >= 'A' && *p <= 'Z') *p = (char)(*p - 'A' + 'a');
+    }
     if (cJSON_IsArray(domains)) {
         cJSON *item = NULL;
         cJSON_ArrayForEach(item, domains) {
             if (!cJSON_IsString(item) || !item->valuestring || !item->valuestring[0]) continue;
             if (!first) first = tm_strdup(item->valuestring);
-            if (strcmp(item->valuestring, "getnada.net") == 0) {
+            if (wanted[0] && strcmp(item->valuestring, wanted) == 0) {
+                free(first);
+                first = tm_strdup(item->valuestring);
+                break;
+            }
+            if (!wanted[0] && strcmp(item->valuestring, "getnada.net") == 0) {
                 free(first);
                 first = tm_strdup("getnada.net");
                 break;
@@ -86,11 +97,15 @@ static char *getnada_pick_domain(void) {
         }
     }
     cJSON_Delete(root);
+    if (wanted[0] && (!first || strcmp(first, wanted) != 0)) {
+        free(first);
+        return NULL;
+    }
     return first;
 }
 
-tm_email_info_t* tm_provider_getnada_generate(void) {
-    char *domain = getnada_pick_domain();
+tm_email_info_t* tm_provider_getnada_generate(const char *domain_hint) {
+    char *domain = getnada_pick_domain(domain_hint);
     if (!domain || !domain[0]) {
         free(domain);
         return NULL;

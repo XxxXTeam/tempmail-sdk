@@ -23,7 +23,7 @@ def _random_local() -> str:
     return "sdk" + "".join(random.choice(chars) for _ in range(16))
 
 
-def _pick_domain() -> str:
+def _pick_domain(preferred: Optional[str] = None) -> str:
     resp = tm_http.get(f"{API_BASE}/public/domains", headers=HEADERS_JSON, timeout=15)
     resp.raise_for_status()
     data = resp.json()
@@ -32,6 +32,12 @@ def _pick_domain() -> str:
         domains = []
     cleaned = [_clean_domain(domain) for domain in domains]
     cleaned = [domain for domain in cleaned if domain]
+    wanted = str(preferred or "").strip().lstrip("@").lower()
+    if wanted:
+        for domain in cleaned:
+            if domain == wanted:
+                return domain
+        raise ValueError(f"getnada: domain not available: {wanted}")
     for domain in cleaned:
         if domain == "getnada.net":
             return domain
@@ -64,9 +70,9 @@ def _flatten_message(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
     return out
 
 
-def generate_email() -> EmailInfo:
-    domain = _pick_domain()
-    requested = f"{_random_local()}@{domain}"
+def generate_email(domain: Optional[str] = None, channel: str = CHANNEL) -> EmailInfo:
+    selected_domain = _pick_domain(domain)
+    requested = f"{_random_local()}@{selected_domain}"
     resp = tm_http.post(
         f"{API_BASE}/inbox/open",
         headers=HEADERS_POST,
@@ -82,7 +88,7 @@ def generate_email() -> EmailInfo:
     if not token or not email or "@" not in email:
         raise ValueError("getnada: invalid open response")
     return EmailInfo(
-        channel=CHANNEL,
+        channel=channel,
         email=email,
         _token=token,
         expires_at=data.get("activeUntil"),

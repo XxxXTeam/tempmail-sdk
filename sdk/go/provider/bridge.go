@@ -71,6 +71,13 @@ var (
 	NormalizeRawMessages func([]json.RawMessage, string) ([]NormEmail, error)
 )
 
+func getCurrentUA() string {
+	if GetCurrentUA != nil {
+		return GetCurrentUA()
+	}
+	return ""
+}
+
 func normEmailsFromMaps(maps []map[string]interface{}, recipient string) []NormEmail {
 	out := make([]NormEmail, 0, len(maps))
 	for _, m := range maps {

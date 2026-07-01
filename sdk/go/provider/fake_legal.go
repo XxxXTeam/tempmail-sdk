@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,7 +12,7 @@ import (
 	http "github.com/bogdanfinn/fhttp"
 )
 
-const fakeLegalBase = "https://fake.legal"
+const fakeLegalBase = "https://imgui.de"
 
 func fakeLegalDefaultHeaders(req *http.Request) {
 	req.Header.Set("Accept", "application/json, text/plain, */*")
@@ -19,7 +20,7 @@ func fakeLegalDefaultHeaders(req *http.Request) {
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Pragma", "no-cache")
-	req.Header.Set("Referer", "https://fake.legal/")
+	req.Header.Set("Referer", "https://imgui.de/")
 	req.Header.Set("sec-ch-ua", `"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"`)
 	req.Header.Set("sec-ch-ua-mobile", "?0")
 	req.Header.Set("sec-ch-ua-platform", `"Windows"`)
@@ -78,31 +79,63 @@ func fakeLegalFetchDomains() ([]string, error) {
 	return out, nil
 }
 
-func fakeLegalPickDomain(domains []string, preferred *string) string {
+func fakeLegalPickDomain(domains []string, preferred *string) (string, error) {
 	if preferred != nil {
 		p := strings.TrimSpace(*preferred)
 		if p != "" {
 			pl := strings.ToLower(p)
 			for _, d := range domains {
 				if strings.ToLower(d) == pl {
-					return d
+					return d, nil
 				}
 			}
+			return "", fmt.Errorf("fake-legal: domain not available: %s", pl)
 		}
 	}
-	return domains[rand.Intn(len(domains))]
+	return domains[rand.Intn(len(domains))], nil
 }
 
-func FakeLegalGenerate(domain *string) (*CreatedMailbox, error) {
+func fakeLegalRandomUsername(n int) string {
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+func FakeLegalGenerate(domain *string, channel ...string) (*CreatedMailbox, error) {
 	domains, err := fakeLegalFetchDomains()
 	if err != nil {
 		return nil, err
 	}
-	d := fakeLegalPickDomain(domains, domain)
-	u := fmt.Sprintf("%s/api/inbox/new?domain=%s", fakeLegalBase, url.QueryEscape(d))
-	req, err := http.NewRequest("GET", u, nil)
+	d, err := fakeLegalPickDomain(domains, domain)
 	if err != nil {
 		return nil, err
+	}
+	var req *http.Request
+	if d == "imgui.de" || d == "pulsewebmenu.de" {
+		username := fakeLegalRandomUsername(12)
+		payload := map[string]string{
+			"username": username,
+			"domain":   d,
+		}
+		body, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+		u := fmt.Sprintf("%s/api/inbox/custom", fakeLegalBase)
+		req, err = http.NewRequest("POST", u, bytes.NewReader(body))
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		u := fmt.Sprintf("%s/api/inbox/new?domain=%s", fakeLegalBase, url.QueryEscape(d))
+		req, err = http.NewRequest("GET", u, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 	fakeLegalDefaultHeaders(req)
 	resp, err := HTTPClient().Do(req)
@@ -124,7 +157,11 @@ func FakeLegalGenerate(domain *string) (*CreatedMailbox, error) {
 	if !nr.Success || strings.TrimSpace(nr.Address) == "" {
 		return nil, fmt.Errorf("fake-legal: invalid new inbox response")
 	}
-	return &CreatedMailbox{Channel: "fake-legal", Email: strings.TrimSpace(nr.Address), Token: ""}, nil
+	ch := "fake-legal"
+	if len(channel) > 0 && channel[0] != "" {
+		ch = channel[0]
+	}
+	return &CreatedMailbox{Channel: ch, Email: strings.TrimSpace(nr.Address), Token: ""}, nil
 }
 
 func FakeLegalGetEmails(email string) ([]NormEmail, error) {

@@ -32,9 +32,21 @@ func tempmailPlusRandomLocal() string {
 }
 
 /* TempmailPlusGenerate 创建 tempmail-plus 临时邮箱 */
-func TempmailPlusGenerate() (*CreatedMailbox, error) {
+func TempmailPlusGenerate(domain *string, channel ...string) (*CreatedMailbox, error) {
+	selectedDomain := tempmailPlusDomain
+	if domain != nil {
+		d := strings.TrimSpace(*domain)
+		if d != "" {
+			selectedDomain = d
+		}
+	}
+	selectedChannel := "tempmail-plus"
+	if len(channel) > 0 && strings.TrimSpace(channel[0]) != "" {
+		selectedChannel = strings.TrimSpace(channel[0])
+	}
+
 	local := tempmailPlusRandomLocal()
-	email := fmt.Sprintf("%s@%s", local, tempmailPlusDomain)
+	email := fmt.Sprintf("%s@%s", local, selectedDomain)
 
 	/* 调用列表接口验证地址可用 */
 	u := fmt.Sprintf("%s/?email=%s&epin=", tempmailPlusBase, email)
@@ -55,7 +67,7 @@ func TempmailPlusGenerate() (*CreatedMailbox, error) {
 		return nil, fmt.Errorf("tempmail-plus: 验证邮箱失败 %d", resp.StatusCode)
 	}
 
-	return &CreatedMailbox{Channel: "tempmail-plus", Email: email, Token: ""}, nil
+	return &CreatedMailbox{Channel: selectedChannel, Email: email, Token: ""}, nil
 }
 
 /* TempmailPlusGetEmails 获取 tempmail-plus 邮件列表 */

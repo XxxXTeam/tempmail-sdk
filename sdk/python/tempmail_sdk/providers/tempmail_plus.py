@@ -32,16 +32,18 @@ def _random_local(length: int = 12) -> str:
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
 
-def generate_email() -> EmailInfo:
+def generate_email(domain: str = DOMAIN, channel: str = CHANNEL) -> EmailInfo:
     """创建 tempmail-plus 临时邮箱"""
+    selected_domain = (domain or DOMAIN).strip() or DOMAIN
+    selected_channel = (channel or CHANNEL).strip() or CHANNEL
     local = _random_local()
-    email = f"{local}@{DOMAIN}"
+    email = f"{local}@{selected_domain}"
 
     # 调用列表接口验证地址可用
     resp = tm_http.get(f"{API_BASE}/?email={email}&epin=", headers=HEADERS, timeout=15)
     resp.raise_for_status()
 
-    return EmailInfo(channel=CHANNEL, email=email)
+    return EmailInfo(channel=selected_channel, email=email)
 
 
 def _fetch_body(mail_id: int, email: str) -> dict:

@@ -68,22 +68,23 @@ fn fetch_suffixes() -> Result<Vec<String>, String> {
     })
 }
 
-fn pick_suffix(suffixes: &[String], preferred: Option<&str>) -> String {
+fn pick_suffix(suffixes: &[String], preferred: Option<&str>) -> Result<String, String> {
     if let Some(p) = preferred {
         let pl = p.trim().to_lowercase();
         if !pl.is_empty() {
             if let Some(hit) = suffixes.iter().find(|d| d.to_lowercase() == pl) {
-                return hit.clone();
+                return Ok(hit.clone());
             }
+            return Err(format!("maildrop: domain not available: {}", pl));
         }
     }
     let mut rng = rand::thread_rng();
-    suffixes[rng.gen_range(0..suffixes.len())].clone()
+    Ok(suffixes[rng.gen_range(0..suffixes.len())].clone())
 }
 
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
     let suffixes = fetch_suffixes()?;
-    let dom = pick_suffix(&suffixes, domain);
+    let dom = pick_suffix(&suffixes, domain)?;
     let local = random_local(10);
     let email = format!("{}@{}", local, dom);
     Ok(EmailInfo {

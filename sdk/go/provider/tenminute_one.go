@@ -27,8 +27,9 @@ const (
 )
 
 var (
-	tenminuteNuxtDataRe = regexp.MustCompile(`(?is)<script[^>]*\bid="__NUXT_DATA__"[^>]*>([\s\S]*?)</script>`)
-	tenminuteJWTRe      = regexp.MustCompile(`^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$`)
+	tenminuteNuxtDataRe   = regexp.MustCompile(`(?is)<script[^>]*\bid="__NUXT_DATA__"[^>]*>([\s\S]*?)</script>`)
+	tenminuteJWTRe        = regexp.MustCompile(`^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$`)
+	tenminuteKnownDomains = []string{"xghff.com", "oqqaj.com", "psovv.com", "dbwot.com", "ygwpr.com", "imxwe.com"}
 )
 
 func tenminuteRandHex(n int) (string, error) {
@@ -147,6 +148,23 @@ func tenminuteParseQuotedJSONArray(html, field string) []string {
 	var out []string
 	if err := json.Unmarshal([]byte(unesc), &out); err != nil {
 		return nil
+	}
+	return out
+}
+
+func tenminuteAppendKnownDomains(domains []string) []string {
+	out := append([]string{}, domains...)
+	for _, known := range tenminuteKnownDomains {
+		seen := false
+		for _, domain := range out {
+			if strings.EqualFold(domain, known) {
+				seen = true
+				break
+			}
+		}
+		if !seen {
+			out = append(out, known)
+		}
 	}
 	return out
 }
@@ -308,9 +326,9 @@ func TenminuteOneGenerate(domain *string) (*CreatedMailbox, error) {
 		return nil, err
 	}
 
-	domains := tenminuteParseQuotedJSONArray(html, "emailDomains")
+	domains := tenminuteAppendKnownDomains(tenminuteParseQuotedJSONArray(html, "emailDomains"))
 	if len(domains) == 0 {
-		domains = []string{"xghff.com", "oqqaj.com", "psovv.com"}
+		domains = tenminuteKnownDomains
 	}
 
 	blocked := make(map[string]struct{})

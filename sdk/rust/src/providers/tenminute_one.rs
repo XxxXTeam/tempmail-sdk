@@ -19,6 +19,14 @@ use crate::types::{Channel, Email, EmailInfo};
 
 const SITE_ORIGIN: &str = "https://10minutemail.one";
 const API_BASE: &str = "https://web.10minutemail.one/api/v1";
+const KNOWN_EMAIL_DOMAINS: &[&str] = &[
+    "xghff.com",
+    "oqqaj.com",
+    "psovv.com",
+    "dbwot.com",
+    "ygwpr.com",
+    "imxwe.com",
+];
 
 static NUXT_DATA_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?is)<script[^>]*\bid="__NUXT_DATA__"[^>]*>([\s\S]*?)</script>"#)
@@ -248,8 +256,19 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         let token = parse_mail_service_token(&arr)?;
 
         let mut domains = parse_quoted_json_array(&html, "emailDomains");
+        for known in KNOWN_EMAIL_DOMAINS {
+            if !domains
+                .iter()
+                .any(|domain| domain.eq_ignore_ascii_case(known))
+            {
+                domains.push((*known).to_string());
+            }
+        }
         if domains.is_empty() {
-            domains = vec!["xghff.com".into(), "oqqaj.com".into(), "psovv.com".into()];
+            domains = KNOWN_EMAIL_DOMAINS
+                .iter()
+                .map(|domain| (*domain).to_string())
+                .collect();
         }
 
         let mut blocked: HashMap<String, ()> = HashMap::new();

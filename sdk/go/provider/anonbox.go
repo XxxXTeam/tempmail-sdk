@@ -21,6 +21,7 @@ var (
 	anonboxMailLinkRe = regexp.MustCompile(`<a href="https://anonbox\.net/([^/]+)/([^"]+)">https://anonbox\.net/[^"]+</a>`)
 	anonboxDdRe       = regexp.MustCompile(`(?is)<dd([^>]*)>([\s\S]*?)</dd>`)
 	anonboxPRe        = regexp.MustCompile(`(?is)<p>([\s\S]*?)</p>`)
+	anonboxSpanRe     = regexp.MustCompile(`(?is)<span\b[^>]*>[\s\S]*?</span>`)
 	anonboxTagRe      = regexp.MustCompile(`<[^>]+>`)
 	anonboxExpiresRe  = regexp.MustCompile(`Your mail address is valid until:</dt>\s*<dd><p>([^<]+)</p>`)
 )
@@ -82,23 +83,24 @@ func anonboxParseEnPage(html string) (email string, token string, expires string
 		if pm == nil {
 			continue
 		}
-		pInner := pm[1]
-		if !strings.Contains(pInner, "@") {
+		pInner := anonboxSpanRe.ReplaceAllString(pm[1], "")
+		display := anonboxStripTags(pInner)
+		if !strings.Contains(display, "@") {
 			continue
 		}
-		if strings.Contains(strings.ToLower(pInner), "googlemail.com") {
+		if strings.Contains(strings.ToLower(display), "googlemail.com") {
 			continue
 		}
-		if !strings.Contains(strings.ToLower(pInner), "anonbox") {
+		if !strings.Contains(strings.ToLower(display), "anonbox") {
 			continue
 		}
-		addressHTML = pInner
+		addressHTML = display
 		break
 	}
 	if addressHTML == "" {
 		return "", "", "", fmt.Errorf("anonbox: address paragraph not found")
 	}
-	merged := anonboxStripTags(addressHTML)
+	merged := addressHTML
 	at := strings.Index(merged, "@")
 	if at < 0 {
 		return "", "", "", fmt.Errorf("anonbox: bad address")

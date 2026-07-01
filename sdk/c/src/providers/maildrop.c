@@ -68,6 +68,7 @@ static void md_pick_domain(char domains[][256], int nd, const char *preferred, c
                 return;
             }
         }
+        return;
     }
     int pick = rand() % nd;
     strncpy(out, domains[pick], cap - 1);

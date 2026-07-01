@@ -70,20 +70,33 @@ func getnadaJSON(method, u string, body []byte, out any) error {
 	return json.Unmarshal(raw, out)
 }
 
-func getnadaPickDomain() (string, error) {
+func getnadaPickDomain(preferred *string) (string, error) {
 	var data getnadaDomainsResponse
 	if err := getnadaJSON(http.MethodGet, getnadaBase+"/public/domains", nil, &data); err != nil {
 		return "", err
 	}
+	domains := make([]string, 0, len(data.Domains))
 	for _, domain := range data.Domains {
-		if strings.TrimSpace(domain) == "getnada.net" {
+		if d := strings.TrimSpace(strings.ToLower(domain)); d != "" {
+			domains = append(domains, d)
+		}
+	}
+	if preferred != nil {
+		wanted := strings.TrimPrefix(strings.TrimSpace(strings.ToLower(*preferred)), "@")
+		for _, domain := range domains {
+			if domain == wanted {
+				return domain, nil
+			}
+		}
+		return "", fmt.Errorf("getnada: domain not available: %s", wanted)
+	}
+	for _, domain := range domains {
+		if domain == "getnada.net" {
 			return "getnada.net", nil
 		}
 	}
-	for _, domain := range data.Domains {
-		if d := strings.TrimSpace(domain); d != "" {
-			return d, nil
-		}
+	if len(domains) > 0 {
+		return domains[0], nil
 	}
 	return "", fmt.Errorf("getnada: no domain available")
 }
@@ -131,12 +144,12 @@ func getnadaFlattenMessage(raw map[string]any, recipient string) map[string]any 
 	return out
 }
 
-func GetnadaGenerate() (*CreatedMailbox, error) {
-	domain, err := getnadaPickDomain()
+func GetnadaGenerate(domain *string, channel ...string) (*CreatedMailbox, error) {
+	selectedDomain, err := getnadaPickDomain(domain)
 	if err != nil {
 		return nil, err
 	}
-	requested := getnadaRandomLocal() + "@" + domain
+	requested := getnadaRandomLocal() + "@" + selectedDomain
 	body, err := json.Marshal(map[string]string{"email": requested})
 	if err != nil {
 		return nil, err
@@ -153,8 +166,12 @@ func GetnadaGenerate() (*CreatedMailbox, error) {
 	if token == "" || email == "" || !strings.Contains(email, "@") {
 		return nil, fmt.Errorf("getnada: invalid open response")
 	}
+	ch := "getnada"
+	if len(channel) > 0 && strings.TrimSpace(channel[0]) != "" {
+		ch = strings.TrimSpace(channel[0])
+	}
 	return &CreatedMailbox{
-		Channel:   "getnada",
+		Channel:   ch,
 		Email:     email,
 		Token:     token,
 		ExpiresAt: data.ActiveUntil,

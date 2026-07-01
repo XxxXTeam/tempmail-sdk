@@ -1,5 +1,5 @@
 /**
- * Fake Legal — https://fake.legal
+ * Fake Legal — https://imgui.de
  */
 #include "tempmail_internal.h"
 #include <curl/curl.h>
@@ -12,7 +12,7 @@
 #include <strings.h>
 #endif
 
-#define FL_BASE "https://fake.legal"
+#define FL_BASE "https://imgui.de"
 
 static const char *fl_headers[] = {
     "Accept: application/json, text/plain, */*",
@@ -20,7 +20,7 @@ static const char *fl_headers[] = {
     "Cache-Control: no-cache",
     "DNT: 1",
     "Pragma: no-cache",
-    "Referer: https://fake.legal/",
+    "Referer: https://imgui.de/",
     "sec-ch-ua: \"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
     "sec-ch-ua-mobile: ?0",
     "sec-ch-ua-platform: \"Windows\"",
@@ -63,10 +63,20 @@ static void fl_pick_domain(char domains[][256], int nd, const char *preferred, c
                 return;
             }
         }
+        return;
     }
     int pick = rand() % nd;
     strncpy(out, domains[pick], cap - 1);
     out[cap - 1] = '\0';
+}
+
+static void fl_random_username(char *out, size_t len) {
+    const char *chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    size_t n = strlen(chars);
+    for (size_t i = 0; i < len; i++) {
+        out[i] = chars[rand() % n];
+    }
+    out[len] = '\0';
 }
 
 tm_email_info_t* tm_provider_fake_legal_generate(const char *domain) {
@@ -100,12 +110,39 @@ tm_email_info_t* tm_provider_fake_legal_generate(const char *domain) {
     fl_pick_domain(domains, nd, domain, pickdom, sizeof(pickdom));
     if (!pickdom[0]) return NULL;
 
-    char *enc = fl_curl_escape(pickdom);
-    char url[768];
-    snprintf(url, sizeof(url), "%s/api/inbox/new?domain=%s", FL_BASE, enc);
-    free(enc);
-
-    tm_http_response_t *r2 = tm_http_request(TM_HTTP_GET, url, fl_headers, NULL, 15);
+    tm_http_response_t *r2 = NULL;
+    if (fl_stricmp(pickdom, "imgui.de") == 0 || fl_stricmp(pickdom, "pulsewebmenu.de") == 0) {
+        /* imgui-de / pulsewebmenu-de 用 POST 保根域 */
+        char username[13];
+        fl_random_username(username, 12);
+        char body[512];
+        snprintf(body, sizeof(body), "{\"username\":\"%s\",\"domain\":\"%s\"}", username, pickdom);
+        const char *post_headers[] = {
+            "Accept: application/json, text/plain, */*",
+            "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8",
+            "Cache-Control: no-cache",
+            "Content-Type: application/json",
+            "DNT: 1",
+            "Pragma: no-cache",
+            "Referer: https://imgui.de/",
+            "sec-ch-ua: \"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+            "sec-ch-ua-mobile: ?0",
+            "sec-ch-ua-platform: \"Windows\"",
+            "sec-fetch-dest: empty",
+            "sec-fetch-mode: cors",
+            "sec-fetch-site: same-origin",
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+            NULL
+        };
+        r2 = tm_http_request(TM_HTTP_POST, FL_BASE "/api/inbox/custom", post_headers, body, 15);
+    } else {
+        /* fake-legal 用 GET 创建 */
+        char *enc = fl_curl_escape(pickdom);
+        char url[768];
+        snprintf(url, sizeof(url), "%s/api/inbox/new?domain=%s", FL_BASE, enc);
+        free(enc);
+        r2 = tm_http_request(TM_HTTP_GET, url, fl_headers, NULL, 15);
+    }
     if (!r2 || r2->status < 200 || r2->status >= 300) { tm_http_response_free(r2); return NULL; }
 
     cJSON *cj = cJSON_Parse(r2->body);

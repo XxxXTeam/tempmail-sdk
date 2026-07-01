@@ -10,7 +10,7 @@
 #include <time.h>
 
 #define TMP_BASE "https://tempmail.plus/api/mails"
-#define TMP_DOMAIN "mailto.plus"
+#define TMP_DEFAULT_DOMAIN "mailto.plus"
 
 static const char *tmp_headers[] = {
     "Accept: application/json",
@@ -31,14 +31,23 @@ static void tmp_random_local(char *buf, size_t cap) {
     buf[len] = '\0';
 }
 
-tm_email_info_t* tm_provider_tempmail_plus_generate(void) {
-    srand((unsigned)time(NULL));
+static void tmp_seed_random_once(void) {
+    static int seeded = 0;
+    if (!seeded) {
+        srand((unsigned int)time(NULL) ^ (unsigned int)clock());
+        seeded = 1;
+    }
+}
+
+tm_email_info_t* tm_provider_tempmail_plus_generate(const char *domain, tm_channel_t channel) {
+    tmp_seed_random_once();
+    const char *selected_domain = (domain && domain[0]) ? domain : TMP_DEFAULT_DOMAIN;
 
     char local[16];
     tmp_random_local(local, sizeof(local));
 
     char email[128];
-    snprintf(email, sizeof(email), "%s@%s", local, TMP_DOMAIN);
+    snprintf(email, sizeof(email), "%s@%s", local, selected_domain);
 
     char url[512];
     snprintf(url, sizeof(url), "%s/?email=%s&epin=", TMP_BASE, email);
@@ -52,7 +61,7 @@ tm_email_info_t* tm_provider_tempmail_plus_generate(void) {
     tm_http_response_free(resp);
 
     tm_email_info_t *info = tm_email_info_new();
-    info->channel = CHANNEL_TEMPMAIL_PLUS;
+    info->channel = channel;
     info->email = tm_strdup(email);
     info->token = NULL;
     return info;

@@ -43,13 +43,20 @@ def _telemetry_on() -> bool:
     return bool(v)
 
 
+_cached_sdk_version = None
+
+
 def _sdk_version() -> str:
+    global _cached_sdk_version
+    if _cached_sdk_version is not None:
+        return _cached_sdk_version
     try:
         from importlib.metadata import version
 
-        return version("tempemail-sdk")
+        _cached_sdk_version = version("tempemail-sdk")
     except Exception:
-        return "0.0.0"
+        _cached_sdk_version = "0.0.0"
+    return _cached_sdk_version
 
 
 def _post_body(url: str, body: bytes, ver: str) -> None:

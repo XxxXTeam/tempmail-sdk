@@ -84,19 +84,20 @@ func maildropFetchSuffixes() ([]string, error) {
 	return out, nil
 }
 
-func maildropPickSuffix(suffixes []string, preferred *string) string {
+func maildropPickSuffix(suffixes []string, preferred *string) (string, error) {
 	if preferred != nil {
 		p := strings.TrimSpace(*preferred)
 		if p != "" {
 			pl := strings.ToLower(p)
 			for _, d := range suffixes {
 				if strings.ToLower(d) == pl {
-					return d
+					return d, nil
 				}
 			}
+			return "", fmt.Errorf("maildrop: domain not available: %s", pl)
 		}
 	}
-	return suffixes[rand.Intn(len(suffixes))]
+	return suffixes[rand.Intn(len(suffixes))], nil
 }
 
 func maildropCxDateToRFC3339(s string) string {
@@ -115,7 +116,10 @@ func MaildropGenerate(domain *string) (*CreatedMailbox, error) {
 	if err != nil {
 		return nil, err
 	}
-	dom := maildropPickSuffix(suffixes, domain)
+	dom, err := maildropPickSuffix(suffixes, domain)
+	if err != nil {
+		return nil, err
+	}
 	local := maildropRandomLocal(10)
 	email := local + "@" + dom
 	return &CreatedMailbox{Channel: "maildrop", Email: email, Token: email}, nil

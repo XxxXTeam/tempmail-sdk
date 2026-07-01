@@ -96,14 +96,28 @@ tm_email_t tm_normalize_email(const cJSON *raw, const char *recipient) {
      */
     if (email.text && email.text[0] != '\0' &&
         (!email.html || email.html[0] == '\0')) {
-        const char *lower = email.text;
         int is_html = 0;
-        if (strstr(lower, "<!DOCTYPE") || strstr(lower, "<!doctype") ||
-            strstr(lower, "<html") || strstr(lower, "<HTML") ||
-            strstr(lower, "<body") || strstr(lower, "<BODY") ||
-            (strstr(lower, "<div") && strstr(lower, "</div>")) ||
-            (strstr(lower, "<table") && strstr(lower, "</table>")) ||
-            (strstr(lower, "<p") && strstr(lower, "</p>"))) {
+        /* 只取前 200 字节做前缀检查，避免对大邮件全文 strstr */
+        size_t tlen = strlen(email.text);
+        size_t plen = tlen < 200 ? tlen : 200;
+        char prefix[201];
+        memcpy(prefix, email.text, plen);
+        prefix[plen] = '\0';
+        char *pp = prefix;
+        while (*pp && (*pp == ' ' || *pp == '\t' || *pp == '\n' || *pp == '\r')) pp++;
+        for (char *c = pp; *c; c++) {
+            if (*c >= 'A' && *c <= 'Z') *c += 32;
+        }
+        if (strncmp(pp, "<!doctype html", 14) == 0 ||
+            strncmp(pp, "<html", 5) == 0 ||
+            strncmp(pp, "<body", 5) == 0) {
+            is_html = 1;
+        } else if (
+            (strstr(email.text, "<div") && strstr(email.text, "</div>")) ||
+            (strstr(email.text, "<DIV") && strstr(email.text, "</DIV>")) ||
+            (strstr(email.text, "<table") && strstr(email.text, "</table>")) ||
+            (strstr(email.text, "<TABLE") && strstr(email.text, "</TABLE>")) ||
+            (strstr(email.text, "<p") && strstr(email.text, "</p>"))) {
             is_html = 1;
         }
         if (is_html) {

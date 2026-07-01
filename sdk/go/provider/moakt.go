@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -28,8 +29,10 @@ type moaktSess struct {
 const moaktTokPrefix = "mok1:"
 
 var (
-	moaktEmailDivRe  = regexp.MustCompile(`(?is)<div\s+id="email-address"\s*>([^<]+)</div>`)
-	moaktHrefEmailRe = regexp.MustCompile(
+	moaktEmailDivRe   = regexp.MustCompile(`(?is)<div\s+id="email-address"\s*>([^<]+)</div>`)
+	moaktDomainOptRe  = regexp.MustCompile(`(?is)<option\s+value="([^"]+)">\s*@[^<]+</option>`)
+	moaktMailDomainRe = regexp.MustCompile(`(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$`)
+	moaktHrefEmailRe  = regexp.MustCompile(
 		`href="(/[^"]+/email/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"`,
 	)
 	moaktTitleRe    = regexp.MustCompile(`(?is)<li\s+class="title"\s*>([^<]*)</li>`)
@@ -39,18 +42,56 @@ var (
 	moaktFromAddrRe = regexp.MustCompile(`<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>`)
 )
 
-func moaktLocale(domain *string) string {
+func moaktRequestParts(domain *string) (string, string) {
 	if domain == nil {
-		return "zh"
+		return "zh", ""
 	}
 	s := strings.TrimSpace(*domain)
 	if s == "" {
-		return "zh"
+		return "zh", ""
 	}
 	if strings.ContainsAny(s, "/?#\\") {
-		return "zh"
+		return "zh", ""
 	}
-	return s
+	if moaktMailDomainRe.MatchString(s) {
+		return "zh", strings.TrimPrefix(strings.ToLower(s), "@")
+	}
+	return s, ""
+}
+
+func moaktParseServerDomains(page string) map[string]struct{} {
+	out := make(map[string]struct{})
+	for _, m := range moaktDomainOptRe.FindAllStringSubmatch(page, -1) {
+		if len(m) < 2 {
+			continue
+		}
+		d := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(m[1])), "@")
+		if d != "" {
+			out[d] = struct{}{}
+		}
+	}
+	return out
+}
+
+func moaktRandomLocal(n int) (string, error) {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	buf := make([]byte, n)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	out := make([]byte, n)
+	for i, b := range buf {
+		out[i] = chars[int(b)%len(chars)]
+	}
+	return string(out), nil
+}
+
+func moaktEmailDomain(email string) string {
+	at := strings.LastIndex(email, "@")
+	if at < 0 {
+		return ""
+	}
+	return strings.ToLower(strings.TrimSpace(email[at+1:]))
 }
 
 func moaktCookieMap(hdr string) map[string]string {
@@ -201,7 +242,7 @@ func moaktParseMessageHTML(page string, id string, recipient string) map[string]
 // 再 GET /{locale}/inbox 解析 #email-address；token 内为 Cookie 快照。
 // opts.Domain 为语言路径（如 zh、en），默认 zh。
 func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
-	loc := moaktLocale(domain)
+	loc, mailDomain := moaktRequestParts(domain)
 	base := moaktOrigin + "/" + url.PathEscape(loc)
 	inbox := base + "/inbox"
 	client := moaktHTTPClient()
@@ -219,12 +260,33 @@ func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
 	if err := CheckHTTPStatus(resp, "moakt home"); err != nil {
 		return nil, err
 	}
-	_, _ = io.Copy(io.Discard, resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 	cookieHdr := moaktMergeCookies("", resp.Cookies())
+
+	form := url.Values{}
+	if mailDomain != "" {
+		domains := moaktParseServerDomains(string(body))
+		if _, ok := domains[mailDomain]; !ok {
+			return nil, fmt.Errorf("moakt: unsupported domain %s", mailDomain)
+		}
+		local, err := moaktRandomLocal(12)
+		if err != nil {
+			return nil, fmt.Errorf("moakt: random local failed: %w", err)
+		}
+		form.Set("setemail", "")
+		form.Set("username", local)
+		form.Set("domain", mailDomain)
+		form.Set("preferred_domain", "")
+	} else {
+		form.Set("random", "1")
+	}
 
 	// POST /{locale}/inbox with random=1，不跟随重定向以获取 tm_session cookie
 	noRedirectClient := HTTPClientNoRedirect()
-	req2, err := http.NewRequest("POST", inbox, strings.NewReader("random=1"))
+	req2, err := http.NewRequest("POST", inbox, strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +320,7 @@ func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
 	if err := CheckHTTPStatus(resp3, "moakt inbox"); err != nil {
 		return nil, err
 	}
-	body, err := io.ReadAll(resp3.Body)
+	body, err = io.ReadAll(resp3.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -267,6 +329,9 @@ func MoaktGenerate(domain *string) (*CreatedMailbox, error) {
 	emailAddr, err := moaktParseInboxEmail(htmlStr)
 	if err != nil {
 		return nil, err
+	}
+	if mailDomain != "" && moaktEmailDomain(emailAddr) != mailDomain {
+		return nil, fmt.Errorf("moakt: domain mismatch expected=%s actual=%s", mailDomain, moaktEmailDomain(emailAddr))
 	}
 
 	tok, err := moaktEncodeSess(&moaktSess{Locale: loc, CookieHdr: cookieHdr})

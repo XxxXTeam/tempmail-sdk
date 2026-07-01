@@ -60,6 +60,7 @@ def _pick_suffix(suffixes: list, preferred: str | None) -> str:
         for d in suffixes:
             if d.lower() == p:
                 return d
+        raise ValueError(f"maildrop: domain not available: {p}")
     return random.choice(suffixes)
 
 

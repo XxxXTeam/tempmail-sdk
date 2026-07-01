@@ -114,28 +114,88 @@ static int mok_cookie_has_tm_session(const char *hdr) {
     return 0;
 }
 
-static void mok_locale(const char *domain, char *out, size_t cap) {
-    if (!out || cap < 4) return;
+static int mok_is_mail_domain(const char *s) {
+    int dot = 0;
+    int label_len = 0;
+    if (!s || !*s) return 0;
+    for (const char *p = s; *p; p++) {
+        unsigned char c = (unsigned char)*p;
+        if (c == '.') {
+            if (label_len == 0) return 0;
+            dot = 1;
+            label_len = 0;
+            continue;
+        }
+        if (!(isalnum(c) || c == '-')) return 0;
+        label_len++;
+    }
+    return dot && label_len > 0;
+}
+
+static void mok_request_parts(const char *domain, char *locale, size_t locale_cap, char *mail_domain, size_t domain_cap) {
+    if (locale && locale_cap > 0) locale[0] = '\0';
+    if (mail_domain && domain_cap > 0) mail_domain[0] = '\0';
+    if (!locale || locale_cap < 4 || !mail_domain || domain_cap < 4) return;
     if (!domain || !*domain) {
-        strcpy(out, "zh");
+        strcpy(locale, "zh");
         return;
     }
     const char *s = domain;
     while (*s == ' ' || *s == '\t') s++;
     size_t len = strlen(s);
     while (len > 0 && (s[len - 1] == ' ' || s[len - 1] == '\t')) len--;
-    if (len == 0 || len >= cap) {
-        strcpy(out, "zh");
+    if (len == 0 || len >= locale_cap) {
+        strcpy(locale, "zh");
         return;
     }
     for (size_t i = 0; i < len; i++) {
         if (s[i] == '/' || s[i] == '?' || s[i] == '#' || s[i] == '\\') {
-            strcpy(out, "zh");
+            strcpy(locale, "zh");
             return;
         }
     }
-    memcpy(out, s, len);
-    out[len] = '\0';
+    char tmp[128];
+    if (len >= sizeof(tmp)) {
+        strcpy(locale, "zh");
+        return;
+    }
+    memcpy(tmp, s, len);
+    tmp[len] = '\0';
+    for (char *p = tmp; *p; p++) *p = (char)tolower((unsigned char)*p);
+    if (mok_is_mail_domain(tmp)) {
+        strcpy(locale, "zh");
+        if (strlen(tmp) < domain_cap) strcpy(mail_domain, tmp);
+        return;
+    }
+    if (len >= locale_cap) {
+        strcpy(locale, "zh");
+        return;
+    }
+    memcpy(locale, s, len);
+    locale[len] = '\0';
+}
+
+static int mok_page_has_domain(const char *html, const char *domain) {
+    if (!html || !domain || !*domain) return 0;
+    char pat[192];
+    snprintf(pat, sizeof(pat), "<option value=\"%s\">", domain);
+    return strstr(html, pat) != NULL;
+}
+
+static void mok_random_local(char *out, size_t cap) {
+    static const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
+    if (!out || cap < 2) return;
+    size_t n = cap - 1;
+    if (n > 12) n = 12;
+    for (size_t i = 0; i < n; i++) {
+        out[i] = chars[rand() % (int)(sizeof(chars) - 1)];
+    }
+    out[n] = '\0';
+}
+
+static const char *mok_email_domain(const char *email) {
+    const char *at = email ? strrchr(email, '@') : NULL;
+    return at ? at + 1 : "";
 }
 
 static int mok_b64_encode(const unsigned char *in, size_t inlen, char *out, size_t outcap) {
@@ -513,7 +573,8 @@ static cJSON *mok_parse_detail_json(const char *page, const char *id, const char
 
 tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
     char loc[32];
-    mok_locale(domain, loc, sizeof(loc));
+    char mail_domain[128];
+    mok_request_parts(domain, loc, sizeof(loc), mail_domain, sizeof(mail_domain));
     char base[256];
     snprintf(base, sizeof(base), "%s/%s", MOK_ORIGIN, loc);
     char inbox[288];
@@ -538,6 +599,10 @@ tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
     int timeout = tm_get_config()->timeout_secs > 0 ? tm_get_config()->timeout_secs : 15;
     tm_http_response_t *r1 = tm_http_request(TM_HTTP_GET, base, hdr_home, NULL, timeout);
     if (!r1 || r1->status != 200) {
+        tm_http_response_free(r1);
+        return NULL;
+    }
+    if (mail_domain[0] && (!r1->body || !mok_page_has_domain(r1->body, mail_domain))) {
         tm_http_response_free(r1);
         return NULL;
     }
@@ -566,7 +631,16 @@ tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
         h_ck,
         NULL};
 
-    tm_http_response_t *r2 = tm_http_request(TM_HTTP_POST, inbox, hdr_post, "random=1", timeout);
+    char post_body[256];
+    if (mail_domain[0]) {
+        char local[16];
+        mok_random_local(local, sizeof(local));
+        snprintf(post_body, sizeof(post_body), "setemail=&username=%s&domain=%s&preferred_domain=", local, mail_domain);
+    } else {
+        strcpy(post_body, "random=1");
+    }
+
+    tm_http_response_t *r2 = tm_http_request(TM_HTTP_POST, inbox, hdr_post, post_body, timeout);
     if (!r2) {
         free(ck);
         return NULL;
@@ -611,6 +685,11 @@ tm_email_info_t *tm_provider_moakt_generate(const char *domain) {
 
     char email_buf[256];
     if (mok_parse_inbox_email(r3->body, email_buf, sizeof(email_buf)) != 0) {
+        tm_http_response_free(r3);
+        free(ck3);
+        return NULL;
+    }
+    if (mail_domain[0] && strcmp(mok_email_domain(email_buf), mail_domain) != 0) {
         tm_http_response_free(r3);
         free(ck3);
         return NULL;

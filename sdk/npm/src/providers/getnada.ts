@@ -58,11 +58,17 @@ function flattenMessage(raw: Record<string, unknown>, recipient: string): Record
   };
 }
 
-async function pickDomain(): Promise<string> {
+async function pickDomain(preferred?: string | null): Promise<string> {
   const data = await fetchJSON<DomainsResponse>(`${API_BASE}/public/domains`);
   const domains = (Array.isArray(data.domains) ? data.domains : [])
     .map((domain) => String(domain || '').trim().toLowerCase())
     .filter(isMailDomain);
+  const wanted = String(preferred || '').trim().replace(/^@/, '').toLowerCase();
+  if (wanted) {
+    const exact = domains.find((domain) => domain === wanted);
+    if (!exact) throw new Error(`getnada: domain not available: ${wanted}`);
+    return exact;
+  }
   return domains.find((domain) => domain === 'getnada.net') ?? domains[0] ?? '';
 }
 
@@ -72,10 +78,10 @@ function isMailDomain(domain: string): boolean {
   return labels.length >= 2 && labels.every((label) => DOMAIN_LABEL_RE.test(label));
 }
 
-export async function generateEmail(): Promise<InternalEmailInfo> {
-  const domain = await pickDomain();
-  if (!domain) throw new Error('getnada: no domain available');
-  const requested = `${randomLocal()}@${domain}`;
+export async function generateEmail(domain?: string | null, channel: Channel = CHANNEL): Promise<InternalEmailInfo> {
+  const selectedDomain = await pickDomain(domain);
+  if (!selectedDomain) throw new Error('getnada: no domain available');
+  const requested = `${randomLocal()}@${selectedDomain}`;
   const data = await fetchJSON<OpenResponse>(`${API_BASE}/inbox/open`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -88,7 +94,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error('getnada: invalid open response');
   }
   return {
-    channel: CHANNEL,
+    channel,
     email,
     token,
     expiresAt: data.activeUntil,

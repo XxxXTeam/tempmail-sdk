@@ -57,6 +57,22 @@ static void strip_tags_to(const char *in, char *out, size_t cap) {
     }
 }
 
+static void strip_span_blocks_to(const char *in, char *out, size_t cap) {
+    size_t o = 0;
+    while (*in && o + 1 < cap) {
+        if (strncasecmp(in, "<span", 5) == 0) {
+            const char *close = strstr(in, "</span>");
+            if (!close) {
+                break;
+            }
+            in = close + 7;
+            continue;
+        }
+        out[o++] = *in++;
+    }
+    out[o] = '\0';
+}
+
 static int parse_mail_link(const char *html, char *inbox, size_t inbox_cap, char *secret, size_t secret_cap) {
     const char *needle = "href=\"https://anonbox.net/";
     const char *p = strstr(html, needle);
@@ -120,8 +136,10 @@ static int find_address_local(const char *html, char *local_out, size_t local_ca
             p = close + 5;
             continue;
         }
+        char no_spans[1024];
+        strip_span_blocks_to(buf, no_spans, sizeof(no_spans));
         char stripped[1024];
-        strip_tags_to(buf, stripped, sizeof(stripped));
+        strip_tags_to(no_spans, stripped, sizeof(stripped));
         const char *at = strchr(stripped, '@');
         if (!at) return -1;
         size_t loc_len = (size_t)(at - stripped);

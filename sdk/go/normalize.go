@@ -69,12 +69,17 @@ func normalizeRawEmail(raw map[string]interface{}, recipientEmail string) Email 
  * 通过检查是否包含常见的 HTML 标签来判断
  */
 func isHTMLContent(content string) bool {
-	trimmed := strings.TrimSpace(strings.ToLower(content))
-	if strings.HasPrefix(trimmed, "<!doctype html") ||
-		strings.HasPrefix(trimmed, "<html") ||
-		strings.HasPrefix(trimmed, "<body") {
+	prefix := content
+	if len(prefix) > 200 {
+		prefix = prefix[:200]
+	}
+	prefix = strings.TrimSpace(strings.ToLower(prefix))
+	if strings.HasPrefix(prefix, "<!doctype html") ||
+		strings.HasPrefix(prefix, "<html") ||
+		strings.HasPrefix(prefix, "<body") {
 		return true
 	}
+	trimmed := strings.TrimSpace(strings.ToLower(content))
 	if strings.Contains(trimmed, "<div") && strings.Contains(trimmed, "</div>") {
 		return true
 	}

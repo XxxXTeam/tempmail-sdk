@@ -659,7 +659,7 @@ jobs:
             
             ### 支持的渠道
             
-            共 **55** 个渠道，五种 SDK 一致。详见仓库根目录 `README.md`。
+            共 **176** 个公开 `channel` 标识，五种 SDK 一致；按独立服务商合并为 **67** 个 provider。详见仓库根目录 `README.md`。
             
             | 渠道 | 服务商 |
             |------|--------|
@@ -667,12 +667,19 @@ jobs:
             | `tempmail-cn` | tempmail.cn |
             | `ta-easy` | ta-easy.com |
             | `10minute-one` | 10minutemail.one |
+            | `xghff-com` | xghff.com |
+            | `oqqaj-com` | oqqaj.com |
+            | `psovv-com` | psovv.com |
+            | `dbwot-com` | dbwot.com |
+            | `ygwpr-com` | ygwpr.com |
+            | `imxwe-com` | imxwe.com |
             | `linshiyou` | linshiyou.com |
             | `mffac` | mffac.com |
             | `tempmail-lol` | tempmail.lol |
             | `chatgpt-org-uk` | mail.chatgpt.org.uk |
             | `temp-mail-io` | temp-mail.io |
             | `mail-cx` | mail.cx |
+            | `ddker-com` | ddker.com |
             | `catchmail` | catchmail.io |
             | `catchmail-mailistry` | mailistry.com |
             | `catchmail-zeppost` | zeppost.com |
@@ -683,9 +690,53 @@ jobs:
             | `tempmailc` | tempmailc.com |
             | `mailnesia` | mailnesia.com |
             | `throwawaymail` | throwawaymail.app |
+            | `shitty-email` | shitty.email |
+            | `tempmailpro` | tempmailpro.us |
+            | `devmail-uk` | devmail.uk |
             | `inboxkitten` | inboxkitten.com |
             | `getnada` | getnada.net |
+            | `1vpn-net` | 1vpn.net |
+            | `abematv-com` | abematv.com |
+            | `abematv-net` | abematv.net |
+            | `abematv-org` | abematv.org |
+            | `aceh-cc` | aceh.cc |
+            | `bangkabelitung-net` | bangkabelitung.net |
+            | `cctruyen-com` | cctruyen.com |
+            | `getnada-com` | getnada.com |
+            | `getnada-email` | getnada.email |
+            | `getnada-net` | getnada.net |
+            | `jawatengah-net` | jawatengah.net |
+            | `jawatimur-net` | jawatimur.net |
+            | `kalimantanbarat-net` | kalimantanbarat.net |
+            | `kalimantanselatan-net` | kalimantanselatan.net |
+            | `kalimantantengah-net` | kalimantantengah.net |
+            | `kalimantantimur-net` | kalimantantimur.net |
+            | `kalimantanutara-net` | kalimantanutara.net |
+            | `kepulauanriau-net` | kepulauanriau.net |
+            | `luxury345-com` | luxury345.com |
+            | `malukuutara-net` | malukuutara.net |
+            | `nusatenggarabarat-net` | nusatenggarabarat.net |
+            | `nusatenggaratimur-net` | nusatenggaratimur.net |
+            | `papuabarat-net` | papuabarat.net |
+            | `papuabaratdaya-net` | papuabaratdaya.net |
+            | `papuaselatan-net` | papuaselatan.net |
+            | `pehol-com` | pehol.com |
+            | `ptruyen-com` | ptruyen.com |
+            | `pulaubali-net` | pulaubali.net |
+            | `riau-net` | riau.net |
+            | `seokey-org` | seokey.org |
+            | `sulawesibarat-net` | sulawesibarat.net |
+            | `sulawesiselatan-net` | sulawesiselatan.net |
+            | `sulawesitengah-net` | sulawesitengah.net |
+            | `sulawesitenggara-net` | sulawesitenggara.net |
+            | `sumaterabarat-net` | sumaterabarat.net |
+            | `sumateraselatan-net` | sumateraselatan.net |
+            | `sumaterautara-net` | sumaterautara.net |
+            | `villatogel-com` | villatogel.com |
             | `mail123` | mail123.fr |
+            | `mail10s` | mail10s.com |
+            | `webmailtemp` | webmailtemp.com |
+            | `tempfastmail` | tempfastmail.com |
             | `1sec-mail` | 1sec-mail.com |
             | `fakemail` | fakemail.net |
             | `openinbox` | openinbox.io |
@@ -693,6 +744,7 @@ jobs:
             | `uncorreotemporal` | uncorreotemporal.com |
             | `awamail` | awamail.com |
             | `mail-tm` | mail.tm |
+            | `web-library-net` | web-library.net |
             | `dropmail` | dropmail.me |
             | `guerrillamail` | guerrillamail.com |
             | `guerrillamail-com` | guerrillamail.com |
@@ -700,14 +752,44 @@ jobs:
             | `smail-pw` | smail.pw |
             | `vip-215` | vip.215.im |
             | `fake-legal` | fake.legal |
+            | `imgui-de` | imgui.de |
+            | `pulsewebmenu-de` | pulsewebmenu.de |
             | `moakt` | moakt.com |
+            | `drmail-in` | drmail.in |
+            | `teml-net` | teml.net |
+            | `tmpeml-com` | tmpeml.com |
+            | `tmpbox-net` | tmpbox.net |
+            | `moakt-cc` | moakt.cc |
+            | `disbox-net` | disbox.net |
+            | `tmpmail-org` | tmpmail.org |
+            | `tmpmail-net` | tmpmail.net |
+            | `tmails-net` | tmails.net |
+            | `disbox-org` | disbox.org |
+            | `moakt-co` | moakt.co |
+            | `moakt-ws` | moakt.ws |
+            | `tmail-ws` | tmail.ws |
+            | `bareed-ws` | bareed.ws |
             | `email10min` | email10min.com |
             | `mjj-cm` | mjj.cm |
             | `linshi-co` | linshi.co |
             | `harakirimail` | harakirimail.com |
+            | `jqkjqk-xyz` | jqkjqk.xyz |
+            | `lyhlevi-com` | lyhlevi.com |
             | `tempmail-plus` | tempmail.plus |
-            | `mail-gw` | mail.gw |
+            | `fexpost-com` | fexpost.com |
+            | `fexbox-org` | fexbox.org |
+            | `mailbox-in-ua` | mailbox.in.ua |
+            | `rover-info` | rover.info |
+            | `chitthi-in` | chitthi.in |
+            | `fextemp-com` | fextemp.com |
+            | `any-pink` | any.pink |
+            | `merepost-com` | merepost.com |
             | `tempmail-lol-v2` | tempmail.lol |
+            | `tempgbox` | tempgbox.net |
+            | `emailnator` | emailnator.com |
+            | `temporam` | temporam.com |
+            | `neighbours` | neighbours.sh |
+            | `fake-email-site` | fake-email.site |
             | `sharklasers` | sharklasers.com |
             | `sharklasers-com` | sharklasers.com |
             | `grr-la` | grr.la |
@@ -718,6 +800,13 @@ jobs:
             | `guerrillamail-org` | guerrillamail.org |
             | `guerrillamailblock` | guerrillamailblock.com |
             | `guerrillamail-com-www` | guerrillamail.com |
+            | `m2u` | m2u.io |
+            | `tempy-email` | tempy.email |
+            | `fmail` | fmail.men |
+            | `ockito` | ockito.com |
+            | `anonbox` | anonbox.net |
+            | `duckmail` | duckmail.sbs |
+            | `mailinator` | mailinator.com |
           draft: false
           prerelease: ${{ needs.release-meta.outputs.is_prerelease == 'true' }}
         env:

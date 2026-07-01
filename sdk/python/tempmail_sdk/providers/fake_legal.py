@@ -1,8 +1,9 @@
 """
-Fake Legal 渠道 — https://fake.legal
+Fake Legal 渠道 — https://imgui.de
 """
 
 import random
+import string
 from typing import List, Optional
 
 from .. import http as tm_http
@@ -10,7 +11,7 @@ from ..normalize import normalize_email
 from ..types import Email, EmailInfo
 
 CHANNEL = "fake-legal"
-BASE = "https://fake.legal"
+BASE = "https://imgui.de"
 
 HEADERS = {
     "Accept": "application/json, text/plain, */*",
@@ -18,7 +19,7 @@ HEADERS = {
     "Cache-Control": "no-cache",
     "DNT": "1",
     "Pragma": "no-cache",
-    "Referer": "https://fake.legal/",
+    "Referer": "https://imgui.de/",
     "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": '"Windows"',
@@ -54,18 +55,35 @@ def _pick_domain(domains: List[str], preferred: Optional[str]) -> str:
         for d in domains:
             if d.lower() == p:
                 return d
+        raise ValueError(f"fake-legal: domain not available: {p}")
     return random.choice(domains)
 
 
-def generate_email(domain: Optional[str] = None) -> EmailInfo:
+def _random_username(length: int) -> str:
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(length))
+
+
+def generate_email(domain: Optional[str] = None, channel: str = CHANNEL) -> EmailInfo:
     domains = _fetch_domains()
     if not domains:
         raise RuntimeError("fake-legal: no domains")
     d = _pick_domain(domains, domain)
     from urllib.parse import quote
 
-    url = f"{BASE}/api/inbox/new?domain={quote(d, safe='')}"
-    resp = tm_http.get(url, headers=HEADERS, timeout=15)
+    if d == "imgui.de" or d == "pulsewebmenu.de":
+        # imgui-de / pulsewebmenu-de 用 POST 保根域
+        url = f"{BASE}/api/inbox/custom"
+        body = {
+            "username": _random_username(12),
+            "domain": d,
+        }
+        resp = tm_http.post(url, json=body, headers=HEADERS, timeout=15)
+    else:
+        # fake-legal 用 GET 创建
+        url = f"{BASE}/api/inbox/new?domain={quote(d, safe='')}"
+        resp = tm_http.get(url, headers=HEADERS, timeout=15)
+
     resp.raise_for_status()
     data = resp.json()
     if not isinstance(data, dict) or not data.get("success"):
@@ -73,7 +91,7 @@ def generate_email(domain: Optional[str] = None) -> EmailInfo:
     addr = data.get("address")
     if not addr or not str(addr).strip():
         raise RuntimeError("fake-legal: missing address")
-    return EmailInfo(channel=CHANNEL, email=str(addr).strip())
+    return EmailInfo(channel=channel, email=str(addr).strip())
 
 
 def get_emails(email: str) -> List[Email]:

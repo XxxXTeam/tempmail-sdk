@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-五端 SDK（**Go、npm、Rust、Python、C**）共同支持 **55** 个渠道。下表为五端共同顺序（与 Go `allChannels` 对齐）。C 语言中 `tm_list_channels()` 返回顺序亦与下表一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+五端 SDK（**Go、npm、Rust、Python、C**）共同公开 **182** 个 `channel` 标识，按独立服务商合并为 **66** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。下表为五端共同顺序（与 Go `allChannels` 对齐）。C 语言中 `tm_list_channels()` 返回顺序亦与下表一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 **五端共同支持 55 个渠道**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
+- 🌐 **五端共同公开 176 个 `channel` 标识，合并为 67 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -25,7 +25,7 @@
 
 ## 📋 支持的渠道
 
-下列顺序为 Go、Rust、Python、C 与 npm 的共同渠道顺序。
+下列顺序为 Go、Rust、Python、C 与 npm 的公共列表顺序。只要求五端公共渠道集合、数量与 `listChannels` / `ListChannels` / `list_channels` / `tm_list_channels()` 返回顺序一致；随机生成邮箱时，各 SDK 会在本端独立打乱尝试顺序，不需要、也不承诺跨 SDK 随机顺序一致。渠道统计以独立服务商为准，同一 provider 的固定域名、裸域、镜像域名和同 API 多域名不重复计入服务商数量。若上游按设备标识限制连续生成，且真实验证确认同一设备连续生成后返回 429，对应 provider 可以在每次生成邮箱时创建新的设备 ID，并把该邮箱对应的设备 ID 存入内部 Token/Session，后续收件继续使用同一个设备 ID。
 
 | 渠道 | 服务商 | 认证方式 | 说明 |
 |------|--------|----------|------|
@@ -33,12 +33,19 @@
 | `tempmail-cn` | [tempmail.cn](https://tempmail.cn) | 邮箱地址 | Socket.IO 事件协议：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或已解析到该服务的自定义域名 |
 | `ta-easy` | [ta-easy.com](https://www.ta-easy.com) | Token（会话 UUID） | `POST https://api-endpoint.ta-easy.com/temp-email/address/new` 建址；`POST .../temp-email/inbox/list` 拉信；`expiresAt` 为毫秒时间戳；上游字段如 `mail_sender` / `mail_title` / `mail_body_*` 由 SDK 归一化到统一 `Email` |
 | `10minute-one` | [10minutemail.one](https://10minutemail.one) | Token | 站点 SSR / JWT + Web API 建邮与收信；`domain` 可选接入参数（见各 SDK 说明） |
+| `xghff-com` | [xghff.com](https://xghff.com) | Token | 10minutemail.one API 固定域名 `xghff.com`；生成和收信接口与 `10minute-one` 相同 |
+| `oqqaj-com` | [oqqaj.com](https://oqqaj.com) | Token | 10minutemail.one API 固定域名 `oqqaj.com`；生成和收信接口与 `10minute-one` 相同 |
+| `psovv-com` | [psovv.com](https://psovv.com) | Token | 10minutemail.one API 固定域名 `psovv.com`；生成和收信接口与 `10minute-one` 相同 |
+| `dbwot-com` | [dbwot.com](https://dbwot.com) | Token | 10minutemail.one API 固定域名 `dbwot.com`；生成和收信接口与 `10minute-one` 相同 |
+| `ygwpr-com` | [ygwpr.com](https://ygwpr.com) | Token | 10minutemail.one API 固定域名 `ygwpr.com`；生成和收信接口与 `10minute-one` 相同 |
+| `imxwe-com` | [imxwe.com](https://imxwe.com) | Token | 10minutemail.one API 固定域名 `imxwe.com`；生成和收信接口与 `10minute-one` 相同 |
 | `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token（`NEXUS_TOKEN`） | 创建邮箱时 Set-Cookie 下发 `NEXUS_TOKEN`；收信需携带该 Token 与 `tmail-emails` 等 Cookie；列表与正文由 HTML 分段 / iframe 解析 |
 | `mffac` | [mffac.com](https://www.mffac.com) | Token（mailbox `id`） | REST：`POST /api/mailboxes` 创建，`GET /api/mailboxes/{local}/emails` 列表，`GET /api/emails/{id}` 详情；详情 `textContent` / `htmlContent` 映射为统一正文；默认 24h |
 | `tempmail-lol` | [tempmail.lol](https://tempmail.lol) | Token | 支持指定域名 |
 | `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | Inbox Token | 官网在 HTML 注入 `__BROWSER_AUTH`；npm 已随首页一并解析并用于创建邮箱 |
 | `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3`；生成接口返回的 token 由 SDK 内部维护 |
 | `mail-cx` | [mail.cx](https://mail.cx) | Client ID | 匿名 Web API：`GET /v1/config` 获取系统域名，隐式邮箱地址 `{local}@{domain}`；`GET /v1/inbox/{email}` 长轮询收信，详情通过 `/v1/email/{id}` 拉取 |
+| `ddker-com` | [ddker.com](https://ddker.com) | Client ID | mail.cx API 固定域名 `ddker.com`；生成和收信接口与 `mail-cx` 相同 |
 | `catchmail` | [catchmail.io](https://catchmail.io) | - | 公开 REST：`GET api.catchmail.io/api/v1/mailbox?address=` 列表，`GET /message/{id}?mailbox=` 详情；详情 `body.text` / `body.html` 映射为统一 `text` / `html` |
 | `catchmail-mailistry` | [mailistry.com](https://mailistry.com) | - | Catchmail API 固定域名 `mailistry.com`；收信接口与 `catchmail` 相同 |
 | `catchmail-zeppost` | [zeppost.com](https://zeppost.com) | - | Catchmail API 固定域名 `zeppost.com`；收信接口与 `catchmail` 相同 |
@@ -49,16 +56,62 @@
 | `tempmailc` | [tempmailc.com](https://tempmailc.com) | - | Public API：`GET /api/v1/new` 建址，`GET /api/v1/inbox` 拉列表，`GET /api/v1/message` 读取 `text` / `html` 正文 |
 | `mailnesia` | [mailnesia.com](https://mailnesia.com) | - | 任意 `{local}@mailnesia.com` 建址；`GET /mailbox/{local}` 解析 `tr.emailheader` 列表，`GET /mailbox/{local}/{id}` 读取 `text_plain_{id}` / `text_html_{id}` 正文 |
 | `throwawaymail` | [throwawaymail.app](https://throwawaymail.app) | Token | Web API 建址并轮询收信；Token 由 SDK 内部维护 |
+| `shitty-email` | [shitty.email](https://shitty.email) | Token | `POST /api/inbox` 建址；`X-Session-Token` + `GET /api/inbox` 拉列表，`GET /api/email/{id}` 读取 `text` / `html` 正文 |
+| `tempmailpro` | [tempmailpro.us](https://tempmailpro.us) | Token | `POST /api/v1/mailbox/create` 建箱；`GET /api/v1/mailbox/{token}/emails` 拉列表，详情字段 `body_text` / `body_html` 映射统一正文 |
+| `devmail-uk` | [devmail.uk](https://devmail.uk) | 邮箱地址 | `GET /api/new` 建址；`GET /api/inbox/{mailbox}?detail=true` 拉列表；生成接口返回的 `email` / `mailbox` 字段均兼容解析 |
+| `cleantempmail` | [cleantempmail.com](https://cleantempmail.com) | 邮箱地址 | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
 | `inboxkitten` | [inboxkitten.com](https://inboxkitten.com) | - | 公开 API 拉取收件箱列表与详情 |
 | `getnada` | [getnada.net](https://getnada.net) | Token | `POST /api/inbox/open` 建箱；`GET /api/inbox/messages` 列表；`GET /api/inbox/message` 详情含 `text_plain` / `html_sanitized` |
+| `1vpn-net` | [1vpn.net](https://1vpn.net) | Token | GetNada 固定域名 `1vpn.net`；收信接口与 `getnada` 相同 |
+| `abematv-com` | [abematv.com](https://abematv.com) | Token | GetNada 固定域名 `abematv.com`；收信接口与 `getnada` 相同 |
+| `abematv-net` | [abematv.net](https://abematv.net) | Token | GetNada 固定域名 `abematv.net`；收信接口与 `getnada` 相同 |
+| `abematv-org` | [abematv.org](https://abematv.org) | Token | GetNada 固定域名 `abematv.org`；收信接口与 `getnada` 相同 |
+| `aceh-cc` | [aceh.cc](https://aceh.cc) | Token | GetNada 固定域名 `aceh.cc`；收信接口与 `getnada` 相同 |
+| `bangkabelitung-net` | [bangkabelitung.net](https://bangkabelitung.net) | Token | GetNada 固定域名 `bangkabelitung.net`；收信接口与 `getnada` 相同 |
+| `cctruyen-com` | [cctruyen.com](https://cctruyen.com) | Token | GetNada 固定域名 `cctruyen.com`；收信接口与 `getnada` 相同 |
+| `getnada-com` | [getnada.com](https://getnada.com) | Token | GetNada 固定域名 `getnada.com`；收信接口与 `getnada` 相同 |
+| `getnada-email` | [getnada.email](https://getnada.email) | Token | GetNada 固定域名 `getnada.email`；收信接口与 `getnada` 相同 |
+| `getnada-net` | [getnada.net](https://getnada.net) | Token | GetNada 固定域名 `getnada.net`；收信接口与 `getnada` 相同 |
+| `jawatengah-net` | [jawatengah.net](https://jawatengah.net) | Token | GetNada 固定域名 `jawatengah.net`；收信接口与 `getnada` 相同 |
+| `jawatimur-net` | [jawatimur.net](https://jawatimur.net) | Token | GetNada 固定域名 `jawatimur.net`；收信接口与 `getnada` 相同 |
+| `kalimantanbarat-net` | [kalimantanbarat.net](https://kalimantanbarat.net) | Token | GetNada 固定域名 `kalimantanbarat.net`；收信接口与 `getnada` 相同 |
+| `kalimantanselatan-net` | [kalimantanselatan.net](https://kalimantanselatan.net) | Token | GetNada 固定域名 `kalimantanselatan.net`；收信接口与 `getnada` 相同 |
+| `kalimantantengah-net` | [kalimantantengah.net](https://kalimantantengah.net) | Token | GetNada 固定域名 `kalimantantengah.net`；收信接口与 `getnada` 相同 |
+| `kalimantantimur-net` | [kalimantantimur.net](https://kalimantantimur.net) | Token | GetNada 固定域名 `kalimantantimur.net`；收信接口与 `getnada` 相同 |
+| `kalimantanutara-net` | [kalimantanutara.net](https://kalimantanutara.net) | Token | GetNada 固定域名 `kalimantanutara.net`；收信接口与 `getnada` 相同 |
+| `kepulauanriau-net` | [kepulauanriau.net](https://kepulauanriau.net) | Token | GetNada 固定域名 `kepulauanriau.net`；收信接口与 `getnada` 相同 |
+| `luxury345-com` | [luxury345.com](https://luxury345.com) | Token | GetNada 固定域名 `luxury345.com`；收信接口与 `getnada` 相同 |
+| `malukuutara-net` | [malukuutara.net](https://malukuutara.net) | Token | GetNada 固定域名 `malukuutara.net`；收信接口与 `getnada` 相同 |
+| `nusatenggarabarat-net` | [nusatenggarabarat.net](https://nusatenggarabarat.net) | Token | GetNada 固定域名 `nusatenggarabarat.net`；收信接口与 `getnada` 相同 |
+| `nusatenggaratimur-net` | [nusatenggaratimur.net](https://nusatenggaratimur.net) | Token | GetNada 固定域名 `nusatenggaratimur.net`；收信接口与 `getnada` 相同 |
+| `papuabarat-net` | [papuabarat.net](https://papuabarat.net) | Token | GetNada 固定域名 `papuabarat.net`；收信接口与 `getnada` 相同 |
+| `papuabaratdaya-net` | [papuabaratdaya.net](https://papuabaratdaya.net) | Token | GetNada 固定域名 `papuabaratdaya.net`；收信接口与 `getnada` 相同 |
+| `papuaselatan-net` | [papuaselatan.net](https://papuaselatan.net) | Token | GetNada 固定域名 `papuaselatan.net`；收信接口与 `getnada` 相同 |
+| `pehol-com` | [pehol.com](https://pehol.com) | Token | GetNada 固定域名 `pehol.com`；收信接口与 `getnada` 相同 |
+| `ptruyen-com` | [ptruyen.com](https://ptruyen.com) | Token | GetNada 固定域名 `ptruyen.com`；收信接口与 `getnada` 相同 |
+| `pulaubali-net` | [pulaubali.net](https://pulaubali.net) | Token | GetNada 固定域名 `pulaubali.net`；收信接口与 `getnada` 相同 |
+| `riau-net` | [riau.net](https://riau.net) | Token | GetNada 固定域名 `riau.net`；收信接口与 `getnada` 相同 |
+| `seokey-org` | [seokey.org](https://seokey.org) | Token | GetNada 固定域名 `seokey.org`；收信接口与 `getnada` 相同 |
+| `sulawesibarat-net` | [sulawesibarat.net](https://sulawesibarat.net) | Token | GetNada 固定域名 `sulawesibarat.net`；收信接口与 `getnada` 相同 |
+| `sulawesiselatan-net` | [sulawesiselatan.net](https://sulawesiselatan.net) | Token | GetNada 固定域名 `sulawesiselatan.net`；收信接口与 `getnada` 相同 |
+| `sulawesitengah-net` | [sulawesitengah.net](https://sulawesitengah.net) | Token | GetNada 固定域名 `sulawesitengah.net`；收信接口与 `getnada` 相同 |
+| `sulawesitenggara-net` | [sulawesitenggara.net](https://sulawesitenggara.net) | Token | GetNada 固定域名 `sulawesitenggara.net`；收信接口与 `getnada` 相同 |
+| `sumaterabarat-net` | [sumaterabarat.net](https://sumaterabarat.net) | Token | GetNada 固定域名 `sumaterabarat.net`；收信接口与 `getnada` 相同 |
+| `sumateraselatan-net` | [sumateraselatan.net](https://sumateraselatan.net) | Token | GetNada 固定域名 `sumateraselatan.net`；收信接口与 `getnada` 相同 |
+| `sumaterautara-net` | [sumaterautara.net](https://sumaterautara.net) | Token | GetNada 固定域名 `sumaterautara.net`；收信接口与 `getnada` 相同 |
+| `villatogel-com` | [villatogel.com](https://villatogel.com) | Token | GetNada 固定域名 `villatogel.com`；收信接口与 `getnada` 相同 |
 | `mail123` | [mail123.fr](https://mail123.fr) | - | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
-| `1sec-mail` | [1sec-mail.com](https://www.1sec-mail.com) | Token | CSRF + Cookie；`POST /get_messages` 拉列表；详情由 `content` / `html` 映射，缺失正文由 normalize 反向生成 |
+| `mail10s` | [mail10s.com](https://mail10s.com) | - | 任意随机地址；`GET /api/emails/{email}/inbox` 公开 inbox API；`body_text` / `body_html` 映射统一正文 |
+| `webmailtemp` | [webmailtemp.com](https://webmailtemp.com) | Token（会话 Cookie + username） | `GET /api/create` 建箱；`GET /api/check/{username}` 收信；30 分钟 TTL |
+| `tempfastmail` | [tempfastmail.com](https://tempfastmail.com) | Token（邮箱 UUID） | `POST /api/email-box` 建箱；`GET /api/email-box/{uuid}/emails` 列表；详情 `html` 由 normalize 派生 `text` |
+| `1sec-mail` | [tmaily.com](https://tmaily.com) | Token | `GET /generate` 取地址；从 `Set-Cookie` 提取 `TMaily_sid`；`GET /emails?address=` 拉列表，详情由 `body_text` / `html` 映射，缺失正文由 normalize 反向生成 |
 | `fakemail` | [fakemail.net](https://fakemail.net) | Token | `/index/index` 建址，`/index/refresh` 拉列表，`/index/email` 详情；`telo` HTML 正文映射为统一 `html` |
 | `openinbox` | [openinbox.io](https://openinbox.io) | Token | `POST /api/inbox` 建箱；`GET /emails/inbox/{id}` 列表；`GET /emails/{emailId}` 详情含 `textBody` / `htmlBody` |
 | `inboxes` | [inboxes.com](https://inboxes.com) | - | 公开 v2：`GET /api/v2/domain` 域名，`GET /api/v2/inbox/{email}` 列表，`GET /api/v2/message/{uid}` 详情含 `text` / `html` |
 | `uncorreotemporal` | [uncorreotemporal.com](https://uncorreotemporal.com) | Token（`X-Session-Token`） | `POST /api/v1/mailboxes` 建箱；`GET /api/v1/mailboxes/{address}/messages` 列表；详情含 `body_text` / `body_html` |
 | `awamail` | [awamail.com](https://awamail.com) | Session Cookie | 自动提取 Cookie |
 | `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
+| `web-library-net` | [web-library.net](https://web-library.net) | Bearer Token | mail.tm API 固定域名 `web-library.net`；账号、登录、收信接口与 `mail-tm` 相同 |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
 | `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
 | `guerrillamail-com` | [guerrillamail.com](https://guerrillamail.com) | Session | GuerrillaMail 裸域 JSON API 入口 |
@@ -66,14 +119,44 @@
 | `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
 | `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
 | `fake-legal` | [fake.legal](https://fake.legal) | - | `GET /api/domains` + `GET /api/inbox/new?domain=` 建址；`GET /api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
+| `imgui-de` | [imgui.de](https://imgui.de) | - | fake.legal API 固定域名 `imgui.de`；收信接口与 `fake-legal` 相同 |
+| `pulsewebmenu-de` | [pulsewebmenu.de](https://pulsewebmenu.de) | - | fake.legal API 固定域名 `pulsewebmenu.de`；收信接口与 `fake-legal` 相同 |
 | `moakt` | [moakt.com](https://www.moakt.com) | Token（`mok1:` + Base64 JSON：`locale` + 合并 Cookie，须含 `tm_session`） | HTML：`GET /{locale}` → `POST /{locale}/inbox` 创建邮箱 → `GET /{locale}/inbox` 解析 `#email-address`；收信解析 `href` 中 `/email/{uuid}` 并逐封 `GET .../html`；`domain` 可选语言路径（如 `zh`）；各 SDK 以独立会话或显式 `Cookie` 头维护，避免与全局 Cookie 混用 |
+| `drmail-in` | [drmail.in](https://drmail.in) | Token（`mok1:` + Cookie） | Moakt 固定域名 `drmail.in`；创建和收信接口与 `moakt` 相同 |
+| `teml-net` | [teml.net](https://teml.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `teml.net`；创建和收信接口与 `moakt` 相同 |
+| `tmpeml-com` | [tmpeml.com](https://tmpeml.com) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpeml.com`；创建和收信接口与 `moakt` 相同 |
+| `tmpbox-net` | [tmpbox.net](https://tmpbox.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpbox.net`；创建和收信接口与 `moakt` 相同 |
+| `moakt-cc` | [moakt.cc](https://moakt.cc) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.cc`；创建和收信接口与 `moakt` 相同 |
+| `disbox-net` | [disbox.net](https://disbox.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `disbox.net`；创建和收信接口与 `moakt` 相同 |
+| `tmpmail-org` | [tmpmail.org](https://tmpmail.org) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpmail.org`；创建和收信接口与 `moakt` 相同 |
+| `tmpmail-net` | [tmpmail.net](https://tmpmail.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpmail.net`；创建和收信接口与 `moakt` 相同 |
+| `tmails-net` | [tmails.net](https://tmails.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmails.net`；创建和收信接口与 `moakt` 相同 |
+| `disbox-org` | [disbox.org](https://disbox.org) | Token（`mok1:` + Cookie） | Moakt 固定域名 `disbox.org`；创建和收信接口与 `moakt` 相同 |
+| `moakt-co` | [moakt.co](https://moakt.co) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.co`；创建和收信接口与 `moakt` 相同 |
+| `moakt-ws` | [moakt.ws](https://moakt.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.ws`；创建和收信接口与 `moakt` 相同 |
+| `tmail-ws` | [tmail.ws](https://tmail.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmail.ws`；创建和收信接口与 `moakt` 相同 |
+| `bareed-ws` | [bareed.ws](https://bareed.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `bareed.ws`；创建和收信接口与 `moakt` 相同 |
 | `email10min` | [email10min.com](https://email10min.com) | Cookie + CSRF | `GET /zh` 取 CSRF，`POST /messages` 取邮箱/邮件；站点域名偶有跳转，稳定性一般 |
 | `mjj-cm` | [mjj.cm](https://mjj.cm) | Session | Socket.IO：`request shortid` / `set shortid` / `mail` |
 | `linshi-co` | [linshi.co](https://linshi.co) | Session | Socket.IO 克隆站，协议同 `mjj-cm` |
 | `harakirimail` | [harakirimail.com](https://harakirimail.com) | - | 公开 REST：`GET /api/v1/inbox/{name}`，逐封 `GET /api/v1/email/{id}` 获取正文 |
+| `jqkjqk-xyz` | [jqkjqk.xyz](https://jqkjqk.xyz) | Token（mail.zhujump.com 会话） | mail.zhujump.com 固定域名 `jqkjqk.xyz`；收信接口与 zhujump provider 相同 |
+| `lyhlevi-com` | [lyhlevi.com](https://lyhlevi.com) | Token（MoeMail 会话） | lyhlevi.com MoeMail 部署实例；账号注册登录后创建邮箱，列表和详情接口映射统一正文 |
 | `tempmail-plus` | [tempmail.plus](https://tempmail.plus) | - | 公开 REST：`GET /api/mails/?email=` 列表，`GET /api/mails/{id}?email=` 详情；`mailto.plus` 域名 |
-| `mail-gw` | [mail.gw](https://mail.gw) / [api.mail.gw](https://api.mail.gw) | Bearer JWT | `GET /domains` → `POST /accounts` → `POST /token` → `GET /messages` / `{id}` |
+| `fexpost-com` | [fexpost.com](https://fexpost.com) | - | TempMail Plus 固定域名 `fexpost.com`；列表和详情接口与 `tempmail-plus` 相同 |
+| `fexbox-org` | [fexbox.org](https://fexbox.org) | - | TempMail Plus 固定域名 `fexbox.org`；列表和详情接口与 `tempmail-plus` 相同 |
+| `mailbox-in-ua` | [mailbox.in.ua](https://mailbox.in.ua) | - | TempMail Plus 固定域名 `mailbox.in.ua`；列表和详情接口与 `tempmail-plus` 相同 |
+| `rover-info` | [rover.info](https://rover.info) | - | TempMail Plus 固定域名 `rover.info`；列表和详情接口与 `tempmail-plus` 相同 |
+| `chitthi-in` | [chitthi.in](https://chitthi.in) | - | TempMail Plus 固定域名 `chitthi.in`；列表和详情接口与 `tempmail-plus` 相同 |
+| `fextemp-com` | [fextemp.com](https://fextemp.com) | - | TempMail Plus 固定域名 `fextemp.com`；列表和详情接口与 `tempmail-plus` 相同 |
+| `any-pink` | [any.pink](https://any.pink) | - | TempMail Plus 固定域名 `any.pink`；列表和详情接口与 `tempmail-plus` 相同 |
+| `merepost-com` | [merepost.com](https://merepost.com) | - | TempMail Plus 固定域名 `merepost.com`；列表和详情接口与 `tempmail-plus` 相同 |
 | `tempmail-lol-v2` | [api.tempmail.lol](https://api.tempmail.lol) | Token | `GET /generate` 返回 address+token，`GET /auth/{token}` 拉取收件箱 |
+| `tempgbox` | [tempgbox.net](https://tempgbox.net) | Device ID | `POST /api/proxy?route=generate` 使用 `variant=googlemail` 生成 Gmail/Googlemail alias；每次生成随机 `X-Device-ID`，并随请求带随机来源 IP 头 |
+| `emailnator` | [emailnator.com](https://www.emailnator.com) | XSRF + Cookie | `POST /generate-email` 使用 Gmail/GoogleMail alias 选项生成地址；`POST /message-list` 拉取列表并用 `messageID` 读取 HTML 正文 |
+| `temporam` | [temporam.com](https://temporam.com) | 邮箱地址 | 公开 REST：`GET /api/domains` 获取域名，`GET /api/emails?email=` 拉列表，`GET /api/emails/{id}` 读取正文 |
+| `neighbours` | [neighbours.sh](https://neighbours.sh) | - | `GET /config/domains` 获取域名；`GET /inbox/{address}` / `GET /inbox/{address}/{uid}` 拉信；`404` 视为空收件箱 |
+| `pleasenospam` | [pleasenospam.email](https://pleasenospam.email) | - | `GET /{email}.json` 拉列表；`from` 为数组，取 `from[0]` 作为发件人 |
 | `sharklasers` | [sharklasers.com](https://www.sharklasers.com) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `sharklasers-com` | [sharklasers.com](https://sharklasers.com) | Session | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
 | `grr-la` | [grr.la](https://www.grr.la) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
@@ -84,6 +167,13 @@
 | `guerrillamail-org` | [guerrillamail.org](https://www.guerrillamail.org) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `guerrillamailblock` | [guerrillamailblock.com](https://www.guerrillamailblock.com) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `guerrillamail-com-www` | [guerrillamail.com](https://www.guerrillamail.com) | Session | GuerrillaMail `www` JSON API 入口 |
+| `m2u` | [MailToYou](https://m2u.io) | Token | `POST /v1/mailboxes/auto` 创建邮箱；`token` + `viewToken` 组成内部令牌；`GET /v1/mailboxes/{token}/messages?view={viewToken}` 列表，`GET /v1/mailboxes/{token}/messages/{id}?view={viewToken}` 详情 |
+| `tempy-email` | [Tempy Email](https://tempy.email) | - | `POST /api/v1/mailbox` 创建邮箱（请求体可为空 JSON；可选 `domain`）；`GET /api/v1/mailbox/{email}/messages` 拉列表 |
+| `fmail` | [fmail.men](https://fmail.men) | - | `GET /v1/random` 建址；`GET /v1/inbox/{local}?domain={domain}&limit=50` 拉列表；`GET /v1/email/{token}` 读取单封详情 |
+| `ockito` | [ockito.com](https://ockito.com) | Token（access_token + refresh_token） | `POST /gtoken` 换取会话令牌；`GET /email` 建址；`GET /retrieve/{email}/emails` 拉列表，`GET /retrieve/{email}/{uid}` 详情 |
+| `anonbox` | [anonbox.net](https://anonbox.net) | Token（`inbox/secret`） | `GET /en/` 解析页面建箱；`GET /{token}/` 拉信，token 形如 `inbox/secret`，mbox 明文解析 |
+| `duckmail` | [duckmail.sbs](https://duckmail.sbs) | Bearer Token | `GET /domains?page=1` 取域名；`POST /accounts` 创建账号；`POST /token` 获取 Bearer Token；`GET /messages` 拉列表 |
+| `mailinator` | [mailinator.com](https://mailinator.com) | - | 公开 REST：`GET /api/v2/domains/public/inboxes/{inbox}` 拉列表；`GET /api/v2/domains/public/messages/{id}/{text|texthtml|attachments}` 详情 |
 
 > **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels()` 的**返回顺序**与上表一致；若按 `tm_channel_t` **枚举常量**编程，其数值顺序与上表不同，以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
 

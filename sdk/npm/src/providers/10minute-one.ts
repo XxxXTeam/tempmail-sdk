@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../retry';
 const CHANNEL: Channel = '10minute-one';
 const SITE_ORIGIN = 'https://10minutemail.one';
 const API_BASE = 'https://web.10minutemail.one/api/v1';
+const KNOWN_EMAIL_DOMAINS = ['xghff.com', 'oqqaj.com', 'psovv.com', 'dbwot.com', 'ygwpr.com', 'imxwe.com'];
 
 const JWT_RE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 
@@ -223,8 +224,9 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
   const arr = extractNuxtDataArray(html);
   const token = parseMailServiceTokenFromPayload(arr);
   let domains = parseEmailDomains(html);
+  domains = [...new Set([...domains, ...KNOWN_EMAIL_DOMAINS])];
   if (domains.length === 0) {
-    domains = ['xghff.com', 'oqqaj.com', 'psovv.com'];
+    domains = KNOWN_EMAIL_DOMAINS;
   }
   const blocked = parseBlockedUsernames(html);
   const domainHint = (domain ?? '').trim().includes('.') ? (domain ?? '').trim() : undefined;

@@ -220,7 +220,6 @@ class SocketIoMailProvider:
             return list(st.emails)
 
 
-# 三个渠道实例
+# 两个渠道实例
 _mjj_cm_provider = SocketIoMailProvider("mjj-cm", "mjj.cm")
-_mail_xiuvi_provider = SocketIoMailProvider("mail-xiuvi", "mail.xiuvi.cn")
 _linshi_co_provider = SocketIoMailProvider("linshi-co", "linshi.co")

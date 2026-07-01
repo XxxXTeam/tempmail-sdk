@@ -17,6 +17,16 @@
 #define TENM_SITE "https://10minutemail.one"
 #define TENM_API  "https://web.10minutemail.one/api/v1"
 
+static const char *TENM_KNOWN_DOMAINS[] = {
+    "xghff.com",
+    "oqqaj.com",
+    "psovv.com",
+    "dbwot.com",
+    "ygwpr.com",
+    "imxwe.com",
+    NULL
+};
+
 static void tenm_random_hex(char *out, size_t nbytes) {
     static const char *hex = "0123456789abcdef";
     for (size_t i = 0; i < nbytes; i++) {
@@ -169,6 +179,27 @@ static cJSON *tenm_parse_domain_array(const char *html, const char *field) {
     return ar;
 }
 
+static int tenm_domain_array_contains(cJSON *arr, const char *domain) {
+    if (!cJSON_IsArray(arr) || !domain)
+        return 0;
+    int n = cJSON_GetArraySize(arr);
+    for (int i = 0; i < n; i++) {
+        const char *s = cJSON_GetStringValue(cJSON_GetArrayItem(arr, i));
+        if (s && tenm_strcasecmp(s, domain) == 0)
+            return 1;
+    }
+    return 0;
+}
+
+static void tenm_append_known_domains(cJSON *arr) {
+    if (!cJSON_IsArray(arr))
+        return;
+    for (int i = 0; TENM_KNOWN_DOMAINS[i]; i++) {
+        if (!tenm_domain_array_contains(arr, TENM_KNOWN_DOMAINS[i]))
+            cJSON_AddItemToArray(arr, cJSON_CreateString(TENM_KNOWN_DOMAINS[i]));
+    }
+}
+
 static const char *tenm_pick_domain(cJSON *doms, const char *domain_opt) {
     int n = cJSON_GetArraySize(doms);
     if (n <= 0)
@@ -272,9 +303,10 @@ tm_email_info_t *tm_provider_tenminute_one_generate(const char *domain) {
 
     cJSON *doms = tenm_parse_domain_array(resp->body, "emailDomains");
     tm_http_response_free(resp);
+    tenm_append_known_domains(doms);
     if (!doms || cJSON_GetArraySize(doms) == 0) {
         cJSON_Delete(doms);
-        doms = cJSON_Parse("[\"xghff.com\",\"oqqaj.com\",\"psovv.com\"]");
+        doms = cJSON_Parse("[\"xghff.com\",\"oqqaj.com\",\"psovv.com\",\"dbwot.com\",\"ygwpr.com\",\"imxwe.com\"]");
         if (!doms)
             return NULL;
     }

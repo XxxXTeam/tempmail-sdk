@@ -43,10 +43,11 @@ def normalize_email(raw: Dict[str, Any], recipient_email: str = "") -> Email:
 
 
 def _is_html_content(content: str) -> bool:
-    """检测内容是否为 HTML"""
-    trimmed = content.strip().lower()
-    if trimmed.startswith("<!doctype html") or trimmed.startswith("<html") or trimmed.startswith("<body"):
+    """检测内容是否为 HTML（只取前 200 字符避免大邮件不必要的内存分配）"""
+    prefix = content[:200].strip().lower()
+    if prefix.startswith("<!doctype html") or prefix.startswith("<html") or prefix.startswith("<body"):
         return True
+    trimmed = content.strip().lower()
     if "<div" in trimmed and "</div>" in trimmed:
         return True
     if "<table" in trimmed and "</table>" in trimmed:

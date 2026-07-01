@@ -20,6 +20,7 @@ _MAIL_LINK = re.compile(
 _DD = re.compile(r"(?is)<dd([^>]*)>([\s\S]*?)</dd>")
 _DISPLAY_NONE = re.compile(r"display\s*:\s*none", re.I)
 _P = re.compile(r"(?is)<p>([\s\S]*?)</p>")
+_SPAN = re.compile(r"(?is)<span\b[^>]*>[\s\S]*?</span>")
 _TAG = re.compile(r"<[^>]+>")
 _EXPIRES = re.compile(
     r"(?is)Your mail address is valid until:</dt>\s*<dd><p>([^<]+)</p>"
@@ -66,7 +67,7 @@ def _parse_en_page(html: str) -> tuple[str, str, str | None]:
         pm = _P.search(inner)
         if not pm:
             continue
-        p_inner = pm.group(1)
+        p_inner = _SPAN.sub("", pm.group(1))
         display = _strip_tags(p_inner)
         if "@" not in display:
             continue

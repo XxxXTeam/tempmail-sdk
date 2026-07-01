@@ -50,11 +50,12 @@ export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
  * 通过检查是否包含常见的 HTML 标签来判断
  */
 function isHtmlContent(content: string): boolean {
+  const prefix = content.slice(0, 200).trim().toLowerCase();
+  if (prefix.startsWith('<!doctype html') || prefix.startsWith('<html') || prefix.startsWith('<body')) {
+    return true;
+  }
   const trimmed = content.trim().toLowerCase();
-  return trimmed.startsWith('<!doctype html') ||
-    trimmed.startsWith('<html') ||
-    trimmed.startsWith('<body') ||
-    (trimmed.includes('<div') && trimmed.includes('</div>')) ||
+  return (trimmed.includes('<div') && trimmed.includes('</div>')) ||
     (trimmed.includes('<table') && trimmed.includes('</table>')) ||
     (trimmed.includes('<p') && trimmed.includes('</p>') && trimmed.includes('<'));
 }

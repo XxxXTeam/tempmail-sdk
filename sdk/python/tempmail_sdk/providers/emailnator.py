@@ -6,6 +6,7 @@ Emailnator 渠道实现
 """
 
 import json
+from urllib.parse import unquote
 from ..types import EmailInfo
 from ..normalize import normalize_email
 from .. import http as tm_http
@@ -20,6 +21,8 @@ DEFAULT_HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
+EMAIL_OPTIONS = ["plusGmail", "dotGmail", "googleMail"]
+
 
 def _init_session():
     """初始化 Session，获取 XSRF-TOKEN 和 Cookie"""
@@ -29,7 +32,7 @@ def _init_session():
     resp = session.get(BASE_URL, timeout=15)
     resp.raise_for_status()
 
-    xsrf_token = session.cookies.get("XSRF-TOKEN", "")
+    xsrf_token = unquote(session.cookies.get("XSRF-TOKEN", ""))
     if not xsrf_token:
         raise Exception("Failed to extract XSRF-TOKEN")
 
@@ -48,7 +51,7 @@ def generate_email():
             "X-XSRF-TOKEN": xsrf_token,
             "Cookie": cookies,
         },
-        json={"email": ["domain"]},
+        json={"email": EMAIL_OPTIONS},
     )
     resp.raise_for_status()
     data = resp.json()
@@ -91,13 +94,33 @@ def get_emails(token, email="", **kwargs):
         msg_id = msg.get("messageID", "")
         if msg_id.startswith("ADS"):
             continue
+        html = ""
+        if msg_id:
+            try:
+                detail = tm_http.post(
+                    f"{BASE_URL}/message-list",
+                    headers={
+                        **DEFAULT_HEADERS,
+                        "X-XSRF-TOKEN": xsrf_token,
+                        "Cookie": cookies,
+                    },
+                    json={"email": email, "messageID": msg_id},
+                )
+                detail.raise_for_status()
+                try:
+                    detail_data = detail.json()
+                    html = detail_data if isinstance(detail_data, str) else json.dumps(detail_data)
+                except ValueError:
+                    html = detail.text
+            except Exception:
+                html = ""
         emails.append(normalize_email({
             "id": msg_id,
             "from": msg.get("from", ""),
             "to": email,
             "subject": msg.get("subject", ""),
             "text": "",
-            "html": "",
+            "html": html,
             "date": msg.get("time", ""),
             "isRead": False,
             "attachments": [],

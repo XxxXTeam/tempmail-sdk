@@ -19,6 +19,8 @@ static DD_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?is)<dd([^>]*)>([\s\S]*?)</dd>").unwrap());
 static DISPLAY_NONE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"display\s*:\s*none").unwrap());
 static P_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?is)<p>([\s\S]*?)</p>").unwrap());
+static SPAN_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?is)<span\b[^>]*>[\s\S]*?</span>").unwrap());
 static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").unwrap());
 static EXPIRES_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?is)Your mail address is valid until:</dt>\s*<dd><p>([^<]+)</p>").unwrap()
@@ -75,21 +77,22 @@ fn parse_en_page(html: &str) -> Result<(String, String, Option<String>), String>
         let Some(pm) = P_RE.captures(inner) else {
             continue;
         };
-        let p_inner = pm.get(1).map(|m| m.as_str()).unwrap_or("");
-        if !p_inner.contains('@') {
+        let p_inner = SPAN_RE.replace_all(pm.get(1).map(|m| m.as_str()).unwrap_or(""), "");
+        let display = strip_tags(&p_inner);
+        if !display.contains('@') {
             continue;
         }
-        if p_inner.to_lowercase().contains("googlemail.com") {
+        if display.to_lowercase().contains("googlemail.com") {
             continue;
         }
-        if !p_inner.to_lowercase().contains("anonbox") {
+        if !display.to_lowercase().contains("anonbox") {
             continue;
         }
-        address_html = Some(p_inner.to_string());
+        address_html = Some(display);
         break;
     }
     let addr = address_html.ok_or_else(|| "anonbox: address paragraph not found".to_string())?;
-    let merged = strip_tags(&addr);
+    let merged = addr;
     let at = merged
         .find('@')
         .ok_or_else(|| "anonbox: bad address".to_string())?;
