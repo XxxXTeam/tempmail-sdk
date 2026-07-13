@@ -169,8 +169,12 @@ jobs:
 
   # C SDK 构建检查
   c-build:
-    name: C SDK
-    runs-on: ubuntu-latest
+    name: C SDK (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     defaults:
       run:
         working-directory: sdk/c
@@ -178,19 +182,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 安装依赖
+      - name: 安装依赖 (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
-      - name: 下载 cJSON
+      - name: 安装依赖 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-windows
         run: |
-          curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
-          curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+          if (-not $env:VCPKG_INSTALLATION_ROOT) {
+            Write-Error "VCPKG_INSTALLATION_ROOT 未设置，无法使用预装 vcpkg"
+            exit 1
+          }
+          $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
+          & $vcpkg install curl:x64-windows
 
-      - name: CMake 配置
-        run: cmake -B build -S .
+      - name: 下载 cJSON
+        shell: bash
+        run: |
+          curl -fsSL -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -fsSL -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
 
-      - name: 构建
-        run: cmake --build build
+      - name: CMake 配置与构建 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: CMake 配置与构建 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-windows
+        run: |
+          $toolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT 'scripts/buildsystems/vcpkg.cmake'
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$toolchain" -A x64
+          cmake --build build --config Release
 
   # 手动触发：打 npm tgz / Python wheel 等测试版产物（不上传 registry）
   prerelease-artifacts:

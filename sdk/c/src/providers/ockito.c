@@ -62,6 +62,14 @@ static char *ockito_pick_str(const cJSON *obj, const char **keys,
   return trimmed;
 }
 
+static void ockito_add_picked_str(cJSON *target, const char *name,
+                                  const cJSON *source, const char **keys,
+                                  int key_count) {
+  char *value = ockito_pick_str(source, keys, key_count);
+  cJSON_AddStringToObject(target, name, value ? value : "");
+  free(value);
+}
+
 static cJSON *ockito_request_json(const char *method, const char *path,
                                   const char **headers, const char *body,
                                   long *status_out) {
@@ -188,18 +196,12 @@ static cJSON *ockito_flatten_inbox_row(const cJSON *raw,
   cJSON *flat = cJSON_CreateObject();
   if (!flat)
     return NULL;
-  cJSON_AddStringToObject(
-      flat, "id", ockito_pick_str(raw, (const char *[]){"uid"}, 1) ?: "");
-  cJSON_AddStringToObject(
-      flat, "from", ockito_pick_str(raw, (const char *[]){"sender"}, 1) ?: "");
+  ockito_add_picked_str(flat, "id", raw, (const char *[]){"uid"}, 1);
+  ockito_add_picked_str(flat, "from", raw, (const char *[]){"sender"}, 1);
   cJSON_AddStringToObject(flat, "to", recipient ? recipient : "");
-  cJSON_AddStringToObject(flat, "subject",
-                          ockito_pick_str(raw, (const char *[]){"subject"}, 1)
-                              ?: "");
-  cJSON_AddStringToObject(
-      flat, "text", ockito_pick_str(raw, (const char *[]){"snippet"}, 1) ?: "");
-  cJSON_AddStringToObject(
-      flat, "html", ockito_pick_str(raw, (const char *[]){"html"}, 1) ?: "");
+  ockito_add_picked_str(flat, "subject", raw, (const char *[]){"subject"}, 1);
+  ockito_add_picked_str(flat, "text", raw, (const char *[]){"snippet"}, 1);
+  ockito_add_picked_str(flat, "html", raw, (const char *[]){"html"}, 1);
   cJSON_AddItemToObject(
       flat, "date",
       cJSON_Duplicate(
@@ -216,8 +218,7 @@ static cJSON *ockito_flatten_message(const cJSON *raw, const char *recipient) {
   cJSON *flat = cJSON_CreateObject();
   if (!flat)
     return NULL;
-  cJSON_AddStringToObject(
-      flat, "id", ockito_pick_str(raw, (const char *[]){"uid"}, 1) ?: "");
+  ockito_add_picked_str(flat, "id", raw, (const char *[]){"uid"}, 1);
   char *from = ockito_pick_str(obj,
                                (const char *[]){"sender_email", "SenderEmail",
                                                 "from_", "From", "from",
@@ -227,13 +228,10 @@ static cJSON *ockito_flatten_message(const cJSON *raw, const char *recipient) {
   cJSON_AddStringToObject(flat, "from", from ? from : "");
   cJSON_AddStringToObject(flat, "to",
                           (to && to[0]) ? to : (recipient ? recipient : ""));
-  cJSON_AddStringToObject(
-      flat, "subject",
-      ockito_pick_str(obj, (const char *[]){"subject", "Subject"}, 2) ?: "");
-  cJSON_AddStringToObject(
-      flat, "text", ockito_pick_str(obj, (const char *[]){"text"}, 1) ?: "");
-  cJSON_AddStringToObject(
-      flat, "html", ockito_pick_str(obj, (const char *[]){"html"}, 1) ?: "");
+  ockito_add_picked_str(flat, "subject", obj,
+                        (const char *[]){"subject", "Subject"}, 2);
+  ockito_add_picked_str(flat, "text", obj, (const char *[]){"text"}, 1);
+  ockito_add_picked_str(flat, "html", obj, (const char *[]){"html"}, 1);
   cJSON_AddItemToObject(
       flat, "date",
       cJSON_Duplicate(cJSON_GetObjectItemCaseSensitive((cJSON *)obj, "date"),

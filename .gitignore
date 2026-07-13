@@ -69,3 +69,4 @@ sdk/npm/test/provider-probe.ts
 sdk/npm/test/smtp-verify.ts
 sdk/npm/test/domain-smtp-verify.ts
 sdk/npm/test/api-probe.js
+sdk/c/build-strict/
