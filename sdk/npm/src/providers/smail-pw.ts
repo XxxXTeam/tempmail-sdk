@@ -1,27 +1,27 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'smail-pw';
-const ROOT_DATA_URL = 'https://smail.pw/_root.data';
+const CHANNEL: Channel = "smail-pw";
+const ROOT_DATA_URL = "https://smail.pw/_root.data";
 
 const DEFAULT_HEADERS: Record<string, string> = {
-  Accept: '*/*',
-  'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-  'cache-control': 'no-cache',
-  dnt: '1',
-  origin: 'https://smail.pw',
-  pragma: 'no-cache',
-  referer: 'https://smail.pw/',
-  'sec-ch-ua':
+  Accept: "*/*",
+  "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+  "cache-control": "no-cache",
+  dnt: "1",
+  origin: "https://smail.pw",
+  pragma: "no-cache",
+  referer: "https://smail.pw/",
+  "sec-ch-ua":
     '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'sec-fetch-dest': 'empty',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-site': 'same-origin',
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": '"Windows"',
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
 };
 
 /** Flight/RSC 根为数组时，按出现顺序展开嵌套数组，保留标量与对象（不展开对象键），用于解析交错键值 */
@@ -40,13 +40,19 @@ function flightLinearLeaves(node: unknown): unknown[] {
   return out;
 }
 
-const MAIL_KV_KEYS = new Set(['id', 'to_address', 'from_name', 'from_address', 'subject']);
+const MAIL_KV_KEYS = new Set([
+  "id",
+  "to_address",
+  "from_name",
+  "from_address",
+  "subject",
+]);
 
 function parseTimeMs(raw: unknown): number {
-  if (typeof raw === 'number' && Number.isFinite(raw)) {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
     return raw;
   }
-  if (typeof raw === 'string' && /^\d+$/.test(raw)) {
+  if (typeof raw === "string" && /^\d+$/.test(raw)) {
     return parseInt(raw, 10);
   }
   return NaN;
@@ -54,11 +60,11 @@ function parseTimeMs(raw: unknown): number {
 
 /** RR7 Flight 延迟行：{"_18":19,"_20":21,...}，键/值分别指向 root 槽位 */
 function isFlightDeferredRow(obj: unknown): obj is Record<string, unknown> {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return false;
   }
   const keys = Object.keys(obj);
-  return keys.length > 0 && keys.every((k) => k.startsWith('_'));
+  return keys.length > 0 && keys.every((k) => k.startsWith("_"));
 }
 
 function resolveFlightDeferredRow(
@@ -67,11 +73,11 @@ function resolveFlightDeferredRow(
 ): Record<string, string | number> | null {
   const fields: Record<string, string | number> = {};
   for (const [k, v] of Object.entries(obj)) {
-    if (!k.startsWith('_')) {
+    if (!k.startsWith("_")) {
       continue;
     }
     const keyIdx = parseInt(k.slice(1), 10);
-    const valIdx = typeof v === 'number' ? v : parseInt(String(v), 10);
+    const valIdx = typeof v === "number" ? v : parseInt(String(v), 10);
     if (
       !Number.isFinite(keyIdx) ||
       !Number.isFinite(valIdx) ||
@@ -84,15 +90,15 @@ function resolveFlightDeferredRow(
     }
     const key = root[keyIdx];
     const val = root[valIdx];
-    if (typeof key !== 'string') {
+    if (typeof key !== "string") {
       continue;
     }
-    if (key === 'time') {
+    if (key === "time") {
       const timeMs = parseTimeMs(val);
       if (Number.isFinite(timeMs)) {
         fields.time = timeMs;
       }
-    } else if (typeof val === 'string') {
+    } else if (typeof val === "string") {
       fields[key] = val;
     }
   }
@@ -111,19 +117,19 @@ function rowFieldsToMail(
     return null;
   }
   const toAddr = String(fields.to_address || recipientEmail);
-  let subject = String(fields.subject ?? '');
+  let subject = String(fields.subject ?? "");
   if (subject === toAddr || /@smail\.pw$/i.test(subject)) {
-    subject = '';
+    subject = "";
   }
   return {
-    id: String(fields.id ?? ''),
+    id: String(fields.id ?? ""),
     to_address: toAddr,
-    from_name: String(fields.from_name ?? ''),
-    from_address: String(fields.from_address ?? ''),
+    from_name: String(fields.from_name ?? ""),
+    from_address: String(fields.from_address ?? ""),
     subject,
     date: timeMs,
-    text: '',
-    html: '',
+    text: "",
+    html: "",
     attachments: [],
   };
 }
@@ -138,15 +144,15 @@ function parseSmailEmailsFromLinear(
 ): any[] {
   const mails: any[] = [];
   for (let i = 0; i + 2 < leaves.length; i++) {
-    if (leaves[i] !== 'subject') {
+    if (leaves[i] !== "subject") {
       continue;
     }
 
-    let subj = '';
+    let subj = "";
     let timeIdx: number;
-    if (leaves[i + 1] === 'time') {
+    if (leaves[i + 1] === "time") {
       timeIdx = i + 2;
-    } else if (typeof leaves[i + 1] === 'string' && leaves[i + 2] === 'time') {
+    } else if (typeof leaves[i + 1] === "string" && leaves[i + 2] === "time") {
       subj = leaves[i + 1] as string;
       timeIdx = i + 3;
     } else {
@@ -162,7 +168,7 @@ function parseSmailEmailsFromLinear(
     for (let k = i - 2; k >= 1; k -= 2) {
       const key = leaves[k];
       const val = leaves[k + 1];
-      if (typeof key !== 'string' || typeof val !== 'string') {
+      if (typeof key !== "string" || typeof val !== "string") {
         break;
       }
       if (MAIL_KV_KEYS.has(key)) {
@@ -190,18 +196,18 @@ function parseSmailEmailsFromLinear(
 
 function extractSessionCookie(response: Response): string {
   const h = response.headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof h.getSetCookie === 'function') {
+  if (typeof h.getSetCookie === "function") {
     for (const line of h.getSetCookie()) {
       const m = line.match(/^__session=([^;]+)/);
       if (m) return `__session=${m[1]}`;
     }
   }
-  const single = response.headers.get('set-cookie');
+  const single = response.headers.get("set-cookie");
   if (single) {
     const m = single.match(/__session=([^;]+)/);
     if (m) return `__session=${m[1]}`;
   }
-  return '';
+  return "";
 }
 
 /** RSC/Flight 风格 JSON 文本中提取 @smail.pw 收件地址 */
@@ -226,8 +232,8 @@ function parseSmailEmailsRegex(text: string, recipientEmail: string): any[] {
       from_address: m[4],
       subject: m[5],
       date: parseInt(m[6], 10),
-      text: '',
-      html: '',
+      text: "",
+      html: "",
       attachments: [],
     });
   }
@@ -239,10 +245,10 @@ function parseSmailEmailsRegex(text: string, recipientEmail: string): any[] {
       to_address: m[2] || recipientEmail,
       from_name: m[3],
       from_address: m[4],
-      subject: '',
+      subject: "",
       date: parseInt(m[5], 10),
-      text: '',
-      html: '',
+      text: "",
+      html: "",
       attachments: [],
     });
   }
@@ -260,8 +266,8 @@ function parseSmailEmailsRegex(text: string, recipientEmail: string): any[] {
       from_address: m[3],
       subject: m[4],
       date: parseInt(m[5], 10),
-      text: '',
-      html: '',
+      text: "",
+      html: "",
       attachments: [],
     });
   }
@@ -273,9 +279,9 @@ function mergeMailsById(lists: any[][]): any[] {
   let anon = 0;
   for (const list of lists) {
     for (const mail of list) {
-      let id = String(mail?.id || '');
+      let id = String(mail?.id || "");
       if (!id) {
-        id = `__smail_${anon}_${mail?.date ?? ''}_${String(mail?.subject ?? '').slice(0, 48)}`;
+        id = `__smail_${anon}_${mail?.date ?? ""}_${String(mail?.subject ?? "").slice(0, 48)}`;
         anon += 1;
         mail.id = id;
       }
@@ -299,7 +305,7 @@ function collectPlainRowEmails(root: unknown, recipientEmail: string): any[] {
     if (node === null || node === undefined) {
       return;
     }
-    if (typeof node !== 'object') {
+    if (typeof node !== "object") {
       return;
     }
     if (seen.has(node as object)) {
@@ -315,31 +321,31 @@ function collectPlainRowEmails(root: unknown, recipientEmail: string): any[] {
     }
 
     const o = node as Record<string, unknown>;
-    if (typeof o.subject === 'string') {
+    if (typeof o.subject === "string") {
       const tr = o.time;
       const timeMs =
-        typeof tr === 'number' && Number.isFinite(tr)
+        typeof tr === "number" && Number.isFinite(tr)
           ? tr
-          : typeof tr === 'string' && /^\d+$/.test(tr)
+          : typeof tr === "string" && /^\d+$/.test(tr)
             ? parseInt(tr, 10)
             : NaN;
       if (Number.isFinite(timeMs)) {
         mails.push({
-          id: String(o.id ?? ''),
+          id: String(o.id ?? ""),
           to_address: String(o.to_address ?? recipientEmail),
-          from_name: String(o.from_name ?? ''),
-          from_address: String(o.from_address ?? ''),
+          from_name: String(o.from_name ?? ""),
+          from_address: String(o.from_address ?? ""),
           subject: o.subject,
           date: timeMs,
-          text: '',
-          html: '',
+          text: "",
+          html: "",
           attachments: [],
         });
       }
     }
 
     for (const v of Object.values(o)) {
-      if (v !== null && typeof v === 'object') {
+      if (v !== null && typeof v === "object") {
         walk(v);
       }
     }
@@ -353,13 +359,22 @@ function collectPlainRowEmails(root: unknown, recipientEmail: string): any[] {
  * Flight 风格 payload：根为数组，"addresses",[i] 表示 root[i] 为邮箱字符串；
  * "emails",[a,b,...] 中每项为下标，指向 root[idx] 的邮件行（常为嵌套数组，内含 id/to_address/subject/time 键值序列）。
  */
-function resolveFlightSlot(root: unknown[], idx: number, visited: Set<number>): unknown {
+function resolveFlightSlot(
+  root: unknown[],
+  idx: number,
+  visited: Set<number>,
+): unknown {
   if (idx < 0 || idx >= root.length || visited.has(idx)) {
     return undefined;
   }
   visited.add(idx);
   const val = root[idx];
-  if (typeof val === 'number' && Number.isInteger(val) && val >= 0 && val < root.length) {
+  if (
+    typeof val === "number" &&
+    Number.isInteger(val) &&
+    val >= 0 &&
+    val < root.length
+  ) {
     return resolveFlightSlot(root, val, visited);
   }
   return val;
@@ -368,15 +383,15 @@ function resolveFlightSlot(root: unknown[], idx: number, visited: Set<number>): 
 function flattenFlightIndices(refs: unknown[]): number[] {
   const out: number[] = [];
   for (const r of refs) {
-    if (typeof r === 'number' && Number.isInteger(r)) {
+    if (typeof r === "number" && Number.isInteger(r)) {
       out.push(r);
-    } else if (typeof r === 'string' && /^\d+$/.test(r)) {
+    } else if (typeof r === "string" && /^\d+$/.test(r)) {
       out.push(parseInt(r, 10));
     } else if (Array.isArray(r)) {
       for (const x of r) {
-        if (typeof x === 'number' && Number.isInteger(x)) {
+        if (typeof x === "number" && Number.isInteger(x)) {
           out.push(x);
-        } else if (typeof x === 'string' && /^\d+$/.test(x)) {
+        } else if (typeof x === "string" && /^\d+$/.test(x)) {
           out.push(parseInt(x, 10));
         }
       }
@@ -385,10 +400,13 @@ function flattenFlightIndices(refs: unknown[]): number[] {
   return out;
 }
 
-function parseSmailEmailsFromFlightRoot(root: unknown[], recipientEmail: string): any[] {
+function parseSmailEmailsFromFlightRoot(
+  root: unknown[],
+  recipientEmail: string,
+): any[] {
   const mails: any[] = [];
   for (let i = 0; i < root.length - 1; i++) {
-    if (root[i] !== 'emails') {
+    if (root[i] !== "emails") {
       continue;
     }
     const refs = root[i + 1];
@@ -406,7 +424,7 @@ function parseSmailEmailsFromFlightRoot(root: unknown[], recipientEmail: string)
         if (mail) {
           mails.push(mail);
         }
-      } else if (node !== null && typeof node === 'object') {
+      } else if (node !== null && typeof node === "object") {
         mails.push(...collectPlainRowEmails(node, recipientEmail));
       }
     }
@@ -415,7 +433,10 @@ function parseSmailEmailsFromFlightRoot(root: unknown[], recipientEmail: string)
   return mails;
 }
 
-function parseSmailEmailsFromPayload(text: string, recipientEmail: string): any[] {
+function parseSmailEmailsFromPayload(
+  text: string,
+  recipientEmail: string,
+): any[] {
   const regexMails = parseSmailEmailsRegex(text, recipientEmail);
   let linearMails: any[] = [];
   let flightMails: any[] = [];
@@ -439,12 +460,12 @@ function parseSmailEmailsFromPayload(text: string, recipientEmail: string): any[
  */
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetchWithTimeout(ROOT_DATA_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
       ...DEFAULT_HEADERS,
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
     },
-    body: 'intent=generate',
+    body: "intent=generate",
   });
 
   if (!response.ok) {
@@ -453,13 +474,13 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
   const cookie = extractSessionCookie(response);
   if (!cookie) {
-    throw new Error('Failed to extract __session cookie');
+    throw new Error("Failed to extract __session cookie");
   }
 
   const text = await response.text();
   const email = extractInboxEmail(text);
   if (!email) {
-    throw new Error('Failed to parse inbox address from smail.pw response');
+    throw new Error("Failed to parse inbox address from smail.pw response");
   }
 
   return {
@@ -470,9 +491,12 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 /** 列表不含正文，需按 id 拉取 /api/email/:id（与官网一致） */
-async function fetchEmailBody(token: string, id: string): Promise<{ text: string; html: string }> {
-  if (!id || id.startsWith('__smail_')) {
-    return { text: '', html: '' };
+async function fetchEmailBody(
+  token: string,
+  id: string,
+): Promise<{ text: string; html: string }> {
+  if (!id || id.startsWith("__smail_")) {
+    return { text: "", html: "" };
   }
   try {
     const response = await fetchWithTimeout(
@@ -481,27 +505,30 @@ async function fetchEmailBody(token: string, id: string): Promise<{ text: string
         headers: {
           ...DEFAULT_HEADERS,
           Cookie: token,
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       },
     );
     if (!response.ok) {
-      return { text: '', html: '' };
+      return { text: "", html: "" };
     }
     const data = (await response.json()) as { body?: string };
-    const html = typeof data.body === 'string' ? data.body : '';
-    return { text: '', html };
+    const html = typeof data.body === "string" ? data.body : "";
+    return { text: "", html };
   } catch {
-    return { text: '', html: '' };
+    return { text: "", html: "" };
   }
 }
 
 /**
  * GET _root.data，携带 __session Cookie，解析邮件列表
  */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   const response = await fetchWithTimeout(ROOT_DATA_URL, {
-    method: 'GET',
+    method: "GET",
     headers: {
       ...DEFAULT_HEADERS,
       Cookie: token,

@@ -18,7 +18,12 @@ fn any_string(v: &Value) -> String {
     }
 }
 
-async fn request_json(method: &str, path: &str, headers: Option<Vec<(&str, String)>>, body: Option<Value>) -> Result<(u16, Value), String> {
+async fn request_json(
+    method: &str,
+    path: &str,
+    headers: Option<Vec<(&str, String)>>,
+    body: Option<Value>,
+) -> Result<(u16, Value), String> {
     let builder = match method {
         "POST" => http_client().post(format!("{}{}", BASE_URL, path)),
         _ => http_client().get(format!("{}{}", BASE_URL, path)),
@@ -32,13 +37,20 @@ async fn request_json(method: &str, path: &str, headers: Option<Vec<(&str, Strin
     if let Some(b) = body {
         req = req.header("Content-Type", "application/json").json(&b);
     }
-    let resp = req.send().await.map_err(|e| format!("ockito request failed: {}", e))?;
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| format!("ockito request failed: {}", e))?;
     let status = resp.status().as_u16();
-    let text = resp.text().await.map_err(|e| format!("ockito read response: {}", e))?;
+    let text = resp
+        .text()
+        .await
+        .map_err(|e| format!("ockito read response: {}", e))?;
     let json = if text.trim().is_empty() {
         Value::Object(Default::default())
     } else {
-        serde_json::from_str(&text).map_err(|_| format!("ockito invalid JSON: {} HTTP {}", path, status))?
+        serde_json::from_str(&text)
+            .map_err(|_| format!("ockito invalid JSON: {} HTTP {}", path, status))?
     };
     Ok((status, json))
 }
@@ -56,7 +68,8 @@ fn decode_token(token: &str) -> Result<(String, String), String> {
     if value.is_empty() || !value.starts_with('{') {
         return Err("ockito: invalid session token".into());
     }
-    let data: Value = serde_json::from_str(value).map_err(|_| "ockito: invalid session token".to_string())?;
+    let data: Value =
+        serde_json::from_str(value).map_err(|_| "ockito: invalid session token".to_string())?;
     let access_token = any_string(&data["access_token"]);
     let refresh_token = any_string(&data["refresh_token"]);
     if access_token.is_empty() || refresh_token.is_empty() {
@@ -86,7 +99,11 @@ async fn refresh_access_token(refresh_token: &str) -> Result<String, String> {
     Ok(access_token)
 }
 
-async fn fetch_bearer_json(path: &str, access_token: &mut String, refresh_token: &str) -> Result<Value, String> {
+async fn fetch_bearer_json(
+    path: &str,
+    access_token: &mut String,
+    refresh_token: &str,
+) -> Result<Value, String> {
     let (status, data) = request_json(
         "GET",
         path,
@@ -126,7 +143,12 @@ fn flatten_inbox_row(raw: &Value, recipient: &str) -> Value {
 }
 
 fn flatten_message(raw: &Value, recipient: &str) -> Value {
-    let obj = raw.get("obj").and_then(|v| v.as_object()).cloned().map(Value::Object).unwrap_or_else(|| raw.clone());
+    let obj = raw
+        .get("obj")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .map(Value::Object)
+        .unwrap_or_else(|| raw.clone());
     let from = any_string(&obj["sender_email"]).chars().collect::<String>();
     let to = {
         let value = any_string(&obj["to"]);
@@ -156,7 +178,8 @@ fn flatten_message(raw: &Value, recipient: &str) -> Value {
 
 pub fn generate_email() -> Result<EmailInfo, String> {
     block_on(async {
-        let (status, login) = request_json("POST", "/gtoken", None, Some(serde_json::json!({}))).await?;
+        let (status, login) =
+            request_json("POST", "/gtoken", None, Some(serde_json::json!({}))).await?;
         if status < 200 || status >= 300 {
             return Err(format!("ockito gtoken http {}", status));
         }
@@ -227,11 +250,15 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 out.push(normalize_email(&flatten_inbox_row(row, address), address));
                 continue;
             }
-        let detail = fetch_bearer_json(
-            &format!("/retrieve/{}/{}", urlencoding::encode(address), urlencoding::encode(uid)),
-            &mut access_token,
-            &refresh_token,
-        )
+            let detail = fetch_bearer_json(
+                &format!(
+                    "/retrieve/{}/{}",
+                    urlencoding::encode(address),
+                    urlencoding::encode(uid)
+                ),
+                &mut access_token,
+                &refresh_token,
+            )
             .await
             .unwrap_or_else(|_| row.clone());
             out.push(normalize_email(&flatten_message(&detail, address), address));

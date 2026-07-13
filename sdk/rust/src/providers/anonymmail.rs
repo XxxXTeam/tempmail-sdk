@@ -36,7 +36,10 @@ fn fetch_domains() -> Result<Vec<String>, String> {
         if !resp.status().is_success() {
             return Err(format!("anonymmail: 获取域名失败 {}", resp.status()));
         }
-        let data: Value = resp.json().await.map_err(|e| format!("anonymmail: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("anonymmail: {}", e))?;
         let arr = data.as_array().ok_or("anonymmail: 域名响应非数组")?;
         let mut domains = Vec::new();
         for item in arr {

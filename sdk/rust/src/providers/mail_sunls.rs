@@ -34,7 +34,10 @@ fn fetch_domains() -> Result<Vec<String>, String> {
         if !resp.status().is_success() {
             return Err(format!("mail-sunls: 获取域名列表 HTTP {}", resp.status()));
         }
-        let data: Value = resp.json().await.map_err(|e| format!("mail-sunls: 解析域名列表失败: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("mail-sunls: 解析域名列表失败: {}", e))?;
         let domains = data
             .as_array()
             .ok_or_else(|| "mail-sunls: 域名列表格式错误".to_string())?
@@ -87,17 +90,21 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
         if !resp.status().is_success() {
             return Err(format!("mail-sunls: 获取邮件列表 HTTP {}", resp.status()));
         }
-        let data: Value = resp.json().await.map_err(|e| format!("mail-sunls: 解析邮件列表失败: {}", e))?;
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("mail-sunls: 解析邮件列表失败: {}", e))?;
         let rows = data.as_array().cloned().unwrap_or_default();
 
         let mut out = Vec::with_capacity(rows.len());
         for raw in &rows {
-            let id = raw.get("id")
+            let id = raw
+                .get("id")
                 .or_else(|| raw.get("_id"))
                 .and_then(|v| {
-                    v.as_str().map(|s| s.to_string()).or_else(|| {
-                        v.as_i64().map(|n| n.to_string())
-                    })
+                    v.as_str()
+                        .map(|s| s.to_string())
+                        .or_else(|| v.as_i64().map(|n| n.to_string()))
                 })
                 .unwrap_or_default();
 

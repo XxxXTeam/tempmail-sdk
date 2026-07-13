@@ -27,6 +27,7 @@ EMAIL_OPTIONS = ["plusGmail", "dotGmail", "googleMail"]
 def _init_session():
     """初始化 Session，获取 XSRF-TOKEN 和 Cookie"""
     import requests
+
     session = requests.Session()
     session.headers.update({"User-Agent": DEFAULT_HEADERS["User-Agent"]})
     resp = session.get(BASE_URL, timeout=15)
@@ -109,21 +110,30 @@ def get_emails(token, email="", **kwargs):
                 detail.raise_for_status()
                 try:
                     detail_data = detail.json()
-                    html = detail_data if isinstance(detail_data, str) else json.dumps(detail_data)
+                    html = (
+                        detail_data
+                        if isinstance(detail_data, str)
+                        else json.dumps(detail_data)
+                    )
                 except ValueError:
                     html = detail.text
             except Exception:
                 html = ""
-        emails.append(normalize_email({
-            "id": msg_id,
-            "from": msg.get("from", ""),
-            "to": email,
-            "subject": msg.get("subject", ""),
-            "text": "",
-            "html": html,
-            "date": msg.get("time", ""),
-            "isRead": False,
-            "attachments": [],
-        }, email))
+        emails.append(
+            normalize_email(
+                {
+                    "id": msg_id,
+                    "from": msg.get("from", ""),
+                    "to": email,
+                    "subject": msg.get("subject", ""),
+                    "text": "",
+                    "html": html,
+                    "date": msg.get("time", ""),
+                    "isRead": False,
+                    "attachments": [],
+                },
+                email,
+            )
+        )
 
     return emails

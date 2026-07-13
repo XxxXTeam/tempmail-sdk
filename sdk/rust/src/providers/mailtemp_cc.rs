@@ -47,10 +47,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("mailtemp-cc: 创建邮箱请求失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "mailtemp-cc: 创建邮箱返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("mailtemp-cc: 创建邮箱返回 HTTP {}", resp.status()));
         }
 
         let raw_text = resp
@@ -161,9 +158,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 .await;
 
             let detail = match detail_resp {
-                Ok(r) if r.status().is_success() => {
-                    r.json::<Value>().await.unwrap_or(Value::Null)
-                }
+                Ok(r) if r.status().is_success() => r.json::<Value>().await.unwrap_or(Value::Null),
                 _ => Value::Null,
             };
 

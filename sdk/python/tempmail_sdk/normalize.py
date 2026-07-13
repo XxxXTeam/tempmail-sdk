@@ -45,7 +45,11 @@ def normalize_email(raw: Dict[str, Any], recipient_email: str = "") -> Email:
 def _is_html_content(content: str) -> bool:
     """检测内容是否为 HTML（只取前 200 字符避免大邮件不必要的内存分配）"""
     prefix = content[:200].strip().lower()
-    if prefix.startswith("<!doctype html") or prefix.startswith("<html") or prefix.startswith("<body"):
+    if (
+        prefix.startswith("<!doctype html")
+        or prefix.startswith("<html")
+        or prefix.startswith("<body")
+    ):
         return True
     trimmed = content.strip().lower()
     if "<div" in trimmed and "</div>" in trimmed:
@@ -97,7 +101,9 @@ def _normalize_from(raw: Dict[str, Any]) -> str:
 
 def _normalize_to(raw: Dict[str, Any], recipient_email: str) -> str:
     """提取收件人地址，无匹配字段时回退为 recipient_email"""
-    result = _get_str(raw, "to", "to_address", "toAddress", "name_to", "email_address", "address")
+    result = _get_str(
+        raw, "to", "to_address", "toAddress", "name_to", "email_address", "address"
+    )
     return result or recipient_email
 
 
@@ -124,7 +130,9 @@ def _normalize_text(raw: Dict[str, Any]) -> str:
 
 def _normalize_html(raw: Dict[str, Any]) -> str:
     """提取 HTML 内容"""
-    return _get_str(raw, "html", "html_body", "html_content", "body_html", "mail_body_html")
+    return _get_str(
+        raw, "html", "html_body", "html_content", "body_html", "mail_body_html"
+    )
 
 
 def _normalize_date(raw: Dict[str, Any]) -> str:
@@ -138,17 +146,23 @@ def _normalize_date(raw: Dict[str, Any]) -> str:
         if val is not None:
             if isinstance(val, str) and val:
                 try:
-                    return datetime.fromisoformat(val.replace("Z", "+00:00")).isoformat()
+                    return datetime.fromisoformat(
+                        val.replace("Z", "+00:00")
+                    ).isoformat()
                 except (ValueError, TypeError):
                     try:
-                        dt = datetime.strptime(val, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                        dt = datetime.strptime(val, "%Y-%m-%d %H:%M:%S").replace(
+                            tzinfo=timezone.utc
+                        )
                         return dt.isoformat()
                     except (ValueError, TypeError):
                         return val
             elif isinstance(val, (int, float)) and val > 0:
                 try:
                     if val > 1e12:
-                        return datetime.fromtimestamp(val / 1000, tz=timezone.utc).isoformat()
+                        return datetime.fromtimestamp(
+                            val / 1000, tz=timezone.utc
+                        ).isoformat()
                     return datetime.fromtimestamp(val, tz=timezone.utc).isoformat()
                 except (ValueError, OSError):
                     continue
@@ -207,10 +221,15 @@ def _normalize_attachments(attachments: Any) -> List[EmailAttachment]:
     for a in attachments:
         if not isinstance(a, dict):
             continue
-        result.append(EmailAttachment(
-            filename=a.get("filename") or a.get("name") or "",
-            size=a.get("size") or a.get("filesize"),
-            content_type=a.get("contentType") or a.get("content_type") or a.get("mimeType") or a.get("mime_type"),
-            url=a.get("url") or a.get("download_url") or a.get("downloadUrl"),
-        ))
+        result.append(
+            EmailAttachment(
+                filename=a.get("filename") or a.get("name") or "",
+                size=a.get("size") or a.get("filesize"),
+                content_type=a.get("contentType")
+                or a.get("content_type")
+                or a.get("mimeType")
+                or a.get("mime_type"),
+                url=a.get("url") or a.get("download_url") or a.get("downloadUrl"),
+            )
+        )
     return result

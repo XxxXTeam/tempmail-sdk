@@ -75,7 +75,9 @@ def generate_email(domain: Optional[str] = None) -> EmailInfo:
 
 def _fetch_detail(uid: str) -> Optional[Dict[str, Any]]:
     try:
-        resp = tm_http.get(f"{API_BASE}/message/{quote(uid, safe='')}", headers=HEADERS, timeout=15)
+        resp = tm_http.get(
+            f"{API_BASE}/message/{quote(uid, safe='')}", headers=HEADERS, timeout=15
+        )
         if not resp.ok:
             return None
         data = resp.json()
@@ -89,7 +91,9 @@ def get_emails(email: str) -> List[Email]:
     if not address:
         raise ValueError("inboxes: empty email")
 
-    resp = tm_http.get(f"{API_BASE}/inbox/{quote(address, safe='')}", headers=HEADERS, timeout=15)
+    resp = tm_http.get(
+        f"{API_BASE}/inbox/{quote(address, safe='')}", headers=HEADERS, timeout=15
+    )
     resp.raise_for_status()
     data = resp.json()
     rows = data.get("msgs") if isinstance(data, dict) else []

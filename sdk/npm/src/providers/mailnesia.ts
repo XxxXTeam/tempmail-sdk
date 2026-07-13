@@ -1,16 +1,17 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
-import { decodeHtmlEntitiesOnce, htmlToText } from '../html';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
+import { decodeHtmlEntitiesOnce, htmlToText } from "../html";
 
-const CHANNEL: Channel = 'mailnesia';
-const BASE_URL = 'https://mailnesia.com';
-const DOMAIN = 'mailnesia.com';
+const CHANNEL: Channel = "mailnesia";
+const BASE_URL = "https://mailnesia.com";
+const DOMAIN = "mailnesia.com";
 
 function randomLocal(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let out = 'sdk';
-  for (let i = 0; i < 16; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "sdk";
+  for (let i = 0; i < 16; i++)
+    out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
 
@@ -19,7 +20,11 @@ function cleanHtmlText(raw: string): string {
 }
 
 function localPart(email: string): string {
-  return String(email || '').trim().split('@')[0] || '';
+  return (
+    String(email || "")
+      .trim()
+      .split("@")[0] || ""
+  );
 }
 
 function mailboxUrl(local: string): string {
@@ -32,8 +37,8 @@ function detailUrl(local: string, id: string): string {
 
 async function fetchHtml(url: string): Promise<string> {
   const response = await fetchWithTimeout(url, {
-    method: 'GET',
-    headers: { Accept: 'text/html,*/*' },
+    method: "GET",
+    headers: { Accept: "text/html,*/*" },
   });
   if (!response.ok) throw new Error(`mailnesia http ${response.status}`);
   return response.text();
@@ -41,12 +46,15 @@ async function fetchHtml(url: string): Promise<string> {
 
 function parseRows(html: string): Array<Record<string, unknown>> {
   const rows: Array<Record<string, unknown>> = [];
-  const rowRe = /<tr\s+id="([^"]+)"[^>]*class="[^"]*\bemailheader\b[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
+  const rowRe =
+    /<tr\s+id="([^"]+)"[^>]*class="[^"]*\bemailheader\b[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
   for (const m of html.matchAll(rowRe)) {
     const id = m[1];
     const row = m[2];
-    const date = row.match(/<time\s+datetime="([^"]+)"/i)?.[1] || '';
-    const anchors = [...row.matchAll(/<a\b[^>]*class="email"[^>]*>([\s\S]*?)<\/a>/gi)].map(a => cleanHtmlText(a[1]));
+    const date = row.match(/<time\s+datetime="([^"]+)"/i)?.[1] || "";
+    const anchors = [
+      ...row.matchAll(/<a\b[^>]*class="email"[^>]*>([\s\S]*?)<\/a>/gi),
+    ].map((a) => cleanHtmlText(a[1]));
     if (anchors.length < 3) continue;
     rows.push({
       id,
@@ -62,33 +70,39 @@ function parseRows(html: string): Array<Record<string, unknown>> {
 function extractDivById(page: string, id: string, nextId?: string): string {
   const idNeedle = `id="${id}"`;
   const idAt = page.indexOf(idNeedle);
-  if (idAt < 0) return '';
-  const openEnd = page.indexOf('>', idAt);
-  if (openEnd < 0) return '';
+  if (idAt < 0) return "";
+  const openEnd = page.indexOf(">", idAt);
+  if (openEnd < 0) return "";
   let end = -1;
   if (nextId) {
     end = page.indexOf(`<div id="${nextId}"`, openEnd + 1);
   }
   if (end < 0) {
-    end = page.indexOf('</div>', openEnd + 1);
-    if (end >= 0) end += '</div>'.length;
+    end = page.indexOf("</div>", openEnd + 1);
+    if (end >= 0) end += "</div>".length;
   }
-  if (end < 0) return '';
+  if (end < 0) return "";
   let content = page.slice(openEnd + 1, end).trim();
-  if (content.endsWith('</div>')) {
-    content = content.slice(0, -'</div>'.length).trim();
+  if (content.endsWith("</div>")) {
+    content = content.slice(0, -"</div>".length).trim();
   }
   return content;
 }
 
 function parsePlain(page: string, id: string): string {
-  const re = new RegExp(`<div\\s+id="text_plain_${id}"[^>]*>\\s*<pre>([\\s\\S]*?)<\\/pre>\\s*<\\/div>`, 'i');
+  const re = new RegExp(
+    `<div\\s+id="text_plain_${id}"[^>]*>\\s*<pre>([\\s\\S]*?)<\\/pre>\\s*<\\/div>`,
+    "i",
+  );
   const m = page.match(re);
-  return m ? decodeHtmlEntitiesOnce(m[1]).trim() : '';
+  return m ? decodeHtmlEntitiesOnce(m[1]).trim() : "";
 }
 
-async function fetchDetail(local: string, row: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const id = String(row.id || '');
+async function fetchDetail(
+  local: string,
+  row: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const id = String(row.id || "");
   if (!id) return row;
   const page = await fetchHtml(detailUrl(local, id));
   const html = extractDivById(page, `text_html_${id}`, `text_plain_${id}`);
@@ -108,7 +122,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
 export async function getEmails(email: string): Promise<Email[]> {
   const local = localPart(email);
-  if (!local) throw new Error('mailnesia: empty email');
+  if (!local) throw new Error("mailnesia: empty email");
   const html = await fetchHtml(mailboxUrl(local));
   const rows = parseRows(html);
   const emails: Email[] = [];

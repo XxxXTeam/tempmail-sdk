@@ -47,12 +47,23 @@ export interface SDKConfig {
   telemetryEnabled?: boolean;
   /** 非空时覆盖默认上报 URL */
   telemetryUrl?: string;
+  /**
+   * apihz（接口盒子）渠道专用：接口调用凭据 id。
+   * 也可通过环境变量 APIHZ_ID 提供。未配置时使用 apihz 官方公共账号 88888888（共享频次）。
+   * 如需独享频次，可前往 apihz.cn 免费注册后填入自己的 id/key。
+   */
+  apihzId?: string;
+  /**
+   * apihz（接口盒子）渠道专用：接口调用凭据 key。
+   * 也可通过环境变量 APIHZ_KEY 提供。未配置时使用 apihz 官方公共账号 88888888（共享频次）。
+   */
+  apihzKey?: string;
 }
 
 /** 从环境变量读取默认配置 */
 function loadEnvConfig(): SDKConfig {
   const config: SDKConfig = {};
-  if (typeof process !== 'undefined' && process.env) {
+  if (typeof process !== "undefined" && process.env) {
     if (process.env.TEMPMAIL_PROXY) {
       config.proxy = process.env.TEMPMAIL_PROXY;
     }
@@ -60,17 +71,26 @@ function loadEnvConfig(): SDKConfig {
       const t = parseInt(process.env.TEMPMAIL_TIMEOUT, 10);
       if (!isNaN(t) && t > 0) config.timeout = t;
     }
-    if (process.env.TEMPMAIL_INSECURE === '1' || process.env.TEMPMAIL_INSECURE?.toLowerCase() === 'true') {
+    if (
+      process.env.TEMPMAIL_INSECURE === "1" ||
+      process.env.TEMPMAIL_INSECURE?.toLowerCase() === "true"
+    ) {
       config.insecure = true;
     }
     const te = process.env.TEMPMAIL_TELEMETRY_ENABLED?.trim().toLowerCase();
-    if (te === 'false' || te === '0' || te === 'no') {
+    if (te === "false" || te === "0" || te === "no") {
       config.telemetryEnabled = false;
-    } else if (te === 'true' || te === '1' || te === 'yes') {
+    } else if (te === "true" || te === "1" || te === "yes") {
       config.telemetryEnabled = true;
     }
     if (process.env.TEMPMAIL_TELEMETRY_URL?.trim()) {
       config.telemetryUrl = process.env.TEMPMAIL_TELEMETRY_URL.trim();
+    }
+    if (process.env.APIHZ_ID?.trim()) {
+      config.apihzId = process.env.APIHZ_ID.trim();
+    }
+    if (process.env.APIHZ_KEY?.trim()) {
+      config.apihzKey = process.env.APIHZ_KEY.trim();
     }
   }
   return config;
@@ -98,9 +118,9 @@ let globalConfig: SDKConfig = loadEnvConfig();
 export function setConfig(config: SDKConfig): void {
   globalConfig = { ...config };
   /* Node.js 环境下 insecure 自动设置环境变量 */
-  if (typeof process !== 'undefined' && process.env) {
+  if (typeof process !== "undefined" && process.env) {
     if (config.insecure) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     } else {
       delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
     }

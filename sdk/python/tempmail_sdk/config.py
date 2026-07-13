@@ -9,6 +9,7 @@ SDK 全局配置
   DROPMAIL_AUTH_TOKEN / DROPMAIL_API_TOKEN - DropMail af_ 令牌（可选；未设置则自动 generate/renew）
   DROPMAIL_NO_AUTO_TOKEN - 禁止自动拉取/续期
   DROPMAIL_RENEW_LIFETIME - renew 的 lifetime，默认 1d
+  APIHZ_ID / APIHZ_KEY - apihz（接口盒子）调用凭据（可选；未设置则使用官方公共账号）
   TEMPMAIL_TELEMETRY_ENABLED - true/false，默认 true；false/0/no 关闭匿名用量上报
   TEMPMAIL_TELEMETRY_URL - 自定义上报端点
 """
@@ -21,6 +22,7 @@ from typing import Optional, Dict
 @dataclass
 class SDKConfig:
     """SDK 全局配置"""
+
     proxy: Optional[str] = None
     """代理 URL，支持 http/https/socks5，如 "http://127.0.0.1:7890" """
     timeout: int = 15
@@ -35,6 +37,10 @@ class SDKConfig:
     """为 True 时不自动 generate/renew（须配置令牌）"""
     dropmail_renew_lifetime: Optional[str] = None
     """传给 /api/token/renew 的 lifetime，默认 1d"""
+    apihz_id: Optional[str] = None
+    """apihz（接口盒子）调用 id；空则使用官方公共账号"""
+    apihz_key: Optional[str] = None
+    """apihz（接口盒子）调用 key；空则使用官方公共账号"""
     telemetry_enabled: Optional[bool] = None
     """None 表示默认开启匿名上报；False 关闭；True 显式开启"""
     telemetry_url: Optional[str] = None
@@ -48,8 +54,16 @@ def _load_env_config() -> SDKConfig:
     timeout = int(timeout_str) if timeout_str and timeout_str.isdigit() else 15
     insecure_val = os.environ.get("TEMPMAIL_INSECURE", "")
     insecure = insecure_val in ("1", "true", "True", "TRUE")
-    dm_tok = (os.environ.get("DROPMAIL_AUTH_TOKEN") or os.environ.get("DROPMAIL_API_TOKEN") or "").strip() or None
-    dm_no = (os.environ.get("DROPMAIL_NO_AUTO_TOKEN") or "").strip().lower() in ("1", "true", "yes")
+    dm_tok = (
+        os.environ.get("DROPMAIL_AUTH_TOKEN")
+        or os.environ.get("DROPMAIL_API_TOKEN")
+        or ""
+    ).strip() or None
+    dm_no = (os.environ.get("DROPMAIL_NO_AUTO_TOKEN") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
     dm_renew = (os.environ.get("DROPMAIL_RENEW_LIFETIME") or "").strip() or None
     te_raw = (os.environ.get("TEMPMAIL_TELEMETRY_ENABLED") or "").strip().lower()
     telemetry_enabled: Optional[bool] = None
@@ -58,6 +72,8 @@ def _load_env_config() -> SDKConfig:
     elif te_raw in ("true", "1", "yes"):
         telemetry_enabled = True
     tu = (os.environ.get("TEMPMAIL_TELEMETRY_URL") or "").strip() or None
+    apihz_id = (os.environ.get("APIHZ_ID") or "").strip() or None
+    apihz_key = (os.environ.get("APIHZ_KEY") or "").strip() or None
     return SDKConfig(
         proxy=proxy,
         timeout=timeout,
@@ -67,6 +83,8 @@ def _load_env_config() -> SDKConfig:
         dropmail_renew_lifetime=dm_renew,
         telemetry_enabled=telemetry_enabled,
         telemetry_url=tu,
+        apihz_id=apihz_id,
+        apihz_key=apihz_key,
     )
 
 

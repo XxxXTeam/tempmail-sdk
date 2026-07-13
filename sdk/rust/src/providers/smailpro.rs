@@ -102,7 +102,13 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .get("expired_at")
             .and_then(|v| v.as_f64())
             .filter(|n| *n > 0.0)
-            .map(|n| if n > 1e12 { n as i64 } else { (n as i64) * 1000 });
+            .map(|n| {
+                if n > 1e12 {
+                    n as i64
+                } else {
+                    (n as i64) * 1000
+                }
+            });
 
         Ok(EmailInfo {
             channel: Channel::Smailpro,

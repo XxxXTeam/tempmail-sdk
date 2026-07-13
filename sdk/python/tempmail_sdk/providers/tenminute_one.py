@@ -17,7 +17,14 @@ from ..types import EmailInfo, Email
 CHANNEL = "10minute-one"
 SITE_ORIGIN = "https://10minutemail.one"
 API_BASE = "https://web.10minutemail.one/api/v1"
-KNOWN_EMAIL_DOMAINS = ["xghff.com", "oqqaj.com", "psovv.com", "dbwot.com", "ygwpr.com", "imxwe.com"]
+KNOWN_EMAIL_DOMAINS = [
+    "xghff.com",
+    "oqqaj.com",
+    "psovv.com",
+    "dbwot.com",
+    "ygwpr.com",
+    "imxwe.com",
+]
 _DEFAULT_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -169,10 +176,9 @@ def _api_headers(tok: str) -> Dict[str, str]:
 def _item_needs_detail(m: Dict[str, Any]) -> bool:
     if not str(m.get("id", "")).strip():
         return False
-    body = (
-        str(m.get("text") or m.get("body") or m.get("html") or m.get("mail_text") or "")
-        .strip()
-    )
+    body = str(
+        m.get("text") or m.get("body") or m.get("html") or m.get("mail_text") or ""
+    ).strip()
     return not body
 
 
@@ -196,7 +202,11 @@ def generate_email(domain: Optional[str] = None, **kwargs) -> EmailInfo:
     arr = _parse_nuxt_array(html)
     token = _parse_mail_service_token(arr)
 
-    domains = list(dict.fromkeys(_parse_quoted_json_array(html, "emailDomains") + KNOWN_EMAIL_DOMAINS))
+    domains = list(
+        dict.fromkeys(
+            _parse_quoted_json_array(html, "emailDomains") + KNOWN_EMAIL_DOMAINS
+        )
+    )
     if not domains:
         domains = KNOWN_EMAIL_DOMAINS
 

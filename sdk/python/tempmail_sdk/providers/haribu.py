@@ -116,7 +116,7 @@ def _decode_sess(token: str) -> str:
     """从 token 字符串解码 cookie 头，返回 cookie_hdr"""
     if not token.startswith(_TOK_PREFIX):
         raise ValueError("haribu: 无效的会话令牌")
-    raw = token[len(_TOK_PREFIX):]
+    raw = token[len(_TOK_PREFIX) :]
     try:
         decoded = base64.b64decode(raw)
         data = json.loads(decoded)

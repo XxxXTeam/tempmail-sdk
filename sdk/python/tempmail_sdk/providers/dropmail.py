@@ -14,7 +14,9 @@ CHANNEL = "dropmail"
 TOKEN_GENERATE_URL = "https://dropmail.me/api/token/generate"
 TOKEN_RENEW_URL = "https://dropmail.me/api/token/renew"
 
-CREATE_SESSION_QUERY = "mutation {introduceSession {id, expiresAt, addresses{id, address}}}"
+CREATE_SESSION_QUERY = (
+    "mutation {introduceSession {id, expiresAt, addresses{id, address}}}"
+)
 
 GET_MAILS_QUERY = """query ($id: ID!) {
   session(id:$id) {
@@ -91,7 +93,9 @@ def _fetch_af_token() -> str:
     body = _post_json(TOKEN_GENERATE_URL, {"type": "af", "lifetime": "1h"})
     tok = str(body.get("token") or "").strip()
     if not tok or not tok.startswith("af_"):
-        raise Exception(body.get("error") or "DropMail token/generate 未返回有效 af_ 令牌")
+        raise Exception(
+            body.get("error") or "DropMail token/generate 未返回有效 af_ 令牌"
+        )
     return tok
 
 
@@ -161,7 +165,9 @@ def _graphql_request(query: str, variables: dict = None) -> dict:
     result = resp.json()
 
     if result.get("errors"):
-        raise Exception(f"GraphQL error: {result['errors'][0].get('message', 'Unknown')}")
+        raise Exception(
+            f"GraphQL error: {result['errors'][0].get('message', 'Unknown')}"
+        )
 
     return result.get("data", {})
 

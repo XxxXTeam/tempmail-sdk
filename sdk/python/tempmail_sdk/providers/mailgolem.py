@@ -71,7 +71,7 @@ def _decode_token(token: str) -> tuple:
     if not token or not token.startswith(_TOK_PREFIX):
         raise ValueError("mailgolem: 无效的 session token")
     try:
-        raw = base64.standard_b64decode(token[len(_TOK_PREFIX):].encode("ascii"))
+        raw = base64.standard_b64decode(token[len(_TOK_PREFIX) :].encode("ascii"))
         data = json.loads(raw.decode("utf-8"))
     except (json.JSONDecodeError, ValueError) as e:
         raise ValueError("mailgolem: 无效的 session token") from e

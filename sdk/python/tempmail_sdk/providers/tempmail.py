@@ -55,7 +55,10 @@ def get_emails(email: str, **kwargs) -> list:
     if not data.get("success"):
         raise Exception("Failed to get emails")
 
-    return [normalize_email(_flatten_message(raw, email), email) for raw in (data.get("emails") or [])]
+    return [
+        normalize_email(_flatten_message(raw, email), email)
+        for raw in (data.get("emails") or [])
+    ]
 
 
 def _flatten_message(raw, recipient_email):

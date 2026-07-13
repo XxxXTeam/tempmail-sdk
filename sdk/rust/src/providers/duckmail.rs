@@ -78,7 +78,10 @@ fn create_account(address: &str, password: &str) -> Result<Value, String> {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            return Err(format!("duckmail create account failed: {} {}", status, text));
+            return Err(format!(
+                "duckmail create account failed: {} {}",
+                status, text
+            ));
         }
 
         resp.json::<Value>()
@@ -256,15 +259,20 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             let detail = if message_id.is_empty() {
                 None
             } else {
-                let detail_resp = default_headers(http_client().get(format!(
-                    "{}/messages/{}",
-                    BASE_URL, message_id
-                )))
+                let detail_resp = default_headers(
+                    http_client().get(format!("{}/messages/{}", BASE_URL, message_id)),
+                )
                 .header("Authorization", format!("Bearer {}", token))
                 .send()
                 .await
                 .ok()
-                .and_then(|r| if r.status().is_success() { Some(r) } else { None });
+                .and_then(|r| {
+                    if r.status().is_success() {
+                        Some(r)
+                    } else {
+                        None
+                    }
+                });
 
                 if let Some(resp) = detail_resp {
                     resp.json::<Value>().await.ok()

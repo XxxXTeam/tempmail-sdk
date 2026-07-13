@@ -62,7 +62,9 @@ def _headers(base_url: str) -> Dict[str, str]:
 
 
 def _encode_token(cookie: str, email_id: str, base_url: str) -> str:
-    raw = json.dumps({"c": cookie, "i": email_id, "b": base_url}, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps(
+        {"c": cookie, "i": email_id, "b": base_url}, separators=(",", ":")
+    ).encode("utf-8")
     return TOKEN_PREFIX + base64.standard_b64encode(raw).decode("ascii")
 
 
@@ -70,7 +72,7 @@ def _decode_token(token: str) -> Dict[str, str]:
     if not token.startswith(TOKEN_PREFIX):
         raise ValueError("zhujump: invalid session token")
     try:
-        raw = base64.standard_b64decode(token[len(TOKEN_PREFIX):].encode("ascii"))
+        raw = base64.standard_b64decode(token[len(TOKEN_PREFIX) :].encode("ascii"))
         data = json.loads(raw.decode("utf-8"))
     except Exception as exc:
         raise ValueError("zhujump: invalid session token") from exc
@@ -86,7 +88,12 @@ def generate_email(domain: str, channel: str) -> EmailInfo:
     return generate_email_for_instance(BASE_URL, domain, channel, None)
 
 
-def generate_email_for_instance(base_url: str, domain: str, channel: str, expiry_time: int | None = DEFAULT_EXPIRY_TIME) -> EmailInfo:
+def generate_email_for_instance(
+    base_url: str,
+    domain: str,
+    channel: str,
+    expiry_time: int | None = DEFAULT_EXPIRY_TIME,
+) -> EmailInfo:
     base_url = base_url.rstrip("/")
     sess = _session()
     sess.headers.update(_headers(base_url))
@@ -126,7 +133,10 @@ def generate_email_for_instance(base_url: str, domain: str, channel: str, expiry
     session_resp = sess.get(f"{base_url}/api/auth/session", timeout=config.timeout)
     session_resp.raise_for_status()
     session_json = session_resp.json() or {}
-    if str((((session_json.get("user") or {}).get("username")) or "").strip()) != username:
+    if (
+        str((((session_json.get("user") or {}).get("username")) or "").strip())
+        != username
+    ):
         raise ValueError("zhujump: login verification failed")
 
     local = _random_value("sdk", 10)
@@ -146,10 +156,14 @@ def generate_email_for_instance(base_url: str, domain: str, channel: str, expiry
         raise ValueError("zhujump: invalid generate response")
 
     cookie = "; ".join(f"{k}={v}" for k, v in sess.cookies.items())
-    return EmailInfo(channel=channel, email=email, _token=_encode_token(cookie, email_id, base_url))
+    return EmailInfo(
+        channel=channel, email=email, _token=_encode_token(cookie, email_id, base_url)
+    )
 
 
-def _fetch_detail(base_url: str, cookie: str, email_id: str, message_id: str, config) -> Dict[str, object] | None:
+def _fetch_detail(
+    base_url: str, cookie: str, email_id: str, message_id: str, config
+) -> Dict[str, object] | None:
     resp = http.get(
         f"{base_url}/api/emails/{email_id}/{message_id}",
         headers={**_headers(base_url), "Cookie": cookie},
@@ -181,18 +195,28 @@ def get_emails(token: str, email: str) -> List[Email]:
             continue
         source = item
         message_id = str(item.get("id") or "").strip()
-        if message_id and not (str(item.get("content") or "").strip() or str(item.get("html") or "").strip()):
-            detail = _fetch_detail(base_url, session["cookie"], session["email_id"], message_id, config)
+        if message_id and not (
+            str(item.get("content") or "").strip()
+            or str(item.get("html") or "").strip()
+        ):
+            detail = _fetch_detail(
+                base_url, session["cookie"], session["email_id"], message_id, config
+            )
             if detail:
                 source = {**item, **detail}
-        emails.append(normalize_email({
-            "id": source.get("id") or "",
-            "from_address": source.get("from_address") or "",
-            "to_address": source.get("to_address") or email,
-            "subject": source.get("subject") or "",
-            "content": source.get("content") or "",
-            "html": source.get("html") or "",
-            "received_at": source.get("received_at") or source.get("sent_at"),
-            "isRead": False,
-        }, email))
+        emails.append(
+            normalize_email(
+                {
+                    "id": source.get("id") or "",
+                    "from_address": source.get("from_address") or "",
+                    "to_address": source.get("to_address") or email,
+                    "subject": source.get("subject") or "",
+                    "content": source.get("content") or "",
+                    "html": source.get("html") or "",
+                    "received_at": source.get("received_at") or source.get("sent_at"),
+                    "isRead": False,
+                },
+                email,
+            )
+        )
     return emails

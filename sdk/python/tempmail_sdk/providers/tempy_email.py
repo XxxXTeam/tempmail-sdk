@@ -19,13 +19,28 @@ HEADERS = {
 
 def _flatten_message(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
     return {
-        "id": raw.get("id") or raw.get("messageId") or raw.get("message_id") or raw.get("mail_id") or "",
-        "from": raw.get("from") or raw.get("sender") or raw.get("from_addr") or raw.get("from_address") or "",
+        "id": raw.get("id")
+        or raw.get("messageId")
+        or raw.get("message_id")
+        or raw.get("mail_id")
+        or "",
+        "from": raw.get("from")
+        or raw.get("sender")
+        or raw.get("from_addr")
+        or raw.get("from_address")
+        or "",
         "to": raw.get("to") or recipient,
         "subject": raw.get("subject") or raw.get("mail_title") or "",
-        "text": raw.get("text") or raw.get("body_text") or raw.get("text_body") or raw.get("body") or "",
+        "text": raw.get("text")
+        or raw.get("body_text")
+        or raw.get("text_body")
+        or raw.get("body")
+        or "",
         "html": raw.get("html") or raw.get("body_html") or raw.get("html_body") or "",
-        "date": raw.get("date") or raw.get("received_at") or raw.get("created_at") or "",
+        "date": raw.get("date")
+        or raw.get("received_at")
+        or raw.get("created_at")
+        or "",
         "is_read": raw.get("is_read") or raw.get("isRead") or raw.get("seen") or False,
         "attachments": raw.get("attachments") or [],
     }
@@ -69,4 +84,8 @@ def get_emails(email: str) -> List[Email]:
     if not isinstance(rows, list):
         return []
 
-    return [normalize_email(_flatten_message(item, address), address) for item in rows if isinstance(item, dict)]
+    return [
+        normalize_email(_flatten_message(item, address), address)
+        for item in rows
+        if isinstance(item, dict)
+    ]

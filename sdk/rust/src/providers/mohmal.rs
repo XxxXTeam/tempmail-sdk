@@ -203,7 +203,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         for (k, v) in page_headers(ORIGIN) {
             req = req.header(k, v);
         }
-        let resp = req.send().await.map_err(|e| format!("mohmal create: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("mohmal create: {}", e))?;
         let mut cookie_hdr = merge_set_cookies("", resp.headers());
 
         // 检查是否存在 connect.sid cookie
@@ -266,9 +269,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             return Err("mohmal: 提取的邮箱地址无效".into());
         }
 
-        let tok = encode_sess(&MohmalSess {
-            c: cookie_hdr,
-        })?;
+        let tok = encode_sess(&MohmalSess { c: cookie_hdr })?;
 
         Ok(EmailInfo {
             channel: Channel::Mohmal,

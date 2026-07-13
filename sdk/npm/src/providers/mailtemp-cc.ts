@@ -4,21 +4,22 @@
  * 域名: @neocea.com
  * PHP POST form-urlencoded API
  */
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'mailtemp-cc';
-const API_URL = 'https://mailtemp.cc/api.php';
-const DOMAIN = 'neocea.com';
+const CHANNEL: Channel = "mailtemp-cc";
+const API_URL = "https://mailtemp.cc/api.php";
+const DOMAIN = "neocea.com";
 
 /** 请求头 */
 const HEADERS: Record<string, string> = {
-  'Content-Type': 'application/x-www-form-urlencoded',
-  'Accept': '*/*',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-  'Referer': 'https://mailtemp.cc/',
-  'Origin': 'https://mailtemp.cc',
+  "Content-Type": "application/x-www-form-urlencoded",
+  Accept: "*/*",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+  Referer: "https://mailtemp.cc/",
+  Origin: "https://mailtemp.cc",
 };
 
 /**
@@ -32,9 +33,9 @@ const HEADERS: Record<string, string> = {
  */
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const res = await fetchWithTimeout(API_URL, {
-    method: 'POST',
+    method: "POST",
     headers: HEADERS,
-    body: 'action=inbox',
+    body: "action=inbox",
   });
   if (!res.ok) {
     throw new Error(`mailtemp-cc: 创建邮箱失败 HTTP ${res.status}`);
@@ -42,7 +43,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
   const raw = await res.text();
   if (!raw?.trim()) {
-    throw new Error('mailtemp-cc: 创建邮箱返回空数据');
+    throw new Error("mailtemp-cc: 创建邮箱返回空数据");
   }
 
   /* API 返回 JSON 字符串格式（带引号），如 "vindictiverate"，需要 JSON.parse 去除引号 */
@@ -51,11 +52,11 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     username = JSON.parse(raw.trim());
   } catch {
     /* 如果 JSON.parse 失败，尝试直接使用原始文本（去除首尾引号） */
-    username = raw.trim().replace(/^"|"$/g, '');
+    username = raw.trim().replace(/^"|"$/g, "");
   }
 
-  if (!username || typeof username !== 'string') {
-    throw new Error('mailtemp-cc: 创建邮箱返回无效用户名');
+  if (!username || typeof username !== "string") {
+    throw new Error("mailtemp-cc: 创建邮箱返回无效用户名");
   }
 
   const email = `${username}@${DOMAIN}`;
@@ -75,19 +76,22 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  * 3. 对每封邮件请求详情（获取 body_html）
  * 4. 标准化邮件数据
  */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   if (!email?.trim()) {
-    throw new Error('mailtemp-cc: 邮箱地址为空');
+    throw new Error("mailtemp-cc: 邮箱地址为空");
   }
   if (!token?.trim()) {
-    throw new Error('mailtemp-cc: token 为空');
+    throw new Error("mailtemp-cc: token 为空");
   }
 
   const username = token.trim();
 
   /* 获取邮件列表 */
   const res = await fetchWithTimeout(API_URL, {
-    method: 'POST',
+    method: "POST",
     headers: HEADERS,
     body: `action=fetch&inbox=${encodeURIComponent(username)}&last_id=0`,
   });
@@ -95,7 +99,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
     throw new Error(`mailtemp-cc: 获取邮件失败 HTTP ${res.status}`);
   }
 
-  const list = await res.json() as any[];
+  const list = (await res.json()) as any[];
   if (!Array.isArray(list) || list.length === 0) {
     return [];
   }
@@ -107,13 +111,13 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
     if (!id) continue;
 
     const detailRes = await fetchWithTimeout(API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: HEADERS,
       body: `action=view&id=${encodeURIComponent(id)}&inbox=${encodeURIComponent(username)}`,
     });
     if (!detailRes.ok) continue;
 
-    const detail = await detailRes.json() as Record<string, unknown>;
+    const detail = (await detailRes.json()) as Record<string, unknown>;
     emails.push(normalizeEmail(detail, email));
   }
 

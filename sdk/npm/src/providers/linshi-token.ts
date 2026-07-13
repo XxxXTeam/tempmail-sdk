@@ -1,7 +1,7 @@
-import { createHash, randomBytes, randomInt } from 'crypto';
+import { createHash, randomBytes, randomInt } from "crypto";
 export function deriveLinshiApiPathKey(visitorId: string): string {
   if (visitorId.length < 4) {
-    throw new Error('visitorId 过短，无法套用 u()');
+    throw new Error("visitorId 过短，无法套用 u()");
   }
   let e = visitorId.substring(0, visitorId.length - 2);
   let t = 0;
@@ -29,15 +29,20 @@ export interface SyntheticBrowserProfile {
   timezone: string;
   colorDepth: number;
   pixelRatio: number;
-  screen: { width: number; height: number; availWidth: number; availHeight: number };
+  screen: {
+    width: number;
+    height: number;
+    availWidth: number;
+    availHeight: number;
+  };
 }
 
 const UA_POOL = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ];
 
 function pick<T>(arr: T[]): T {
@@ -49,12 +54,17 @@ export function randomBrowserLikeProfile(): SyntheticBrowserProfile {
   const h = pick([1080, 1440, 1050, 864, 768]) + randomInt(0, 40);
   return {
     userAgent: pick(UA_POOL),
-    platform: pick(['Win32', 'MacIntel', 'Linux x86_64']),
-    language: pick(['zh-CN', 'en-US', 'en-GB', 'ja-JP']),
-    languages: pick(['zh-CN,zh,en', 'en-US,en', 'ja-JP,ja,en']),
+    platform: pick(["Win32", "MacIntel", "Linux x86_64"]),
+    language: pick(["zh-CN", "en-US", "en-GB", "ja-JP"]),
+    languages: pick(["zh-CN,zh,en", "en-US,en", "ja-JP,ja,en"]),
     hardwareConcurrency: randomInt(4, 33),
     deviceMemory: pick([4, 8, 16]),
-    timezone: pick(['Asia/Shanghai', 'America/New_York', 'Europe/London', 'UTC']),
+    timezone: pick([
+      "Asia/Shanghai",
+      "America/New_York",
+      "Europe/London",
+      "UTC",
+    ]),
     colorDepth: pick([24, 30]),
     pixelRatio: pick([1, 1.25, 1.5, 2]),
     screen: {
@@ -71,7 +81,11 @@ export function syntheticVisitorIdFromProfile(
   salt: Buffer = randomBytes(16),
 ): string {
   const payload = JSON.stringify(profile, Object.keys(profile).sort());
-  return createHash('sha256').update(payload).update(salt).digest('hex').slice(0, 32);
+  return createHash("sha256")
+    .update(payload)
+    .update(salt)
+    .digest("hex")
+    .slice(0, 32);
 }
 
 export function randomSyntheticLinshiKey(): {

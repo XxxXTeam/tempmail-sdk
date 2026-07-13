@@ -39,8 +39,8 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::ShittyEmail,
     Channel::Tempmailpro,
     Channel::DevmailUk,
-    Channel::CleanTempMail,
     Channel::Inboxkitten,
+    Channel::CleanTempMail,
     Channel::Getnada,
     Channel::OneVpnNet,
     Channel::AbematvCom,
@@ -151,19 +151,17 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::Fmail,
     Channel::Ockito,
     Channel::Anonbox,
-    Channel::Mailinator,
     Channel::Duckmail,
+    Channel::Mailinator,
     Channel::Tempmail365,
     Channel::Tempinbox,
     Channel::Byom,
     Channel::Anonymmail,
     Channel::Eyepaste,
-    Channel::Segamail,
     Channel::MailSunls,
     Channel::Expressinboxhub,
     Channel::Lroid,
     Channel::Haribu,
-    Channel::Pleasenospam,
     Channel::Rootsh,
     Channel::FakeEmailSite,
     Channel::Mohmal,
@@ -186,6 +184,100 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::DisposablemailCom,
     Channel::TemppMails,
     Channel::EmailtempOrg,
+    Channel::MytempmailCc,
+    Channel::TempMailNow,
+    Channel::MailTd,
+    Channel::MailholeDe,
+    Channel::TmailLink,
+    Channel::TwentyfourmailChacuo,
+    Channel::Nimail,
+    Channel::Freecustom,
+    Channel::N16888888Cyou,
+    Channel::N17666688Shop,
+    Channel::N282mailCom,
+    Channel::BlackholeDjurbySe,
+    Channel::BlockBdeaCc,
+    Channel::Bsdu32Buzz,
+    Channel::BSmellyCc,
+    Channel::Carlton183ChangeipNet,
+    Channel::DeaSoonIt,
+    Channel::DisposableAlSudaniCom,
+    Channel::DisposableNogonadNl,
+    Channel::Doxu243Buzz,
+    Channel::EasymePro,
+    Channel::EbsComAr,
+    Channel::EtgdevDe,
+    Channel::EvergreencoShop,
+    Channel::Fwd2mEszettEs,
+    Channel::JamaTrenetEu,
+    Channel::JFairuseOrg,
+    Channel::LayuemingPics,
+    Channel::M887At,
+    Channel::M8rDavidfuhrDe,
+    Channel::M8rMcasalCom,
+    Channel::MailBentraskCom,
+    Channel::MailFsmashOrg,
+    Channel::MailinatorzzMoooCom,
+    Channel::MiMeonBe,
+    Channel::MingyuekejiOnline,
+    Channel::MingyuemingClick,
+    Channel::MingyuemingShop,
+    Channel::MingyukejiLol,
+    Channel::MnCurppaCom,
+    Channel::MNikMe,
+    Channel::MtmdevCom,
+    Channel::NospamThurstonsUs,
+    Channel::Notfond404Mn,
+    Channel::NullK3vinNet,
+    Channel::Nuxh62Space,
+    Channel::ProidCloudIpCc,
+    Channel::RamjaneMoooCom,
+    Channel::RauxaSenyCat,
+    Channel::ReallyIstrashCom,
+    Channel::SbookPics,
+    Channel::SpamHortukOvh,
+    Channel::SpWootAt,
+    Channel::TestUnergieCom,
+    Channel::TorchYiOrg,
+    Channel::TZibetNet,
+    Channel::Xue32Buzz,
+    Channel::Apihz,
+    Channel::SogetthisCom,
+    Channel::BobmailInfo,
+    Channel::SuremailInfo,
+    Channel::BinkmailCom,
+    Channel::VeryrealemailCom,
+    Channel::Mailmomy,
+    Channel::ChammyInfo,
+    Channel::ThisisnotmyrealemailCom,
+    Channel::NotmailinatorCom,
+    Channel::SpamherepleaseCom,
+    Channel::SendspamhereCom,
+    Channel::SendfreeOrg,
+    Channel::JunkBeatsOrg,
+    Channel::JunkIhmehlCom,
+    Channel::JunkNoplayOrg,
+    Channel::JunkVanillasystemCom,
+    Channel::SpamJasonpearceCom,
+    Channel::FishSkytaleNet,
+    Channel::SpamMccrewCom,
+    Channel::DropmailClick,
+    Channel::SpamCoroiuCom,
+    Channel::SpamDeluserNet,
+    Channel::SpamDhsfNet,
+    Channel::SpamLucatntCom,
+    Channel::SpamLyceumLifeComRu,
+    Channel::SpamNetpiratesNet,
+    Channel::SpamNoIpNet,
+    Channel::SpamOzhOrg,
+    Channel::SpamPyphusOrg,
+    Channel::SpamShepPw,
+    Channel::SpamWtfAt,
+    Channel::SpamWulczerOrg,
+    Channel::CrapKakaduaNet,
+    Channel::SpamJanlugtNl,
+    Channel::MinBurningfishNet,
+    Channel::SinkFblayCom,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -909,6 +1001,31 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             name: "Mailinator",
             website: "mailinator.com",
         },
+        Channel::SogetthisCom => ChannelInfo {
+            channel: Channel::SogetthisCom,
+            name: "Mailinator (sogetthis.com)",
+            website: "mailinator.com",
+        },
+        Channel::BobmailInfo => ChannelInfo {
+            channel: Channel::BobmailInfo,
+            name: "Mailinator (bobmail.info)",
+            website: "mailinator.com",
+        },
+        Channel::SuremailInfo => ChannelInfo {
+            channel: Channel::SuremailInfo,
+            name: "Mailinator (suremail.info)",
+            website: "mailinator.com",
+        },
+        Channel::BinkmailCom => ChannelInfo {
+            channel: Channel::BinkmailCom,
+            name: "Mailinator (binkmail.com)",
+            website: "mailinator.com",
+        },
+        Channel::VeryrealemailCom => ChannelInfo {
+            channel: Channel::VeryrealemailCom,
+            name: "Mailinator (veryrealemail.com)",
+            website: "mailinator.com",
+        },
         Channel::Duckmail => ChannelInfo {
             channel: Channel::Duckmail,
             name: "DuckMail",
@@ -939,11 +1056,6 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             name: "EyePaste",
             website: "eyepaste.com",
         },
-        Channel::Segamail => ChannelInfo {
-            channel: Channel::Segamail,
-            name: "SegaMail",
-            website: "segamail.com",
-        },
         Channel::MailSunls => ChannelInfo {
             channel: Channel::MailSunls,
             name: "Mail Sunls",
@@ -963,11 +1075,6 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             channel: Channel::Haribu,
             name: "Haribu",
             website: "haribu.net",
-        },
-        Channel::Pleasenospam => ChannelInfo {
-            channel: Channel::Pleasenospam,
-            name: "PleeaseNoSpam",
-            website: "pleasenospam.email",
         },
         Channel::Rootsh => ChannelInfo {
             channel: Channel::Rootsh,
@@ -1078,6 +1185,451 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             channel: Channel::EmailtempOrg,
             name: "EmailTemp.org",
             website: "emailtemp.org",
+        },
+        Channel::MytempmailCc => ChannelInfo {
+            channel: Channel::MytempmailCc,
+            name: "MyTempMail.cc",
+            website: "mytempmail.cc",
+        },
+        Channel::TempMailNow => ChannelInfo {
+            channel: Channel::TempMailNow,
+            name: "TempMailNow",
+            website: "temp-mail.now",
+        },
+        Channel::MailTd => ChannelInfo {
+            channel: Channel::MailTd,
+            name: "Mail.td",
+            website: "mail.td",
+        },
+        Channel::MailholeDe => ChannelInfo {
+            channel: Channel::MailholeDe,
+            name: "Mailhole",
+            website: "mailhole.de",
+        },
+        Channel::TmailLink => ChannelInfo {
+            channel: Channel::TmailLink,
+            name: "tmail.link",
+            website: "tmail.link",
+        },
+        Channel::TwentyfourmailChacuo => ChannelInfo {
+            channel: Channel::TwentyfourmailChacuo,
+            name: "24mail",
+            website: "24mail.chacuo.net",
+        },
+        Channel::Nimail => ChannelInfo {
+            channel: Channel::Nimail,
+            name: "NiMail",
+            website: "nimail.cn",
+        },
+        Channel::Freecustom => ChannelInfo {
+            channel: Channel::Freecustom,
+            name: "FreeCustom.Email",
+            website: "freecustom.email",
+        },
+        Channel::Apihz => ChannelInfo {
+            channel: Channel::Apihz,
+            name: "ApiHz TempMail",
+            website: "apihz.cn",
+        },
+        Channel::Mailmomy => ChannelInfo {
+            channel: Channel::Mailmomy,
+            name: "Mailmomy",
+            website: "mailmomy.com",
+        },
+        Channel::ChammyInfo => ChannelInfo {
+            channel: Channel::ChammyInfo,
+            name: "Mailinator (chammy.info)",
+            website: "mailinator.com",
+        },
+        Channel::ThisisnotmyrealemailCom => ChannelInfo {
+            channel: Channel::ThisisnotmyrealemailCom,
+            name: "Mailinator (thisisnotmyrealemail.com)",
+            website: "mailinator.com",
+        },
+        Channel::NotmailinatorCom => ChannelInfo {
+            channel: Channel::NotmailinatorCom,
+            name: "Mailinator (notmailinator.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamherepleaseCom => ChannelInfo {
+            channel: Channel::SpamherepleaseCom,
+            name: "Mailinator (spamhereplease.com)",
+            website: "mailinator.com",
+        },
+        Channel::SendspamhereCom => ChannelInfo {
+            channel: Channel::SendspamhereCom,
+            name: "Mailinator (sendspamhere.com)",
+            website: "mailinator.com",
+        },
+        Channel::SendfreeOrg => ChannelInfo {
+            channel: Channel::SendfreeOrg,
+            name: "Mailinator (sendfree.org)",
+            website: "mailinator.com",
+        },
+        Channel::JunkBeatsOrg => ChannelInfo {
+            channel: Channel::JunkBeatsOrg,
+            name: "Mailinator (junk.beats.org)",
+            website: "mailinator.com",
+        },
+        Channel::JunkIhmehlCom => ChannelInfo {
+            channel: Channel::JunkIhmehlCom,
+            name: "Mailinator (junk.ihmehl.com)",
+            website: "mailinator.com",
+        },
+        Channel::JunkNoplayOrg => ChannelInfo {
+            channel: Channel::JunkNoplayOrg,
+            name: "Mailinator (junk.noplay.org)",
+            website: "mailinator.com",
+        },
+        Channel::JunkVanillasystemCom => ChannelInfo {
+            channel: Channel::JunkVanillasystemCom,
+            name: "Mailinator (junk.vanillasystem.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamJasonpearceCom => ChannelInfo {
+            channel: Channel::SpamJasonpearceCom,
+            name: "Mailinator (spam.jasonpearce.com)",
+            website: "mailinator.com",
+        },
+        Channel::FishSkytaleNet => ChannelInfo {
+            channel: Channel::FishSkytaleNet,
+            name: "Mailinator (fish.skytale.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamMccrewCom => ChannelInfo {
+            channel: Channel::SpamMccrewCom,
+            name: "Mailinator (spam.mccrew.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamCoroiuCom => ChannelInfo {
+            channel: Channel::SpamCoroiuCom,
+            name: "Mailinator (spam.coroiu.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamDeluserNet => ChannelInfo {
+            channel: Channel::SpamDeluserNet,
+            name: "Mailinator (spam.deluser.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamDhsfNet => ChannelInfo {
+            channel: Channel::SpamDhsfNet,
+            name: "Mailinator (spam.dhsf.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamLucatntCom => ChannelInfo {
+            channel: Channel::SpamLucatntCom,
+            name: "Mailinator (spam.lucatnt.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamLyceumLifeComRu => ChannelInfo {
+            channel: Channel::SpamLyceumLifeComRu,
+            name: "Mailinator (spam.lyceum-life.com.ru)",
+            website: "mailinator.com",
+        },
+        Channel::SpamNetpiratesNet => ChannelInfo {
+            channel: Channel::SpamNetpiratesNet,
+            name: "Mailinator (spam.netpirates.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamNoIpNet => ChannelInfo {
+            channel: Channel::SpamNoIpNet,
+            name: "Mailinator (spam.no-ip.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamOzhOrg => ChannelInfo {
+            channel: Channel::SpamOzhOrg,
+            name: "Mailinator (spam.ozh.org)",
+            website: "mailinator.com",
+        },
+        Channel::SpamPyphusOrg => ChannelInfo {
+            channel: Channel::SpamPyphusOrg,
+            name: "Mailinator (spam.pyphus.org)",
+            website: "mailinator.com",
+        },
+        Channel::SpamShepPw => ChannelInfo {
+            channel: Channel::SpamShepPw,
+            name: "Mailinator (spam.shep.pw)",
+            website: "mailinator.com",
+        },
+        Channel::SpamWtfAt => ChannelInfo {
+            channel: Channel::SpamWtfAt,
+            name: "Mailinator (spam.wtf.at)",
+            website: "mailinator.com",
+        },
+        Channel::SpamWulczerOrg => ChannelInfo {
+            channel: Channel::SpamWulczerOrg,
+            name: "Mailinator (spam.wulczer.org)",
+            website: "mailinator.com",
+        },
+        Channel::CrapKakaduaNet => ChannelInfo {
+            channel: Channel::CrapKakaduaNet,
+            name: "Mailinator (crap.kakadua.net)",
+            website: "mailinator.com",
+        },
+        Channel::SpamJanlugtNl => ChannelInfo {
+            channel: Channel::SpamJanlugtNl,
+            name: "Mailinator (spam.janlugt.nl)",
+            website: "mailinator.com",
+        },
+        Channel::MinBurningfishNet => ChannelInfo {
+            channel: Channel::MinBurningfishNet,
+            name: "Mailinator (min.burningfish.net)",
+            website: "mailinator.com",
+        },
+        Channel::SinkFblayCom => ChannelInfo {
+            channel: Channel::SinkFblayCom,
+            name: "Mailinator (sink.fblay.com)",
+            website: "mailinator.com",
+        },
+        Channel::EtgdevDe => ChannelInfo {
+            channel: Channel::EtgdevDe,
+            name: "Mailinator (etgdev.de)",
+            website: "mailinator.com",
+        },
+        Channel::MtmdevCom => ChannelInfo {
+            channel: Channel::MtmdevCom,
+            name: "Mailinator (mtmdev.com)",
+            website: "mailinator.com",
+        },
+        Channel::TestUnergieCom => ChannelInfo {
+            channel: Channel::TestUnergieCom,
+            name: "Mailinator (test.unergie.com)",
+            website: "mailinator.com",
+        },
+        Channel::BlockBdeaCc => ChannelInfo {
+            channel: Channel::BlockBdeaCc,
+            name: "Mailinator (block.bdea.cc)",
+            website: "mailinator.com",
+        },
+        Channel::TorchYiOrg => ChannelInfo {
+            channel: Channel::TorchYiOrg,
+            name: "Mailinator (torch.yi.org)",
+            website: "mailinator.com",
+        },
+        Channel::Carlton183ChangeipNet => ChannelInfo {
+            channel: Channel::Carlton183ChangeipNet,
+            name: "Mailinator (183carlton.changeip.net)",
+            website: "mailinator.com",
+        },
+        Channel::MailFsmashOrg => ChannelInfo {
+            channel: Channel::MailFsmashOrg,
+            name: "Mailinator (mail.fsmash.org)",
+            website: "mailinator.com",
+        },
+        Channel::EbsComAr => ChannelInfo {
+            channel: Channel::EbsComAr,
+            name: "Mailinator (ebs.com.ar)",
+            website: "mailinator.com",
+        },
+        Channel::JamaTrenetEu => ChannelInfo {
+            channel: Channel::JamaTrenetEu,
+            name: "Mailinator (jama.trenet.eu)",
+            website: "mailinator.com",
+        },
+        Channel::BlackholeDjurbySe => ChannelInfo {
+            channel: Channel::BlackholeDjurbySe,
+            name: "Mailinator (blackhole.djurby.se)",
+            website: "mailinator.com",
+        },
+        Channel::M8rDavidfuhrDe => ChannelInfo {
+            channel: Channel::M8rDavidfuhrDe,
+            name: "Mailinator (m8r.davidfuhr.de)",
+            website: "mailinator.com",
+        },
+        Channel::MiMeonBe => ChannelInfo {
+            channel: Channel::MiMeonBe,
+            name: "Mailinator (mi.meon.be)",
+            website: "mailinator.com",
+        },
+        Channel::MNikMe => ChannelInfo {
+            channel: Channel::MNikMe,
+            name: "Mailinator (m.nik.me)",
+            website: "mailinator.com",
+        },
+        Channel::MailBentraskCom => ChannelInfo {
+            channel: Channel::MailBentraskCom,
+            name: "Mailinator (mail.bentrask.com)",
+            website: "mailinator.com",
+        },
+        Channel::TZibetNet => ChannelInfo {
+            channel: Channel::TZibetNet,
+            name: "Mailinator (t.zibet.net)",
+            website: "mailinator.com",
+        },
+        Channel::M8rMcasalCom => ChannelInfo {
+            channel: Channel::M8rMcasalCom,
+            name: "Mailinator (m8r.mcasal.com)",
+            website: "mailinator.com",
+        },
+        Channel::RamjaneMoooCom => ChannelInfo {
+            channel: Channel::RamjaneMoooCom,
+            name: "Mailinator (ramjane.mooo.com)",
+            website: "mailinator.com",
+        },
+        Channel::RauxaSenyCat => ChannelInfo {
+            channel: Channel::RauxaSenyCat,
+            name: "Mailinator (rauxa.seny.cat)",
+            website: "mailinator.com",
+        },
+        Channel::SpWootAt => ChannelInfo {
+            channel: Channel::SpWootAt,
+            name: "Mailinator (sp.woot.at)",
+            website: "mailinator.com",
+        },
+        Channel::Fwd2mEszettEs => ChannelInfo {
+            channel: Channel::Fwd2mEszettEs,
+            name: "Mailinator (fwd2m.eszett.es)",
+            website: "mailinator.com",
+        },
+        Channel::M887At => ChannelInfo {
+            channel: Channel::M887At,
+            name: "Mailinator (m.887.at)",
+            website: "mailinator.com",
+        },
+        Channel::NospamThurstonsUs => ChannelInfo {
+            channel: Channel::NospamThurstonsUs,
+            name: "Mailinator (nospam.thurstons.us)",
+            website: "mailinator.com",
+        },
+        Channel::NullK3vinNet => ChannelInfo {
+            channel: Channel::NullK3vinNet,
+            name: "Mailinator (null.k3vin.net)",
+            website: "mailinator.com",
+        },
+        Channel::ReallyIstrashCom => ChannelInfo {
+            channel: Channel::ReallyIstrashCom,
+            name: "Mailinator (really.istrash.com)",
+            website: "mailinator.com",
+        },
+        Channel::SpamHortukOvh => ChannelInfo {
+            channel: Channel::SpamHortukOvh,
+            name: "Mailinator (spam.hortuk.ovh)",
+            website: "mailinator.com",
+        },
+        Channel::DropmailClick => ChannelInfo {
+            channel: Channel::DropmailClick,
+            name: "DropMail.click",
+            website: "dropmail.click",
+        },
+        Channel::N16888888Cyou => ChannelInfo {
+            channel: Channel::N16888888Cyou,
+            name: "Mailmomy (16888888.cyou)",
+            website: "mailmomy.com",
+        },
+        Channel::N17666688Shop => ChannelInfo {
+            channel: Channel::N17666688Shop,
+            name: "Mailmomy (17666688.shop)",
+            website: "mailmomy.com",
+        },
+        Channel::N282mailCom => ChannelInfo {
+            channel: Channel::N282mailCom,
+            name: "Mailmomy (282mail.com)",
+            website: "mailmomy.com",
+        },
+        Channel::Bsdu32Buzz => ChannelInfo {
+            channel: Channel::Bsdu32Buzz,
+            name: "Mailmomy (bsdu32.buzz)",
+            website: "mailmomy.com",
+        },
+        Channel::BSmellyCc => ChannelInfo {
+            channel: Channel::BSmellyCc,
+            name: "Mailinator (b.smelly.cc)",
+            website: "mailinator.com",
+        },
+        Channel::DeaSoonIt => ChannelInfo {
+            channel: Channel::DeaSoonIt,
+            name: "Mailinator (dea.soon.it)",
+            website: "mailinator.com",
+        },
+        Channel::DisposableAlSudaniCom => ChannelInfo {
+            channel: Channel::DisposableAlSudaniCom,
+            name: "Mailinator (disposable.al-sudani.com)",
+            website: "mailinator.com",
+        },
+        Channel::DisposableNogonadNl => ChannelInfo {
+            channel: Channel::DisposableNogonadNl,
+            name: "Mailinator (disposable.nogonad.nl)",
+            website: "mailinator.com",
+        },
+        Channel::Doxu243Buzz => ChannelInfo {
+            channel: Channel::Doxu243Buzz,
+            name: "Mailmomy (doxu243.buzz)",
+            website: "mailmomy.com",
+        },
+        Channel::EasymePro => ChannelInfo {
+            channel: Channel::EasymePro,
+            name: "Mailmomy (easyme.pro)",
+            website: "mailmomy.com",
+        },
+        Channel::EvergreencoShop => ChannelInfo {
+            channel: Channel::EvergreencoShop,
+            name: "Mailmomy (evergreenco.shop)",
+            website: "mailmomy.com",
+        },
+        Channel::JFairuseOrg => ChannelInfo {
+            channel: Channel::JFairuseOrg,
+            name: "Mailinator (j.fairuse.org)",
+            website: "mailinator.com",
+        },
+        Channel::LayuemingPics => ChannelInfo {
+            channel: Channel::LayuemingPics,
+            name: "Mailmomy (layueming.pics)",
+            website: "mailmomy.com",
+        },
+        Channel::MailinatorzzMoooCom => ChannelInfo {
+            channel: Channel::MailinatorzzMoooCom,
+            name: "Mailinator (mailinatorzz.mooo.com)",
+            website: "mailinator.com",
+        },
+        Channel::MingyuekejiOnline => ChannelInfo {
+            channel: Channel::MingyuekejiOnline,
+            name: "Mailmomy (mingyuekeji.online)",
+            website: "mailmomy.com",
+        },
+        Channel::MingyuemingClick => ChannelInfo {
+            channel: Channel::MingyuemingClick,
+            name: "Mailmomy (mingyueming.click)",
+            website: "mailmomy.com",
+        },
+        Channel::MingyuemingShop => ChannelInfo {
+            channel: Channel::MingyuemingShop,
+            name: "Mailmomy (mingyueming.shop)",
+            website: "mailmomy.com",
+        },
+        Channel::MingyukejiLol => ChannelInfo {
+            channel: Channel::MingyukejiLol,
+            name: "Mailmomy (mingyukeji.lol)",
+            website: "mailmomy.com",
+        },
+        Channel::MnCurppaCom => ChannelInfo {
+            channel: Channel::MnCurppaCom,
+            name: "Mailinator (mn.curppa.com)",
+            website: "mailinator.com",
+        },
+        Channel::Notfond404Mn => ChannelInfo {
+            channel: Channel::Notfond404Mn,
+            name: "Mailinator (notfond.404.mn)",
+            website: "mailinator.com",
+        },
+        Channel::Nuxh62Space => ChannelInfo {
+            channel: Channel::Nuxh62Space,
+            name: "Mailmomy (nuxh62.space)",
+            website: "mailmomy.com",
+        },
+        Channel::ProidCloudIpCc => ChannelInfo {
+            channel: Channel::ProidCloudIpCc,
+            name: "Mailmomy (proid.cloud-ip.cc)",
+            website: "mailmomy.com",
+        },
+        Channel::SbookPics => ChannelInfo {
+            channel: Channel::SbookPics,
+            name: "Mailmomy (sbook.pics)",
+            website: "mailmomy.com",
+        },
+        Channel::Xue32Buzz => ChannelInfo {
+            channel: Channel::Xue32Buzz,
+            name: "Mailmomy (xue32.buzz)",
+            website: "mailmomy.com",
         },
     })
 }
@@ -1433,18 +1985,21 @@ fn generate_email_once(
         Channel::Ockito => providers::ockito::generate_email(),
         Channel::Anonbox => providers::anonbox::generate_email(),
         Channel::Mailinator => providers::mailinator::generate_email(),
+        Channel::SogetthisCom => providers::sogetthis_com::generate_email(),
+        Channel::BobmailInfo => providers::bobmail_info::generate_email(),
+        Channel::SuremailInfo => providers::suremail_info::generate_email(),
+        Channel::BinkmailCom => providers::binkmail_com::generate_email(),
+        Channel::VeryrealemailCom => providers::veryrealemail_com::generate_email(),
         Channel::Duckmail => providers::duckmail::generate_email(),
         Channel::Tempmail365 => providers::tempmail365::generate_email(domain),
         Channel::Tempinbox => providers::tempinbox::generate_email(domain),
         Channel::Byom => providers::byom::generate_email(),
         Channel::Anonymmail => providers::anonymmail::generate_email(),
         Channel::Eyepaste => providers::eyepaste::generate_email(),
-        Channel::Segamail => providers::segamail::generate_email(),
         Channel::MailSunls => providers::mail_sunls::generate_email(),
         Channel::Expressinboxhub => providers::expressinboxhub::generate_email(),
         Channel::Lroid => providers::lroid::generate_email(),
         Channel::Haribu => providers::haribu::generate_email(),
-        Channel::Pleasenospam => providers::pleasenospam::generate_email(),
         Channel::Rootsh => providers::rootsh::generate_email(),
         Channel::FakeEmailSite => providers::fake_email_site::generate_email(),
         Channel::Mohmal => providers::mohmal::generate_email(),
@@ -1468,6 +2023,95 @@ fn generate_email_once(
         Channel::DisposablemailCom => providers::disposablemail_com::generate_email(),
         Channel::TemppMails => providers::tempp_mails::generate_email(),
         Channel::EmailtempOrg => providers::emailtemp_org::generate_email(),
+        Channel::MytempmailCc => providers::mytempmail_cc::generate_email(),
+        Channel::TempMailNow => providers::temp_mail_now::generate_email(),
+        Channel::MailTd => providers::mail_td::generate_email(),
+        Channel::MailholeDe => providers::mailhole_de::generate_email(),
+        Channel::TmailLink => providers::tmail_link::generate_email(),
+        Channel::TwentyfourmailChacuo => providers::twentyfourmail_chacuo::generate_email(),
+        Channel::Nimail => providers::nimail::generate_email(),
+        Channel::Freecustom => providers::freecustom::generate_email(),
+        Channel::Apihz => providers::apihz::generate_email(),
+        Channel::Mailmomy => providers::mailmomy::generate_email(),
+        Channel::ChammyInfo => providers::chammy_info::generate_email(),
+        Channel::ThisisnotmyrealemailCom => providers::thisisnotmyrealemail_com::generate_email(),
+        Channel::NotmailinatorCom => providers::notmailinator_com::generate_email(),
+        Channel::SpamherepleaseCom => providers::spamhereplease_com::generate_email(),
+        Channel::SendspamhereCom => providers::sendspamhere_com::generate_email(),
+        Channel::SendfreeOrg => providers::sendfree_org::generate_email(),
+        Channel::JunkBeatsOrg => providers::junk_beats_org::generate_email(),
+        Channel::JunkIhmehlCom => providers::junk_ihmehl_com::generate_email(),
+        Channel::JunkNoplayOrg => providers::junk_noplay_org::generate_email(),
+        Channel::JunkVanillasystemCom => providers::junk_vanillasystem_com::generate_email(),
+        Channel::SpamJasonpearceCom => providers::spam_jasonpearce_com::generate_email(),
+        Channel::FishSkytaleNet => providers::fish_skytale_net::generate_email(),
+        Channel::SpamMccrewCom => providers::spam_mccrew_com::generate_email(),
+        Channel::SpamCoroiuCom => providers::spam_coroiu_com::generate_email(),
+        Channel::SpamDeluserNet => providers::spam_deluser_net::generate_email(),
+        Channel::SpamDhsfNet => providers::spam_dhsf_net::generate_email(),
+        Channel::SpamLucatntCom => providers::spam_lucatnt_com::generate_email(),
+        Channel::SpamLyceumLifeComRu => providers::spam_lyceum_life_com_ru::generate_email(),
+        Channel::SpamNetpiratesNet => providers::spam_netpirates_net::generate_email(),
+        Channel::SpamNoIpNet => providers::spam_no_ip_net::generate_email(),
+        Channel::SpamOzhOrg => providers::spam_ozh_org::generate_email(),
+        Channel::SpamPyphusOrg => providers::spam_pyphus_org::generate_email(),
+        Channel::SpamShepPw => providers::spam_shep_pw::generate_email(),
+        Channel::SpamWtfAt => providers::spam_wtf_at::generate_email(),
+        Channel::SpamWulczerOrg => providers::spam_wulczer_org::generate_email(),
+        Channel::CrapKakaduaNet => providers::crap_kakadua_net::generate_email(),
+        Channel::SpamJanlugtNl => providers::spam_janlugt_nl::generate_email(),
+        Channel::MinBurningfishNet => providers::min_burningfish_net::generate_email(),
+        Channel::SinkFblayCom => providers::sink_fblay_com::generate_email(),
+        Channel::EtgdevDe => providers::etgdev_de::generate_email(),
+        Channel::MtmdevCom => providers::mtmdev_com::generate_email(),
+        Channel::TestUnergieCom => providers::test_unergie_com::generate_email(),
+        Channel::BlockBdeaCc => providers::block_bdea_cc::generate_email(),
+        Channel::TorchYiOrg => providers::torch_yi_org::generate_email(),
+        Channel::Carlton183ChangeipNet => providers::carlton183_changeip_net::generate_email(),
+        Channel::MailFsmashOrg => providers::mail_fsmash_org::generate_email(),
+        Channel::EbsComAr => providers::ebs_com_ar::generate_email(),
+        Channel::JamaTrenetEu => providers::jama_trenet_eu::generate_email(),
+        Channel::BlackholeDjurbySe => providers::blackhole_djurby_se::generate_email(),
+        Channel::M8rDavidfuhrDe => providers::m8r_davidfuhr_de::generate_email(),
+        Channel::MiMeonBe => providers::mi_meon_be::generate_email(),
+        Channel::MNikMe => providers::m_nik_me::generate_email(),
+        Channel::MailBentraskCom => providers::mail_bentrask_com::generate_email(),
+        Channel::TZibetNet => providers::t_zibet_net::generate_email(),
+        Channel::M8rMcasalCom => providers::m8r_mcasal_com::generate_email(),
+        Channel::RamjaneMoooCom => providers::ramjane_mooo_com::generate_email(),
+        Channel::RauxaSenyCat => providers::rauxa_seny_cat::generate_email(),
+        Channel::SpWootAt => providers::sp_woot_at::generate_email(),
+        Channel::Fwd2mEszettEs => providers::fwd2m_eszett_es::generate_email(),
+        Channel::M887At => providers::m_887_at::generate_email(),
+        Channel::NospamThurstonsUs => providers::nospam_thurstons_us::generate_email(),
+        Channel::NullK3vinNet => providers::null_k3vin_net::generate_email(),
+        Channel::ReallyIstrashCom => providers::really_istrash_com::generate_email(),
+        Channel::SpamHortukOvh => providers::spam_hortuk_ovh::generate_email(),
+        Channel::DropmailClick => providers::dropmail_click::generate_email(),
+        Channel::N16888888Cyou => providers::n16888888_cyou::generate_email(),
+        Channel::N17666688Shop => providers::n17666688_shop::generate_email(),
+        Channel::N282mailCom => providers::n282mail_com::generate_email(),
+        Channel::Bsdu32Buzz => providers::bsdu32_buzz::generate_email(),
+        Channel::BSmellyCc => providers::b_smelly_cc::generate_email(),
+        Channel::DeaSoonIt => providers::dea_soon_it::generate_email(),
+        Channel::DisposableAlSudaniCom => providers::disposable_al_sudani_com::generate_email(),
+        Channel::DisposableNogonadNl => providers::disposable_nogonad_nl::generate_email(),
+        Channel::Doxu243Buzz => providers::doxu243_buzz::generate_email(),
+        Channel::EasymePro => providers::easyme_pro::generate_email(),
+        Channel::EvergreencoShop => providers::evergreenco_shop::generate_email(),
+        Channel::JFairuseOrg => providers::j_fairuse_org::generate_email(),
+        Channel::LayuemingPics => providers::layueming_pics::generate_email(),
+        Channel::MailinatorzzMoooCom => providers::mailinatorzz_mooo_com::generate_email(),
+        Channel::MingyuekejiOnline => providers::mingyuekeji_online::generate_email(),
+        Channel::MingyuemingClick => providers::mingyueming_click::generate_email(),
+        Channel::MingyuemingShop => providers::mingyueming_shop::generate_email(),
+        Channel::MingyukejiLol => providers::mingyukeji_lol::generate_email(),
+        Channel::MnCurppaCom => providers::mn_curppa_com::generate_email(),
+        Channel::Notfond404Mn => providers::notfond_404_mn::generate_email(),
+        Channel::Nuxh62Space => providers::nuxh62_space::generate_email(),
+        Channel::ProidCloudIpCc => providers::proid_cloud_ip_cc::generate_email(),
+        Channel::SbookPics => providers::sbook_pics::generate_email(),
+        Channel::Xue32Buzz => providers::xue32_buzz::generate_email(),
     }
 }
 
@@ -1759,6 +2403,11 @@ fn get_emails_once(
             providers::anonbox::get_emails(t, email)
         }
         Channel::Mailinator => providers::mailinator::get_emails(email),
+        Channel::SogetthisCom => providers::sogetthis_com::get_emails(email),
+        Channel::BobmailInfo => providers::bobmail_info::get_emails(email),
+        Channel::SuremailInfo => providers::suremail_info::get_emails(email),
+        Channel::BinkmailCom => providers::binkmail_com::get_emails(email),
+        Channel::VeryrealemailCom => providers::veryrealemail_com::get_emails(email),
         Channel::Duckmail => {
             let t = token.ok_or("token is required for duckmail")?;
             providers::duckmail::get_emails(t, email)
@@ -1817,10 +2466,6 @@ fn get_emails_once(
         Channel::Byom => providers::byom::get_emails(email),
         Channel::Anonymmail => providers::anonymmail::get_emails(email),
         Channel::Eyepaste => providers::eyepaste::get_emails(email),
-        Channel::Segamail => {
-            let t = token.ok_or("token is required for segamail")?;
-            providers::segamail::get_emails(t, email)
-        }
         Channel::MailSunls => providers::mail_sunls::get_emails(email),
         Channel::Expressinboxhub => {
             let t = token.ok_or("token is required for expressinboxhub")?;
@@ -1834,7 +2479,6 @@ fn get_emails_once(
             let t = token.ok_or("token is required for haribu")?;
             providers::haribu::get_emails(t, email)
         }
-        Channel::Pleasenospam => providers::pleasenospam::get_emails(email),
         Channel::Rootsh => {
             let t = token.ok_or("token is required for rootsh")?;
             providers::rootsh::get_emails(t, email)
@@ -1880,18 +2524,12 @@ fn get_emails_once(
             let t = token.ok_or("token is required for tempemail-info")?;
             providers::tempemail_info::get_emails(t, email)
         }
-        Channel::Smailpro => {
-            let t = token.ok_or("token is required for smailpro")?;
-            providers::smailpro::get_emails(t, email)
-        }
+        Channel::Smailpro => providers::smailpro::get_emails(token.unwrap_or(""), email),
         Channel::Tempmailten => {
             let t = token.ok_or("token is required for tempmailten")?;
             providers::tempmailten::get_emails(t, email)
         }
-        Channel::MaildropCc => {
-            let t = token.ok_or("token is required for maildrop-cc")?;
-            providers::maildrop_cc::get_emails(t, email)
-        }
+        Channel::MaildropCc => providers::maildrop_cc::get_emails(token.unwrap_or(""), email),
         Channel::TenminutemailNet => {
             let t = token.ok_or("token is required for 10minutemail-net")?;
             providers::tenminutemail_net::get_emails(t, email)
@@ -1915,6 +2553,116 @@ fn get_emails_once(
         Channel::EmailtempOrg => {
             let t = token.ok_or("token is required for emailtemp-org")?;
             providers::emailtemp_org::get_emails(t, email)
+        }
+        Channel::MytempmailCc => {
+            let t = token.ok_or("token is required for mytempmail-cc")?;
+            providers::mytempmail_cc::get_emails(t, email)
+        }
+        Channel::TempMailNow => {
+            let t = token.ok_or("token is required for temp-mail-now")?;
+            providers::temp_mail_now::get_emails(t, email)
+        }
+        Channel::MailTd => {
+            let t = token.ok_or("token is required for mail-td")?;
+            providers::mail_td::get_emails(t, email)
+        }
+        Channel::MailholeDe => {
+            let t = token.ok_or("token is required for mailhole-de")?;
+            providers::mailhole_de::get_emails(t, email)
+        }
+        Channel::TmailLink => {
+            let t = token.ok_or("token is required for tmail-link")?;
+            providers::tmail_link::get_emails(t, email)
+        }
+        Channel::TwentyfourmailChacuo => providers::twentyfourmail_chacuo::get_emails(email),
+        Channel::Nimail => providers::nimail::get_emails(email),
+        Channel::Freecustom => providers::freecustom::get_emails(email),
+        Channel::Apihz => {
+            let t = token.ok_or("token is required for apihz")?;
+            providers::apihz::get_emails(t, email)
+        }
+        Channel::Mailmomy => providers::mailmomy::get_emails(email),
+        Channel::ChammyInfo => providers::chammy_info::get_emails(email),
+        Channel::ThisisnotmyrealemailCom => providers::thisisnotmyrealemail_com::get_emails(email),
+        Channel::NotmailinatorCom => providers::notmailinator_com::get_emails(email),
+        Channel::SpamherepleaseCom => providers::spamhereplease_com::get_emails(email),
+        Channel::SendspamhereCom => providers::sendspamhere_com::get_emails(email),
+        Channel::SendfreeOrg => providers::sendfree_org::get_emails(email),
+        Channel::JunkBeatsOrg => providers::junk_beats_org::get_emails(email),
+        Channel::JunkIhmehlCom => providers::junk_ihmehl_com::get_emails(email),
+        Channel::JunkNoplayOrg => providers::junk_noplay_org::get_emails(email),
+        Channel::JunkVanillasystemCom => providers::junk_vanillasystem_com::get_emails(email),
+        Channel::SpamJasonpearceCom => providers::spam_jasonpearce_com::get_emails(email),
+        Channel::FishSkytaleNet => providers::fish_skytale_net::get_emails(email),
+        Channel::SpamMccrewCom => providers::spam_mccrew_com::get_emails(email),
+        Channel::SpamCoroiuCom => providers::spam_coroiu_com::get_emails(email),
+        Channel::SpamDeluserNet => providers::spam_deluser_net::get_emails(email),
+        Channel::SpamDhsfNet => providers::spam_dhsf_net::get_emails(email),
+        Channel::SpamLucatntCom => providers::spam_lucatnt_com::get_emails(email),
+        Channel::SpamLyceumLifeComRu => providers::spam_lyceum_life_com_ru::get_emails(email),
+        Channel::SpamNetpiratesNet => providers::spam_netpirates_net::get_emails(email),
+        Channel::SpamNoIpNet => providers::spam_no_ip_net::get_emails(email),
+        Channel::SpamOzhOrg => providers::spam_ozh_org::get_emails(email),
+        Channel::SpamPyphusOrg => providers::spam_pyphus_org::get_emails(email),
+        Channel::SpamShepPw => providers::spam_shep_pw::get_emails(email),
+        Channel::SpamWtfAt => providers::spam_wtf_at::get_emails(email),
+        Channel::SpamWulczerOrg => providers::spam_wulczer_org::get_emails(email),
+        Channel::CrapKakaduaNet => providers::crap_kakadua_net::get_emails(email),
+        Channel::SpamJanlugtNl => providers::spam_janlugt_nl::get_emails(email),
+        Channel::MinBurningfishNet => providers::min_burningfish_net::get_emails(email),
+        Channel::SinkFblayCom => providers::sink_fblay_com::get_emails(email),
+        Channel::EtgdevDe => providers::etgdev_de::get_emails(email),
+        Channel::MtmdevCom => providers::mtmdev_com::get_emails(email),
+        Channel::TestUnergieCom => providers::test_unergie_com::get_emails(email),
+        Channel::BlockBdeaCc => providers::block_bdea_cc::get_emails(email),
+        Channel::TorchYiOrg => providers::torch_yi_org::get_emails(email),
+        Channel::Carlton183ChangeipNet => providers::carlton183_changeip_net::get_emails(email),
+        Channel::MailFsmashOrg => providers::mail_fsmash_org::get_emails(email),
+        Channel::EbsComAr => providers::ebs_com_ar::get_emails(email),
+        Channel::JamaTrenetEu => providers::jama_trenet_eu::get_emails(email),
+        Channel::BlackholeDjurbySe => providers::blackhole_djurby_se::get_emails(email),
+        Channel::M8rDavidfuhrDe => providers::m8r_davidfuhr_de::get_emails(email),
+        Channel::MiMeonBe => providers::mi_meon_be::get_emails(email),
+        Channel::MNikMe => providers::m_nik_me::get_emails(email),
+        Channel::MailBentraskCom => providers::mail_bentrask_com::get_emails(email),
+        Channel::TZibetNet => providers::t_zibet_net::get_emails(email),
+        Channel::M8rMcasalCom => providers::m8r_mcasal_com::get_emails(email),
+        Channel::RamjaneMoooCom => providers::ramjane_mooo_com::get_emails(email),
+        Channel::RauxaSenyCat => providers::rauxa_seny_cat::get_emails(email),
+        Channel::SpWootAt => providers::sp_woot_at::get_emails(email),
+        Channel::Fwd2mEszettEs => providers::fwd2m_eszett_es::get_emails(email),
+        Channel::M887At => providers::m_887_at::get_emails(email),
+        Channel::NospamThurstonsUs => providers::nospam_thurstons_us::get_emails(email),
+        Channel::NullK3vinNet => providers::null_k3vin_net::get_emails(email),
+        Channel::ReallyIstrashCom => providers::really_istrash_com::get_emails(email),
+        Channel::SpamHortukOvh => providers::spam_hortuk_ovh::get_emails(email),
+        Channel::N16888888Cyou => providers::n16888888_cyou::get_emails(email),
+        Channel::N17666688Shop => providers::n17666688_shop::get_emails(email),
+        Channel::N282mailCom => providers::n282mail_com::get_emails(email),
+        Channel::Bsdu32Buzz => providers::bsdu32_buzz::get_emails(email),
+        Channel::BSmellyCc => providers::b_smelly_cc::get_emails(email),
+        Channel::DeaSoonIt => providers::dea_soon_it::get_emails(email),
+        Channel::DisposableAlSudaniCom => providers::disposable_al_sudani_com::get_emails(email),
+        Channel::DisposableNogonadNl => providers::disposable_nogonad_nl::get_emails(email),
+        Channel::Doxu243Buzz => providers::doxu243_buzz::get_emails(email),
+        Channel::EasymePro => providers::easyme_pro::get_emails(email),
+        Channel::EvergreencoShop => providers::evergreenco_shop::get_emails(email),
+        Channel::JFairuseOrg => providers::j_fairuse_org::get_emails(email),
+        Channel::LayuemingPics => providers::layueming_pics::get_emails(email),
+        Channel::MailinatorzzMoooCom => providers::mailinatorzz_mooo_com::get_emails(email),
+        Channel::MingyuekejiOnline => providers::mingyuekeji_online::get_emails(email),
+        Channel::MingyuemingClick => providers::mingyueming_click::get_emails(email),
+        Channel::MingyuemingShop => providers::mingyueming_shop::get_emails(email),
+        Channel::MingyukejiLol => providers::mingyukeji_lol::get_emails(email),
+        Channel::MnCurppaCom => providers::mn_curppa_com::get_emails(email),
+        Channel::Notfond404Mn => providers::notfond_404_mn::get_emails(email),
+        Channel::Nuxh62Space => providers::nuxh62_space::get_emails(email),
+        Channel::ProidCloudIpCc => providers::proid_cloud_ip_cc::get_emails(email),
+        Channel::SbookPics => providers::sbook_pics::get_emails(email),
+        Channel::Xue32Buzz => providers::xue32_buzz::get_emails(email),
+        Channel::DropmailClick => {
+            let t = token.ok_or("token is required for dropmail-click")?;
+            providers::dropmail_click::get_emails(t, email)
         }
     }
 }

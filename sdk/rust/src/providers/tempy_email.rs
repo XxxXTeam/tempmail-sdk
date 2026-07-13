@@ -131,7 +131,11 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     block_on(async {
         let data = request_json(
             "GET",
-            format!("{}/mailbox/{}/messages", API_BASE, urlencoding::encode(address)),
+            format!(
+                "{}/mailbox/{}/messages",
+                API_BASE,
+                urlencoding::encode(address)
+            ),
             None,
         )
         .await?;

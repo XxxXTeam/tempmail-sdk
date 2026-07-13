@@ -169,7 +169,11 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .await
             .map_err(|e| format!("tempmail-fyi: 解析创建邮箱响应失败: {}", e))?;
 
-        if !data.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if !data
+            .get("success")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+        {
             let err = data.get("error").and_then(|v| v.as_str()).unwrap_or("");
             if !err.is_empty() {
                 return Err(format!("tempmail-fyi: 创建邮箱失败: {}", err));
@@ -247,7 +251,11 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .await
             .map_err(|e| format!("tempmail-fyi: 解析邮件列表失败: {}", e))?;
 
-        if !data.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if !data
+            .get("success")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+        {
             let err = data.get("error").and_then(|v| v.as_str()).unwrap_or("");
             if !err.is_empty() {
                 return Err(format!("tempmail-fyi: 获取邮件列表失败: {}", err));

@@ -6,6 +6,7 @@
  *   DROPMAIL_AUTH_TOKEN / DROPMAIL_API_TOKEN - DropMail af_ 令牌（可选；未设置则自动 generate/renew）
  *   DROPMAIL_NO_AUTO_TOKEN - 禁止自动拉取/续期
  *   DROPMAIL_RENEW_LIFETIME - renew 的 lifetime，默认 1d
+ *   APIHZ_ID / APIHZ_KEY - apihz（接口盒子）凭据，默认公共账号 88888888/88888888
  *   TEMPMAIL_TELEMETRY_ENABLED - true/false，默认 true；false/0/no 关闭匿名用量上报
  *   TEMPMAIL_TELEMETRY_URL - 自定义上报端点
  */
@@ -34,6 +35,10 @@ pub struct SDKConfig {
     pub dropmail_disable_auto_token: bool,
     /// /api/token/renew 的 lifetime，如 Some("1d")
     pub dropmail_renew_lifetime: Option<String>,
+    /// apihz（接口盒子）id，未设置则使用公共账号 88888888
+    pub apihz_id: Option<String>,
+    /// apihz（接口盒子）key，未设置则使用公共账号 88888888
+    pub apihz_key: Option<String>,
     /// None = 默认开启匿名用量上报；Some(false) 关闭；Some(true) 显式开启
     pub telemetry_enabled: Option<bool>,
     /// 非空时覆盖默认上报 URL
@@ -143,6 +148,12 @@ fn load_env_config() -> SDKConfig {
     let dropmail_renew_lifetime = std::env::var("DROPMAIL_RENEW_LIFETIME")
         .ok()
         .filter(|s| !s.trim().is_empty());
+    let apihz_id = std::env::var("APIHZ_ID")
+        .ok()
+        .filter(|s| !s.trim().is_empty());
+    let apihz_key = std::env::var("APIHZ_KEY")
+        .ok()
+        .filter(|s| !s.trim().is_empty());
     let telemetry_enabled = std::env::var("TEMPMAIL_TELEMETRY_ENABLED")
         .ok()
         .map(|s| s.trim().to_ascii_lowercase())
@@ -162,6 +173,8 @@ fn load_env_config() -> SDKConfig {
         dropmail_auth_token,
         dropmail_disable_auto_token,
         dropmail_renew_lifetime,
+        apihz_id,
+        apihz_key,
         telemetry_enabled,
         telemetry_url,
     }

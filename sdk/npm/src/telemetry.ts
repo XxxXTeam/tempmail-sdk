@@ -1,7 +1,7 @@
-import { getConfig } from './config';
-import { getSdkVersion } from './version';
+import { getConfig } from "./config";
+import { getSdkVersion } from "./version";
 
-const DEFAULT_URL = 'https://sdk-1.openel.top/v1/event';
+const DEFAULT_URL = "https://sdk-1.openel.top/v1/event";
 const MAX_BATCH = 32;
 const FLUSH_MS = 2000;
 
@@ -31,13 +31,13 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let periodicStarted = false;
 
 function sanitizeError(msg: string): string {
-  if (!msg) return '';
-  return msg.replace(EMAIL_LIKE, '[redacted]').slice(0, 400);
+  if (!msg) return "";
+  return msg.replace(EMAIL_LIKE, "[redacted]").slice(0, 400);
 }
 
 function resolveUrl(): string {
   const c = getConfig();
-  const u = (c.telemetryUrl || '').trim();
+  const u = (c.telemetryUrl || "").trim();
   if (u) return u;
   return DEFAULT_URL;
 }
@@ -83,20 +83,20 @@ async function flushQueue(): Promise<void> {
   const sdkVersion = getSdkVersion();
   const batch: TelemetryBatch = {
     schema_version: 2,
-    sdk_language: 'node',
+    sdk_language: "node",
     sdk_version: sdkVersion,
-    os: typeof process !== 'undefined' ? process.platform : 'unknown',
-    arch: typeof process !== 'undefined' ? process.arch : 'unknown',
+    os: typeof process !== "undefined" ? process.platform : "unknown",
+    arch: typeof process !== "undefined" ? process.arch : "unknown",
     events,
   };
 
   const { fetchFn } = getFetchForTelemetry();
   try {
     await fetchFn(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': `tempmail-sdk-node/${sdkVersion}`,
+        "Content-Type": "application/json",
+        "User-Agent": `tempmail-sdk-node/${sdkVersion}`,
       },
       body: JSON.stringify(batch),
     });

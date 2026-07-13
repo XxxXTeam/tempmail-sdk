@@ -36,7 +36,10 @@ def generate_email() -> EmailInfo:
     if not email or "@" not in email:
         raise ValueError("mail123: invalid mailbox response")
     expires_at = None
-    if isinstance(data.get("expires_in_days"), (int, float)) and data["expires_in_days"] > 0:
+    if (
+        isinstance(data.get("expires_in_days"), (int, float))
+        and data["expires_in_days"] > 0
+    ):
         expires_at = int((time.time() + float(data["expires_in_days"]) * 86400) * 1000)
     return EmailInfo(channel=CHANNEL, email=email, _token=email, expires_at=expires_at)
 

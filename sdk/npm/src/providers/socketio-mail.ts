@@ -3,26 +3,26 @@
  * 用于 mjj.cm、mail.xiuvi.cn、linshi.co 等使用相同 Socket.IO 协议的站点
  * 事件名: "request shortid"/"shortid"/"set shortid"/"mail"
  */
-import WebSocket from 'ws';
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
+import WebSocket from "ws";
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
 
 const CONNECT_TIMEOUT_MS = 15000;
 const HANDSHAKE_WAIT_MS = 1000;
 const INITIAL_SYNC_WAIT_MS = 80;
 const SOCKET_IO_VERSIONS = [4, 3];
 const SOCKET_HOST_BY_CHANNEL: Partial<Record<Channel, string>> = {
-  'mjj-cm': 'mjj.cm',
-  'linshi-co': 'linshi.co',
+  "mjj-cm": "mjj.cm",
+  "linshi-co": "linshi.co",
 };
 
 const DEFAULT_HEADERS: Record<string, string> = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
-  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-  'Cache-Control': 'no-cache',
-  DNT: '1',
-  Pragma: 'no-cache',
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+  "Cache-Control": "no-cache",
+  DNT: "1",
+  Pragma: "no-cache",
 };
 
 type BoxState = {
@@ -52,12 +52,12 @@ function hostFromInput(value: string): string {
   let host = value.trim();
   if (/^https?:\/\//i.test(host)) {
     host = new URL(host).host;
-  } else if (host.includes('/')) {
+  } else if (host.includes("/")) {
     host = new URL(`https://${host}`).host;
   }
-  const at = host.lastIndexOf('@');
+  const at = host.lastIndexOf("@");
   if (at >= 0) host = host.slice(at + 1);
-  return host.replace(/^\.+|\.+$/g, '').toLowerCase();
+  return host.replace(/^\.+|\.+$/g, "").toLowerCase();
 }
 
 function fixedSocketHost(channel: Channel, defaultHost: string): string {
@@ -72,13 +72,15 @@ function sendEvent(ws: WebSocket, event: string, payload: unknown): void {
   ws.send(`42${JSON.stringify([event, payload])}`);
 }
 
-function parseEventPacket(packet: string): { event: string; payload: any } | null {
-  if (!packet.startsWith('42')) {
+function parseEventPacket(
+  packet: string,
+): { event: string; payload: any } | null {
+  if (!packet.startsWith("42")) {
     return null;
   }
   try {
     const decoded = JSON.parse(packet.slice(2));
-    if (!Array.isArray(decoded) || typeof decoded[0] !== 'string') {
+    if (!Array.isArray(decoded) || typeof decoded[0] !== "string") {
       return null;
     }
     return { event: decoded[0], payload: decoded[1] };
@@ -92,9 +94,9 @@ function stableMessageId(raw: any, recipientEmail: string): string {
   return String(
     raw?.id ??
       raw?.messageId ??
-      headers['message-id'] ??
+      headers["message-id"] ??
       headers.messageId ??
-      `${headers.from || raw?.from || ''}\n${headers.subject || raw?.subject || ''}\n${headers.date || raw?.date || ''}\n${recipientEmail}`,
+      `${headers.from || raw?.from || ""}\n${headers.subject || raw?.subject || ""}\n${headers.date || raw?.date || ""}\n${recipientEmail}`,
   );
 }
 
@@ -102,12 +104,12 @@ function flattenMail(raw: any, recipientEmail: string): any {
   const headers = raw?.headers || {};
   return {
     id: stableMessageId(raw, recipientEmail),
-    from: headers.from || raw?.from || '',
+    from: headers.from || raw?.from || "",
     to: recipientEmail,
-    subject: headers.subject || raw?.subject || '',
-    text: raw?.text || raw?.body || '',
-    html: raw?.html || '',
-    date: headers.date || raw?.date || '',
+    subject: headers.subject || raw?.subject || "",
+    text: raw?.text || raw?.body || "",
+    html: raw?.html || "",
+    date: headers.date || raw?.date || "",
     isRead: false,
     attachments: Array.isArray(raw?.attachments) ? raw.attachments : [],
   };
@@ -118,7 +120,10 @@ function flattenMail(raw: any, recipientEmail: string): any {
  * @param channel - 渠道标识
  * @param defaultHost - 默认服务主机名
  */
-export function createSocketIoMailProvider(channel: Channel, defaultHost: string) {
+export function createSocketIoMailProvider(
+  channel: Channel,
+  defaultHost: string,
+) {
   const fixedHost = fixedSocketHost(channel, defaultHost);
   const mailboxes = new Map<string, BoxState>();
 
@@ -133,7 +138,7 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
   }
 
   function normalizeHost(domain?: string | null): string {
-    const raw = String(domain || '').trim();
+    const raw = String(domain || "").trim();
     if (!raw) {
       return fixedHost;
     }
@@ -151,7 +156,7 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
 
   function splitAddress(email: string): { local: string; host: string } {
     const trimmed = email.trim();
-    const at = trimmed.indexOf('@');
+    const at = trimmed.indexOf("@");
     if (at <= 0 || at === trimmed.length - 1) {
       throw new Error(`${channel}: invalid email address`);
     }
@@ -182,9 +187,9 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
               clearTimeout(timer);
               timer = undefined;
             }
-            ws.off('message', onMessage);
-            ws.off('error', onError);
-            ws.off('close', onClose);
+            ws.off("message", onMessage);
+            ws.off("error", onError);
+            ws.off("close", onClose);
           };
 
           const resolveOnce = () => {
@@ -213,40 +218,51 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
 
           const onMessage = (data: WebSocket.RawData) => {
             const packet = data.toString();
-            if (packet === '2') {
+            if (packet === "2") {
               try {
-                ws.send('3');
+                ws.send("3");
               } catch {
                 /* 忽略探测阶段发送错误 */
               }
               return;
             }
             if (!sentConnect) {
-              if (!packet.startsWith('0')) {
-                rejectOnce(new Error(`${channel}: unexpected open packet for EIO=${version}`));
+              if (!packet.startsWith("0")) {
+                rejectOnce(
+                  new Error(
+                    `${channel}: unexpected open packet for EIO=${version}`,
+                  ),
+                );
                 return;
               }
               sentConnect = true;
               try {
-                ws.send('40');
+                ws.send("40");
               } catch (error) {
-                rejectOnce(error instanceof Error ? error : new Error(String(error)));
+                rejectOnce(
+                  error instanceof Error ? error : new Error(String(error)),
+                );
                 return;
               }
               armHandshakeFallback();
               return;
             }
-            if (packet.startsWith('40')) {
+            if (packet.startsWith("40")) {
               resolveOnce();
             }
           };
 
           const onError = (error: Error) => rejectOnce(error);
-          const onClose = () => rejectOnce(new Error(`${channel}: websocket closed during EIO=${version} handshake`));
+          const onClose = () =>
+            rejectOnce(
+              new Error(
+                `${channel}: websocket closed during EIO=${version} handshake`,
+              ),
+            );
 
-          ws.on('message', onMessage);
-          ws.once('error', onError);
-          ws.once('close', onClose);
+          ws.on("message", onMessage);
+          ws.once("error", onError);
+          ws.once("close", onClose);
         });
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -272,9 +288,9 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
 
       const cleanup = () => {
         clearTimeout(timer);
-        ws.off('message', onMessage);
-        ws.off('error', onError);
-        ws.off('close', onClose);
+        ws.off("message", onMessage);
+        ws.off("error", onError);
+        ws.off("close", onClose);
       };
 
       const finish = (value: string) => {
@@ -299,25 +315,30 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
 
       const onMessage = (data: WebSocket.RawData) => {
         const packet = data.toString();
-        if (packet === '2') {
-          ws.send('3');
+        if (packet === "2") {
+          ws.send("3");
           return;
         }
         const decoded = parseEventPacket(packet);
-        if (!decoded || decoded.event !== 'shortid' || typeof decoded.payload !== 'string') {
+        if (
+          !decoded ||
+          decoded.event !== "shortid" ||
+          typeof decoded.payload !== "string"
+        ) {
           return;
         }
         finish(decoded.payload);
       };
 
       const onError = (error: Error) => fail(error);
-      const onClose = () => fail(new Error(`${channel}: websocket closed before shortid arrived`));
+      const onClose = () =>
+        fail(new Error(`${channel}: websocket closed before shortid arrived`));
 
-      ws.on('message', onMessage);
-      ws.once('error', onError);
-      ws.once('close', onClose);
+      ws.on("message", onMessage);
+      ws.once("error", onError);
+      ws.once("close", onClose);
 
-      sendEvent(ws, 'request shortid', true);
+      sendEvent(ws, "request shortid", true);
     });
   }
 
@@ -344,11 +365,11 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
           st.connectPromise = undefined;
         };
 
-        ws.on('message', (data: WebSocket.RawData) => {
+        ws.on("message", (data: WebSocket.RawData) => {
           const packet = data.toString();
-          if (packet === '2') {
+          if (packet === "2") {
             try {
-              ws.send('3');
+              ws.send("3");
             } catch {
               /* 忽略 pong 发送失败 */
             }
@@ -356,11 +377,14 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
           }
 
           const decoded = parseEventPacket(packet);
-          if (!decoded || decoded.event !== 'mail' || !decoded.payload) {
+          if (!decoded || decoded.event !== "mail" || !decoded.payload) {
             return;
           }
 
-          const normalized = normalizeEmail(flattenMail(decoded.payload, email), email);
+          const normalized = normalizeEmail(
+            flattenMail(decoded.payload, email),
+            email,
+          );
           if (!normalized.id || st.seenIds.has(normalized.id)) {
             return;
           }
@@ -369,10 +393,10 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
           st.emails.push(normalized);
         });
 
-        ws.on('close', detach);
-        ws.on('error', detach);
+        ws.on("close", detach);
+        ws.on("error", detach);
 
-        sendEvent(ws, 'set shortid', local);
+        sendEvent(ws, "set shortid", local);
         await sleep(INITIAL_SYNC_WAIT_MS);
       } catch (error) {
         st.connectPromise = undefined;
@@ -383,7 +407,9 @@ export function createSocketIoMailProvider(channel: Channel, defaultHost: string
     return st.connectPromise;
   }
 
-  async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+  async function generateEmail(
+    domain?: string | null,
+  ): Promise<InternalEmailInfo> {
     const host = normalizeHost(domain);
     const shortid = await requestShortId(host);
     const email = `${shortid}@${host}`;

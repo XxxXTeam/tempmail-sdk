@@ -29,6 +29,7 @@ def _spoof_ip_headers() -> dict:
         "X-Originating-IP": ip,
     }
 
+
 # 缓存的 Session 及其对应的配置版本
 _cached_session = None
 _cached_version = -1
@@ -93,15 +94,23 @@ def _merge_spoof_headers(headers: dict = None) -> dict:
     return merged
 
 
-def get(url: str, headers: dict = None, timeout: int = None, **kwargs) -> requests.Response:
+def get(
+    url: str, headers: dict = None, timeout: int = None, **kwargs
+) -> requests.Response:
     """带全局配置的 GET 请求（自动注入伪造来源 IP 请求头）"""
     session = get_session()
     effective_timeout = timeout if timeout is not None else _cached_timeout
-    return session.get(url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs)
+    return session.get(
+        url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs
+    )
 
 
-def post(url: str, headers: dict = None, timeout: int = None, **kwargs) -> requests.Response:
+def post(
+    url: str, headers: dict = None, timeout: int = None, **kwargs
+) -> requests.Response:
     """带全局配置的 POST 请求（自动注入伪造来源 IP 请求头）"""
     session = get_session()
     effective_timeout = timeout if timeout is not None else _cached_timeout
-    return session.post(url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs)
+    return session.post(
+        url, headers=_merge_spoof_headers(headers), timeout=effective_timeout, **kwargs
+    )

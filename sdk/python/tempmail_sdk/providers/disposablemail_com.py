@@ -70,7 +70,9 @@ def _cookie_header(prev: str, resp: requests.Response) -> str:
 
 
 def _encode_token(csrf: str, cookie_hdr: str) -> str:
-    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return _TOK_PREFIX + base64.b64encode(raw).decode("ascii")
 
 
@@ -78,7 +80,7 @@ def _decode_token(token: str) -> Tuple[str, str]:
     if not token.startswith(_TOK_PREFIX):
         raise ValueError("disposablemail-com: 无效的 token")
     try:
-        data = base64.b64decode(token[len(_TOK_PREFIX):])
+        data = base64.b64decode(token[len(_TOK_PREFIX) :])
         o = json.loads(data.decode("utf-8"))
     except (ValueError, UnicodeDecodeError) as e:
         raise ValueError("disposablemail-com: 无效的 token") from e
@@ -121,7 +123,9 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
     if not email or "@" not in email:
         raise RuntimeError(f"disposablemail-com: 获取到的邮箱地址无效: {email!r}")
 
-    return EmailInfo(channel=channel, email=email, _token=_encode_token(csrf, cookie_hdr))
+    return EmailInfo(
+        channel=channel, email=email, _token=_encode_token(csrf, cookie_hdr)
+    )
 
 
 def get_emails(email: str, token: str) -> List[Email]:
@@ -172,7 +176,9 @@ def _fetch_body(cookie_hdr: str, mail_id: str) -> str:
     if not mail_id:
         return ""
     try:
-        resp = tm_http.get(f"{BASE_URL}/email/id/{mail_id}", headers=_ajax_headers(cookie_hdr))
+        resp = tm_http.get(
+            f"{BASE_URL}/email/id/{mail_id}", headers=_ajax_headers(cookie_hdr)
+        )
     except OSError:
         return ""
     if resp.status_code < 200 or resp.status_code >= 300:

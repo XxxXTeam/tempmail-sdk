@@ -107,10 +107,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("rootsh: 申请邮箱失败: {}", e))?;
 
         if !apply_resp.status().is_success() {
-            return Err(format!(
-                "rootsh: 申请邮箱返回 HTTP {}",
-                apply_resp.status()
-            ));
+            return Err(format!("rootsh: 申请邮箱返回 HTTP {}", apply_resp.status()));
         }
 
         let body: Value = apply_resp
@@ -119,10 +116,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("rootsh: 解析申请响应失败: {}", e))?;
 
         /* 检查 success 字段 */
-        let success = body
-            .get("success")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let success = body.get("success").and_then(|v| v.as_str()).unwrap_or("");
         if success != "true" {
             return Err(format!(
                 "rootsh: 申请邮箱失败, 响应: {}",
@@ -141,10 +135,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         }
 
         /* 获取 time 字段，用于后续增量获取邮件 */
-        let time = body
-            .get("time")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(0);
+        let time = body.get("time").and_then(|v| v.as_i64()).unwrap_or(0);
 
         /* token 格式: "cookies\n{time}" */
         let token = format!("{}\n{}", cookies, time);
@@ -203,10 +194,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .map_err(|e| format!("rootsh: 获取邮件列表失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "rootsh: 获取邮件列表返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("rootsh: 获取邮件列表返回 HTTP {}", resp.status()));
         }
 
         let data: Value = resp
@@ -214,10 +202,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .await
             .map_err(|e| format!("rootsh: 解析邮件列表响应失败: {}", e))?;
 
-        let success = data
-            .get("success")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let success = data.get("success").and_then(|v| v.as_str()).unwrap_or("");
         if success != "true" {
             return Err(format!(
                 "rootsh: 获取邮件列表失败, 响应: {}",
@@ -297,10 +282,7 @@ async fn fetch_mail_body(cookies: &str, fid: &str, email: &str) -> Result<String
         .map_err(|e| format!("rootsh: 获取邮件正文失败: {}", e))?;
 
     if !resp.status().is_success() {
-        return Err(format!(
-            "rootsh: 获取邮件正文返回 HTTP {}",
-            resp.status()
-        ));
+        return Err(format!("rootsh: 获取邮件正文返回 HTTP {}", resp.status()));
     }
 
     let data: Value = resp

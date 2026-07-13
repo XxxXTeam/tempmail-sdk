@@ -46,7 +46,11 @@ def _to_iso_time(value: Any) -> str:
         return ""
     if isinstance(value, (int, float)):
         millis = int(value if value > 1e12 else value * 1000)
-        return datetime.fromtimestamp(millis / 1000, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+        return (
+            datetime.fromtimestamp(millis / 1000, tz=timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
     text = str(value)
     try:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
@@ -98,7 +102,10 @@ def _flatten_message(
             {
                 "filename": att.get("name") or att.get("filename") or "",
                 "size": att.get("size") or att.get("filesize"),
-                "contentType": att.get("contentType") or att.get("content_type") or att.get("mimeType") or att.get("mime_type"),
+                "contentType": att.get("contentType")
+                or att.get("content_type")
+                or att.get("mimeType")
+                or att.get("mime_type"),
                 "url": _attachment_url(att.get("downloadUrl") or att.get("url")),
             }
         )
@@ -137,12 +144,32 @@ def get_emails(token: str, email: str = "", **kwargs) -> List[Email]:
     result: List[Email] = []
     for msg in messages:
         message_id = str(msg.get("id") or msg.get("messageId") or "").strip()
-        text_payload = _request_json(f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/text") if message_id else None
-        html_payload = _request_json(f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/texthtml") if message_id else None
-        attachments_payload = _request_json(f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/attachments") if message_id else None
+        text_payload = (
+            _request_json(
+                f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/text"
+            )
+            if message_id
+            else None
+        )
+        html_payload = (
+            _request_json(
+                f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/texthtml"
+            )
+            if message_id
+            else None
+        )
+        attachments_payload = (
+            _request_json(
+                f"{BASE_URL}/api/v2/domains/{PUBLIC_DOMAIN}/messages/{message_id}/attachments"
+            )
+            if message_id
+            else None
+        )
         result.append(
             normalize_email(
-                _flatten_message(msg, email, text_payload, html_payload, attachments_payload),
+                _flatten_message(
+                    msg, email, text_payload, html_payload, attachments_payload
+                ),
                 email,
             )
         )

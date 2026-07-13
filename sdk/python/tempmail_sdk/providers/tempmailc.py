@@ -44,7 +44,12 @@ def generate_email() -> EmailInfo:
     resp.raise_for_status()
     data = resp.json()
     email = str(data.get("email") or "").strip() if isinstance(data, dict) else ""
-    if not isinstance(data, dict) or not data.get("ok") or not email or "@" not in email:
+    if (
+        not isinstance(data, dict)
+        or not data.get("ok")
+        or not email
+        or "@" not in email
+    ):
         raise ValueError("tempmailc: invalid new email response")
     return EmailInfo(channel=CHANNEL, email=email)
 
@@ -74,5 +79,7 @@ def get_emails(email: str) -> List[Email]:
             continue
         message_id = str(item.get("id") or "").strip()
         detail = _fetch_message(address, message_id) if message_id else None
-        emails.append(normalize_email(detail or _flatten_list_message(item, address), address))
+        emails.append(
+            normalize_email(detail or _flatten_list_message(item, address), address)
+        )
     return emails

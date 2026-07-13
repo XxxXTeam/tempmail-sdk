@@ -55,11 +55,14 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
         raise RuntimeError(f"best-temp-mail: 返回的邮箱地址无效: {address!r}")
 
     # 将 intToken、id、update_tag 序列化为 JSON 存入 token
-    token = json.dumps({
-        "intToken": int_token,
-        "id": email_id,
-        "update_tag": update_tag,
-    }, separators=(",", ":"))
+    token = json.dumps(
+        {
+            "intToken": int_token,
+            "id": email_id,
+            "update_tag": update_tag,
+        },
+        separators=(",", ":"),
+    )
 
     return EmailInfo(channel=channel, email=address, _token=token)
 

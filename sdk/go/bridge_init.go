@@ -25,6 +25,8 @@ func init() {
 			DropmailAuthToken:        c.DropmailAuthToken,
 			DropmailDisableAutoToken: c.DropmailDisableAutoToken,
 			DropmailRenewLifetime:    c.DropmailRenewLifetime,
+			ApihzID:                  c.ApihzID,
+			ApihzKey:                 c.ApihzKey,
 		}
 	}
 	provider.NormalizeMap = func(raw map[string]interface{}, recipientEmail string) provider.NormEmail {

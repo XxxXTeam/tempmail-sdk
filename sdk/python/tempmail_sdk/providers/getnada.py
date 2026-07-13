@@ -134,5 +134,7 @@ def get_emails(token: str, email: str) -> List[Email]:
             continue
         message_id = str(item.get("id") or "").strip()
         detail = _fetch_detail(auth, message_id) if message_id else None
-        emails.append(normalize_email(_flatten_message(detail or item, address), address))
+        emails.append(
+            normalize_email(_flatten_message(detail or item, address), address)
+        )
     return emails

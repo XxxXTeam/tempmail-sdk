@@ -56,11 +56,26 @@ def generate_email() -> EmailInfo:
     username = str(data.get("username") or "").strip()
     cookie = next(iter(resp.cookies.items()), None)
     cookie_header = f"{cookie[0]}={cookie[1]}" if cookie else ""
-    if not data.get("success") or not email or "@" not in email or not username or not cookie_header:
+    if (
+        not data.get("success")
+        or not email
+        or "@" not in email
+        or not username
+        or not cookie_header
+    ):
         raise ValueError("webmailtemp: invalid create response")
     ttl = data.get("ttl")
-    expires_at = int((time.time() + float(ttl)) * 1000) if isinstance(ttl, (int, float)) and ttl > 0 else None
-    return EmailInfo(channel=CHANNEL, email=email, _token=_encode_token(username, cookie_header), expires_at=expires_at)
+    expires_at = (
+        int((time.time() + float(ttl)) * 1000)
+        if isinstance(ttl, (int, float)) and ttl > 0
+        else None
+    )
+    return EmailInfo(
+        channel=CHANNEL,
+        email=email,
+        _token=_encode_token(username, cookie_header),
+        expires_at=expires_at,
+    )
 
 
 def get_emails(token: str, email: str) -> List[Email]:
@@ -80,4 +95,8 @@ def get_emails(token: str, email: str) -> List[Email]:
     rows = data.get("emails") if isinstance(data, dict) else []
     if not isinstance(rows, list):
         return []
-    return [normalize_email(_flatten(row, address), address) for row in rows if isinstance(row, dict)]
+    return [
+        normalize_email(_flatten(row, address), address)
+        for row in rows
+        if isinstance(row, dict)
+    ]

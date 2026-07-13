@@ -79,10 +79,7 @@ async fn fetch_session() -> Result<(String, String), String> {
         .map_err(|e| format!("mailgolem: 获取首页失败: {}", e))?;
 
     if !resp.status().is_success() {
-        return Err(format!(
-            "mailgolem: 获取首页返回 HTTP {}",
-            resp.status()
-        ));
+        return Err(format!("mailgolem: 获取首页返回 HTTP {}", resp.status()));
     }
 
     let cookies = extract_cookies(resp.headers());
@@ -113,7 +110,10 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         /* 第二步：获取随机邮箱地址 */
         let resp = http_client_no_cookie_jar()
             .get(format!("{}/random-email-address", BASE_URL))
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            )
             .header("Accept-Language", "en-US,en;q=0.9")
             .header("User-Agent", browser_ua())
             .header("Referer", format!("{}/", BASE_URL))
@@ -137,10 +137,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .to_string();
 
         if email.is_empty() || !email.contains('@') {
-            return Err(format!(
-                "mailgolem: 返回的邮箱地址无效: {}",
-                email
-            ));
+            return Err(format!("mailgolem: 返回的邮箱地址无效: {}", email));
         }
 
         Ok(EmailInfo {
@@ -170,7 +167,11 @@ pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
 
         /* POST /fetch-emails/{email} */
         let resp = http_client_no_cookie_jar()
-            .post(format!("{}/fetch-emails/{}", BASE_URL, urlencoding::encode(em)))
+            .post(format!(
+                "{}/fetch-emails/{}",
+                BASE_URL,
+                urlencoding::encode(em)
+            ))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("X-Requested-With", "XMLHttpRequest")
             .header("Accept", "application/json, text/javascript, */*; q=0.01")

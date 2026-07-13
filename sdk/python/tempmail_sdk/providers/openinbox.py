@@ -58,7 +58,11 @@ def generate_email() -> EmailInfo:
 
 def _fetch_detail(message_id: str) -> Optional[Dict[str, Any]]:
     try:
-        resp = tm_http.get(f"{API_BASE}/emails/{quote(message_id, safe='')}", headers=HEADERS, timeout=15)
+        resp = tm_http.get(
+            f"{API_BASE}/emails/{quote(message_id, safe='')}",
+            headers=HEADERS,
+            timeout=15,
+        )
         if not resp.ok:
             return None
         data = resp.json()

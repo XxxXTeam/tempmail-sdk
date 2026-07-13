@@ -29,7 +29,9 @@ def _flatten(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
         "html": raw.get("body_html") or "",
         "date": raw.get("received_at") or "",
         "isRead": bool(raw.get("is_read")),
-        "attachments": raw.get("attachments") if isinstance(raw.get("attachments"), list) else [],
+        "attachments": (
+            raw.get("attachments") if isinstance(raw.get("attachments"), list) else []
+        ),
     }
 
 
@@ -92,6 +94,8 @@ def get_emails(token: str, email: str) -> List[Email]:
         if not isinstance(row, dict):
             continue
         message_id = str(row.get("id") or "").strip()
-        detail = _fetch_detail(address, session_token, message_id) if message_id else None
+        detail = (
+            _fetch_detail(address, session_token, message_id) if message_id else None
+        )
         emails.append(normalize_email(_flatten(detail or row, address), address))
     return emails

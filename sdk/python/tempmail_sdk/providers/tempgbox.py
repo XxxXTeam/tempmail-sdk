@@ -47,6 +47,7 @@ def _decode_payload(html: str) -> dict:
         raise Exception("tempgbox: malformed encoded response payload")
     raw = base64.b64decode(html[start:end]).decode("utf-8")
     import json
+
     return json.loads(raw)
 
 
@@ -65,7 +66,12 @@ def _post_proxy(route: str, device_id: str, payload: dict) -> dict:
     )
     data = _decode_payload(resp.text)
     if not resp.ok:
-        reason = data.get("detail") or data.get("error") or data.get("message") or resp.reason
+        reason = (
+            data.get("detail")
+            or data.get("error")
+            or data.get("message")
+            or resp.reason
+        )
         raise Exception(f"tempgbox {route} failed: {resp.status_code} {reason}")
     return data
 
@@ -104,7 +110,9 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
             "text": raw.get("text") or raw.get("body_text", ""),
             "html": raw.get("html") or raw.get("body_html", ""),
             "date": raw.get("date") or raw.get("received_at", ""),
-            "messageId": raw.get("messageId") or raw.get("message_id") or raw.get("id", ""),
+            "messageId": raw.get("messageId")
+            or raw.get("message_id")
+            or raw.get("id", ""),
             "attachments": raw.get("attachments") or raw.get("attachments_info") or [],
         }
         out.append(normalize_email(flat, email))

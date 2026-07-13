@@ -102,7 +102,9 @@ def _pick_domain(domains: List[str], preferred: Optional[str]) -> str:
 
 
 def _fetch_detail(address: str, uid: str) -> Optional[Dict[str, Any]]:
-    data = _request_json(f"/inbox/{quote(address, safe='')}/{quote(uid, safe='')}", allow_404=True)
+    data = _request_json(
+        f"/inbox/{quote(address, safe='')}/{quote(uid, safe='')}", allow_404=True
+    )
     if isinstance(data, dict):
         detail = data.get("data")
         if isinstance(detail, dict):
@@ -135,5 +137,7 @@ def get_emails(email: str) -> List[Email]:
             continue
         uid = str(item.get("uid") or "").strip()
         detail = _fetch_detail(address, uid) if uid else None
-        emails.append(normalize_email(_flatten_message(detail or item, address), address))
+        emails.append(
+            normalize_email(_flatten_message(detail or item, address), address)
+        )
     return emails

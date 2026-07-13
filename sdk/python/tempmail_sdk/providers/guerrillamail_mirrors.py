@@ -67,18 +67,27 @@ def _create_mirror_provider(channel: str, base_url: str):
                         body = detail.get("mail_body") or ""
                 except Exception:  # noqa: BLE001
                     pass
-            text = re.sub(r"<[^>]+>", " ", body).strip() if body else item.get("mail_excerpt", "")
+            text = (
+                re.sub(r"<[^>]+>", " ", body).strip()
+                if body
+                else item.get("mail_excerpt", "")
+            )
             text = re.sub(r"\s+", " ", text).strip()
-            out.append(normalize_email({
-                "id": item.get("mail_id"),
-                "from": item.get("mail_from"),
-                "to": email,
-                "subject": item.get("mail_subject"),
-                "text": text,
-                "html": body,
-                "date": item.get("mail_date", ""),
-                "isRead": item.get("mail_read") == 1,
-            }, email))
+            out.append(
+                normalize_email(
+                    {
+                        "id": item.get("mail_id"),
+                        "from": item.get("mail_from"),
+                        "to": email,
+                        "subject": item.get("mail_subject"),
+                        "text": text,
+                        "html": body,
+                        "date": item.get("mail_date", ""),
+                        "isRead": item.get("mail_read") == 1,
+                    },
+                    email,
+                )
+            )
         return out
 
     return generate_email, get_emails
@@ -115,6 +124,8 @@ guerrillamail_org_generate, guerrillamail_org_get_emails = _create_mirror_provid
 guerrillamailblock_generate, guerrillamailblock_get_emails = _create_mirror_provider(
     "guerrillamailblock", "https://www.guerrillamailblock.com/ajax.php"
 )
-guerrillamail_com_www_generate, guerrillamail_com_www_get_emails = _create_mirror_provider(
-    "guerrillamail-com-www", "https://www.guerrillamail.com/ajax.php"
+guerrillamail_com_www_generate, guerrillamail_com_www_get_emails = (
+    _create_mirror_provider(
+        "guerrillamail-com-www", "https://www.guerrillamail.com/ajax.php"
+    )
 )

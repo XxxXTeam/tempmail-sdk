@@ -29,7 +29,11 @@ def _parse_event_packet(packet: str) -> Optional[Tuple[str, any]]:
         return None
     try:
         decoded = json.loads(packet[2:])
-        if not isinstance(decoded, list) or len(decoded) < 2 or not isinstance(decoded[0], str):
+        if (
+            not isinstance(decoded, list)
+            or len(decoded) < 2
+            or not isinstance(decoded[0], str)
+        ):
             return None
         return (decoded[0], decoded[1])
     except (json.JSONDecodeError, IndexError):
@@ -118,7 +122,9 @@ class SocketIoMailProvider:
                         continue
                     if not sent_connect:
                         if not msg.startswith("0"):
-                            raise RuntimeError(f"{self.channel}: unexpected open packet for EIO={version}")
+                            raise RuntimeError(
+                                f"{self.channel}: unexpected open packet for EIO={version}"
+                            )
                         sent_connect = True
                         ws.send("40")
                         time.sleep(HANDSHAKE_WAIT)
@@ -175,7 +181,7 @@ class SocketIoMailProvider:
         if at_idx <= 0:
             raise ValueError(f"{self.channel}: invalid email address")
         local = email[:at_idx]
-        host = email[at_idx + 1:] or self.default_host
+        host = email[at_idx + 1 :] or self.default_host
 
         ws = self._connect_socket(host)
         _send_event(ws, "set shortid", local)
@@ -191,7 +197,11 @@ class SocketIoMailProvider:
                         ws.send("3")
                         continue
                     parsed = _parse_event_packet(msg)
-                    if not parsed or parsed[0] != "mail" or not isinstance(parsed[1], dict):
+                    if (
+                        not parsed
+                        or parsed[0] != "mail"
+                        or not isinstance(parsed[1], dict)
+                    ):
                         continue
                     flat = _flatten_mail(parsed[1], email)
                     normalized = normalize_email(flat, email)

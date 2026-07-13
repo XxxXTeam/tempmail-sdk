@@ -1,16 +1,19 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'tempfastmail';
-const BASE_URL = 'https://tempfastmail.com';
+const CHANNEL: Channel = "tempfastmail";
+const BASE_URL = "https://tempfastmail.com";
 
 interface EmailBoxResponse {
   email?: string;
   uuid?: string;
 }
 
-function flattenMessage(raw: Record<string, unknown>, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: Record<string, unknown>,
+  recipient: string,
+): Record<string, unknown> {
   return {
     id: raw.uuid,
     from: raw.from,
@@ -24,20 +27,20 @@ function flattenMessage(raw: Record<string, unknown>, recipient: string): Record
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const response = await fetchWithTimeout(`${BASE_URL}/api/email-box`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      Accept: 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
     },
   });
   if (!response.ok) {
     throw new Error(`tempfastmail create http ${response.status}`);
   }
   const data = (await response.json()) as EmailBoxResponse;
-  const email = String(data.email || '').trim();
-  const uuid = String(data.uuid || '').trim();
-  if (!email || !email.includes('@') || !uuid) {
-    throw new Error('tempfastmail: invalid create response');
+  const email = String(data.email || "").trim();
+  const uuid = String(data.uuid || "").trim();
+  if (!email || !email.includes("@") || !uuid) {
+    throw new Error("tempfastmail: invalid create response");
   }
   return {
     channel: CHANNEL,
@@ -46,18 +49,24 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   };
 }
 
-export async function getEmails(token: string, email: string): Promise<Email[]> {
-  const uuid = String(token || '').trim();
-  const address = String(email || '').trim();
-  if (!uuid) throw new Error('tempfastmail: empty token');
-  if (!address) throw new Error('tempfastmail: empty email');
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
+  const uuid = String(token || "").trim();
+  const address = String(email || "").trim();
+  if (!uuid) throw new Error("tempfastmail: empty token");
+  if (!address) throw new Error("tempfastmail: empty email");
 
-  const listResponse = await fetchWithTimeout(`${BASE_URL}/api/email-box/${encodeURIComponent(uuid)}/emails`, {
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+  const listResponse = await fetchWithTimeout(
+    `${BASE_URL}/api/email-box/${encodeURIComponent(uuid)}/emails`,
+    {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0",
+      },
     },
-  });
+  );
   if (!listResponse.ok) {
     throw new Error(`tempfastmail list http ${listResponse.status}`);
   }
@@ -66,15 +75,18 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
 
   const emails: Email[] = [];
   for (const row of rows) {
-    const messageId = String(row.uuid || '').trim();
+    const messageId = String(row.uuid || "").trim();
     let raw = row;
     if (messageId) {
-      const detailResponse = await fetchWithTimeout(`${BASE_URL}/api/email-box/${encodeURIComponent(uuid)}/email/${encodeURIComponent(messageId)}`, {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'Mozilla/5.0',
+      const detailResponse = await fetchWithTimeout(
+        `${BASE_URL}/api/email-box/${encodeURIComponent(uuid)}/email/${encodeURIComponent(messageId)}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0",
+          },
         },
-      });
+      );
       if (detailResponse.ok) {
         raw = (await detailResponse.json()) as Record<string, unknown>;
       }

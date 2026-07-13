@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），公开 **176** 个 `channel` 标识，按独立服务商合并为 **67** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,7 +17,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **176** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **67** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+共 **268** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **100** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
@@ -44,15 +44,14 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `mailforspam` | mailforspam.com | - | 公开 REST：`GET /api/mailboxes/{email}/emails` 列表，`GET /api/mailboxes/{email}/emails/{id}` 详情；详情 `body_text` / `body_html` 映射为统一正文 |
 | `mailforspam-tempmail-io` | tempmail.io | - | MailForSpam API 固定域名 `tempmail.io` |
 | `mailforspam-disposable` | disposable.email | - | MailForSpam API 固定域名 `disposable.email` |
-| `tempmailo` | tempmailo.com | ✅ | `GET /changemail` 建址，`POST /` 传 `mail` 拉信；返回对象直接含 `text` / `html` 正文 |
 | `tempmailc` | tempmailc.com | - | Public API：`GET /api/v1/new` 建址，`GET /api/v1/inbox` 拉列表，`GET /api/v1/message` 读取 `text` / `html` 正文 |
 | `mailnesia` | mailnesia.com | - | 任意 `{local}@mailnesia.com` 建址；HTML 列表 `tr.emailheader` + 详情 `text_plain_{id}` / `text_html_{id}` 正文 |
 | `throwawaymail` | throwawaymail.app | ✅ | Web API 建址并轮询收信；Token 由 SDK 内部维护 |
 | `shitty-email` | shitty.email | ✅ | `POST /api/inbox` 建址；`X-Session-Token` + `GET /api/inbox` 拉列表，`GET /api/email/{id}` 读取 `text` / `html` 正文 |
 | `tempmailpro` | tempmailpro.us | ✅ | `POST /api/v1/mailbox/create` 建箱；`GET /api/v1/mailbox/{token}/emails` 拉列表，详情 `body_text` / `body_html` 映射统一正文 |
 | `devmail-uk` | devmail.uk | - | `GET /api/new` 建址；`GET /api/inbox/{mailbox}?detail=true` 拉列表；生成接口返回的 `email` / `mailbox` 字段均兼容解析 |
-| `cleantempmail` | cleantempmail.com | - | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
 | `inboxkitten` | inboxkitten.com | - | 公开 API 拉取收件箱列表与详情 |
+| `cleantempmail` | cleantempmail.com | - | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
 | `getnada` | getnada.net | ✅ | `POST /api/inbox/open` 建箱；`GET /api/inbox/messages` 列表；`GET /api/inbox/message` 详情含 `text_plain` / `html_sanitized` |
 | `1vpn-net` | 1vpn.net | ✅ | GetNada 固定域名 `1vpn.net` |
 | `abematv-com` | abematv.com | ✅ | GetNada 固定域名 `abematv.com` |
@@ -148,7 +147,6 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `emailnator` | emailnator.com | ✅ | XSRF + Cookie；Gmail/GoogleMail alias 选项生成，`messageID` 读取 HTML 正文 |
 | `temporam` | temporam.com | - | 公开 REST：`/api/domains`、`/api/emails?email=`、`/api/emails/{id}` |
 | `neighbours` | neighbours.sh | - | `GET /config/domains` 获取域名；`GET /inbox/{address}` / `GET /inbox/{address}/{uid}` 拉信；`404` 视为空收件箱 |
-| `fake-email-site` | fake-email.site | - | `POST /api/temporary-address` 建箱；`GET /api/inbox/poll?address=` 拉信；返回 `temp_email_addr` / `messages` |
 | `sharklasers` | sharklasers.com | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `sharklasers-com` | sharklasers.com | ✅ | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
 | `grr-la` | grr.la | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
@@ -166,6 +164,131 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `anonbox` | anonbox.net | ✅ | `GET /en/` 解析页面建箱；`GET /{token}/` 拉信，token 形如 `inbox/secret`，mbox 明文解析 |
 | `duckmail` | duckmail.sbs | ✅ | `GET /domains?page=1` 取域名；`POST /accounts` 创建账号；`POST /token` 获取 Bearer Token；`GET /messages` 拉列表 |
 | `mailinator` | mailinator.com | - | 公开 REST：`GET /api/v2/domains/public/inboxes/{inbox}` 拉列表；`GET /api/v2/domains/public/messages/{id}/{text|texthtml|attachments}` 详情 |
+| `tempmail365` |  | ✅ | tempmail365 |
+| `tempinbox` |  | ✅ | tempinbox |
+| `byom` |  | ✅ | byom |
+| `anonymmail` |  | ✅ | anonymmail |
+| `eyepaste` |  | ✅ | eyepaste |
+| `mail-sunls` |  | ✅ | mail-sunls |
+| `expressinboxhub` |  | ✅ | expressinboxhub |
+| `lroid` |  | ✅ | lroid |
+| `haribu` |  | ✅ | haribu |
+| `rootsh` |  | ✅ | rootsh |
+| `fake-email-site` | fake-email.site | - | `POST /api/temporary-address` 建箱；`GET /api/inbox/poll?address=` 拉信；返回 `temp_email_addr` / `messages` |
+| `mohmal` |  | ✅ | mohmal |
+| `mailgolem` |  | ✅ | mailgolem |
+| `best-temp-mail` |  | ✅ | best-temp-mail |
+| `disposablemail-app` |  | ✅ | disposablemail-app |
+| `mailtemp-cc` |  | ✅ | mailtemp-cc |
+| `minuteinbox` |  | ✅ | minuteinbox |
+| `mailcatch` |  | ✅ | mailcatch |
+| `tempemail-co` |  | ✅ | tempemail-co |
+| `tempemails-net` |  | ✅ | tempemails-net |
+| `altmails` |  | ✅ | altmails |
+| `tempemail-info` |  | ✅ | tempemail-info |
+| `smailpro` |  | ✅ | smailpro |
+| `tempmailten` |  | ✅ | tempmailten |
+| `maildrop-cc` |  | ✅ | maildrop-cc |
+| `10minutemail-net` |  | ✅ | 10minutemail-net |
+| `linshiyouxiang-net` |  | ✅ | linshiyouxiang-net |
+| `tempmail-fyi` |  | ✅ | tempmail-fyi |
+| `disposablemail-com` |  | ✅ | disposablemail-com |
+| `tempp-mails` |  | ✅ | tempp-mails |
+| `emailtemp-org` |  | ✅ | emailtemp-org |
+| `mytempmail-cc` |  | ✅ | mytempmail-cc |
+| `temp-mail-now` |  | ✅ | temp-mail-now |
+| `mail-td` |  | ✅ | mail-td |
+| `mailhole-de` |  | ✅ | mailhole-de |
+| `tmail-link` |  | ✅ | tmail-link |
+| `24mail-chacuo` |  | ✅ | 24mail-chacuo |
+| `nimail` |  | ✅ | nimail |
+| `freecustom` |  | ✅ | freecustom |
+| `16888888-cyou` |  | ✅ | 16888888-cyou |
+| `17666688-shop` |  | ✅ | 17666688-shop |
+| `282mail-com` |  | ✅ | 282mail-com |
+| `blackhole-djurby-se` |  | ✅ | blackhole-djurby-se |
+| `block-bdea-cc` |  | ✅ | block-bdea-cc |
+| `bsdu32-buzz` |  | ✅ | bsdu32-buzz |
+| `b-smelly-cc` |  | ✅ | b-smelly-cc |
+| `carlton183-changeip-net` |  | ✅ | carlton183-changeip-net |
+| `dea-soon-it` |  | ✅ | dea-soon-it |
+| `disposable-al-sudani-com` |  | ✅ | disposable-al-sudani-com |
+| `disposable-nogonad-nl` |  | ✅ | disposable-nogonad-nl |
+| `doxu243-buzz` |  | ✅ | doxu243-buzz |
+| `easyme-pro` |  | ✅ | easyme-pro |
+| `ebs-com-ar` |  | ✅ | ebs-com-ar |
+| `etgdev-de` |  | ✅ | etgdev-de |
+| `evergreenco-shop` |  | ✅ | evergreenco-shop |
+| `fwd2m-eszett-es` |  | ✅ | fwd2m-eszett-es |
+| `jama-trenet-eu` |  | ✅ | jama-trenet-eu |
+| `j-fairuse-org` |  | ✅ | j-fairuse-org |
+| `layueming-pics` |  | ✅ | layueming-pics |
+| `m-887-at` |  | ✅ | m-887-at |
+| `m8r-davidfuhr-de` |  | ✅ | m8r-davidfuhr-de |
+| `m8r-mcasal-com` |  | ✅ | m8r-mcasal-com |
+| `mail-bentrask-com` |  | ✅ | mail-bentrask-com |
+| `mail-fsmash-org` |  | ✅ | mail-fsmash-org |
+| `mailinatorzz-mooo-com` |  | ✅ | mailinatorzz-mooo-com |
+| `mi-meon-be` |  | ✅ | mi-meon-be |
+| `mingyuekeji-online` |  | ✅ | mingyuekeji-online |
+| `mingyueming-click` |  | ✅ | mingyueming-click |
+| `mingyueming-shop` |  | ✅ | mingyueming-shop |
+| `mingyukeji-lol` |  | ✅ | mingyukeji-lol |
+| `mn-curppa-com` |  | ✅ | mn-curppa-com |
+| `m-nik-me` |  | ✅ | m-nik-me |
+| `mtmdev-com` |  | ✅ | mtmdev-com |
+| `nospam-thurstons-us` |  | ✅ | nospam-thurstons-us |
+| `notfond-404-mn` |  | ✅ | notfond-404-mn |
+| `null-k3vin-net` |  | ✅ | null-k3vin-net |
+| `nuxh62-space` |  | ✅ | nuxh62-space |
+| `proid-cloud-ip-cc` |  | ✅ | proid-cloud-ip-cc |
+| `ramjane-mooo-com` |  | ✅ | ramjane-mooo-com |
+| `rauxa-seny-cat` |  | ✅ | rauxa-seny-cat |
+| `really-istrash-com` |  | ✅ | really-istrash-com |
+| `sbook-pics` |  | ✅ | sbook-pics |
+| `spam-hortuk-ovh` |  | ✅ | spam-hortuk-ovh |
+| `sp-woot-at` |  | ✅ | sp-woot-at |
+| `test-unergie-com` |  | ✅ | test-unergie-com |
+| `torch-yi-org` |  | ✅ | torch-yi-org |
+| `t-zibet-net` |  | ✅ | t-zibet-net |
+| `xue32-buzz` |  | ✅ | xue32-buzz |
+| `apihz` |  | ✅ | apihz |
+| `sogetthis-com` |  | ✅ | sogetthis-com |
+| `bobmail-info` |  | ✅ | bobmail-info |
+| `suremail-info` |  | ✅ | suremail-info |
+| `binkmail-com` |  | ✅ | binkmail-com |
+| `veryrealemail-com` |  | ✅ | veryrealemail-com |
+| `mailmomy` |  | ✅ | mailmomy |
+| `chammy-info` |  | ✅ | chammy-info |
+| `thisisnotmyrealemail-com` |  | ✅ | thisisnotmyrealemail-com |
+| `notmailinator-com` |  | ✅ | notmailinator-com |
+| `spamhereplease-com` |  | ✅ | spamhereplease-com |
+| `sendspamhere-com` |  | ✅ | sendspamhere-com |
+| `sendfree-org` |  | ✅ | sendfree-org |
+| `junk-beats-org` |  | ✅ | junk-beats-org |
+| `junk-ihmehl-com` |  | ✅ | junk-ihmehl-com |
+| `junk-noplay-org` |  | ✅ | junk-noplay-org |
+| `junk-vanillasystem-com` |  | ✅ | junk-vanillasystem-com |
+| `spam-jasonpearce-com` |  | ✅ | spam-jasonpearce-com |
+| `fish-skytale-net` |  | ✅ | fish-skytale-net |
+| `spam-mccrew-com` |  | ✅ | spam-mccrew-com |
+| `dropmail-click` |  | ✅ | dropmail-click |
+| `spam-coroiu-com` |  | ✅ | spam-coroiu-com |
+| `spam-deluser-net` |  | ✅ | spam-deluser-net |
+| `spam-dhsf-net` |  | ✅ | spam-dhsf-net |
+| `spam-lucatnt-com` |  | ✅ | spam-lucatnt-com |
+| `spam-lyceum-life-com-ru` |  | ✅ | spam-lyceum-life-com-ru |
+| `spam-netpirates-net` |  | ✅ | spam-netpirates-net |
+| `spam-no-ip-net` |  | ✅ | spam-no-ip-net |
+| `spam-ozh-org` |  | ✅ | spam-ozh-org |
+| `spam-pyphus-org` |  | ✅ | spam-pyphus-org |
+| `spam-shep-pw` |  | ✅ | spam-shep-pw |
+| `spam-wtf-at` |  | ✅ | spam-wtf-at |
+| `spam-wulczer-org` |  | ✅ | spam-wulczer-org |
+| `crap-kakadua-net` |  | ✅ | crap-kakadua-net |
+| `spam-janlugt-nl` |  | ✅ | spam-janlugt-nl |
+| `min-burningfish-net` |  | ✅ | min-burningfish-net |
+| `sink-fblay-com` |  | ✅ | sink-fblay-com |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 

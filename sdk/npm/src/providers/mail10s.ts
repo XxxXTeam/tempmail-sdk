@@ -1,10 +1,10 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'mail10s';
-const BASE_URL = 'https://mail10s.com';
-const DEFAULT_DOMAIN = 'mail10s.com';
+const CHANNEL: Channel = "mail10s";
+const BASE_URL = "https://mail10s.com";
+const DEFAULT_DOMAIN = "mail10s.com";
 
 interface InboxResponse {
   success?: boolean;
@@ -14,13 +14,17 @@ interface InboxResponse {
 }
 
 function randomLocal(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let out = 'sdk';
-  for (let i = 0; i < 16; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "sdk";
+  for (let i = 0; i < 16; i++)
+    out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
 
-function flattenMessage(raw: Record<string, unknown>, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: Record<string, unknown>,
+  recipient: string,
+): Record<string, unknown> {
   return {
     id: raw.id,
     from: raw.sender,
@@ -43,19 +47,24 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 export async function getEmails(email: string): Promise<Email[]> {
-  const address = String(email || '').trim();
-  if (!address) throw new Error('mail10s: empty email');
+  const address = String(email || "").trim();
+  if (!address) throw new Error("mail10s: empty email");
 
-  const response = await fetchWithTimeout(`${BASE_URL}/api/emails/${encodeURIComponent(address)}/inbox`, {
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+  const response = await fetchWithTimeout(
+    `${BASE_URL}/api/emails/${encodeURIComponent(address)}/inbox`,
+    {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0",
+      },
     },
-  });
+  );
   if (!response.ok) {
     throw new Error(`mail10s http ${response.status}`);
   }
   const data = (await response.json()) as InboxResponse;
   const messages = Array.isArray(data.data?.messages) ? data.data.messages : [];
-  return messages.map((row) => normalizeEmail(flattenMessage(row, address), address));
+  return messages.map((row) =>
+    normalizeEmail(flattenMessage(row, address), address),
+  );
 }

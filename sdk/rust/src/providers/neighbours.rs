@@ -83,7 +83,8 @@ fn any_string(value: &Value) -> String {
 }
 
 fn list_domains() -> Result<Vec<String>, String> {
-    let data = request_json("/config/domains", false)?.ok_or_else(|| "neighbours: missing domains response".to_string())?;
+    let data = request_json("/config/domains", false)?
+        .ok_or_else(|| "neighbours: missing domains response".to_string())?;
     let domains = data["data"]["domains"]
         .as_array()
         .cloned()

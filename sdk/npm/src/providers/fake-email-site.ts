@@ -1,15 +1,15 @@
-import { Channel, Email, InternalEmailInfo } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { Channel, Email, InternalEmailInfo } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'fake-email-site';
-const BASE_URL = 'https://api.fake-email.site';
+const CHANNEL: Channel = "fake-email-site";
+const BASE_URL = "https://api.fake-email.site";
 
 const HEADERS: Record<string, string> = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+  Accept: "application/json",
+  "Content-Type": "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -22,7 +22,9 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   });
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(`fake-email-site ${path}: ${response.status} ${text.slice(0, 160)}`);
+    throw new Error(
+      `fake-email-site ${path}: ${response.status} ${text.slice(0, 160)}`,
+    );
   }
   if (!text) {
     return {} as T;
@@ -30,28 +32,34 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-function flattenMessage(raw: InboxMessage, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: InboxMessage,
+  recipient: string,
+): Record<string, unknown> {
   return {
-    id: raw.id == null ? '' : String(raw.id),
-    from_addr: raw.from_addr || '',
+    id: raw.id == null ? "" : String(raw.id),
+    from_addr: raw.from_addr || "",
     to_addr: raw.to_addr || recipient,
-    subject: raw.subject || '',
-    body_text: raw.body_text || '',
-    html: '',
-    received_at: raw.received_at || '',
+    subject: raw.subject || "",
+    body_text: raw.body_text || "",
+    html: "",
+    received_at: raw.received_at || "",
     isRead: false,
     attachments: [],
   };
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
-  const data = await requestJson<CreateMailboxResponse>('/api/temporary-address', {
-    method: 'POST',
-    body: JSON.stringify({}),
-  });
-  const email = (data.temp_email_addr || '').trim();
+  const data = await requestJson<CreateMailboxResponse>(
+    "/api/temporary-address",
+    {
+      method: "POST",
+      body: JSON.stringify({}),
+    },
+  );
+  const email = (data.temp_email_addr || "").trim();
   if (!email) {
-    throw new Error('fake-email-site: empty email response');
+    throw new Error("fake-email-site: empty email response");
   }
   return {
     channel: CHANNEL,
@@ -61,9 +69,9 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 export async function getEmails(email: string): Promise<Email[]> {
-  const address = String(email || '').trim();
+  const address = String(email || "").trim();
   if (!address) {
-    throw new Error('fake-email-site: empty email');
+    throw new Error("fake-email-site: empty email");
   }
 
   try {
@@ -71,10 +79,12 @@ export async function getEmails(email: string): Promise<Email[]> {
       `/api/inbox/poll?address=${encodeURIComponent(address)}`,
     );
     const rows = Array.isArray(data.messages) ? data.messages : [];
-    return rows.map((row) => normalizeEmail(flattenMessage(row, address), address));
+    return rows.map((row) =>
+      normalizeEmail(flattenMessage(row, address), address),
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes(': 404 ')) {
+    if (message.includes(": 404 ")) {
       return [];
     }
     throw err;

@@ -27,9 +27,8 @@ use crate::types::{Channel, Email, EmailInfo};
 const BASE_URL: &str = "https://emailtemp.org";
 
 /// 从 meta 标签提取 CSRF token（<meta name="csrf-token" content="xxx">）
-static CSRF_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"<meta\s+name="csrf-token"\s+content="([^"]+)""#).expect("re")
-});
+static CSRF_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"<meta\s+name="csrf-token"\s+content="([^"]+)""#).expect("re"));
 
 /// token 中序列化的会话信息
 #[derive(Serialize, Deserialize)]
@@ -242,7 +241,10 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 from_email
             };
 
-            let is_seen = msg.get("is_seen").and_then(|v| v.as_bool()).unwrap_or(false);
+            let is_seen = msg
+                .get("is_seen")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             let html_body = fetch_view(&client, &sess.cookie, &id).await;
 
             let raw = serde_json::json!({

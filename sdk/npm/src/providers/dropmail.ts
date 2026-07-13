@@ -1,12 +1,12 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
-import { getConfig } from '../config';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
+import { getConfig } from "../config";
 
-const CHANNEL: Channel = 'dropmail';
+const CHANNEL: Channel = "dropmail";
 
-const TOKEN_GENERATE_URL = 'https://dropmail.me/api/token/generate';
-const TOKEN_RENEW_URL = 'https://dropmail.me/api/token/renew';
+const TOKEN_GENERATE_URL = "https://dropmail.me/api/token/generate";
+const TOKEN_RENEW_URL = "https://dropmail.me/api/token/renew";
 /** 申请 1h 令牌，缓存略短于 1h，避免边界过期 */
 const AUTO_TOKEN_CACHE_MS = 50 * 60 * 1000;
 /** 距缓存过期前多久触发 renew（毫秒） */
@@ -14,9 +14,9 @@ const RENEW_BEFORE_EXPIRY_MS = 10 * 60 * 1000;
 
 function cacheMsForLifetime(lifetime: string): number {
   const s = lifetime.trim().toLowerCase();
-  if (s === '1h') return 50 * 60 * 1000;
-  if (s === '1d') return 23 * 60 * 60 * 1000;
-  if (s === '7d' || s === '30d' || s === '90d') {
+  if (s === "1h") return 50 * 60 * 1000;
+  if (s === "1d") return 23 * 60 * 60 * 1000;
+  if (s === "7d" || s === "30d" || s === "90d") {
     const days = parseInt(s, 10);
     return Math.max(0, days - 1) * 24 * 60 * 60 * 1000;
   }
@@ -27,15 +27,16 @@ function dropmailRenewLifetime(): string {
   const c = getConfig().dropmailRenewLifetime?.trim();
   if (c) return c;
   const e =
-    typeof process !== 'undefined' && process.env?.DROPMAIL_RENEW_LIFETIME?.trim();
-  return e || '1d';
+    typeof process !== "undefined" &&
+    process.env?.DROPMAIL_RENEW_LIFETIME?.trim();
+  return e || "1d";
 }
 
 const TOKEN_HEADERS: Record<string, string> = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Origin: 'https://dropmail.me',
-  Referer: 'https://dropmail.me/api/',
+  Accept: "application/json",
+  "Content-Type": "application/json",
+  Origin: "https://dropmail.me",
+  Referer: "https://dropmail.me/api/",
 };
 
 let cachedAfToken: { value: string; expiresAt: number } | null = null;
@@ -44,8 +45,9 @@ let tokenFetchInFlight: Promise<string> | null = null;
 function explicitDropmailAuthToken(): string | undefined {
   const fromConfig = getConfig().dropmailAuthToken?.trim();
   const fromEnv =
-    typeof process !== 'undefined' && process.env
-      ? process.env.DROPMAIL_AUTH_TOKEN?.trim() || process.env.DROPMAIL_API_TOKEN?.trim()
+    typeof process !== "undefined" && process.env
+      ? process.env.DROPMAIL_AUTH_TOKEN?.trim() ||
+        process.env.DROPMAIL_API_TOKEN?.trim()
       : undefined;
   return fromConfig || fromEnv;
 }
@@ -54,15 +56,17 @@ function dropmailAutoTokenDisabled(): boolean {
   if (getConfig().dropmailDisableAutoToken) {
     return true;
   }
-  const v = typeof process !== 'undefined' && process.env?.DROPMAIL_NO_AUTO_TOKEN?.trim().toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes';
+  const v =
+    typeof process !== "undefined" &&
+    process.env?.DROPMAIL_NO_AUTO_TOKEN?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
 }
 
 async function fetchAfTokenFromApi(): Promise<string> {
   const response = await fetchWithTimeout(TOKEN_GENERATE_URL, {
-    method: 'POST',
+    method: "POST",
     headers: TOKEN_HEADERS,
-    body: JSON.stringify({ type: 'af', lifetime: '1h' }),
+    body: JSON.stringify({ type: "af", lifetime: "1h" }),
   });
 
   if (!response.ok) {
@@ -70,18 +74,21 @@ async function fetchAfTokenFromApi(): Promise<string> {
   }
 
   const body = (await response.json()) as { token?: string; error?: string };
-  const token = typeof body.token === 'string' ? body.token.trim() : '';
-  if (!token || !token.startsWith('af_')) {
+  const token = typeof body.token === "string" ? body.token.trim() : "";
+  if (!token || !token.startsWith("af_")) {
     throw new Error(
-      body.error || 'DropMail token/generate 未返回有效 af_ 令牌',
+      body.error || "DropMail token/generate 未返回有效 af_ 令牌",
     );
   }
   return token;
 }
 
-async function renewAfTokenFromApi(currentToken: string, lifetime: string): Promise<string> {
+async function renewAfTokenFromApi(
+  currentToken: string,
+  lifetime: string,
+): Promise<string> {
   const response = await fetchWithTimeout(TOKEN_RENEW_URL, {
-    method: 'POST',
+    method: "POST",
     headers: TOKEN_HEADERS,
     body: JSON.stringify({ token: currentToken, lifetime }),
   });
@@ -91,9 +98,9 @@ async function renewAfTokenFromApi(currentToken: string, lifetime: string): Prom
   }
 
   const body = (await response.json()) as { token?: string; error?: string };
-  const token = typeof body.token === 'string' ? body.token.trim() : '';
-  if (!token || !token.startsWith('af_')) {
-    throw new Error(body.error || 'DropMail token/renew 未返回有效 af_ 令牌');
+  const token = typeof body.token === "string" ? body.token.trim() : "";
+  if (!token || !token.startsWith("af_")) {
+    throw new Error(body.error || "DropMail token/renew 未返回有效 af_ 令牌");
   }
   return token;
 }
@@ -114,10 +121,7 @@ async function resolveDropmailAuthToken(): Promise<string> {
   }
 
   const now = Date.now();
-  if (
-    cachedAfToken &&
-    now < cachedAfToken.expiresAt - RENEW_BEFORE_EXPIRY_MS
-  ) {
+  if (cachedAfToken && now < cachedAfToken.expiresAt - RENEW_BEFORE_EXPIRY_MS) {
     return cachedAfToken.value;
   }
 
@@ -165,10 +169,11 @@ async function dropmailGraphqlUrl(): Promise<string> {
 }
 
 const DEFAULT_HEADERS: Record<string, string> = {
-  'Content-Type': 'application/x-www-form-urlencoded',
+  "Content-Type": "application/x-www-form-urlencoded",
 };
 
-const CREATE_SESSION_QUERY = 'mutation {introduceSession {id, expiresAt, addresses{id, address}}}';
+const CREATE_SESSION_QUERY =
+  "mutation {introduceSession {id, expiresAt, addresses{id, address}}}";
 
 const GET_MAILS_QUERY = `query ($id: ID!) {
   session(id:$id) {
@@ -182,15 +187,18 @@ const GET_MAILS_QUERY = `query ($id: ID!) {
 /**
  * 执行 GraphQL 请求
  */
-async function graphqlRequest(query: string, variables?: Record<string, any>): Promise<any> {
+async function graphqlRequest(
+  query: string,
+  variables?: Record<string, any>,
+): Promise<any> {
   const params = new URLSearchParams();
-  params.set('query', query);
+  params.set("query", query);
   if (variables) {
-    params.set('variables', JSON.stringify(variables));
+    params.set("variables", JSON.stringify(variables));
   }
 
   const response = await fetchWithTimeout(await dropmailGraphqlUrl(), {
-    method: 'POST',
+    method: "POST",
     headers: DEFAULT_HEADERS,
     body: params.toString(),
   });
@@ -202,7 +210,9 @@ async function graphqlRequest(query: string, variables?: Record<string, any>): P
   const data = await response.json();
 
   if (data.errors) {
-    throw new Error(`GraphQL error: ${data.errors[0]?.message || 'Unknown error'}`);
+    throw new Error(
+      `GraphQL error: ${data.errors[0]?.message || "Unknown error"}`,
+    );
   }
 
   return data.data;
@@ -218,7 +228,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
   const session = data?.introduceSession;
   if (!session || !session.addresses || session.addresses.length === 0) {
-    throw new Error('Failed to generate email');
+    throw new Error("Failed to generate email");
   }
 
   return {
@@ -234,13 +244,13 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  */
 function flattenMessage(mail: any, recipientEmail: string): any {
   return {
-    id: mail.id || '',
-    from: mail.fromAddr || '',
+    id: mail.id || "",
+    from: mail.fromAddr || "",
     to: mail.toAddr || recipientEmail,
-    subject: mail.headerSubject || '',
-    text: mail.text || '',
-    html: mail.html || '',
-    received_at: mail.receivedAt || '',
+    subject: mail.headerSubject || "",
+    text: mail.text || "",
+    html: mail.html || "",
+    received_at: mail.receivedAt || "",
     attachments: [],
   };
 }
@@ -250,9 +260,14 @@ function flattenMessage(mail: any, recipientEmail: string): any {
  * GraphQL query: session(id) { mails {...} }
  * token 中存储的是 session ID
  */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   const data = await graphqlRequest(GET_MAILS_QUERY, { id: token });
 
   const mails = data?.session?.mails || [];
-  return mails.map((mail: any) => normalizeEmail(flattenMessage(mail, email), email));
+  return mails.map((mail: any) =>
+    normalizeEmail(flattenMessage(mail, email), email),
+  );
 }

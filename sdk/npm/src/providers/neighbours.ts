@@ -1,10 +1,10 @@
-import { randomInt } from 'crypto';
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { randomInt } from "crypto";
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'neighbours';
-const API_BASE = 'https://neighbours.sh/api/v1';
+const CHANNEL: Channel = "neighbours";
+const API_BASE = "https://neighbours.sh/api/v1";
 
 type DomainListResponse = {
   data?: {
@@ -43,21 +43,24 @@ type InboxDetailResponse = {
 };
 
 const HEADERS: Record<string, string> = {
-  Accept: 'application/json',
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+  Accept: "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
 
 function randomLocal(length = 16): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let out = 'sdk';
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "sdk";
   for (let i = 0; i < length; i++) {
     out += chars[randomInt(chars.length)];
   }
   return out;
 }
 
-async function fetchJson<T>(path: string, allowNotFound = false): Promise<T | null> {
+async function fetchJson<T>(
+  path: string,
+  allowNotFound = false,
+): Promise<T | null> {
   const response = await fetchWithTimeout(`${API_BASE}${path}`, {
     headers: HEADERS,
   });
@@ -71,12 +74,12 @@ async function fetchJson<T>(path: string, allowNotFound = false): Promise<T | nu
 }
 
 async function listDomains(): Promise<string[]> {
-  const data = await fetchJson<DomainListResponse>('/config/domains');
+  const data = await fetchJson<DomainListResponse>("/config/domains");
   const domains = (data?.data?.domains || [])
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
   if (domains.length === 0) {
-    throw new Error('neighbours: domain list is empty');
+    throw new Error("neighbours: domain list is empty");
   }
   return domains;
 }
@@ -94,45 +97,55 @@ function pickDomain(domains: string[], preferred?: string | null): string {
 }
 
 function firstAddress(value: unknown): string {
-  if (!value) return '';
+  if (!value) return "";
   if (Array.isArray(value)) {
     for (const item of value) {
       const hit = firstAddress(item);
       if (hit) return hit;
     }
-    return '';
+    return "";
   }
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value.trim();
   }
-  if (typeof value === 'object') {
+  if (typeof value === "object") {
     const obj = value as Record<string, unknown>;
-    if (typeof obj.address === 'string' && obj.address.trim()) {
+    if (typeof obj.address === "string" && obj.address.trim()) {
       return obj.address.trim();
     }
-    if (typeof obj.text === 'string' && obj.text.trim() && obj.text.includes('@')) {
+    if (
+      typeof obj.text === "string" &&
+      obj.text.trim() &&
+      obj.text.includes("@")
+    ) {
       return obj.text.trim();
     }
     return firstAddress(obj.value);
   }
-  return '';
+  return "";
 }
 
-function flattenMessage(raw: InboxRow, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: InboxRow,
+  recipient: string,
+): Record<string, unknown> {
   return {
-    id: raw.uid == null ? '' : String(raw.uid),
+    id: raw.uid == null ? "" : String(raw.uid),
     from: firstAddress(raw.from),
     to: firstAddress(raw.to) || recipient,
-    subject: raw.subject || '',
-    text: raw.text || raw.snippet || '',
-    html: raw.html || '',
-    date: raw.date || '',
+    subject: raw.subject || "",
+    text: raw.text || raw.snippet || "",
+    html: raw.html || "",
+    date: raw.date || "",
     isRead: false,
     attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
   };
 }
 
-async function fetchDetail(address: string, uid: string): Promise<InboxRow | null> {
+async function fetchDetail(
+  address: string,
+  uid: string,
+): Promise<InboxRow | null> {
   try {
     const data = await fetchJson<InboxDetailResponse>(
       `/inbox/${encodeURIComponent(address)}/${encodeURIComponent(uid)}`,
@@ -140,13 +153,15 @@ async function fetchDetail(address: string, uid: string): Promise<InboxRow | nul
     if (!data) {
       return null;
     }
-    return data.data && typeof data.data === 'object' ? data.data : null;
+    return data.data && typeof data.data === "object" ? data.data : null;
   } catch {
     return null;
   }
 }
 
-export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+export async function generateEmail(
+  domain?: string | null,
+): Promise<InternalEmailInfo> {
   const domains = await listDomains();
   const selectedDomain = pickDomain(domains, domain);
   return {
@@ -156,21 +171,26 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
 }
 
 export async function getEmails(email: string): Promise<Email[]> {
-  const address = String(email || '').trim();
+  const address = String(email || "").trim();
   if (!address) {
-    throw new Error('neighbours: empty email');
+    throw new Error("neighbours: empty email");
   }
 
-  const list = await fetchJson<InboxListResponse>(`/inbox/${encodeURIComponent(address)}`, true);
+  const list = await fetchJson<InboxListResponse>(
+    `/inbox/${encodeURIComponent(address)}`,
+    true,
+  );
   if (!list) {
     return [];
   }
   const rows = Array.isArray(list.data) ? list.data : [];
   const emails: Email[] = [];
   for (const row of rows) {
-    const uid = String(row.uid ?? '').trim();
+    const uid = String(row.uid ?? "").trim();
     const detail = uid ? await fetchDetail(address, uid) : null;
-    emails.push(normalizeEmail(flattenMessage(detail || row, address), address));
+    emails.push(
+      normalizeEmail(flattenMessage(detail || row, address), address),
+    );
   }
   return emails;
 }

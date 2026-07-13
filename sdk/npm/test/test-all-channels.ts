@@ -1,5 +1,5 @@
-import { TempEmailClient, Channel, setConfig, listChannels } from '../src';
-import { sendSmtp } from './smtp-env';
+import { TempEmailClient, Channel, setConfig, listChannels } from "../src";
+import { sendSmtp } from "./smtp-env";
 
 const allChannels: Channel[] = listChannels().map((info) => info.channel);
 
@@ -37,13 +37,21 @@ async function sendSmtpEmail(to: string, marker: string): Promise<boolean> {
   }
 }
 
-async function pollForMarker(client: TempEmailClient, marker: string, maxAttempts = 8, intervalMs = 5000): Promise<boolean> {
+async function pollForMarker(
+  client: TempEmailClient,
+  marker: string,
+  maxAttempts = 8,
+  intervalMs = 5000,
+): Promise<boolean> {
   for (let i = 1; i <= maxAttempts; i++) {
     try {
       const result = await client.getEmails();
       if (result.success) {
         const found = result.emails.some(
-          (e) => e.subject?.includes(marker) || e.text?.includes(marker) || e.html?.includes(marker)
+          (e) =>
+            e.subject?.includes(marker) ||
+            e.text?.includes(marker) ||
+            e.html?.includes(marker),
         );
         if (found) return true;
       }
@@ -57,17 +65,17 @@ async function testChannel(channel: Channel): Promise<ChannelResult> {
   const result: ChannelResult = {
     channel,
     generateOk: false,
-    generateErr: '',
-    email: '',
+    generateErr: "",
+    email: "",
     getEmailsOk: false,
-    getEmailsErr: '',
+    getEmailsErr: "",
     smtpSent: false,
     smtpReceived: false,
     timeMs: 0,
   };
 
   const start = Date.now();
-  console.log(`\n[${'='.repeat(50)}]`);
+  console.log(`\n[${"=".repeat(50)}]`);
   console.log(`测试渠道: ${channel}`);
 
   // 1. 测试 generateEmail
@@ -75,7 +83,7 @@ async function testChannel(channel: Channel): Promise<ChannelResult> {
     const client = new TempEmailClient();
     const info = await client.generate({ channel, channelFallback: false });
     if (!info) {
-      result.generateErr = '返回 null';
+      result.generateErr = "返回 null";
       console.log(`  ❌ 生成邮箱失败: 返回 null`);
       result.timeMs = Date.now() - start;
       return result;
@@ -91,7 +99,7 @@ async function testChannel(channel: Channel): Promise<ChannelResult> {
       if (emailResult.success) {
         console.log(`  ✅ 获取邮件成功 (${emailResult.emails.length} 封)`);
       } else {
-        result.getEmailsErr = '返回 success: false';
+        result.getEmailsErr = "返回 success: false";
         console.log(`  ⚠️ 获取邮件返回 success: false`);
       }
     } catch (e: any) {
@@ -126,11 +134,11 @@ async function main() {
   // 关闭遥测，避免干扰测试
   setConfig({ telemetryEnabled: false });
 
-  console.log('========================================');
-  console.log('  TempMail SDK 全渠道测试');
+  console.log("========================================");
+  console.log("  TempMail SDK 全渠道测试");
   console.log(`  测试时间: ${new Date().toISOString()}`);
   console.log(`  渠道总数: ${allChannels.length}`);
-  console.log('========================================');
+  console.log("========================================");
 
   const results: ChannelResult[] = [];
 
@@ -140,10 +148,16 @@ async function main() {
   }
 
   // 汇总报告
-  console.log('\n\n');
-  console.log('╔══════════════════════════════════════════════════════════════════════════╗');
-  console.log('║                         全渠道测试汇总报告                               ║');
-  console.log('╠══════════════════════════════════════════════════════════════════════════╣');
+  console.log("\n\n");
+  console.log(
+    "╔══════════════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║                         全渠道测试汇总报告                               ║",
+  );
+  console.log(
+    "╠══════════════════════════════════════════════════════════════════════════╣",
+  );
 
   const genOk = results.filter((r) => r.generateOk);
   const genFail = results.filter((r) => !r.generateOk);
@@ -153,17 +167,25 @@ async function main() {
   console.log(`\n  📊 统计:`);
   console.log(`     生成邮箱成功: ${genOk.length}/${results.length}`);
   console.log(`     获取邮件成功: ${getOk.length}/${results.length}`);
-  console.log(`     SMTP 收信成功: ${smtpOk.length}/${genOk.length} (仅统计生成成功的渠道)`);
+  console.log(
+    `     SMTP 收信成功: ${smtpOk.length}/${genOk.length} (仅统计生成成功的渠道)`,
+  );
 
   // 成功的渠道
   if (genOk.length > 0) {
     console.log(`\n  ✅ 可用渠道 (${genOk.length}):`);
     for (const r of genOk) {
       const flags = [
-        r.getEmailsOk ? 'getEmails✅' : 'getEmails❌',
-        r.smtpReceived ? 'SMTP收信✅' : r.smtpSent ? 'SMTP未收到⚠️' : 'SMTP发送失败❌',
-      ].join(' | ');
-      console.log(`     ${r.channel.padEnd(22)} ${r.email.padEnd(40)} [${flags}] ${(r.timeMs / 1000).toFixed(1)}s`);
+        r.getEmailsOk ? "getEmails✅" : "getEmails❌",
+        r.smtpReceived
+          ? "SMTP收信✅"
+          : r.smtpSent
+            ? "SMTP未收到⚠️"
+            : "SMTP发送失败❌",
+      ].join(" | ");
+      console.log(
+        `     ${r.channel.padEnd(22)} ${r.email.padEnd(40)} [${flags}] ${(r.timeMs / 1000).toFixed(1)}s`,
+      );
     }
   }
 
@@ -171,12 +193,17 @@ async function main() {
   if (genFail.length > 0) {
     console.log(`\n  ❌ 不可用渠道 (${genFail.length}):`);
     for (const r of genFail) {
-      const errShort = r.generateErr.length > 80 ? r.generateErr.substring(0, 80) + '...' : r.generateErr;
+      const errShort =
+        r.generateErr.length > 80
+          ? r.generateErr.substring(0, 80) + "..."
+          : r.generateErr;
       console.log(`     ${r.channel.padEnd(22)} 错误: ${errShort}`);
     }
   }
 
-  console.log('\n╚══════════════════════════════════════════════════════════════════════════╝');
+  console.log(
+    "\n╚══════════════════════════════════════════════════════════════════════════╝",
+  );
 }
 
 main().catch(console.error);

@@ -36,7 +36,6 @@ func byomDefaultHeaders(req *http.Request) {
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Pragma", "no-cache")
-	req.Header.Set("Referer", "https://byom.de/")
 	req.Header.Set("User-Agent", getCurrentUA())
 }
 

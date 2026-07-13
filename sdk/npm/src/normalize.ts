@@ -1,5 +1,5 @@
-import { Email, EmailAttachment } from './types';
-import { htmlToText } from './html';
+import { Email, EmailAttachment } from "./types";
+import { htmlToText } from "./html";
 
 /**
  * 将各提供商返回的原始邮件数据标准化为统一的 Email 格式
@@ -11,7 +11,7 @@ import { htmlToText } from './html';
  * @param recipientEmail - 收件人邮箱地址，当原始数据中无收件人字段时用作回退值
  * @returns 标准化的 Email 对象
  */
-export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
+export function normalizeEmail(raw: any, recipientEmail: string = ""): Email {
   let text = normalizeText(raw);
   let html = normalizeHtml(raw);
 
@@ -23,7 +23,7 @@ export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
    */
   if (text && !html && isHtmlContent(text)) {
     html = text;
-    text = '';
+    text = "";
   }
   if (!text && html) {
     text = htmlToText(html);
@@ -51,22 +51,30 @@ export function normalizeEmail(raw: any, recipientEmail: string = ''): Email {
  */
 function isHtmlContent(content: string): boolean {
   const prefix = content.slice(0, 200).trim().toLowerCase();
-  if (prefix.startsWith('<!doctype html') || prefix.startsWith('<html') || prefix.startsWith('<body')) {
+  if (
+    prefix.startsWith("<!doctype html") ||
+    prefix.startsWith("<html") ||
+    prefix.startsWith("<body")
+  ) {
     return true;
   }
   const trimmed = content.trim().toLowerCase();
-  return (trimmed.includes('<div') && trimmed.includes('</div>')) ||
-    (trimmed.includes('<table') && trimmed.includes('</table>')) ||
-    (trimmed.includes('<p') && trimmed.includes('</p>') && trimmed.includes('<'));
+  return (
+    (trimmed.includes("<div") && trimmed.includes("</div>")) ||
+    (trimmed.includes("<table") && trimmed.includes("</table>")) ||
+    (trimmed.includes("<p") &&
+      trimmed.includes("</p>") &&
+      trimmed.includes("<"))
+  );
 }
 
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function textToHtml(text: string): string {
@@ -78,7 +86,14 @@ function textToHtml(text: string): string {
  * 候选字段: id, eid, _id, mailboxId, messageId, mail_id
  */
 function normalizeId(raw: any): string {
-  const id = raw.id ?? raw.eid ?? raw._id ?? raw.mailboxId ?? raw.messageId ?? raw.mail_id ?? '';
+  const id =
+    raw.id ??
+    raw.eid ??
+    raw._id ??
+    raw.mailboxId ??
+    raw.messageId ??
+    raw.mail_id ??
+    "";
   return String(id);
 }
 
@@ -97,7 +112,7 @@ function normalizeFrom(raw: any): string {
     raw.from_email ||
     raw.from ||
     raw.messageFrom ||
-    ''
+    ""
   );
 }
 
@@ -106,7 +121,16 @@ function normalizeFrom(raw: any): string {
  * 候选字段: to, to_address, name_to, email_address, address
  */
 function normalizeTo(raw: any, recipientEmail: string): string {
-  return raw.to || raw.to_address || raw.toAddress || raw.name_to || raw.email_address || raw.address || recipientEmail || '';
+  return (
+    raw.to ||
+    raw.to_address ||
+    raw.toAddress ||
+    raw.name_to ||
+    raw.email_address ||
+    raw.address ||
+    recipientEmail ||
+    ""
+  );
 }
 
 /**
@@ -114,7 +138,7 @@ function normalizeTo(raw: any, recipientEmail: string): string {
  * 候选字段: subject, e_subject
  */
 function normalizeSubject(raw: any): string {
-  return raw.subject || raw.e_subject || raw.mail_title || '';
+  return raw.subject || raw.e_subject || raw.mail_title || "";
 }
 
 /**
@@ -132,7 +156,7 @@ function normalizeText(raw: any): string {
     raw.body_text ||
     raw.text_content ||
     raw.description ||
-    ''
+    ""
   );
 }
 
@@ -141,7 +165,14 @@ function normalizeText(raw: any): string {
  * 候选字段: html, html_content, body_html
  */
 function normalizeHtml(raw: any): string {
-  return raw.html || raw.html_body || raw.html_content || raw.body_html || raw.mail_body_html || '';
+  return (
+    raw.html ||
+    raw.html_body ||
+    raw.html_content ||
+    raw.body_html ||
+    raw.mail_body_html ||
+    ""
+  );
 }
 
 /**
@@ -152,11 +183,12 @@ function normalizeHtml(raw: any): string {
 function normalizeDate(raw: any): string {
   try {
     if (raw.received_at) return new Date(raw.received_at).toISOString();
-    if (raw.receivedAt) return new Date(String(raw.receivedAt).replace(' ', 'T')).toISOString();
+    if (raw.receivedAt)
+      return new Date(String(raw.receivedAt).replace(" ", "T")).toISOString();
     if (raw.created_at) return new Date(raw.created_at).toISOString();
     if (raw.createdAt) return new Date(raw.createdAt).toISOString();
     if (raw.date) {
-      if (typeof raw.date === 'number') return new Date(raw.date).toISOString();
+      if (typeof raw.date === "number") return new Date(raw.date).toISOString();
       return new Date(raw.date).toISOString();
     }
     if (raw.timestamp) return new Date(raw.timestamp * 1000).toISOString();
@@ -164,7 +196,7 @@ function normalizeDate(raw: any): string {
   } catch {
     /* 日期解析失败，返回空字符串 */
   }
-  return '';
+  return "";
 }
 
 /**
@@ -173,14 +205,14 @@ function normalizeDate(raw: any): string {
  * 支持 boolean / number(0|1) / string('0'|'1') 多种类型
  */
 function normalizeIsRead(raw: any): boolean {
-  if (typeof raw.seen === 'boolean') return raw.seen;
-  if (typeof raw.read === 'boolean') return raw.read;
-  if (typeof raw.isRead === 'boolean') return raw.isRead;
-  if (typeof raw.is_seen === 'number') return raw.is_seen === 1;
-  if (typeof raw.is_seen === 'string') return raw.is_seen === '1';
-  if (typeof raw.is_read === 'number') return raw.is_read === 1;
-  if (typeof raw.is_read === 'string') return raw.is_read === '1';
-  if (typeof raw.is_read === 'boolean') return raw.is_read;
+  if (typeof raw.seen === "boolean") return raw.seen;
+  if (typeof raw.read === "boolean") return raw.read;
+  if (typeof raw.isRead === "boolean") return raw.isRead;
+  if (typeof raw.is_seen === "number") return raw.is_seen === 1;
+  if (typeof raw.is_seen === "string") return raw.is_seen === "1";
+  if (typeof raw.is_read === "number") return raw.is_read === 1;
+  if (typeof raw.is_read === "string") return raw.is_read === "1";
+  if (typeof raw.is_read === "boolean") return raw.is_read;
   return false;
 }
 
@@ -191,9 +223,10 @@ function normalizeIsRead(raw: any): boolean {
 function normalizeAttachments(attachments: any): EmailAttachment[] {
   if (!attachments || !Array.isArray(attachments)) return [];
   return attachments.map((a: any) => ({
-    filename: a.filename || a.name || '',
+    filename: a.filename || a.name || "",
     size: a.size || a.filesize || undefined,
-    contentType: a.contentType || a.content_type || a.mimeType || a.mime_type || undefined,
+    contentType:
+      a.contentType || a.content_type || a.mimeType || a.mime_type || undefined,
     url: a.url || a.download_url || a.downloadUrl || undefined,
   }));
 }

@@ -114,7 +114,10 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     block_on(async {
         let resp = http_client()
             .get(&url)
-            .header("Accept", "application/rss+xml, application/xml, text/xml, */*")
+            .header(
+                "Accept",
+                "application/rss+xml, application/xml, text/xml, */*",
+            )
             .header("User-Agent", get_current_ua())
             .send()
             .await
@@ -148,16 +151,8 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
 
             let (from, subject, date, body) = parse_description(description);
             // 优先使用 description 中解析的值，fallback 到 title/pubDate
-            let final_subject = if subject.is_empty() {
-                title
-            } else {
-                subject
-            };
-            let final_date = if date.is_empty() {
-                pub_date
-            } else {
-                date
-            };
+            let final_subject = if subject.is_empty() { title } else { subject };
+            let final_date = if date.is_empty() { pub_date } else { date };
 
             let flat = serde_json::json!({
                 "id": format!("eyepaste-{}", idx),

@@ -19,6 +19,7 @@ import (
 *   DROPMAIL_AUTH_TOKEN / DROPMAIL_API_TOKEN - DropMail GraphQL 路径中的 af_ 令牌
 *   DROPMAIL_NO_AUTO_TOKEN - 禁止自动拉取/续期
 *   DROPMAIL_RENEW_LIFETIME - renew 请求的 lifetime，默认 1d
+*   APIHZ_ID / APIHZ_KEY - apihz（接口盒子）调用凭据，默认公共账号 88888888
 *   TEMPMAIL_TELEMETRY_ENABLED - true/false，默认 true；设为 false/0/no 关闭匿名用量上报
 *   TEMPMAIL_TELEMETRY_URL - 自定义上报端点 URL（覆盖内置默认地址）
  */
@@ -35,6 +36,10 @@ type SDKConfig struct {
 	DropmailDisableAutoToken bool
 	/* 自动续期时传给 /api/token/renew 的 lifetime，如 1d */
 	DropmailRenewLifetime string
+	/* apihz（接口盒子）调用凭据 id，空则使用官方公共账号 88888888 */
+	ApihzID string
+	/* apihz（接口盒子）调用凭据 key，空则使用官方公共账号 88888888 */
+	ApihzKey string
 	/*
 	 * 匿名用量上报开关：nil 表示默认开启；指向 false 关闭，指向 true 显式开启
 	 */
@@ -90,6 +95,12 @@ func loadEnvConfig() {
 	}
 	if v := strings.TrimSpace(os.Getenv("DROPMAIL_RENEW_LIFETIME")); v != "" {
 		globalConfig.DropmailRenewLifetime = v
+	}
+	if v := strings.TrimSpace(os.Getenv("APIHZ_ID")); v != "" {
+		globalConfig.ApihzID = v
+	}
+	if v := strings.TrimSpace(os.Getenv("APIHZ_KEY")); v != "" {
+		globalConfig.ApihzKey = v
 	}
 	if v := strings.TrimSpace(os.Getenv("TEMPMAIL_TELEMETRY_ENABLED")); v != "" {
 		globalConfig.TelemetryEnabled = parseTelemetryEnabledEnv(v)

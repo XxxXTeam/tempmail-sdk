@@ -3,8 +3,8 @@
  * 提供请求重试、超时控制、指数退避等错误恢复机制
  */
 
-import { logger } from './logger';
-import { getConfig } from './config';
+import { logger } from "./logger";
+import { getConfig } from "./config";
 
 /**
  * 重试配置选项
@@ -43,23 +43,29 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
 function defaultShouldRetry(error: any): boolean {
   if (!error) return false;
 
-  const message = String(error.message || error || '').toLowerCase();
+  const message = String(error.message || error || "").toLowerCase();
 
   /* 网络级别错误 → 重试 */
-  if (message.includes('fetch failed') ||
-      message.includes('network') ||
-      message.includes('econnrefused') ||
-      message.includes('econnreset') ||
-      message.includes('etimedout') ||
-      message.includes('timeout') ||
-      message.includes('socket hang up') ||
-      message.includes('dns') ||
-      message.includes('abort')) {
+  if (
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("econnrefused") ||
+    message.includes("econnreset") ||
+    message.includes("etimedout") ||
+    message.includes("timeout") ||
+    message.includes("socket hang up") ||
+    message.includes("dns") ||
+    message.includes("abort")
+  ) {
     return true;
   }
 
   /* HTTP 429 限流 → 重试 */
-  if (message.includes('429') || message.includes('too many requests') || message.includes('rate limit')) {
+  if (
+    message.includes("429") ||
+    message.includes("too many requests") ||
+    message.includes("rate limit")
+  ) {
     return true;
   }
 
@@ -77,7 +83,7 @@ function defaultShouldRetry(error: any): boolean {
  * 休眠指定毫秒
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -126,8 +132,13 @@ export async function withRetryWithAttempts<T>(
       }
 
       /* 指数退避等待 */
-      const delay = Math.min(opts.initialDelay * Math.pow(2, attempt), opts.maxDelay);
-      logger.warn(`请求失败 (${errorMsg})，${delay}ms 后第 ${attempt + 2} 次重试...`);
+      const delay = Math.min(
+        opts.initialDelay * Math.pow(2, attempt),
+        opts.maxDelay,
+      );
+      logger.warn(
+        `请求失败 (${errorMsg})，${delay}ms 后第 ${attempt + 2} 次重试...`,
+      );
       await sleep(delay);
     }
   }
@@ -135,7 +146,10 @@ export async function withRetryWithAttempts<T>(
   return { ok: false, error: lastError, attempts: opts.maxRetries + 1 };
 }
 
-export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T> {
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options?: RetryOptions,
+): Promise<T> {
   const r = await withRetryWithAttempts(fn, options);
   if (r.ok) return r.value;
   throw r.error;
@@ -153,7 +167,11 @@ export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions)
  * 缓存的全局配置快照，避免每次请求都读取
  * 仅在 setConfig 被调用时失效（通过 configVersion 比对）
  */
-let _cachedFetchConfig: { fetchFn: typeof fetch; timeout: number; version: number } | null = null;
+let _cachedFetchConfig: {
+  fetchFn: typeof fetch;
+  timeout: number;
+  version: number;
+} | null = null;
 
 /**
  * 获取缓存的 fetch 配置
@@ -161,7 +179,12 @@ let _cachedFetchConfig: { fetchFn: typeof fetch; timeout: number; version: numbe
 function getFetchConfig(): { fetchFn: typeof fetch; timeout: number } {
   const config = getConfig();
   /* 简单的引用比对即可，getConfig 在未变更时返回同一对象 */
-  if (!_cachedFetchConfig || _cachedFetchConfig.fetchFn !== (config.customFetch || fetch) || _cachedFetchConfig.timeout !== (config.timeout ?? DEFAULT_RETRY_OPTIONS.timeout)) {
+  if (
+    !_cachedFetchConfig ||
+    _cachedFetchConfig.fetchFn !== (config.customFetch || fetch) ||
+    _cachedFetchConfig.timeout !==
+      (config.timeout ?? DEFAULT_RETRY_OPTIONS.timeout)
+  ) {
     _cachedFetchConfig = {
       fetchFn: config.customFetch || fetch,
       timeout: config.timeout ?? DEFAULT_RETRY_OPTIONS.timeout,
@@ -183,17 +206,24 @@ function resolveFetchForTls(
   if (!skipTlsVerify) {
     return baseFetch;
   }
-  if (typeof process === 'undefined' || !process.versions?.node) {
+  if (typeof process === "undefined" || !process.versions?.node) {
     return baseFetch;
   }
   try {
     // Node 18+ 内置 undici，用于 per-request 关闭证书校验（不修改全局 NODE_TLS_REJECT_UNAUTHORIZED）
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const undici = require('undici') as {
-      Agent: new (opts: { connect: { rejectUnauthorized: boolean } }) => unknown;
-      fetch: (input: string, init?: Record<string, unknown>) => Promise<Response>;
+    const undici = require("undici") as {
+      Agent: new (opts: {
+        connect: { rejectUnauthorized: boolean };
+      }) => unknown;
+      fetch: (
+        input: string,
+        init?: Record<string, unknown>,
+      ) => Promise<Response>;
     };
-    const dispatcher = new undici.Agent({ connect: { rejectUnauthorized: false } });
+    const dispatcher = new undici.Agent({
+      connect: { rejectUnauthorized: false },
+    });
     return ((u: string, i?: RequestInit) =>
       undici.fetch(u, {
         ...(i as Record<string, unknown>),
@@ -212,9 +242,9 @@ function randomIPv4(): string {
 function spoofIPHeaders(): Record<string, string> {
   const ip = randomIPv4();
   return {
-    'X-Forwarded-For': ip,
-    'X-Real-IP': ip,
-    'X-Originating-IP': ip,
+    "X-Forwarded-For": ip,
+    "X-Real-IP": ip,
+    "X-Originating-IP": ip,
   };
 }
 
@@ -231,11 +261,16 @@ export async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
   const spoofed = spoofIPHeaders();
-  const mergedHeaders = { ...spoofed, ...(init?.headers as Record<string, string>) };
+  const mergedHeaders = {
+    ...spoofed,
+    ...(init?.headers as Record<string, string>),
+  };
 
   const externalSignal = init?.signal;
   if (externalSignal) {
-    externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    externalSignal.addEventListener("abort", () => controller.abort(), {
+      once: true,
+    });
   }
 
   try {
@@ -246,7 +281,7 @@ export async function fetchWithTimeout(
     });
     return response;
   } catch (error: any) {
-    if (error.name === 'AbortError') {
+    if (error.name === "AbortError") {
       throw new Error(`Request timeout after ${effectiveTimeout}ms: ${url}`);
     }
     throw error;

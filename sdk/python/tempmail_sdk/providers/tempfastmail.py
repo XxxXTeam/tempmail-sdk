@@ -47,7 +47,9 @@ def get_emails(token: str, email: str) -> List[Email]:
     if not address:
         raise ValueError("tempfastmail: empty email")
 
-    response = http.get(f"{BASE_URL}/api/email-box/{quote(uuid, safe='')}/emails", headers=HEADERS)
+    response = http.get(
+        f"{BASE_URL}/api/email-box/{quote(uuid, safe='')}/emails", headers=HEADERS
+    )
     response.raise_for_status()
     rows = response.json()
     if not isinstance(rows, list):

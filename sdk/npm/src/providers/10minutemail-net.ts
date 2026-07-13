@@ -9,15 +9,15 @@
  * Go 端依赖全局 cookie jar 维持 session（token 为空）；本端无 cookie jar，
  * 故将创建时获得的会话 Cookie 串存入 token，getEmails 时手动携带以绑定收件箱。
  */
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = '10minutemail-net';
-const BASE_URL = 'https://10minutemail.net';
+const CHANNEL: Channel = "10minutemail-net";
+const BASE_URL = "https://10minutemail.net";
 
 const USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0';
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0";
 
 /** 从首页 HTML 的邮箱输入框提取地址（value="xxx@xxx.com"） */
 const EMAIL_RE = /value="([^"]+@[^"]+)"/;
@@ -36,19 +36,19 @@ const TAG_RE = /<[^>]+>/g;
 
 function browserHeaders(): Record<string, string> {
   return {
-    'User-Agent': USER_AGENT,
+    "User-Agent": USER_AGENT,
     Accept:
-      'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
   };
 }
 
 function ajaxHeaders(): Record<string, string> {
   return {
-    'User-Agent': USER_AGENT,
-    Accept: '*/*',
-    'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-    'X-Requested-With': 'XMLHttpRequest',
+    "User-Agent": USER_AGENT,
+    Accept: "*/*",
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+    "X-Requested-With": "XMLHttpRequest",
     Referer: `${BASE_URL}/`,
   };
 }
@@ -56,10 +56,10 @@ function ajaxHeaders(): Record<string, string> {
 /** 从 Set-Cookie 响应头提取 cookie 行（Node 下 Headers 可能有 getSetCookie） */
 function setCookieLines(headers: Headers): string[] {
   const h = headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof h.getSetCookie === 'function') {
+  if (typeof h.getSetCookie === "function") {
     return h.getSetCookie();
   }
-  const one = headers.get('set-cookie');
+  const one = headers.get("set-cookie");
   return one ? [one] : [];
 }
 
@@ -67,19 +67,19 @@ function setCookieLines(headers: Headers): string[] {
 function mergeCookieHeader(prev: string, headers: Headers): string {
   const map = new Map<string, string>();
   if (prev) {
-    for (const part of prev.split(';')) {
-      const eq = part.indexOf('=');
+    for (const part of prev.split(";")) {
+      const eq = part.indexOf("=");
       if (eq <= 0) continue;
       map.set(part.slice(0, eq).trim(), part.slice(eq + 1).trim());
     }
   }
   for (const line of setCookieLines(headers)) {
-    const first = line.split(';')[0] ?? '';
-    const eq = first.indexOf('=');
+    const first = line.split(";")[0] ?? "";
+    const eq = first.indexOf("=");
     if (eq <= 0) continue;
     map.set(first.slice(0, eq).trim(), first.slice(eq + 1).trim());
   }
-  return [...map.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
+  return [...map.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
 }
 
 /**
@@ -88,20 +88,22 @@ function mergeCookieHeader(prev: string, headers: Headers): string {
  * token 存储会话 Cookie 串（绑定该收件箱）。
  */
 export async function generateEmail(): Promise<InternalEmailInfo> {
-  const r = await fetchWithTimeout(`${BASE_URL}/`, { headers: browserHeaders() });
+  const r = await fetchWithTimeout(`${BASE_URL}/`, {
+    headers: browserHeaders(),
+  });
   if (!r.ok) {
     throw new Error(`10minutemail-net: 获取首页失败 HTTP ${r.status}`);
   }
 
-  const cookieHdr = mergeCookieHeader('', r.headers);
+  const cookieHdr = mergeCookieHeader("", r.headers);
   const html = await r.text();
 
   const m = EMAIL_RE.exec(html);
   if (!m?.[1]) {
-    throw new Error('10minutemail-net: 未能从首页提取邮箱地址');
+    throw new Error("10minutemail-net: 未能从首页提取邮箱地址");
   }
   const email = m[1].trim();
-  if (!email || !email.includes('@')) {
+  if (!email || !email.includes("@")) {
     throw new Error(`10minutemail-net: 获取到的邮箱地址无效: ${email}`);
   }
 
@@ -115,12 +117,15 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  * 3. 对每封邮件 GET /readmail.html?mid={id} 获取整页并提取正文 HTML 片段
  * 表格列顺序: 寄件人 | 主题 | 收件日期；未读行的 <tr> 带 font-weight: bold 样式
  */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   const addr = email.trim();
   if (!addr) {
-    throw new Error('10minutemail-net: 邮箱地址为空');
+    throw new Error("10minutemail-net: 邮箱地址为空");
   }
-  const cookieHdr = (token ?? '').trim();
+  const cookieHdr = (token ?? "").trim();
 
   const listURL = `${BASE_URL}/mailbox.ajax.php?_=${Date.now()}`;
   const r = await fetchWithTimeout(listURL, {
@@ -140,7 +145,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
     const rowInner = rowMatch[1];
 
     /* 跳过表头行（含 <th>） */
-    if (rowInner.toLowerCase().includes('<th')) {
+    if (rowInner.toLowerCase().includes("<th")) {
       continue;
     }
 
@@ -162,16 +167,16 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
       cells.push(cellMatch[1]);
     }
 
-    const fromAddr = extractText(cells[0] ?? '');
-    const subject = extractText(cells[1] ?? '');
+    const fromAddr = extractText(cells[0] ?? "");
+    const subject = extractText(cells[1] ?? "");
 
     /* 收件时间优先取 span 的 title 属性（UTC 绝对时间），否则取单元格文本 */
-    const dateCell = cells[2] ?? '';
+    const dateCell = cells[2] ?? "";
     const titleMatch = TITLE_RE.exec(dateCell);
     const date = titleMatch?.[1] ? titleMatch[1].trim() : extractText(dateCell);
 
     /* 未读状态：行 <tr> 样式含 font-weight: bold */
-    const isRead = !rowFull.toLowerCase().includes('font-weight: bold');
+    const isRead = !rowFull.toLowerCase().includes("font-weight: bold");
 
     const htmlBody = await fetchBody(cookieHdr, mailID);
 
@@ -196,13 +201,17 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
  */
 async function fetchBody(cookieHdr: string, mailID: string): Promise<string> {
   if (!mailID) {
-    return '';
+    return "";
   }
   const r = await fetchWithTimeout(`${BASE_URL}/readmail.html?mid=${mailID}`, {
-    headers: { ...browserHeaders(), Referer: `${BASE_URL}/`, ...(cookieHdr ? { Cookie: cookieHdr } : {}) },
+    headers: {
+      ...browserHeaders(),
+      Referer: `${BASE_URL}/`,
+      ...(cookieHdr ? { Cookie: cookieHdr } : {}),
+    },
   });
   if (!r.ok) {
-    return '';
+    return "";
   }
   return extractBody(await r.text());
 }
@@ -216,26 +225,26 @@ function extractBody(page: string): string {
   const startMark = 'class="mailinhtml"';
   const si = page.indexOf(startMark);
   if (si < 0) {
-    return '';
+    return "";
   }
   /* 跳到 mailinhtml 这个 div 的 '>' 之后 */
-  const gt = page.indexOf('>', si);
+  const gt = page.indexOf(">", si);
   if (gt < 0) {
-    return '';
+    return "";
   }
   const rest = page.slice(gt + 1);
 
   /* 结束锚点：mailinhtml 区块后紧跟的 cloudflare email-decode 脚本 */
-  const ei = rest.indexOf('email-decode.min.js');
+  const ei = rest.indexOf("email-decode.min.js");
   if (ei < 0) {
     /* 兜底：退化为该 div 后第一个 </div> */
-    const di = rest.indexOf('</div>');
+    const di = rest.indexOf("</div>");
     return di < 0 ? rest.trim() : rest.slice(0, di).trim();
   }
 
   let segment = rest.slice(0, ei);
   /* segment 末尾形如 "...正文</div></div><script ..."，裁掉结尾的 <script 起始 */
-  const sIdx = segment.lastIndexOf('<script');
+  const sIdx = segment.lastIndexOf("<script");
   if (sIdx >= 0) {
     segment = segment.slice(0, sIdx);
   }
@@ -243,8 +252,8 @@ function extractBody(page: string): string {
   /* 去掉 mailinhtml 与其外层 tab1 的两个闭合 div */
   for (let i = 0; i < 2; i++) {
     segment = segment.trim();
-    if (segment.endsWith('</div>')) {
-      segment = segment.slice(0, -'</div>'.length);
+    if (segment.endsWith("</div>")) {
+      segment = segment.slice(0, -"</div>".length);
     }
   }
   return segment.trim();
@@ -262,13 +271,13 @@ function extractText(cell: string): string {
       return decoded;
     }
   }
-  let text = cell.replace(TAG_RE, '');
+  let text = cell.replace(TAG_RE, "");
   text = text
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&#160;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#160;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"');
   return text.trim();
 }
@@ -279,20 +288,20 @@ function extractText(cell: string): string {
  */
 function cfDecode(encoded: string): string {
   if (encoded.length < 4 || encoded.length % 2 !== 0) {
-    return '';
+    return "";
   }
   const bytes: number[] = [];
   for (let i = 0; i < encoded.length; i += 2) {
     const b = parseInt(encoded.slice(i, i + 2), 16);
     if (Number.isNaN(b)) {
-      return '';
+      return "";
     }
     bytes.push(b);
   }
   const key = bytes[0];
-  let decoded = '';
+  let decoded = "";
   for (let i = 1; i < bytes.length; i++) {
     decoded += String.fromCharCode(bytes[i] ^ key);
   }
-  return decoded.includes('@') ? decoded : '';
+  return decoded.includes("@") ? decoded : "";
 }

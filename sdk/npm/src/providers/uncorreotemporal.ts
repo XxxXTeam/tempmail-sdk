@@ -1,9 +1,9 @@
-import * as https from 'https';
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
+import * as https from "https";
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
 
-const CHANNEL: Channel = 'uncorreotemporal';
-const HOST = 'uncorreotemporal.com';
+const CHANNEL: Channel = "uncorreotemporal";
+const HOST = "uncorreotemporal.com";
 const ORIGIN = `https://${HOST}`;
 const IPV4_AGENT = new https.Agent({ family: 4 });
 
@@ -30,21 +30,25 @@ interface DetailMessage extends ListMessage {
 }
 
 const HEADERS: Record<string, string> = {
-  Accept: 'application/json',
+  Accept: "application/json",
   Origin: ORIGIN,
   Referer: `${ORIGIN}/`,
-  'User-Agent': 'Mozilla/5.0',
+  "User-Agent": "Mozilla/5.0",
 };
 
-function requestJSON<T>(method: 'GET' | 'POST', path: string, token?: string): Promise<T> {
+function requestJSON<T>(
+  method: "GET" | "POST",
+  path: string,
+  token?: string,
+): Promise<T> {
   const headers: Record<string, string> = { ...HEADERS };
-  if (method === 'POST') headers['Content-Type'] = 'application/json';
-  if (token) headers['X-Session-Token'] = token;
+  if (method === "POST") headers["Content-Type"] = "application/json";
+  if (token) headers["X-Session-Token"] = token;
 
   return new Promise<T>((resolve, reject) => {
     const req = https.request(
       {
-        protocol: 'https:',
+        protocol: "https:",
         hostname: HOST,
         path,
         method,
@@ -54,9 +58,9 @@ function requestJSON<T>(method: 'GET' | 'POST', path: string, token?: string): P
       },
       (res) => {
         const chunks: Buffer[] = [];
-        res.on('data', (chunk: Buffer) => chunks.push(chunk));
-        res.on('end', () => {
-          const body = Buffer.concat(chunks).toString('utf8');
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf8");
           const status = res.statusCode || 0;
           if (status < 200 || status >= 300) {
             reject(new Error(`uncorreotemporal http ${status}`));
@@ -70,32 +74,37 @@ function requestJSON<T>(method: 'GET' | 'POST', path: string, token?: string): P
         });
       },
     );
-    req.on('timeout', () => req.destroy(new Error('uncorreotemporal timeout')));
-    req.on('error', reject);
+    req.on("timeout", () => req.destroy(new Error("uncorreotemporal timeout")));
+    req.on("error", reject);
     req.end();
   });
 }
 
-function flatten(raw: DetailMessage | ListMessage, recipient: string): Record<string, unknown> {
+function flatten(
+  raw: DetailMessage | ListMessage,
+  recipient: string,
+): Record<string, unknown> {
   return {
-    id: raw.id || '',
-    from: raw.from_address || '',
+    id: raw.id || "",
+    from: raw.from_address || "",
     to: raw.to_address || recipient,
-    subject: raw.subject || '',
-    text: (raw as DetailMessage).body_text || '',
-    html: (raw as DetailMessage).body_html || '',
-    date: raw.received_at || '',
+    subject: raw.subject || "",
+    text: (raw as DetailMessage).body_text || "",
+    html: (raw as DetailMessage).body_html || "",
+    date: raw.received_at || "",
     isRead: Boolean(raw.is_read),
-    attachments: Array.isArray((raw as DetailMessage).attachments) ? (raw as DetailMessage).attachments : [],
+    attachments: Array.isArray((raw as DetailMessage).attachments)
+      ? (raw as DetailMessage).attachments
+      : [],
   };
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
-  const data = await requestJSON<CreateResponse>('POST', '/api/v1/mailboxes');
-  const email = String(data.address || '').trim();
-  const token = String(data.session_token || '').trim();
-  if (!email || !email.includes('@') || !token) {
-    throw new Error('uncorreotemporal: invalid mailbox response');
+  const data = await requestJSON<CreateResponse>("POST", "/api/v1/mailboxes");
+  const email = String(data.address || "").trim();
+  const token = String(data.session_token || "").trim();
+  if (!email || !email.includes("@") || !token) {
+    throw new Error("uncorreotemporal: invalid mailbox response");
   }
   return {
     channel: CHANNEL,
@@ -105,10 +114,14 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   };
 }
 
-async function fetchDetail(email: string, token: string, messageID: string): Promise<DetailMessage | null> {
+async function fetchDetail(
+  email: string,
+  token: string,
+  messageID: string,
+): Promise<DetailMessage | null> {
   try {
     return await requestJSON<DetailMessage>(
-      'GET',
+      "GET",
       `/api/v1/mailboxes/${encodeURIComponent(email)}/messages/${encodeURIComponent(messageID)}`,
       token,
     );
@@ -117,20 +130,23 @@ async function fetchDetail(email: string, token: string, messageID: string): Pro
   }
 }
 
-export async function getEmails(token: string, email: string): Promise<Email[]> {
-  const sessionToken = String(token || '').trim();
-  const address = String(email || '').trim();
-  if (!sessionToken) throw new Error('uncorreotemporal: empty session token');
-  if (!address) throw new Error('uncorreotemporal: empty email');
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
+  const sessionToken = String(token || "").trim();
+  const address = String(email || "").trim();
+  if (!sessionToken) throw new Error("uncorreotemporal: empty session token");
+  if (!address) throw new Error("uncorreotemporal: empty email");
 
   const rows = await requestJSON<ListMessage[]>(
-    'GET',
+    "GET",
     `/api/v1/mailboxes/${encodeURIComponent(address)}/messages?limit=50`,
     sessionToken,
   );
   const emails: Email[] = [];
   for (const row of Array.isArray(rows) ? rows : []) {
-    const id = String(row.id || '').trim();
+    const id = String(row.id || "").trim();
     const detail = id ? await fetchDetail(address, sessionToken, id) : null;
     emails.push(normalizeEmail(flatten(detail || row, address), address));
   }

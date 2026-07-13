@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' 
+
+FAILED=0
+PASS=0
+FIXED=0
+
+AUTO_FORMAT="${PRE_COMMIT_AUTO_FORMAT:-true}"
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+MATCH_GO=$(echo "$STAGED_FILES" | grep -q '^sdk/go/' && echo 1 || echo 0)
+MATCH_NPM=$(echo "$STAGED_FILES" | grep -q '^sdk/npm/' && echo 1 || echo 0)
+MATCH_RUST=$(echo "$STAGED_FILES" | grep -q '^sdk/rust/' && echo 1 || echo 0)
+MATCH_PYTHON=$(echo "$STAGED_FILES" | grep -q '^sdk/python/' && echo 1 || echo 0)
+MATCH_C=$(echo "$STAGED_FILES" | grep -q '^sdk/c/' && echo 1 || echo 0)
+MATCH_SERVER=$(echo "$STAGED_FILES" | grep -q '^server/' && echo 1 || echo 0)
+
+if [[ "$MATCH_GO" == "0" && "$MATCH_NPM" == "0" && "$MATCH_RUST" == "0" && "$MATCH_PYTHON" == "0" && "$MATCH_C" == "0" && "$MATCH_SERVER" == "0" ]]; then
+    exit 0
+fi
+if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+else
+fi
+# --- Go SDK ---
+if [[ "$MATCH_GO" == "1" ]]; then
+    cd sdk/go
+    GO_FMT_DIFF=$(gofmt -d .)
+    if [[ -n "$GO_FMT_DIFF" ]]; then
+        if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+            gofmt -w . || true
+            cd - > /dev/null
+            git add sdk/go/ || true
+            cd sdk/go > /dev/null
+            GO_FMT_RECHECK=$(gofmt -d .)
+            if [[ -z "$GO_FMT_RECHECK" ]]; then
+                FIXED=$((FIXED + 1))
+            else
+                FAILED=$((FAILED + 1))
+            fi
+        else
+            FAILED=$((FAILED + 1))
+        fi
+    else
+        PASS=$((PASS + 1))
+    fi
+    if go vet ./... 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    if go build ./... 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+
+    cd - > /dev/null
+fi
+if [[ "$MATCH_NPM" == "1" ]]; then
+    cd sdk/npm
+    if npx tsc --noEmit 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    if npm run build 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    cd - > /dev/null
+
+fi
+if [[ "$MATCH_RUST" == "1" ]]; then
+    cd sdk/rust
+    if cargo fmt -- --check 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+            cargo fmt 2>&1 || true
+            cd - > /dev/null
+            git add sdk/rust/ || true
+            cd sdk/rust > /dev/null
+            if cargo fmt -- --check 2>&1; then
+                FIXED=$((FIXED + 1))
+            else
+                FAILED=$((FAILED + 1))
+            fi
+        else
+            FAILED=$((FAILED + 1))
+        fi
+    fi
+    if cargo build 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    if cargo test 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    if cargo clippy -- -D warnings 2>&1; then
+        PASS=$((PASS + 1))
+    else
+    fi
+
+    cd - > /dev/null
+
+fi
+
+if [[ "$MATCH_PYTHON" == "1" ]]; then
+    cd sdk/python
+    FORMATTER=""
+    if command -v black >/dev/null 2>&1; then
+        FORMATTER="black"
+    elif command -v ruff >/dev/null 2>&1; then
+        FORMATTER="ruff"
+    elif command -v autopep8 >/dev/null 2>&1; then
+        FORMATTER="autopep8"
+    fi
+    if [[ -n "$FORMATTER" ]]; then
+        if [[ "$FORMATTER" == "black" ]]; then
+            if black --check . 2>&1; then
+                PASS=$((PASS + 1))
+            else
+                if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+                    black . 2>&1 || true
+                    cd - > /dev/null
+                    git add sdk/python/ || true
+                    cd sdk/python > /dev/null
+                    if black --check . 2>&1; then
+                        FIXED=$((FIXED + 1))
+                    else
+                        FAILED=$((FAILED + 1))
+                    fi
+                else
+                    FAILED=$((FAILED + 1))
+                fi
+            fi
+        elif [[ "$FORMATTER" == "ruff" ]]; then
+            if ruff check . 2>&1; then
+                PASS=$((PASS + 1))
+            else
+                if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+                    ruff check --fix . 2>&1 || true
+                    cd - > /dev/null
+                    git add sdk/python/ || true
+                    cd sdk/python > /dev/null
+                    if ruff check . 2>&1; then
+                        FIXED=$((FIXED + 1))
+                    else
+                        FAILED=$((FAILED + 1))
+                    fi
+                else
+                    FAILED=$((FAILED + 1))
+                fi
+            fi
+        elif [[ "$FORMATTER" == "autopep8" ]]; then
+            AUTOPEP8_DIFF=$(autopep8 --diff --recursive --max-line-length 88 tempmail_sdk/ 2>&1)
+            if echo "$AUTOPEP8_DIFF" | grep -q . 2>/dev/null; then
+                if [[ "$AUTO_FORMAT" == "true" || "$AUTO_FORMAT" == "1" || "$AUTO_FORMAT" == "yes" ]]; then
+                    autopep8 --in-place --recursive --max-line-length 88 tempmail_sdk/ 2>&1 || true
+                    cd - > /dev/null
+                    git add sdk/python/ || true
+                    cd sdk/python > /dev/null
+                    AUTOPEP8_RECHECK=$(autopep8 --diff --recursive --max-line-length 88 tempmail_sdk/ 2>&1)
+                    if ! echo "$AUTOPEP8_RECHECK" | grep -q . 2>/dev/null; then
+                        FIXED=$((FIXED + 1))
+                    else
+                        FAILED=$((FAILED + 1))
+                    fi
+                else
+                    FAILED=$((FAILED + 1))
+                fi
+            else
+                PASS=$((PASS + 1))
+            fi
+        fi
+    else
+    fi
+    if python -m build 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+
+    cd - > /dev/null
+fi
+if [[ "$MATCH_C" == "1" ]]; then
+    cd sdk/c
+    if [[ ! -f "vendor/cJSON.h" || ! -f "vendor/cJSON.c" ]]; then
+        mkdir -p vendor
+        curl -sL -o vendor/cJSON.h "https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h"
+        curl -sL -o vendor/cJSON.c "https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c"
+    fi
+    rm -rf build
+    if cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug 2>&1 && cmake --build build 2>&1; then
+        PASS=$((PASS + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+
+    cd - > /dev/null
+
+if [[ "$FIXED" -gt 0 ]]; then
+fi
+if [[ "$FAILED" -gt 0 ]]; then
+    exit 1
+else
+    exit 0
+fi

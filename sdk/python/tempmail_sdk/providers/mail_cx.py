@@ -65,7 +65,11 @@ def _pick_domain(config: Dict[str, Any], preferred_domain: Optional[str]) -> str
                 return domain
 
     for item in domain_items:
-        if isinstance(item, dict) and item.get("default") and str(item.get("domain", "")).strip():
+        if (
+            isinstance(item, dict)
+            and item.get("default")
+            and str(item.get("domain", "")).strip()
+        ):
             return str(item["domain"]).strip()
     return domains[0]
 

@@ -73,13 +73,15 @@ def _detail_raw(row: Dict[str, Any], recipient: str) -> Dict[str, Any]:
     try:
         meta = _fetch_meta(region, key)
         html = _fetch_html(region, key)
-        raw.update({
-            "from": meta.get("name") or raw["from"],
-            "to": meta.get("recipients") or raw["to"],
-            "subject": meta.get("subject") or raw["subject"],
-            "text": _html_to_text(html),
-            "html": html,
-        })
+        raw.update(
+            {
+                "from": meta.get("name") or raw["from"],
+                "to": meta.get("recipients") or raw["to"],
+                "subject": meta.get("subject") or raw["subject"],
+                "text": _html_to_text(html),
+                "html": html,
+            }
+        )
     except Exception:
         pass
     return raw

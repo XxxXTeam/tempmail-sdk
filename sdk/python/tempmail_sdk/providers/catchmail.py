@@ -116,11 +116,16 @@ def get_emails(email: str) -> List[Email]:
         if detail:
             emails.append(normalize_email(_flatten_detail(detail, address), address))
             continue
-        emails.append(normalize_email({
-            "id": message_id,
-            "from": _clean_address(item.get("from")),
-            "to": item.get("mailbox") or address,
-            "subject": item.get("subject", ""),
-            "date": item.get("date", ""),
-        }, address))
+        emails.append(
+            normalize_email(
+                {
+                    "id": message_id,
+                    "from": _clean_address(item.get("from")),
+                    "to": item.get("mailbox") or address,
+                    "subject": item.get("subject", ""),
+                    "date": item.get("date", ""),
+                },
+                address,
+            )
+        )
     return emails

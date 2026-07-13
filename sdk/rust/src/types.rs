@@ -291,6 +291,16 @@ pub enum Channel {
     Anonbox,
     #[serde(rename = "mailinator")]
     Mailinator,
+    #[serde(rename = "sogetthis-com")]
+    SogetthisCom,
+    #[serde(rename = "bobmail-info")]
+    BobmailInfo,
+    #[serde(rename = "suremail-info")]
+    SuremailInfo,
+    #[serde(rename = "binkmail-com")]
+    BinkmailCom,
+    #[serde(rename = "veryrealemail-com")]
+    VeryrealemailCom,
     #[serde(rename = "duckmail")]
     Duckmail,
     #[serde(rename = "tempmail365")]
@@ -303,8 +313,6 @@ pub enum Channel {
     Anonymmail,
     #[serde(rename = "eyepaste")]
     Eyepaste,
-    #[serde(rename = "segamail")]
-    Segamail,
     #[serde(rename = "mail-sunls")]
     MailSunls,
     #[serde(rename = "expressinboxhub")]
@@ -313,8 +321,6 @@ pub enum Channel {
     Lroid,
     #[serde(rename = "haribu")]
     Haribu,
-    #[serde(rename = "pleasenospam")]
-    Pleasenospam,
     #[serde(rename = "rootsh")]
     Rootsh,
     #[serde(rename = "fake-email-site")]
@@ -378,6 +384,220 @@ pub enum Channel {
     /// emailtemp-org 渠道
     #[serde(rename = "emailtemp-org")]
     EmailtempOrg,
+    /// mytempmail.cc 渠道
+    #[serde(rename = "mytempmail-cc")]
+    MytempmailCc,
+    /// temp-mail.now 渠道
+    #[serde(rename = "temp-mail-now")]
+    TempMailNow,
+    /// mail.td 渠道
+    #[serde(rename = "mail-td")]
+    MailTd,
+    /// mailhole.de 渠道
+    #[serde(rename = "mailhole-de")]
+    MailholeDe,
+    /// tmail.link 渠道
+    #[serde(rename = "tmail-link")]
+    TmailLink,
+    /// 24mail.chacuo.net 渠道
+    #[serde(rename = "24mail-chacuo")]
+    TwentyfourmailChacuo,
+    /// nimail.cn 渠道
+    #[serde(rename = "nimail")]
+    Nimail,
+    /// freecustom.email 渠道
+    #[serde(rename = "freecustom")]
+    Freecustom,
+    /// apihz（接口盒子）渠道
+    #[serde(rename = "apihz")]
+    Apihz,
+    /// mailmomy.com 渠道
+    #[serde(rename = "mailmomy")]
+    Mailmomy,
+    /// mailinator 姊妹域名 chammy.info
+    #[serde(rename = "chammy-info")]
+    ChammyInfo,
+    /// mailinator 姊妹域名 thisisnotmyrealemail.com
+    #[serde(rename = "thisisnotmyrealemail-com")]
+    ThisisnotmyrealemailCom,
+    /// mailinator 姊妹域名 notmailinator.com
+    #[serde(rename = "notmailinator-com")]
+    NotmailinatorCom,
+    /// mailinator 姊妹域名 spamhereplease.com
+    #[serde(rename = "spamhereplease-com")]
+    SpamherepleaseCom,
+    /// mailinator 姊妹域名 sendspamhere.com
+    #[serde(rename = "sendspamhere-com")]
+    SendspamhereCom,
+    /// mailinator 姊妹域名 sendfree.org
+    #[serde(rename = "sendfree-org")]
+    SendfreeOrg,
+    /// mailinator 姊妹域名 junk.beats.org
+    #[serde(rename = "junk-beats-org")]
+    JunkBeatsOrg,
+    /// mailinator 姊妹域名 junk.ihmehl.com
+    #[serde(rename = "junk-ihmehl-com")]
+    JunkIhmehlCom,
+    /// mailinator 姊妹域名 junk.noplay.org
+    #[serde(rename = "junk-noplay-org")]
+    JunkNoplayOrg,
+    /// mailinator 姊妹域名 junk.vanillasystem.com
+    #[serde(rename = "junk-vanillasystem-com")]
+    JunkVanillasystemCom,
+    /// mailinator 姊妹域名 spam.jasonpearce.com
+    #[serde(rename = "spam-jasonpearce-com")]
+    SpamJasonpearceCom,
+    /// mailinator 姊妹域名 fish.skytale.net
+    #[serde(rename = "fish-skytale-net")]
+    FishSkytaleNet,
+    /// mailinator 姊妹域名 spam.mccrew.com
+    #[serde(rename = "spam-mccrew-com")]
+    SpamMccrewCom,
+    /// mailinator 姊妹域名 spam.coroiu.com
+    #[serde(rename = "spam-coroiu-com")]
+    SpamCoroiuCom,
+    /// mailinator 姊妹域名 spam.deluser.net
+    #[serde(rename = "spam-deluser-net")]
+    SpamDeluserNet,
+    /// mailinator 姊妹域名 spam.dhsf.net
+    #[serde(rename = "spam-dhsf-net")]
+    SpamDhsfNet,
+    /// mailinator 姊妹域名 spam.lucatnt.com
+    #[serde(rename = "spam-lucatnt-com")]
+    SpamLucatntCom,
+    /// mailinator 姊妹域名 spam.lyceum-life.com.ru
+    #[serde(rename = "spam-lyceum-life-com-ru")]
+    SpamLyceumLifeComRu,
+    /// mailinator 姊妹域名 spam.netpirates.net
+    #[serde(rename = "spam-netpirates-net")]
+    SpamNetpiratesNet,
+    /// mailinator 姊妹域名 spam.no-ip.net
+    #[serde(rename = "spam-no-ip-net")]
+    SpamNoIpNet,
+    /// mailinator 姊妹域名 spam.ozh.org
+    #[serde(rename = "spam-ozh-org")]
+    SpamOzhOrg,
+    /// mailinator 姊妹域名 spam.pyphus.org
+    #[serde(rename = "spam-pyphus-org")]
+    SpamPyphusOrg,
+    /// mailinator 姊妹域名 spam.shep.pw
+    #[serde(rename = "spam-shep-pw")]
+    SpamShepPw,
+    /// mailinator 姊妹域名 spam.wtf.at
+    #[serde(rename = "spam-wtf-at")]
+    SpamWtfAt,
+    /// mailinator 姊妹域名 spam.wulczer.org
+    #[serde(rename = "spam-wulczer-org")]
+    SpamWulczerOrg,
+    #[serde(rename = "crap-kakadua-net")]
+    CrapKakaduaNet,
+    #[serde(rename = "spam-janlugt-nl")]
+    SpamJanlugtNl,
+    #[serde(rename = "min-burningfish-net")]
+    MinBurningfishNet,
+    #[serde(rename = "sink-fblay-com")]
+    SinkFblayCom,
+    #[serde(rename = "etgdev-de")]
+    EtgdevDe,
+    #[serde(rename = "mtmdev-com")]
+    MtmdevCom,
+    #[serde(rename = "test-unergie-com")]
+    TestUnergieCom,
+    #[serde(rename = "block-bdea-cc")]
+    BlockBdeaCc,
+    #[serde(rename = "torch-yi-org")]
+    TorchYiOrg,
+    #[serde(rename = "carlton183-changeip-net")]
+    Carlton183ChangeipNet,
+    #[serde(rename = "mail-fsmash-org")]
+    MailFsmashOrg,
+    #[serde(rename = "ebs-com-ar")]
+    EbsComAr,
+    #[serde(rename = "jama-trenet-eu")]
+    JamaTrenetEu,
+    #[serde(rename = "blackhole-djurby-se")]
+    BlackholeDjurbySe,
+    #[serde(rename = "m8r-davidfuhr-de")]
+    M8rDavidfuhrDe,
+    #[serde(rename = "mi-meon-be")]
+    MiMeonBe,
+    #[serde(rename = "m-nik-me")]
+    MNikMe,
+    #[serde(rename = "mail-bentrask-com")]
+    MailBentraskCom,
+    #[serde(rename = "t-zibet-net")]
+    TZibetNet,
+    #[serde(rename = "m8r-mcasal-com")]
+    M8rMcasalCom,
+    #[serde(rename = "ramjane-mooo-com")]
+    RamjaneMoooCom,
+    #[serde(rename = "rauxa-seny-cat")]
+    RauxaSenyCat,
+    #[serde(rename = "sp-woot-at")]
+    SpWootAt,
+    #[serde(rename = "fwd2m-eszett-es")]
+    Fwd2mEszettEs,
+    #[serde(rename = "m-887-at")]
+    M887At,
+    #[serde(rename = "nospam-thurstons-us")]
+    NospamThurstonsUs,
+    #[serde(rename = "null-k3vin-net")]
+    NullK3vinNet,
+    #[serde(rename = "really-istrash-com")]
+    ReallyIstrashCom,
+    #[serde(rename = "spam-hortuk-ovh")]
+    SpamHortukOvh,
+    /// dropmail.click 渠道
+    #[serde(rename = "dropmail-click")]
+    DropmailClick,
+    #[serde(rename = "16888888-cyou")]
+    N16888888Cyou,
+    #[serde(rename = "17666688-shop")]
+    N17666688Shop,
+    #[serde(rename = "282mail-com")]
+    N282mailCom,
+    #[serde(rename = "bsdu32-buzz")]
+    Bsdu32Buzz,
+    #[serde(rename = "b-smelly-cc")]
+    BSmellyCc,
+    #[serde(rename = "dea-soon-it")]
+    DeaSoonIt,
+    #[serde(rename = "disposable-al-sudani-com")]
+    DisposableAlSudaniCom,
+    #[serde(rename = "disposable-nogonad-nl")]
+    DisposableNogonadNl,
+    #[serde(rename = "doxu243-buzz")]
+    Doxu243Buzz,
+    #[serde(rename = "easyme-pro")]
+    EasymePro,
+    #[serde(rename = "evergreenco-shop")]
+    EvergreencoShop,
+    #[serde(rename = "j-fairuse-org")]
+    JFairuseOrg,
+    #[serde(rename = "layueming-pics")]
+    LayuemingPics,
+    #[serde(rename = "mailinatorzz-mooo-com")]
+    MailinatorzzMoooCom,
+    #[serde(rename = "mingyuekeji-online")]
+    MingyuekejiOnline,
+    #[serde(rename = "mingyueming-click")]
+    MingyuemingClick,
+    #[serde(rename = "mingyueming-shop")]
+    MingyuemingShop,
+    #[serde(rename = "mingyukeji-lol")]
+    MingyukejiLol,
+    #[serde(rename = "mn-curppa-com")]
+    MnCurppaCom,
+    #[serde(rename = "notfond-404-mn")]
+    Notfond404Mn,
+    #[serde(rename = "nuxh62-space")]
+    Nuxh62Space,
+    #[serde(rename = "proid-cloud-ip-cc")]
+    ProidCloudIpCc,
+    #[serde(rename = "sbook-pics")]
+    SbookPics,
+    #[serde(rename = "xue32-buzz")]
+    Xue32Buzz,
 }
 
 impl std::fmt::Display for Channel {
@@ -523,6 +743,11 @@ impl std::fmt::Display for Channel {
             Channel::TempyEmail => write!(f, "tempy-email"),
             Channel::Anonbox => write!(f, "anonbox"),
             Channel::Mailinator => write!(f, "mailinator"),
+            Channel::SogetthisCom => write!(f, "sogetthis-com"),
+            Channel::BobmailInfo => write!(f, "bobmail-info"),
+            Channel::SuremailInfo => write!(f, "suremail-info"),
+            Channel::BinkmailCom => write!(f, "binkmail-com"),
+            Channel::VeryrealemailCom => write!(f, "veryrealemail-com"),
             Channel::Duckmail => write!(f, "duckmail"),
             Channel::Fmail => write!(f, "fmail"),
             Channel::Ockito => write!(f, "ockito"),
@@ -531,12 +756,10 @@ impl std::fmt::Display for Channel {
             Channel::Byom => write!(f, "byom"),
             Channel::Anonymmail => write!(f, "anonymmail"),
             Channel::Eyepaste => write!(f, "eyepaste"),
-            Channel::Segamail => write!(f, "segamail"),
             Channel::MailSunls => write!(f, "mail-sunls"),
             Channel::Expressinboxhub => write!(f, "expressinboxhub"),
             Channel::Lroid => write!(f, "lroid"),
             Channel::Haribu => write!(f, "haribu"),
-            Channel::Pleasenospam => write!(f, "pleasenospam"),
             Channel::Rootsh => write!(f, "rootsh"),
             Channel::FakeEmailSite => write!(f, "fake-email-site"),
             Channel::Mohmal => write!(f, "mohmal"),
@@ -559,6 +782,95 @@ impl std::fmt::Display for Channel {
             Channel::DisposablemailCom => write!(f, "disposablemail-com"),
             Channel::TemppMails => write!(f, "tempp-mails"),
             Channel::EmailtempOrg => write!(f, "emailtemp-org"),
+            Channel::MytempmailCc => write!(f, "mytempmail-cc"),
+            Channel::TempMailNow => write!(f, "temp-mail-now"),
+            Channel::MailTd => write!(f, "mail-td"),
+            Channel::MailholeDe => write!(f, "mailhole-de"),
+            Channel::TmailLink => write!(f, "tmail-link"),
+            Channel::TwentyfourmailChacuo => write!(f, "24mail-chacuo"),
+            Channel::Nimail => write!(f, "nimail"),
+            Channel::Freecustom => write!(f, "freecustom"),
+            Channel::Apihz => write!(f, "apihz"),
+            Channel::Mailmomy => write!(f, "mailmomy"),
+            Channel::ChammyInfo => write!(f, "chammy-info"),
+            Channel::ThisisnotmyrealemailCom => write!(f, "thisisnotmyrealemail-com"),
+            Channel::NotmailinatorCom => write!(f, "notmailinator-com"),
+            Channel::SpamherepleaseCom => write!(f, "spamhereplease-com"),
+            Channel::SendspamhereCom => write!(f, "sendspamhere-com"),
+            Channel::SendfreeOrg => write!(f, "sendfree-org"),
+            Channel::JunkBeatsOrg => write!(f, "junk-beats-org"),
+            Channel::JunkIhmehlCom => write!(f, "junk-ihmehl-com"),
+            Channel::JunkNoplayOrg => write!(f, "junk-noplay-org"),
+            Channel::JunkVanillasystemCom => write!(f, "junk-vanillasystem-com"),
+            Channel::SpamJasonpearceCom => write!(f, "spam-jasonpearce-com"),
+            Channel::FishSkytaleNet => write!(f, "fish-skytale-net"),
+            Channel::SpamMccrewCom => write!(f, "spam-mccrew-com"),
+            Channel::SpamCoroiuCom => write!(f, "spam-coroiu-com"),
+            Channel::SpamDeluserNet => write!(f, "spam-deluser-net"),
+            Channel::SpamDhsfNet => write!(f, "spam-dhsf-net"),
+            Channel::SpamLucatntCom => write!(f, "spam-lucatnt-com"),
+            Channel::SpamLyceumLifeComRu => write!(f, "spam-lyceum-life-com-ru"),
+            Channel::SpamNetpiratesNet => write!(f, "spam-netpirates-net"),
+            Channel::SpamNoIpNet => write!(f, "spam-no-ip-net"),
+            Channel::SpamOzhOrg => write!(f, "spam-ozh-org"),
+            Channel::SpamPyphusOrg => write!(f, "spam-pyphus-org"),
+            Channel::SpamShepPw => write!(f, "spam-shep-pw"),
+            Channel::SpamWtfAt => write!(f, "spam-wtf-at"),
+            Channel::SpamWulczerOrg => write!(f, "spam-wulczer-org"),
+            Channel::CrapKakaduaNet => write!(f, "crap-kakadua-net"),
+            Channel::SpamJanlugtNl => write!(f, "spam-janlugt-nl"),
+            Channel::MinBurningfishNet => write!(f, "min-burningfish-net"),
+            Channel::SinkFblayCom => write!(f, "sink-fblay-com"),
+            Channel::EtgdevDe => write!(f, "etgdev-de"),
+            Channel::MtmdevCom => write!(f, "mtmdev-com"),
+            Channel::TestUnergieCom => write!(f, "test-unergie-com"),
+            Channel::BlockBdeaCc => write!(f, "block-bdea-cc"),
+            Channel::TorchYiOrg => write!(f, "torch-yi-org"),
+            Channel::Carlton183ChangeipNet => write!(f, "carlton183-changeip-net"),
+            Channel::MailFsmashOrg => write!(f, "mail-fsmash-org"),
+            Channel::EbsComAr => write!(f, "ebs-com-ar"),
+            Channel::JamaTrenetEu => write!(f, "jama-trenet-eu"),
+            Channel::BlackholeDjurbySe => write!(f, "blackhole-djurby-se"),
+            Channel::M8rDavidfuhrDe => write!(f, "m8r-davidfuhr-de"),
+            Channel::MiMeonBe => write!(f, "mi-meon-be"),
+            Channel::MNikMe => write!(f, "m-nik-me"),
+            Channel::MailBentraskCom => write!(f, "mail-bentrask-com"),
+            Channel::TZibetNet => write!(f, "t-zibet-net"),
+            Channel::M8rMcasalCom => write!(f, "m8r-mcasal-com"),
+            Channel::RamjaneMoooCom => write!(f, "ramjane-mooo-com"),
+            Channel::RauxaSenyCat => write!(f, "rauxa-seny-cat"),
+            Channel::SpWootAt => write!(f, "sp-woot-at"),
+            Channel::Fwd2mEszettEs => write!(f, "fwd2m-eszett-es"),
+            Channel::M887At => write!(f, "m-887-at"),
+            Channel::NospamThurstonsUs => write!(f, "nospam-thurstons-us"),
+            Channel::NullK3vinNet => write!(f, "null-k3vin-net"),
+            Channel::ReallyIstrashCom => write!(f, "really-istrash-com"),
+            Channel::SpamHortukOvh => write!(f, "spam-hortuk-ovh"),
+            Channel::DropmailClick => write!(f, "dropmail-click"),
+            Channel::N16888888Cyou => write!(f, "16888888-cyou"),
+            Channel::N17666688Shop => write!(f, "17666688-shop"),
+            Channel::N282mailCom => write!(f, "282mail-com"),
+            Channel::Bsdu32Buzz => write!(f, "bsdu32-buzz"),
+            Channel::BSmellyCc => write!(f, "b-smelly-cc"),
+            Channel::DeaSoonIt => write!(f, "dea-soon-it"),
+            Channel::DisposableAlSudaniCom => write!(f, "disposable-al-sudani-com"),
+            Channel::DisposableNogonadNl => write!(f, "disposable-nogonad-nl"),
+            Channel::Doxu243Buzz => write!(f, "doxu243-buzz"),
+            Channel::EasymePro => write!(f, "easyme-pro"),
+            Channel::EvergreencoShop => write!(f, "evergreenco-shop"),
+            Channel::JFairuseOrg => write!(f, "j-fairuse-org"),
+            Channel::LayuemingPics => write!(f, "layueming-pics"),
+            Channel::MailinatorzzMoooCom => write!(f, "mailinatorzz-mooo-com"),
+            Channel::MingyuekejiOnline => write!(f, "mingyuekeji-online"),
+            Channel::MingyuemingClick => write!(f, "mingyueming-click"),
+            Channel::MingyuemingShop => write!(f, "mingyueming-shop"),
+            Channel::MingyukejiLol => write!(f, "mingyukeji-lol"),
+            Channel::MnCurppaCom => write!(f, "mn-curppa-com"),
+            Channel::Notfond404Mn => write!(f, "notfond-404-mn"),
+            Channel::Nuxh62Space => write!(f, "nuxh62-space"),
+            Channel::ProidCloudIpCc => write!(f, "proid-cloud-ip-cc"),
+            Channel::SbookPics => write!(f, "sbook-pics"),
+            Channel::Xue32Buzz => write!(f, "xue32-buzz"),
         }
     }
 }

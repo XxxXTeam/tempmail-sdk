@@ -100,13 +100,15 @@ def generate_email() -> EmailInfo:
     # 第二步: POST /get_messages 获取自动分配的邮箱
     r2 = tm_http.post(
         BASE_URL + "/get_messages",
-        headers=_build_headers({
-            "Accept": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRF-TOKEN": csrf,
-            "Cookie": cookie_str,
-            "Referer": BASE_URL + "/",
-        }),
+        headers=_build_headers(
+            {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": csrf,
+                "Cookie": cookie_str,
+                "Referer": BASE_URL + "/",
+            }
+        ),
     )
     r2.raise_for_status()
 
@@ -149,13 +151,15 @@ def get_emails(email: str, token: str) -> List[Email]:
     # 获取邮件列表
     r = tm_http.post(
         BASE_URL + "/get_messages",
-        headers=_build_headers({
-            "Accept": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRF-TOKEN": csrf,
-            "Cookie": cookie_str,
-            "Referer": BASE_URL + "/",
-        }),
+        headers=_build_headers(
+            {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": csrf,
+                "Cookie": cookie_str,
+                "Referer": BASE_URL + "/",
+            }
+        ),
     )
     r.raise_for_status()
 
@@ -177,10 +181,12 @@ def get_emails(email: str, token: str) -> List[Email]:
             try:
                 view_resp = tm_http.get(
                     f"{BASE_URL}/view/{mail_id}",
-                    headers=_build_headers({
-                        "Cookie": cookie_str,
-                        "Referer": BASE_URL + "/",
-                    }),
+                    headers=_build_headers(
+                        {
+                            "Cookie": cookie_str,
+                            "Referer": BASE_URL + "/",
+                        }
+                    ),
                 )
                 if view_resp.status_code == 200:
                     html_body = view_resp.text
@@ -191,7 +197,11 @@ def get_emails(email: str, token: str) -> List[Email]:
         # 构造发件人显示字符串
         from_name = (msg.get("from") or "").strip()
         from_addr = (msg.get("from_email") or "").strip()
-        from_display = f"{from_name} <{from_addr}>" if from_name and from_addr else (from_addr or from_name)
+        from_display = (
+            f"{from_name} <{from_addr}>"
+            if from_name and from_addr
+            else (from_addr or from_name)
+        )
 
         raw_email = {
             "id": str(mail_id),

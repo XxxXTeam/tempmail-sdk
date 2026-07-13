@@ -35,7 +35,9 @@ def _received_at_to_iso(value: Any) -> str:
         return ""
     if seconds <= 0:
         return ""
-    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 
 def _flatten_email(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
@@ -57,7 +59,9 @@ def _fetch_email_detail(message_id: str) -> Optional[Dict[str, Any]]:
     if not r.ok:
         return None
     data = r.json()
-    email = data.get("email") if isinstance(data, dict) and data.get("success") else None
+    email = (
+        data.get("email") if isinstance(data, dict) and data.get("success") else None
+    )
     return email if isinstance(email, dict) else None
 
 

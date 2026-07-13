@@ -6,7 +6,7 @@ SDK 日志模块
 
 import logging
 
-LOG_SILENT = 100   # 关闭所有日志
+LOG_SILENT = 100  # 关闭所有日志
 LOG_ERROR = logging.ERROR
 LOG_WARNING = logging.WARNING
 LOG_INFO = logging.INFO

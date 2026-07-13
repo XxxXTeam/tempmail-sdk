@@ -67,7 +67,9 @@ def get_emails(email: str) -> List[Email]:
     if not local or not domain:
         raise ValueError("fmail: invalid email")
 
-    data = _fetch_json(f"/v1/inbox/{quote(local, safe='')}?domain={quote(domain, safe='')}&limit=50")
+    data = _fetch_json(
+        f"/v1/inbox/{quote(local, safe='')}?domain={quote(domain, safe='')}&limit=50"
+    )
     rows = data.get("emails") or []
     if not isinstance(rows, list):
         return []
@@ -82,8 +84,17 @@ def get_emails(email: str) -> List[Email]:
             continue
         try:
             detail = _fetch_json(f"/v1/email/{quote(token, safe='')}")
-            nested = detail.get("email") if isinstance(detail.get("email"), dict) else detail
-            out.append(normalize_email(_flatten_message(nested if isinstance(nested, dict) else row, value), value))
+            nested = (
+                detail.get("email") if isinstance(detail.get("email"), dict) else detail
+            )
+            out.append(
+                normalize_email(
+                    _flatten_message(
+                        nested if isinstance(nested, dict) else row, value
+                    ),
+                    value,
+                )
+            )
         except Exception:
             out.append(normalize_email(_flatten_message(row, value), value))
     return out

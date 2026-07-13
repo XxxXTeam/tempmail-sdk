@@ -64,3 +64,8 @@ CLAUDE.md
 .claude/
 .serena/
 sdk/c/build-throwawaymail-check/
+sdk/npm/test/diagnose-failed.ts
+sdk/npm/test/provider-probe.ts
+sdk/npm/test/smtp-verify.ts
+sdk/npm/test/domain-smtp-verify.ts
+sdk/npm/test/api-probe.js

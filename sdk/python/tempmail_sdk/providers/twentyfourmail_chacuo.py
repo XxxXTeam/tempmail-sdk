@@ -59,7 +59,7 @@ def get_emails(email: str, _token: str = "") -> List[Email]:
     at_idx = email.find("@")
     if at_idx > 0:
         name = email[:at_idx]
-        domain = email[at_idx + 1:]
+        domain = email[at_idx + 1 :]
     else:
         name = email
         domain = DOMAINS[0]

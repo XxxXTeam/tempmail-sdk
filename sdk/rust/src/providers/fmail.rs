@@ -19,7 +19,11 @@ fn any_string(v: &Value) -> String {
 }
 
 fn normalize_domain(domain: Option<&str>) -> Option<String> {
-    let value = domain.unwrap_or("").trim().trim_start_matches('@').to_string();
+    let value = domain
+        .unwrap_or("")
+        .trim()
+        .trim_start_matches('@')
+        .to_string();
     if value.is_empty() {
         None
     } else {
@@ -65,10 +69,23 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
             path.push_str(&urlencoding::encode(&selected));
         }
         let data = request_json(&path).await?;
-        let mut email = data.get("address").and_then(Value::as_str).unwrap_or("").trim().to_string();
+        let mut email = data
+            .get("address")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .trim()
+            .to_string();
         if email.is_empty() {
-            let username = data.get("username").and_then(Value::as_str).unwrap_or("").trim();
-            let dom = data.get("domain").and_then(Value::as_str).unwrap_or("").trim();
+            let username = data
+                .get("username")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .trim();
+            let dom = data
+                .get("domain")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .trim();
             if !username.is_empty() && !dom.is_empty() {
                 email = format!("{}@{}", username, dom);
             }
@@ -123,7 +140,10 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
             let detail = request_json(&format!("/v1/email/{}", urlencoding::encode(&token)))
                 .await
                 .unwrap_or_else(|_| row.clone());
-            let nested = detail.get("email").and_then(|v| v.as_object()).map(|m| Value::Object(m.clone()));
+            let nested = detail
+                .get("email")
+                .and_then(|v| v.as_object())
+                .map(|m| Value::Object(m.clone()));
             let picked = nested.as_ref().unwrap_or(&detail);
             out.push(normalize_email(&flatten_message(picked, address), address));
         }

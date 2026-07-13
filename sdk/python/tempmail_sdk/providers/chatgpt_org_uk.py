@@ -60,7 +60,9 @@ def _fetch_home_session_once():
     if not gm_sid:
         raise Exception("Failed to extract gm_sid cookie")
     if not browser:
-        raise Exception("Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)")
+        raise Exception(
+            "Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)"
+        )
     return gm_sid, browser
 
 
@@ -112,7 +114,9 @@ def _parse_packed_token(packed: str) -> tuple[str, str]:
             if isinstance(gs, str) and isinstance(ib, str):
                 return gs, ib
         except Exception:
-            get_logger().debug("chatgpt-org-uk: packed token JSON parse failed", exc_info=True)
+            get_logger().debug(
+                "chatgpt-org-uk: packed token JSON parse failed", exc_info=True
+            )
     return "", packed
 
 
@@ -169,7 +173,10 @@ def get_emails(token: str, email: str, **kwargs) -> list:
         if not data.get("success"):
             raise Exception("Failed to get emails")
 
-        return [normalize_email(raw, email) for raw in (data.get("data", {}).get("emails") or [])]
+        return [
+            normalize_email(raw, email)
+            for raw in (data.get("data", {}).get("emails") or [])
+        ]
 
     try:
         return _fetch_emails(inbox, gm_sid)

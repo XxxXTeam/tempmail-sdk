@@ -66,7 +66,9 @@ def _random_username(length: int = 8) -> str:
 def _extract_sender(content: str) -> str:
     """从 HTML 邮件内容中提取发件人"""
     # 尝试匹配 "发件人:" 或 "From:" 后面的内容
-    m = re.search(r"(?:发件人|From)\s*[:：]\s*(.+?)(?:<br|</|<p|\n|\r)", content, re.IGNORECASE)
+    m = re.search(
+        r"(?:发件人|From)\s*[:：]\s*(.+?)(?:<br|</|<p|\n|\r)", content, re.IGNORECASE
+    )
     if m:
         return m.group(1).strip()
     return ""
@@ -75,7 +77,9 @@ def _extract_sender(content: str) -> str:
 def _extract_subject(content: str) -> str:
     """从 HTML 邮件内容中提取主题"""
     # 尝试匹配 "主题:" 或 "Subject:" 后面的内容
-    m = re.search(r"(?:主题|Subject)\s*[:：]\s*(.+?)(?:<br|</|<p|\n|\r)", content, re.IGNORECASE)
+    m = re.search(
+        r"(?:主题|Subject)\s*[:：]\s*(.+?)(?:<br|</|<p|\n|\r)", content, re.IGNORECASE
+    )
     if m:
         return m.group(1).strip()
     return ""
@@ -103,6 +107,7 @@ def generate_email(domain: Optional[str] = None, channel: str = CHANNEL) -> Emai
 
     # 创建邮箱
     from urllib.parse import quote
+
     url = f"{BASE}?action=create_email&email={quote(addr, safe='')}&domain={quote(selected, safe='')}"
     resp = tm_http.get(url, headers=HEADERS, timeout=15)
     resp.raise_for_status()

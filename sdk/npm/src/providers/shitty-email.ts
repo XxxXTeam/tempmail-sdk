@@ -1,9 +1,9 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'shitty-email';
-const API_BASE = 'https://shitty.email/api';
+const CHANNEL: Channel = "shitty-email";
+const API_BASE = "https://shitty.email/api";
 
 interface InboxResponse {
   email?: string;
@@ -12,7 +12,10 @@ interface InboxResponse {
   emails?: Array<Record<string, unknown>>;
 }
 
-function flattenMessage(raw: Record<string, unknown>, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: Record<string, unknown>,
+  recipient: string,
+): Record<string, unknown> {
   return {
     id: raw.id,
     from: raw.from,
@@ -24,13 +27,17 @@ function flattenMessage(raw: Record<string, unknown>, recipient: string): Record
   };
 }
 
-async function fetchJSON<T>(url: string, token?: string, init?: RequestInit): Promise<T> {
+async function fetchJSON<T>(
+  url: string,
+  token?: string,
+  init?: RequestInit,
+): Promise<T> {
   const response = await fetchWithTimeout(url, {
     ...init,
     headers: {
-      Accept: 'application/json',
-      'User-Agent': 'Mozilla/5.0',
-      ...(token ? { 'X-Session-Token': token } : {}),
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
+      ...(token ? { "X-Session-Token": token } : {}),
       ...(init?.headers || {}),
     },
   });
@@ -41,11 +48,13 @@ async function fetchJSON<T>(url: string, token?: string, init?: RequestInit): Pr
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
-  const data = await fetchJSON<InboxResponse>(`${API_BASE}/inbox`, undefined, { method: 'POST' });
-  const email = String(data.email || '').trim();
-  const token = String(data.token || '').trim();
-  if (!email || !email.includes('@') || !token) {
-    throw new Error('shitty-email: invalid inbox response');
+  const data = await fetchJSON<InboxResponse>(`${API_BASE}/inbox`, undefined, {
+    method: "POST",
+  });
+  const email = String(data.email || "").trim();
+  const token = String(data.token || "").trim();
+  if (!email || !email.includes("@") || !token) {
+    throw new Error("shitty-email: invalid inbox response");
   }
   return {
     channel: CHANNEL,
@@ -55,21 +64,30 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   };
 }
 
-export async function getEmails(token: string, email: string): Promise<Email[]> {
-  const sessionToken = String(token || '').trim();
-  const address = String(email || '').trim();
-  if (!sessionToken) throw new Error('shitty-email: empty token');
-  if (!address) throw new Error('shitty-email: empty email');
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
+  const sessionToken = String(token || "").trim();
+  const address = String(email || "").trim();
+  if (!sessionToken) throw new Error("shitty-email: empty token");
+  if (!address) throw new Error("shitty-email: empty email");
 
-  const data = await fetchJSON<InboxResponse>(`${API_BASE}/inbox`, sessionToken);
+  const data = await fetchJSON<InboxResponse>(
+    `${API_BASE}/inbox`,
+    sessionToken,
+  );
   const rows = Array.isArray(data.emails) ? data.emails : [];
   const emails: Email[] = [];
   for (const row of rows) {
-    const id = String(row.id || '').trim();
+    const id = String(row.id || "").trim();
     let raw = row;
     if (id) {
       try {
-        raw = await fetchJSON<Record<string, unknown>>(`${API_BASE}/email/${encodeURIComponent(id)}`, sessionToken);
+        raw = await fetchJSON<Record<string, unknown>>(
+          `${API_BASE}/email/${encodeURIComponent(id)}`,
+          sessionToken,
+        );
       } catch {}
     }
     emails.push(normalizeEmail(flattenMessage(raw, address), address));

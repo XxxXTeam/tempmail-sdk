@@ -3,12 +3,12 @@
  * 网站: mohmal.com
  * 基于 HTML 解析，使用 connect.sid session cookie 维持会话
  */
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'mohmal';
-const BASE = 'https://www.mohmal.com';
+const CHANNEL: Channel = "mohmal";
+const BASE = "https://www.mohmal.com";
 
 /** 从 HTML 中提取 data-email 属性的邮箱地址 */
 const DATA_EMAIL_RE = /data-email="([^"]+)"/i;
@@ -19,24 +19,27 @@ const MSG_HREF_RE = /href="\/en\/message\/([^"]+)"/i;
 /** 提取发件人单元格内容 */
 const TD_FROM_RE = /<td[^>]*class="[^"]*sender[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
 /** 提取主题单元格内容 */
-const TD_SUBJECT_RE = /<td[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
+const TD_SUBJECT_RE =
+  /<td[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
 /** 提取时间单元格内容 */
 const TD_TIME_RE = /<td[^>]*class="[^"]*time[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
 /** 从邮件详情页提取邮件正文内容 */
-const MAIL_BODY_RE = /<div[^>]*class="[^"]*mail-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
+const MAIL_BODY_RE =
+  /<div[^>]*class="[^"]*mail-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
 /** 去除 HTML 标签 */
 const TAG_RE = /<[^>]+>/g;
 
 /** 浏览器模拟请求头 */
 const PAGE_HEADERS: Record<string, string> = {
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-  'Cache-Control': 'no-cache',
-  DNT: '1',
-  Pragma: 'no-cache',
-  'Upgrade-Insecure-Requests': '1',
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+  Accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+  "Cache-Control": "no-cache",
+  DNT: "1",
+  Pragma: "no-cache",
+  "Upgrade-Insecure-Requests": "1",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
 };
 
 /**
@@ -44,10 +47,10 @@ const PAGE_HEADERS: Record<string, string> = {
  */
 function setCookieLines(headers: Headers): string[] {
   const h = headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof h.getSetCookie === 'function') {
+  if (typeof h.getSetCookie === "function") {
     return h.getSetCookie();
   }
-  const one = headers.get('set-cookie');
+  const one = headers.get("set-cookie");
   return one ? [one] : [];
 }
 
@@ -56,10 +59,10 @@ function setCookieLines(headers: Headers): string[] {
  */
 function parseCookieMap(hdr: string): Map<string, string> {
   const m = new Map<string, string>();
-  for (const part of hdr.split(';')) {
+  for (const part of hdr.split(";")) {
     const p = part.trim();
-    if (!p || !p.includes('=')) continue;
-    const i = p.indexOf('=');
+    if (!p || !p.includes("=")) continue;
+    const i = p.indexOf("=");
     const k = p.slice(0, i).trim();
     const v = p.slice(i + 1).trim();
     if (k) m.set(k, v);
@@ -73,8 +76,8 @@ function parseCookieMap(hdr: string): Map<string, string> {
 function mergeCookieHeader(prev: string, headers: Headers): string {
   const m = parseCookieMap(prev);
   for (const line of setCookieLines(headers)) {
-    const first = line.split(';')[0] ?? '';
-    const i = first.indexOf('=');
+    const first = line.split(";")[0] ?? "";
+    const i = first.indexOf("=");
     if (i <= 0) continue;
     const k = first.slice(0, i).trim();
     const v = first.slice(i + 1).trim();
@@ -83,14 +86,14 @@ function mergeCookieHeader(prev: string, headers: Headers): string {
   return [...m.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([k, v]) => `${k}=${v}`)
-    .join('; ');
+    .join("; ");
 }
 
 /**
  * 去除 HTML 标签，返回纯文本
  */
 function stripTags(s: string): string {
-  return s.replace(TAG_RE, ' ').replace(/\s+/g, ' ').trim();
+  return s.replace(TAG_RE, " ").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -98,24 +101,24 @@ function stripTags(s: string): string {
  */
 function htmlUnescape(s: string): string {
   return s
-    .replace(/&amp;/g, '&')
+    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#34;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ');
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ");
 }
 
 /** token 前缀，用于区分不同渠道的 token 格式 */
-const TOK_PREFIX = 'mohmal:';
+const TOK_PREFIX = "mohmal:";
 
 /**
  * 编码 session 信息为 token 字符串
  * @param cookie - connect.sid 等 cookie 字符串
  */
 function encodeToken(cookie: string): string {
-  return TOK_PREFIX + Buffer.from(cookie, 'utf8').toString('base64');
+  return TOK_PREFIX + Buffer.from(cookie, "utf8").toString("base64");
 }
 
 /**
@@ -123,12 +126,12 @@ function encodeToken(cookie: string): string {
  */
 function decodeToken(tok: string): string {
   if (!tok.startsWith(TOK_PREFIX)) {
-    throw new Error('mohmal: invalid session token');
+    throw new Error("mohmal: invalid session token");
   }
   try {
-    return Buffer.from(tok.slice(TOK_PREFIX.length), 'base64').toString('utf8');
+    return Buffer.from(tok.slice(TOK_PREFIX.length), "base64").toString("utf8");
   } catch {
-    throw new Error('mohmal: invalid session token');
+    throw new Error("mohmal: invalid session token");
   }
 }
 
@@ -145,14 +148,16 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   /* 第一步: 请求创建随机邮箱，手动处理重定向以收集 cookie */
   const r1 = await fetchWithTimeout(createUrl, {
     headers: { ...PAGE_HEADERS, Referer: `${BASE}/en` },
-    redirect: 'manual',
+    redirect: "manual",
   });
-  let cookieHdr = mergeCookieHeader('', r1.headers);
+  let cookieHdr = mergeCookieHeader("", r1.headers);
 
   /* 如果返回重定向，跟随到 /en/inbox */
-  const location = r1.headers.get('location');
+  const location = r1.headers.get("location");
   if (location) {
-    const inboxUrl = location.startsWith('http') ? location : `${BASE}${location}`;
+    const inboxUrl = location.startsWith("http")
+      ? location
+      : `${BASE}${location}`;
     const r2 = await fetchWithTimeout(inboxUrl, {
       headers: { ...PAGE_HEADERS, Cookie: cookieHdr, Referer: createUrl },
     });
@@ -172,7 +177,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   const emailMatch = DATA_EMAIL_RE.exec(html);
   if (emailMatch?.[1]) {
     const email = htmlUnescape(emailMatch[1].trim());
-    if (!email) throw new Error('mohmal: empty data-email');
+    if (!email) throw new Error("mohmal: empty data-email");
     const token = encodeToken(cookieHdr);
     return { channel: CHANNEL, email, token };
   }
@@ -194,17 +199,24 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  */
 function extractEmail(html: string): string {
   const m = DATA_EMAIL_RE.exec(html);
-  if (!m?.[1]) throw new Error('mohmal: data-email not found in inbox page');
+  if (!m?.[1]) throw new Error("mohmal: data-email not found in inbox page");
   const email = htmlUnescape(m[1].trim());
-  if (!email) throw new Error('mohmal: empty data-email');
+  if (!email) throw new Error("mohmal: empty data-email");
   return email;
 }
 
 /**
  * 从收件箱 HTML 表格行中解析邮件摘要信息
  */
-function parseInboxRows(html: string): Array<{ id: string; from: string; subject: string; time: string }> {
-  const rows: Array<{ id: string; from: string; subject: string; time: string }> = [];
+function parseInboxRows(
+  html: string,
+): Array<{ id: string; from: string; subject: string; time: string }> {
+  const rows: Array<{
+    id: string;
+    from: string;
+    subject: string;
+    time: string;
+  }> = [];
   TR_RE.lastIndex = 0;
   let trMatch: RegExpExecArray | null;
   while ((trMatch = TR_RE.exec(html)) !== null) {
@@ -213,15 +225,15 @@ function parseInboxRows(html: string): Array<{ id: string; from: string; subject
     if (!hrefMatch?.[1]) continue;
     const id = hrefMatch[1].trim();
 
-    let from = '';
+    let from = "";
     const fromMatch = TD_FROM_RE.exec(tr);
     if (fromMatch?.[1]) from = htmlUnescape(stripTags(fromMatch[1]));
 
-    let subject = '';
+    let subject = "";
     const subjectMatch = TD_SUBJECT_RE.exec(tr);
     if (subjectMatch?.[1]) subject = htmlUnescape(stripTags(subjectMatch[1]));
 
-    let time = '';
+    let time = "";
     const timeMatch = TD_TIME_RE.exec(tr);
     if (timeMatch?.[1]) time = htmlUnescape(stripTags(timeMatch[1]));
 
@@ -237,7 +249,10 @@ function parseInboxRows(html: string): Array<{ id: string; from: string; subject
  * 1. GET /en/inbox 获取收件箱 HTML，解析邮件行
  * 2. 对每封邮件 GET /en/message/{id} 获取详情
  */
-export async function getEmails(email: string, token: string): Promise<Email[]> {
+export async function getEmails(
+  email: string,
+  token: string,
+): Promise<Email[]> {
   const cookieHdr = decodeToken(token);
   const inboxUrl = `${BASE}/en/inbox`;
 
@@ -261,7 +276,7 @@ export async function getEmails(email: string, token: string): Promise<Email[]> 
     const detailHtml = await rd.text();
 
     /* 提取邮件正文 */
-    let htmlBody = '';
+    let htmlBody = "";
     const bodyMatch = MAIL_BODY_RE.exec(detailHtml);
     if (bodyMatch?.[1]) htmlBody = bodyMatch[1].trim();
 

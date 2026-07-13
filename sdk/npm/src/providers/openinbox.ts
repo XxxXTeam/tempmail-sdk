@@ -1,9 +1,9 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'openinbox';
-const API_BASE = 'https://api.openinbox.io/api';
+const CHANNEL: Channel = "openinbox";
+const API_BASE = "https://api.openinbox.io/api";
 
 interface CreateResponse {
   id?: string;
@@ -33,10 +33,10 @@ interface DetailResponse extends ListMessage {
 }
 
 const HEADERS: Record<string, string> = {
-  Accept: 'application/json, text/plain, */*',
-  Origin: 'https://openinbox.io',
-  Referer: 'https://openinbox.io/',
-  'User-Agent': 'Mozilla/5.0',
+  Accept: "application/json, text/plain, */*",
+  Origin: "https://openinbox.io",
+  Referer: "https://openinbox.io/",
+  "User-Agent": "Mozilla/5.0",
 };
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -53,15 +53,18 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-function flatten(raw: DetailResponse | ListMessage, recipient: string): Record<string, unknown> {
+function flatten(
+  raw: DetailResponse | ListMessage,
+  recipient: string,
+): Record<string, unknown> {
   return {
-    id: raw.id || '',
-    from: raw.from || '',
+    id: raw.id || "",
+    from: raw.from || "",
     to: recipient,
-    subject: raw.subject || '',
-    text: (raw as DetailResponse).textBody || '',
-    html: (raw as DetailResponse).htmlBody || '',
-    receivedAt: raw.receivedAt || '',
+    subject: raw.subject || "",
+    text: (raw as DetailResponse).textBody || "",
+    html: (raw as DetailResponse).htmlBody || "",
+    receivedAt: raw.receivedAt || "",
     isRead: Boolean(raw.isRead),
     attachments: [],
   };
@@ -69,13 +72,13 @@ function flatten(raw: DetailResponse | ListMessage, recipient: string): Record<s
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const data = await fetchJSON<CreateResponse>(`${API_BASE}/inbox`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
   });
-  const id = String(data.id || '').trim();
-  const email = String(data.email || '').trim();
-  if (!id || !email || !email.includes('@')) {
-    throw new Error('openinbox: invalid mailbox response');
+  const id = String(data.id || "").trim();
+  const email = String(data.email || "").trim();
+  if (!id || !email || !email.includes("@")) {
+    throw new Error("openinbox: invalid mailbox response");
   }
   return {
     channel: CHANNEL,
@@ -88,17 +91,22 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
 async function fetchDetail(id: string): Promise<DetailResponse | null> {
   try {
-    return await fetchJSON<DetailResponse>(`${API_BASE}/emails/${encodeURIComponent(id)}`);
+    return await fetchJSON<DetailResponse>(
+      `${API_BASE}/emails/${encodeURIComponent(id)}`,
+    );
   } catch {
     return null;
   }
 }
 
-export async function getEmails(token: string, email: string): Promise<Email[]> {
-  const inboxId = String(token || '').trim();
-  const address = String(email || '').trim();
-  if (!inboxId) throw new Error('openinbox: empty inbox id');
-  if (!address) throw new Error('openinbox: empty email');
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
+  const inboxId = String(token || "").trim();
+  const address = String(email || "").trim();
+  if (!inboxId) throw new Error("openinbox: empty inbox id");
+  if (!address) throw new Error("openinbox: empty email");
 
   const data = await fetchJSON<ListResponse>(
     `${API_BASE}/emails/inbox/${encodeURIComponent(inboxId)}?page=1&limit=50`,
@@ -106,7 +114,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   const rows = Array.isArray(data.emails) ? data.emails : [];
   const emails: Email[] = [];
   for (const row of rows) {
-    const id = String(row.id || '').trim();
+    const id = String(row.id || "").trim();
     const detail = id ? await fetchDetail(id) : null;
     emails.push(normalizeEmail(flatten(detail || row, address), address));
   }

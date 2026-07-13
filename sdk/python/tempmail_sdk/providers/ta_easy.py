@@ -31,7 +31,11 @@ def generate_email(**kwargs) -> EmailInfo:
     )
     resp.raise_for_status()
     data = resp.json()
-    if data.get("status") != "success" or not data.get("address") or not data.get("token"):
+    if (
+        data.get("status") != "success"
+        or not data.get("address")
+        or not data.get("token")
+    ):
         msg = data.get("message") or "create failed"
         raise RuntimeError(f"ta-easy: {msg}")
     exp = data.get("expiresAt")

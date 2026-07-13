@@ -142,7 +142,12 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             expires_at: mailbox
                 .get("expires_at")
                 .and_then(|v| v.as_i64())
-                .or_else(|| mailbox.get("expires_at").and_then(|v| v.as_f64()).map(|v| v as i64)),
+                .or_else(|| {
+                    mailbox
+                        .get("expires_at")
+                        .and_then(|v| v.as_f64())
+                        .map(|v| v as i64)
+                }),
             created_at: {
                 let value = any_string(mailbox.get("created_at").unwrap_or(&Value::Null));
                 if value.is_empty() {

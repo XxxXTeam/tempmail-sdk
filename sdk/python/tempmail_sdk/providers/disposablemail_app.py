@@ -91,7 +91,9 @@ def get_emails(email: str, token: str) -> List[Email]:
             "subject": item.get("subject", ""),
             "text": item.get("text", item.get("body_text", "")),
             "html": item.get("html", item.get("body_html", item.get("body", ""))),
-            "date": item.get("date", item.get("created_at", item.get("receivedAt", ""))),
+            "date": item.get(
+                "date", item.get("created_at", item.get("receivedAt", ""))
+            ),
         }
         out.append(normalize_email(raw, addr))
 

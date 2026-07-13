@@ -58,9 +58,11 @@ _csrf_input_re = re.compile(r'<input[^>]+name="_token"[^>]+value="([^"]+)"', re.
 _email_id_re = re.compile(r'id="emailAddress"[^>]*>([^<]+)', re.I)
 _email_cls_re = re.compile(r'class="[^"]*email[^"]*"[^>]*>([^<]*@[^<]+)', re.I)
 _email_data_re = re.compile(r'data-email="([^"]+@[^"]+)"', re.I)
-_email_value_re = re.compile(r'value="([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})"')
+_email_value_re = re.compile(
+    r'value="([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})"'
+)
 _email_json_re = re.compile(r'"mailbox"\s*:\s*"([^"]+@[^"]+)"')
-_email_generic_re = re.compile(r'([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})')
+_email_generic_re = re.compile(r"([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})")
 
 
 def _cookie_header_from_response(r) -> str:
@@ -80,7 +82,7 @@ def _decode_token(token: str) -> tuple:
     if not token.startswith(TOK_PREFIX):
         raise ValueError("email10min: invalid session token")
     try:
-        raw = base64.b64decode(token[len(TOK_PREFIX):]).decode("utf-8")
+        raw = base64.b64decode(token[len(TOK_PREFIX) :]).decode("utf-8")
     except Exception:
         raise ValueError("email10min: invalid session token")
     data = json.loads(raw)

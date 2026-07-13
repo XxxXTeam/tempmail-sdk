@@ -36,9 +36,8 @@ use crate::types::{Channel, Email, EmailInfo};
 const ORIGIN: &str = "https://tempemails.net";
 
 /// 匹配 HTML 中 <meta name="csrf-token" content="xxx"> 的 CSRF token
-static CSRF_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"<meta\s+name="csrf-token"\s+content="([^"]+)""#).expect("re")
-});
+static CSRF_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"<meta\s+name="csrf-token"\s+content="([^"]+)""#).expect("re"));
 
 /// token 中序列化的会话信息
 #[derive(Serialize, Deserialize)]
@@ -103,8 +102,8 @@ fn encode_sess(s: &TempemailsNetSess) -> Result<String, String> {
 
 /// 从 token 字符串解码会话信息
 fn decode_sess(tok: &str) -> Result<TempemailsNetSess, String> {
-    let s: TempemailsNetSess = serde_json::from_str(tok)
-        .map_err(|_| "tempemails-net: token 反序列化失败".to_string())?;
+    let s: TempemailsNetSess =
+        serde_json::from_str(tok).map_err(|_| "tempemails-net: token 反序列化失败".to_string())?;
     if s.csrf.is_empty() {
         return Err("tempemails-net: token 中 csrf 为空".into());
     }
@@ -220,10 +219,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .ok_or_else(|| "tempemails-net: 响应中未找到 mailbox 字段".to_string())?;
 
         if mailbox.is_empty() || !mailbox.contains('@') {
-            return Err(format!(
-                "tempemails-net: 返回的邮箱地址无效: {}",
-                mailbox
-            ));
+            return Err(format!("tempemails-net: 返回的邮箱地址无效: {}", mailbox));
         }
 
         let tok = encode_sess(&TempemailsNetSess {
@@ -304,10 +300,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 .or_else(|| msg.get("from"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
-            let subject = msg
-                .get("subject")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let subject = msg.get("subject").and_then(|v| v.as_str()).unwrap_or("");
             let date = msg
                 .get("receivedAt")
                 .or_else(|| msg.get("created_at"))

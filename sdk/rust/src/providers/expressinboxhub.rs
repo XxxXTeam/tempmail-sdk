@@ -106,11 +106,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     let data: Value =
         serde_json::from_str(&text).map_err(|e| format!("expressinboxhub 解析响应失败: {}", e))?;
 
-    let mailbox = data["mailbox"]
-        .as_str()
-        .unwrap_or("")
-        .trim()
-        .to_string();
+    let mailbox = data["mailbox"].as_str().unwrap_or("").trim().to_string();
 
     if mailbox.is_empty() {
         return Err("expressinboxhub: 创建邮箱失败，未返回邮箱地址".into());

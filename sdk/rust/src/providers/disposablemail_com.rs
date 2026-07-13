@@ -32,8 +32,7 @@ use crate::types::{Channel, Email, EmailInfo};
 const ORIGIN: &str = "https://www.disposablemail.com";
 
 /// 匹配页面中的 CSRF 令牌（格式: CSRF="xxx"）
-static CSRF_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"CSRF="([^"]+)""#).expect("re"));
+static CSRF_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"CSRF="([^"]+)""#).expect("re"));
 
 /// token 中序列化的会话信息
 #[derive(Serialize, Deserialize)]

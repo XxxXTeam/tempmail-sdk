@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 export type SmtpEnv = {
   host: string;
@@ -14,19 +14,26 @@ export function getSmtpEnv(): SmtpEnv | null {
   const host = process.env.SMTP_HOST?.trim();
   const user = process.env.SMTP_USER?.trim();
   const pass = process.env.SMTP_PASS?.trim();
-  const from = process.env.SMTP_FROM?.trim() || user || '';
+  const from = process.env.SMTP_FROM?.trim() || user || "";
   if (!host || !user || !pass || !from) return null;
   const port = Number(process.env.SMTP_PORT || 465);
   const secureRaw = process.env.SMTP_SECURE?.trim().toLowerCase();
-  const secure = secureRaw ? secureRaw === '1' || secureRaw === 'true' : port === 465;
+  const secure = secureRaw
+    ? secureRaw === "1" || secureRaw === "true"
+    : port === 465;
   const timeout = Number(process.env.SMTP_TIMEOUT || 15000);
   return { host, port, secure, user, pass, from, timeout };
 }
 
-export async function sendSmtp(to: string, subject: string, text: string, html: string): Promise<boolean> {
+export async function sendSmtp(
+  to: string,
+  subject: string,
+  text: string,
+  html: string,
+): Promise<boolean> {
   const smtp = getSmtpEnv();
   if (!smtp) {
-    console.log('    SMTP 环境变量未配置，跳过发送');
+    console.log("    SMTP 环境变量未配置，跳过发送");
     return false;
   }
   const transport = nodemailer.createTransport({

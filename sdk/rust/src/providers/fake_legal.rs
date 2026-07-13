@@ -6,8 +6,8 @@ use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use rand::Rng;
-use serde_json::Value;
 use serde_json::json;
+use serde_json::Value;
 
 const BASE: &str = "https://imgui.de";
 

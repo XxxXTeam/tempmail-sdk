@@ -46,7 +46,9 @@ def _fetch_body(email_id: str) -> dict:
     if not email_id:
         return {}
     try:
-        resp = tm_http.get(f"{BASE}/api/v1/email/{email_id}", headers=HEADERS, timeout=15)
+        resp = tm_http.get(
+            f"{BASE}/api/v1/email/{email_id}", headers=HEADERS, timeout=15
+        )
         resp.raise_for_status()
         data = resp.json()
         if isinstance(data, dict):

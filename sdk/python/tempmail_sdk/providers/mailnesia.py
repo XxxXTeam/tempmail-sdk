@@ -63,13 +63,17 @@ def _parse_rows(page: str) -> List[Dict[str, Any]]:
         anchors = [_clean_text(m.group(1)) for m in _ANCHOR_RE.finditer(row_html)]
         if len(anchors) < 3:
             continue
-        rows.append({
-            "id": message_id,
-            "date": html_lib.unescape(date_match.group(1).strip()) if date_match else "",
-            "from": anchors[0],
-            "to": anchors[1],
-            "subject": anchors[2],
-        })
+        rows.append(
+            {
+                "id": message_id,
+                "date": (
+                    html_lib.unescape(date_match.group(1).strip()) if date_match else ""
+                ),
+                "from": anchors[0],
+                "to": anchors[1],
+                "subject": anchors[2],
+            }
+        )
     return rows
 
 
@@ -113,7 +117,9 @@ def _fetch_detail(local: str, row: Dict[str, Any]) -> Dict[str, Any]:
     page = _fetch_html(_detail_url(local, message_id))
     detail = dict(row)
     detail["text"] = _extract_plain(page, message_id)
-    detail["html"] = _extract_div_by_id(page, f"text_html_{message_id}", f"text_plain_{message_id}")
+    detail["html"] = _extract_div_by_id(
+        page, f"text_html_{message_id}", f"text_plain_{message_id}"
+    )
     return detail
 
 

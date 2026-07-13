@@ -100,10 +100,12 @@ def generate_email() -> EmailInfo:
     # 第二步: GET /random-email-address 获取随机邮箱地址
     r2 = tm_http.get(
         BASE_URL + "/random-email-address",
-        headers=_build_headers({
-            "Cookie": cookie_str,
-            "Referer": BASE_URL + "/",
-        }),
+        headers=_build_headers(
+            {
+                "Cookie": cookie_str,
+                "Referer": BASE_URL + "/",
+            }
+        ),
     )
     r2.raise_for_status()
 
@@ -142,13 +144,15 @@ def get_emails(email: str, token: str) -> List[Email]:
     # POST /fetch-emails/{email} 获取邮件列表
     r = tm_http.post(
         f"{BASE_URL}/fetch-emails/{addr}",
-        headers=_build_headers({
-            "Accept": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "Cookie": cookie_str,
-            "Referer": BASE_URL + "/",
-            "Content-Type": "application/x-www-form-urlencoded",
-        }),
+        headers=_build_headers(
+            {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "Cookie": cookie_str,
+                "Referer": BASE_URL + "/",
+                "Content-Type": "application/x-www-form-urlencoded",
+            }
+        ),
         data=f"_token={csrf}",
     )
     r.raise_for_status()
@@ -170,10 +174,12 @@ def get_emails(email: str, token: str) -> List[Email]:
             try:
                 view_resp = tm_http.get(
                     f"{BASE_URL}/view/{mail_id}",
-                    headers=_build_headers({
-                        "Cookie": cookie_str,
-                        "Referer": BASE_URL + "/",
-                    }),
+                    headers=_build_headers(
+                        {
+                            "Cookie": cookie_str,
+                            "Referer": BASE_URL + "/",
+                        }
+                    ),
                 )
                 if view_resp.status_code == 200:
                     html_body = view_resp.text

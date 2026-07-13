@@ -1,10 +1,10 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'moakt';
-const ORIGIN = 'https://www.moakt.com';
-const TOK_PREFIX = 'mok1:';
+const CHANNEL: Channel = "moakt";
+const ORIGIN = "https://www.moakt.com";
+const TOK_PREFIX = "mok1:";
 
 const EMAIL_DIV_RE = /<div\s+id="email-address"\s*>([^<]+)<\/div>/is;
 const DOMAIN_OPTION_RE = /<option\s+value="([^"]+)">\s*@[^<]+<\/option>/gi;
@@ -12,29 +12,36 @@ const HREF_EMAIL_RE =
   /href="(\/[^"]+\/email\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/gi;
 const TITLE_RE = /<li\s+class="title"\s*>([^<]*)<\/li>/is;
 const DATE_RE = /<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)<\/span>/is;
-const SENDER_RE = /<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>\s*<\/li>/is;
+const SENDER_RE =
+  /<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>\s*<\/li>/is;
 const BODY_RE = /<div\s+class="email-body"\s*>([\s\S]*?)<\/div>/is;
 const FROM_ADDR_RE = /<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/;
 const TAG_RE = /<[^>]+>/g;
 
 function setCookieLines(headers: Headers): string[] {
   const h = headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof h.getSetCookie === 'function') {
+  if (typeof h.getSetCookie === "function") {
     return h.getSetCookie();
   }
-  const one = headers.get('set-cookie');
+  const one = headers.get("set-cookie");
   return one ? [one] : [];
 }
 
 function isMailDomain(value: string): boolean {
-  return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(value);
+  return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(
+    value,
+  );
 }
 
-function requestParts(domain?: string | null): { locale: string; mailDomain: string } {
-  const s = String(domain ?? '').trim();
-  if (!s || /[/?#\\]/.test(s)) return { locale: 'zh', mailDomain: '' };
-  if (isMailDomain(s)) return { locale: 'zh', mailDomain: s.replace(/^@/, '').toLowerCase() };
-  return { locale: s, mailDomain: '' };
+function requestParts(domain?: string | null): {
+  locale: string;
+  mailDomain: string;
+} {
+  const s = String(domain ?? "").trim();
+  if (!s || /[/?#\\]/.test(s)) return { locale: "zh", mailDomain: "" };
+  if (isMailDomain(s))
+    return { locale: "zh", mailDomain: s.replace(/^@/, "").toLowerCase() };
+  return { locale: s, mailDomain: "" };
 }
 
 function parseServerDomains(html: string): string[] {
@@ -42,32 +49,37 @@ function parseServerDomains(html: string): string[] {
   DOMAIN_OPTION_RE.lastIndex = 0;
   let cap: RegExpExecArray | null;
   while ((cap = DOMAIN_OPTION_RE.exec(html)) !== null) {
-    const value = (cap[1] ?? '').trim().replace(/^@/, '').toLowerCase();
+    const value = (cap[1] ?? "").trim().replace(/^@/, "").toLowerCase();
     if (value && !out.includes(value)) out.push(value);
   }
   return out;
 }
 
 function randomLocal(length = 12): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
-  let out = '';
+  let out = "";
   for (let i = 0; i < length; i++) out += chars[bytes[i] % chars.length];
   return out;
 }
 
 function emailDomain(email: string): string {
-  const at = email.lastIndexOf('@');
-  return at >= 0 ? email.slice(at + 1).trim().toLowerCase() : '';
+  const at = email.lastIndexOf("@");
+  return at >= 0
+    ? email
+        .slice(at + 1)
+        .trim()
+        .toLowerCase()
+    : "";
 }
 
 function parseCookieMap(hdr: string): Map<string, string> {
   const m = new Map<string, string>();
-  for (const part of hdr.split(';')) {
+  for (const part of hdr.split(";")) {
     const p = part.trim();
-    if (!p || !p.includes('=')) continue;
-    const i = p.indexOf('=');
+    if (!p || !p.includes("=")) continue;
+    const i = p.indexOf("=");
     const k = p.slice(0, i).trim();
     const v = p.slice(i + 1).trim();
     if (k) m.set(k, v);
@@ -78,8 +90,8 @@ function parseCookieMap(hdr: string): Map<string, string> {
 function mergeCookieHeader(prev: string, headers: Headers): string {
   const m = parseCookieMap(prev);
   for (const line of setCookieLines(headers)) {
-    const first = line.split(';')[0] ?? '';
-    const i = first.indexOf('=');
+    const first = line.split(";")[0] ?? "";
+    const i = first.indexOf("=");
     if (i <= 0) continue;
     const k = first.slice(0, i).trim();
     const v = first.slice(i + 1).trim();
@@ -88,67 +100,67 @@ function mergeCookieHeader(prev: string, headers: Headers): string {
   return [...m.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([k, v]) => `${k}=${v}`)
-    .join('; ');
+    .join("; ");
 }
 
 function lightUnescape(s: string): string {
   return s
-    .replace(/&amp;/g, '\u0000')
+    .replace(/&amp;/g, "\u0000")
     .replace(/&quot;/g, '"')
     .replace(/&#34;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\u0000/g, '&');
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\u0000/g, "&");
 }
 
 function encSess(l: string, c: string): string {
   const raw = JSON.stringify({ l, c });
-  return TOK_PREFIX + Buffer.from(raw, 'utf8').toString('base64');
+  return TOK_PREFIX + Buffer.from(raw, "utf8").toString("base64");
 }
 
 function decSess(tok: string): { l: string; c: string } {
   if (!tok.startsWith(TOK_PREFIX)) {
-    throw new Error('moakt: invalid session token');
+    throw new Error("moakt: invalid session token");
   }
   let raw: string;
   try {
-    raw = Buffer.from(tok.slice(TOK_PREFIX.length), 'base64').toString('utf8');
+    raw = Buffer.from(tok.slice(TOK_PREFIX.length), "base64").toString("utf8");
   } catch {
-    throw new Error('moakt: invalid session token');
+    throw new Error("moakt: invalid session token");
   }
   const o = JSON.parse(raw) as { l?: string; c?: string };
-  const l = (o.l ?? '').trim();
-  const c = (o.c ?? '').trim();
-  if (!l || !c) throw new Error('moakt: invalid session token');
+  const l = (o.l ?? "").trim();
+  const c = (o.c ?? "").trim();
+  if (!l || !c) throw new Error("moakt: invalid session token");
   return { l, c };
 }
 
 function pageHeaders(referer: string): Record<string, string> {
   return {
     Accept:
-      'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-    'Cache-Control': 'no-cache',
-    DNT: '1',
-    Pragma: 'no-cache',
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "Cache-Control": "no-cache",
+    DNT: "1",
+    Pragma: "no-cache",
     Referer: referer,
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
   };
 }
 
 function parseInboxEmail(html: string): string {
   const m = EMAIL_DIV_RE.exec(html);
-  if (!m?.[1]) throw new Error('moakt: email-address not found');
+  if (!m?.[1]) throw new Error("moakt: email-address not found");
   const addr = lightUnescape(m[1].trim());
-  if (!addr) throw new Error('moakt: empty email-address');
+  if (!addr) throw new Error("moakt: empty email-address");
   return addr;
 }
 
 function stripTags(s: string): string {
-  return s.replace(TAG_RE, ' ').replace(/\s+/g, ' ').trim();
+  return s.replace(TAG_RE, " ").replace(/\s+/g, " ").trim();
 }
 
 function listMailIds(html: string): string[] {
@@ -158,8 +170,8 @@ function listMailIds(html: string): string[] {
   let cap: RegExpExecArray | null;
   while ((cap = HREF_EMAIL_RE.exec(html)) !== null) {
     const path = cap[1];
-    if (path.includes('/delete')) continue;
-    const id = path.split('/').pop() ?? '';
+    if (path.includes("/delete")) continue;
+    const id = path.split("/").pop() ?? "";
     if (id.length === 36 && !seen.has(id)) {
       seen.add(id);
       out.push(id);
@@ -168,8 +180,12 @@ function listMailIds(html: string): string[] {
   return out;
 }
 
-function parseDetail(page: string, id: string, recipient: string): Record<string, unknown> {
-  let fromS = '';
+function parseDetail(
+  page: string,
+  id: string,
+  recipient: string,
+): Record<string, unknown> {
+  let fromS = "";
   const sm = SENDER_RE.exec(page);
   if (sm?.[1]) {
     const inner = lightUnescape(sm[1]);
@@ -177,13 +193,13 @@ function parseDetail(page: string, id: string, recipient: string): Record<string
     const em = FROM_ADDR_RE.exec(inner);
     if (em?.[1]) fromS = em[1].trim();
   }
-  let subject = '';
+  let subject = "";
   const tm = TITLE_RE.exec(page);
   if (tm?.[1]) subject = lightUnescape(tm[1].trim());
-  let date = '';
+  let date = "";
   const dm = DATE_RE.exec(page);
   if (dm?.[1]) date = lightUnescape(dm[1].trim());
-  let htmlBody = '';
+  let htmlBody = "";
   const bm = BODY_RE.exec(page);
   if (bm?.[1]) htmlBody = bm[1].trim();
   return {
@@ -196,7 +212,9 @@ function parseDetail(page: string, id: string, recipient: string): Record<string
   };
 }
 
-export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+export async function generateEmail(
+  domain?: string | null,
+): Promise<InternalEmailInfo> {
   const { locale: loc, mailDomain } = requestParts(domain);
   const base = `${ORIGIN}/${loc}`;
   const inbox = `${base}/inbox`;
@@ -204,7 +222,7 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
   const r1 = await fetchWithTimeout(base, { headers: pageHeaders(base) });
   if (!r1.ok) throw new Error(`moakt generate: ${r1.status}`);
   const page = await r1.text();
-  let cookieHdr = mergeCookieHeader('', r1.headers);
+  let cookieHdr = mergeCookieHeader("", r1.headers);
 
   const body = new URLSearchParams();
   if (mailDomain) {
@@ -212,28 +230,28 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
     if (!domains.includes(mailDomain)) {
       throw new Error(`moakt: unsupported domain ${mailDomain}`);
     }
-    body.set('setemail', '');
-    body.set('username', randomLocal());
-    body.set('domain', mailDomain);
-    body.set('preferred_domain', '');
+    body.set("setemail", "");
+    body.set("username", randomLocal());
+    body.set("domain", mailDomain);
+    body.set("preferred_domain", "");
   } else {
-    body.set('random', '1');
+    body.set("random", "1");
   }
 
   const r2 = await fetchWithTimeout(inbox, {
-    method: 'POST',
+    method: "POST",
     headers: {
       ...pageHeaders(base),
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
       Cookie: cookieHdr,
     },
     body: body.toString(),
-    redirect: 'manual',
+    redirect: "manual",
   });
 
   cookieHdr = mergeCookieHeader(cookieHdr, r2.headers);
-  if (!parseCookieMap(cookieHdr).has('tm_session')) {
-    throw new Error('moakt: missing tm_session cookie');
+  if (!parseCookieMap(cookieHdr).has("tm_session")) {
+    throw new Error("moakt: missing tm_session cookie");
   }
 
   const r3 = await fetchWithTimeout(inbox, {
@@ -245,13 +263,18 @@ export async function generateEmail(domain?: string | null): Promise<InternalEma
 
   const email = parseInboxEmail(html);
   if (mailDomain && emailDomain(email) !== mailDomain) {
-    throw new Error(`moakt: domain mismatch expected=${mailDomain} actual=${emailDomain(email)}`);
+    throw new Error(
+      `moakt: domain mismatch expected=${mailDomain} actual=${emailDomain(email)}`,
+    );
   }
   const token = encSess(loc, cookieHdr);
   return { channel: CHANNEL, email, token };
 }
 
-export async function getEmails(email: string, token: string): Promise<Email[]> {
+export async function getEmails(
+  email: string,
+  token: string,
+): Promise<Email[]> {
   const { l: loc, c: cookieHdr } = decSess(token);
   const inbox = `${ORIGIN}/${loc}/inbox`;
   const baseRef = `${ORIGIN}/${loc}`;

@@ -4,20 +4,21 @@
  * 域名: 由 API 返回（如 @aabkmail.com），不固定
  * 纯 JSON REST API，无需认证，无需 Session
  */
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'best-temp-mail';
-const BASE = 'https://best-temp-mail.com/api/v3';
+const CHANNEL: Channel = "best-temp-mail";
+const BASE = "https://best-temp-mail.com/api/v3";
 
 /** 请求头 */
 const HEADERS: Record<string, string> = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-  'Referer': 'https://best-temp-mail.com/',
-  'Origin': 'https://best-temp-mail.com',
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+  Referer: "https://best-temp-mail.com/",
+  Origin: "https://best-temp-mail.com",
 };
 
 /**
@@ -35,13 +36,16 @@ interface BestTempMailToken {
  * 优先使用 crypto.randomUUID()，不可用时手动生成
  */
 function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID();
   }
   /* 手动生成 UUID v4 */
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -58,7 +62,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   const intToken = generateUUID();
 
   const res = await fetchWithTimeout(`${BASE}/createEmail`, {
-    method: 'POST',
+    method: "POST",
     headers: HEADERS,
     body: JSON.stringify({ intToken }),
   });
@@ -66,18 +70,18 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error(`best-temp-mail: 创建邮箱失败 HTTP ${res.status}`);
   }
 
-  const json = await res.json() as {
+  const json = (await res.json()) as {
     status?: string;
     data?: { address?: string; id?: string; update_tag?: string };
   };
 
-  if (json.status !== 'success' || !json.data?.address) {
-    throw new Error('best-temp-mail: 创建邮箱返回数据异常');
+  if (json.status !== "success" || !json.data?.address) {
+    throw new Error("best-temp-mail: 创建邮箱返回数据异常");
   }
 
   const { address, id, update_tag } = json.data;
   if (!id || !update_tag) {
-    throw new Error('best-temp-mail: 返回数据缺少 id 或 update_tag');
+    throw new Error("best-temp-mail: 返回数据缺少 id 或 update_tag");
   }
 
   /* 将 intToken、id、update_tag 序列化为 JSON 存入 token */
@@ -95,12 +99,15 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  * 2. POST /getEmailList 获取邮件列表
  * 3. 标准化邮件数据
  */
-export async function getEmails(email: string, token: string): Promise<Email[]> {
+export async function getEmails(
+  email: string,
+  token: string,
+): Promise<Email[]> {
   if (!email?.trim()) {
-    throw new Error('best-temp-mail: 邮箱地址为空');
+    throw new Error("best-temp-mail: 邮箱地址为空");
   }
   if (!token?.trim()) {
-    throw new Error('best-temp-mail: token 为空');
+    throw new Error("best-temp-mail: token 为空");
   }
 
   /* 解析 token */
@@ -108,15 +115,15 @@ export async function getEmails(email: string, token: string): Promise<Email[]> 
   try {
     tokenData = JSON.parse(token) as BestTempMailToken;
   } catch {
-    throw new Error('best-temp-mail: 无效的 token 格式');
+    throw new Error("best-temp-mail: 无效的 token 格式");
   }
 
   if (!tokenData.intToken || !tokenData.id || !tokenData.update_tag) {
-    throw new Error('best-temp-mail: token 数据不完整');
+    throw new Error("best-temp-mail: token 数据不完整");
   }
 
   const res = await fetchWithTimeout(`${BASE}/getEmailList`, {
-    method: 'POST',
+    method: "POST",
     headers: HEADERS,
     body: JSON.stringify({
       address: email.trim(),
@@ -129,13 +136,13 @@ export async function getEmails(email: string, token: string): Promise<Email[]> 
     throw new Error(`best-temp-mail: 获取邮件失败 HTTP ${res.status}`);
   }
 
-  const json = await res.json() as {
+  const json = (await res.json()) as {
     status?: string;
     data?: { hasNewEmail?: boolean; emails?: any[] };
   };
 
-  if (json.status !== 'success') {
-    throw new Error('best-temp-mail: 获取邮件返回数据异常');
+  if (json.status !== "success") {
+    throw new Error("best-temp-mail: 获取邮件返回数据异常");
   }
 
   /* 无新邮件时返回空数组 */

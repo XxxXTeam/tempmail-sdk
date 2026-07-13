@@ -1,6 +1,6 @@
 """
 临时邮箱 SDK (Python)
-支持 176 个 channel 标识，按 67 个独立服务商归并，所有渠道返回统一标准化格式
+支持 268 个 channel 标识，按 100 个独立服务商归并，所有渠道返回统一标准化格式
 """
 
 from .types import (
@@ -21,7 +21,16 @@ from .client import (
     get_channel_info,
     TempEmailClient,
 )
-from .logger import set_log_level, set_logger, get_logger, LOG_SILENT, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR
+from .logger import (
+    set_log_level,
+    set_logger,
+    get_logger,
+    LOG_SILENT,
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR,
+)
 from .retry import with_retry, with_retry_with_attempts, RetryAttemptsResult
 from .normalize import normalize_email
 from .config import SDKConfig, set_config, get_config

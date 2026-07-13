@@ -75,7 +75,7 @@ def _parse_description(desc: str) -> dict:
         # 邮件正文：第一个 </p> 之后的所有内容
         p_end = desc.find("</p>")
         if p_end != -1:
-            body = desc[p_end + 4:].strip()
+            body = desc[p_end + 4 :].strip()
             if body:
                 result["body"] = body
 
@@ -124,16 +124,18 @@ def get_emails(email: str) -> List[Email]:
         if body_html:
             text = re.sub(r"<[^>]+>", "", body_html).strip()
 
-        emails.append(Email(
-            id=str(idx + 1),
-            from_addr=from_addr,
-            to=to_addr,
-            subject=subject,
-            text=text,
-            html=body_html,
-            date=date,
-            is_read=False,
-            attachments=[],
-        ))
+        emails.append(
+            Email(
+                id=str(idx + 1),
+                from_addr=from_addr,
+                to=to_addr,
+                subject=subject,
+                text=text,
+                html=body_html,
+                date=date,
+                is_read=False,
+                attachments=[],
+            )
+        )
 
     return emails

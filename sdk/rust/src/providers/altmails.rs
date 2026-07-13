@@ -38,9 +38,8 @@ use crate::types::{Channel, Email, EmailInfo};
 const ORIGIN: &str = "https://tempmail.altmails.com";
 
 /// 匹配 HTML inline script 中 '_token': 'xxx' 的 CSRF token
-static CSRF_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"'_token'\s*:\s*'([^']+)'"#).expect("re")
-});
+static CSRF_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"'_token'\s*:\s*'([^']+)'"#).expect("re"));
 
 /// token 中序列化的会话信息
 #[derive(Serialize, Deserialize)]
@@ -105,8 +104,8 @@ fn encode_sess(s: &AltmailsSess) -> Result<String, String> {
 
 /// 从 token 字符串解码会话信息
 fn decode_sess(tok: &str) -> Result<AltmailsSess, String> {
-    let s: AltmailsSess = serde_json::from_str(tok)
-        .map_err(|_| "altmails: token 反序列化失败".to_string())?;
+    let s: AltmailsSess =
+        serde_json::from_str(tok).map_err(|_| "altmails: token 反序列化失败".to_string())?;
     if s.csrf.is_empty() {
         return Err("altmails: token 中 csrf 为空".into());
     }
@@ -158,10 +157,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("altmails: 获取首页请求失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "altmails: 获取首页返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("altmails: 获取首页返回 HTTP {}", resp.status()));
         }
 
         // 收集 Set-Cookie
@@ -190,10 +186,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("altmails: 获取邮箱地址请求失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "altmails: 获取邮箱地址返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("altmails: 获取邮箱地址返回 HTTP {}", resp.status()));
         }
 
         // 合并可能的新 Cookie
@@ -207,10 +200,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .to_string();
 
         if address.is_empty() || !address.contains('@') {
-            return Err(format!(
-                "altmails: 返回的邮箱地址无效: {}",
-                address
-            ));
+            return Err(format!("altmails: 返回的邮箱地址无效: {}", address));
         }
 
         let tok = encode_sess(&AltmailsSess {
@@ -257,10 +247,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .map_err(|e| format!("altmails: 获取邮件列表请求失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "altmails: 获取邮件列表返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("altmails: 获取邮件列表返回 HTTP {}", resp.status()));
         }
 
         let body: Value = resp
@@ -290,14 +277,8 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 })
                 .unwrap_or_default();
 
-            let from = msg
-                .get("from")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
-            let subject = msg
-                .get("subject")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let from = msg.get("from").and_then(|v| v.as_str()).unwrap_or("");
+            let subject = msg.get("subject").and_then(|v| v.as_str()).unwrap_or("");
             let date = msg
                 .get("created_at")
                 .or_else(|| msg.get("date"))

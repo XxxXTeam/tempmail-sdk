@@ -80,7 +80,7 @@ def _decode_token(token: str) -> str:
         # 兼容空/异常 token：无 cookie 时仍尝试请求（依赖底层 session jar）
         return ""
     try:
-        data = base64.b64decode(token[len(_TOK_PREFIX):])
+        data = base64.b64decode(token[len(_TOK_PREFIX) :])
         o = json.loads(data.decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         return ""
@@ -207,7 +207,7 @@ def _extract_body(page: str) -> str:
     gt = page.find(">", si)
     if gt < 0:
         return ""
-    rest = page[gt + 1:]
+    rest = page[gt + 1 :]
 
     ei = rest.find("email-decode.min.js")
     if ei < 0:

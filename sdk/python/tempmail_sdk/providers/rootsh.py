@@ -61,7 +61,7 @@ def _decode_token(token: str) -> tuple:
     if not token or not token.startswith(_TOK_PREFIX):
         raise ValueError("rootsh: 无效的 session token")
     try:
-        data = json.loads(token[len(_TOK_PREFIX):])
+        data = json.loads(token[len(_TOK_PREFIX) :])
     except (json.JSONDecodeError, ValueError) as e:
         raise ValueError("rootsh: 无效的 session token") from e
     last_check_time = data.get("t", 0)
@@ -94,11 +94,14 @@ def generate_email(domain: Optional[str] = None, channel: str = CHANNEL) -> Emai
     mail_addr = f"{local}@{dom}"
 
     # 第一步：GET 首页获取 session cookie
-    r1 = tm_http.get(f"{BASE}/", headers={
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-        "User-Agent": _HEADERS["User-Agent"],
-    })
+    r1 = tm_http.get(
+        f"{BASE}/",
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "User-Agent": _HEADERS["User-Agent"],
+        },
+    )
     r1.raise_for_status()
     cookies = r1.cookies.get_dict()
 

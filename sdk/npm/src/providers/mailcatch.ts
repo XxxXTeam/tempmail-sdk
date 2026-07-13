@@ -4,32 +4,34 @@
  * 公开收件箱，无需认证/Session
  * API 返回 HTML 片段，使用正则提取数据
  */
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'mailcatch';
-const BASE_URL = 'https://mailcatch.com';
-const DOMAIN = 'mailcatch.com';
+const CHANNEL: Channel = "mailcatch";
+const BASE_URL = "https://mailcatch.com";
+const DOMAIN = "mailcatch.com";
 
 /** 公共请求头 */
 const COMMON_HEADERS: Record<string, string> = {
-  'Accept': 'text/html, */*',
-  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-  'Referer': `${BASE_URL}/`,
+  Accept: "text/html, */*",
+  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+  Referer: `${BASE_URL}/`,
 };
 
 /** 邮件项正则: 提取 data-email-id, data-subject, data-timestamp, data-sender */
-const EMAIL_ITEM_RE = /<div\s+class="email-item"\s+data-email-id="([^"]*)"\s+data-subject="([^"]*)"\s+data-timestamp="([^"]*)"\s+data-sender="([^"]*)"/g;
+const EMAIL_ITEM_RE =
+  /<div\s+class="email-item"\s+data-email-id="([^"]*)"\s+data-subject="([^"]*)"\s+data-timestamp="([^"]*)"\s+data-sender="([^"]*)"/g;
 
 /**
  * 生成随机用户名
  * 前缀 sdk + 16 位随机字母数字
  */
 function randomUsername(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let out = 'sdk';
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "sdk";
   for (let i = 0; i < 16; i++) {
     out += chars[Math.floor(Math.random() * chars.length)];
   }
@@ -61,9 +63,12 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
  * @param token - 用户名（@前部分）
  * @param email - 完整邮箱地址
  */
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   if (!token?.trim()) {
-    throw new Error('mailcatch: token 为空');
+    throw new Error("mailcatch: token 为空");
   }
 
   const username = token.trim();
@@ -109,7 +114,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
     if (!item.id) continue;
 
     const detailUrl = `${BASE_URL}/api/data/${encodeURIComponent(username)}/${encodeURIComponent(item.id)}`;
-    let htmlBody = '';
+    let htmlBody = "";
     try {
       const rd = await fetchWithTimeout(detailUrl, {
         headers: COMMON_HEADERS,
@@ -126,7 +131,7 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
       from: item.sender,
       to: email,
       subject: item.subject,
-      html: htmlBody || '',
+      html: htmlBody || "",
       date: item.timestamp,
     };
 

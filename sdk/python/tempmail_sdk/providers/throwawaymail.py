@@ -21,7 +21,11 @@ def _message_raw(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
         "messageId": raw.get("message_id"),
         "from_address": raw.get("from_address"),
         "fromName": raw.get("from_name"),
-        "to": to_addresses[0] if isinstance(to_addresses, list) and to_addresses else recipient,
+        "to": (
+            to_addresses[0]
+            if isinstance(to_addresses, list) and to_addresses
+            else recipient
+        ),
         "subject": raw.get("subject", ""),
         "received_at": raw.get("received_at"),
         "read": raw.get("read"),

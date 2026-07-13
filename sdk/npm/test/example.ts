@@ -1,5 +1,11 @@
-import { generateEmail, getEmails, TempEmailClient, Channel, listChannels } from '../src';
-import nodemailer from 'nodemailer';
+import {
+  generateEmail,
+  getEmails,
+  TempEmailClient,
+  Channel,
+  listChannels,
+} from "../src";
+import nodemailer from "nodemailer";
 
 type SmtpConfig = {
   host: string;
@@ -20,10 +26,13 @@ type PollConfig = {
 
 function parseBoolean(value?: string): boolean {
   if (!value) return false;
-  return value === '1' || value.toLowerCase() === 'true';
+  return value === "1" || value.toLowerCase() === "true";
 }
 
-function parsePositiveNumber(value: string | undefined, fallback: number): number {
+function parsePositiveNumber(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (!value) return fallback;
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
@@ -39,25 +48,35 @@ function getSmtpConfig(): SmtpConfig | null {
   const port = portRaw ? Number(portRaw) : 0;
 
   if (!host || !port || !Number.isFinite(port)) {
-    console.warn('SMTP 已启用，但 TEMPMAIL_SMTP_HOST/TEMPMAIL_SMTP_PORT 未正确配置，跳过发送。');
+    console.warn(
+      "SMTP 已启用，但 TEMPMAIL_SMTP_HOST/TEMPMAIL_SMTP_PORT 未正确配置，跳过发送。",
+    );
     return null;
   }
 
   const user = process.env.TEMPMAIL_SMTP_USER?.trim();
   const pass = process.env.TEMPMAIL_SMTP_PASS?.trim();
-  const from = (process.env.TEMPMAIL_SMTP_FROM?.trim() || user || '').trim();
+  const from = (process.env.TEMPMAIL_SMTP_FROM?.trim() || user || "").trim();
 
   if (!from) {
-    console.warn('SMTP 已启用，但 TEMPMAIL_SMTP_FROM 未配置且 USER 为空，跳过发送。');
+    console.warn(
+      "SMTP 已启用，但 TEMPMAIL_SMTP_FROM 未配置且 USER 为空，跳过发送。",
+    );
     return null;
   }
 
   const secureEnv = process.env.TEMPMAIL_SMTP_SECURE?.trim();
   const secure = secureEnv ? parseBoolean(secureEnv) : port === 465;
 
-  const timeoutMs = parsePositiveNumber(process.env.TEMPMAIL_SMTP_TIMEOUT, 10000);
-  const subject = process.env.TEMPMAIL_SMTP_SUBJECT?.trim() || 'TempMail SDK SMTP Test';
-  const body = process.env.TEMPMAIL_SMTP_BODY?.trim() || 'This is a tempmail SDK SMTP test email.';
+  const timeoutMs = parsePositiveNumber(
+    process.env.TEMPMAIL_SMTP_TIMEOUT,
+    10000,
+  );
+  const subject =
+    process.env.TEMPMAIL_SMTP_SUBJECT?.trim() || "TempMail SDK SMTP Test";
+  const body =
+    process.env.TEMPMAIL_SMTP_BODY?.trim() ||
+    "This is a tempmail SDK SMTP test email.";
 
   return {
     host,
@@ -74,7 +93,10 @@ function getSmtpConfig(): SmtpConfig | null {
 
 function getPollConfig(): PollConfig {
   return {
-    intervalMs: parsePositiveNumber(process.env.TEMPMAIL_POLL_INTERVAL_MS, 3000),
+    intervalMs: parsePositiveNumber(
+      process.env.TEMPMAIL_POLL_INTERVAL_MS,
+      3000,
+    ),
     max: parsePositiveNumber(process.env.TEMPMAIL_POLL_MAX, 10),
   };
 }
@@ -87,7 +109,9 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-async function sendSmtpTestEmail(targetEmail: string): Promise<{ marker: string } | null> {
+async function sendSmtpTestEmail(
+  targetEmail: string,
+): Promise<{ marker: string } | null> {
   const smtp = getSmtpConfig();
   if (!smtp) return null;
 
@@ -100,7 +124,8 @@ async function sendSmtpTestEmail(targetEmail: string): Promise<{ marker: string 
     host: smtp.host,
     port: smtp.port,
     secure: smtp.secure,
-    auth: smtp.user && smtp.pass ? { user: smtp.user, pass: smtp.pass } : undefined,
+    auth:
+      smtp.user && smtp.pass ? { user: smtp.user, pass: smtp.pass } : undefined,
     connectionTimeout: smtp.timeoutMs,
   });
 
@@ -124,7 +149,10 @@ function emailHasMarker(content: string | undefined, marker: string): boolean {
   return !!content && content.includes(marker);
 }
 
-async function pollForEmail(client: TempEmailClient, marker: string): Promise<boolean> {
+async function pollForEmail(
+  client: TempEmailClient,
+  marker: string,
+): Promise<boolean> {
   const { intervalMs, max } = getPollConfig();
 
   for (let attempt = 1; attempt <= max; attempt++) {
@@ -155,7 +183,7 @@ async function pollForEmail(client: TempEmailClient, marker: string): Promise<bo
 }
 
 async function testGenerateEmail() {
-  console.log('=== Test Generate Email ===\n');
+  console.log("=== Test Generate Email ===\n");
 
   // 与 src/index.ts allChannels 一致
   const channels: Channel[] = listChannels().map((info) => info.channel);
@@ -165,7 +193,7 @@ async function testGenerateEmail() {
       console.log(`Testing channel: ${channel}`);
       const emailInfo = await generateEmail({ channel });
       if (!emailInfo) {
-        console.log('  Failed to generate email');
+        console.log("  Failed to generate email");
         console.log();
         continue;
       }
@@ -182,19 +210,19 @@ async function testGenerateEmail() {
 }
 
 async function testGetEmails() {
-  console.log('=== Test Get Emails ===\n');
+  console.log("=== Test Get Emails ===\n");
 
   // Generate and check emails using client
   const client = new TempEmailClient();
-  
+
   try {
-    const emailInfo = await client.generate({ channel: 'tempmail' });
+    const emailInfo = await client.generate({ channel: "tempmail" });
     if (!emailInfo) {
-      console.log('Generated: null');
+      console.log("Generated: null");
       return;
     }
     console.log(`Generated: ${emailInfo.channel} - ${emailInfo.email}`);
-    
+
     const result = await client.getEmails();
     console.log(`Emails count: ${result.emails.length}`);
 

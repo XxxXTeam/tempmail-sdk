@@ -38,9 +38,14 @@ def _should_retry(error: Exception) -> bool:
 
     # 网络级别错误
     network_keywords = [
-        "connection", "timeout", "timed out",
-        "dns", "eof", "broken pipe",
-        "network is unreachable", "refused",
+        "connection",
+        "timeout",
+        "timed out",
+        "dns",
+        "eof",
+        "broken pipe",
+        "network is unreachable",
+        "refused",
         "reset",
     ]
     for kw in network_keywords:
@@ -88,8 +93,10 @@ def with_retry_with_attempts(
                     logger.debug(f"不可重试的错误: {error_msg}")
                 return RetryAttemptsResult(ok=False, attempts=attempts, error=e)
 
-            delay = min(cfg.initial_delay * (2 ** attempt), cfg.max_delay)
-            logger.warning(f"请求失败 ({error_msg})，{delay:.1f}s 后第 {attempt + 2} 次重试...")
+            delay = min(cfg.initial_delay * (2**attempt), cfg.max_delay)
+            logger.warning(
+                f"请求失败 ({error_msg})，{delay:.1f}s 后第 {attempt + 2} 次重试..."
+            )
             time.sleep(delay)
 
     return RetryAttemptsResult(ok=False, attempts=cfg.max_retries + 1, error=last_error)

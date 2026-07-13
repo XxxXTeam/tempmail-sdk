@@ -106,6 +106,7 @@ def _fetch_ws_ticket(jwt: str) -> str:
         raise RuntimeError("vip-215: missing ws ticket")
     return ticket
 
+
 _SYNTHETIC_MARKER = "【tempmail-sdk|synthetic|vip-215|v1】"
 
 _lock = threading.Lock()

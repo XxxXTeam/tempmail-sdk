@@ -1,37 +1,37 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'chatgpt-org-uk';
-const BASE_URL = 'https://mail.chatgpt.org.uk/api';
-const HOME_URL = 'https://mail.chatgpt.org.uk/';
+const CHANNEL: Channel = "chatgpt-org-uk";
+const BASE_URL = "https://mail.chatgpt.org.uk/api";
+const HOME_URL = "https://mail.chatgpt.org.uk/";
 
 const DEFAULT_HEADERS = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-  Accept: '*/*',
-  Referer: 'https://mail.chatgpt.org.uk/',
-  Origin: 'https://mail.chatgpt.org.uk',
-  DNT: '1',
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+  Accept: "*/*",
+  Referer: "https://mail.chatgpt.org.uk/",
+  Origin: "https://mail.chatgpt.org.uk",
+  DNT: "1",
 };
 
 /** 从首页 HTML 解析 window.__BROWSER_AUTH（服务端注入的会话 JWT，供 X-Inbox-Token） */
 function extractBrowserAuthToken(html: string): string {
   const m = html.match(/__BROWSER_AUTH\s*=\s*(\{[\s\S]*?\})\s*;/);
   if (!m) {
-    return '';
+    return "";
   }
   try {
     const o = JSON.parse(m[1]) as { token?: string };
-    return typeof o.token === 'string' ? o.token : '';
+    return typeof o.token === "string" ? o.token : "";
   } catch {
-    return '';
+    return "";
   }
 }
 
 function extractGmSid(response: Response): string {
   const h = response.headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof h.getSetCookie === 'function') {
+  if (typeof h.getSetCookie === "function") {
     for (const line of h.getSetCookie()) {
       const match = line.match(/^gm_sid=([^;]+)/);
       if (match) {
@@ -39,14 +39,17 @@ function extractGmSid(response: Response): string {
       }
     }
   }
-  const setCookie = response.headers.get('set-cookie') || '';
+  const setCookie = response.headers.get("set-cookie") || "";
   const match = setCookie.match(/gm_sid=([^;]+)/);
-  return match ? match[1] : '';
+  return match ? match[1] : "";
 }
 
-async function fetchHomeSession(): Promise<{ gmSid: string; browserToken: string }> {
+async function fetchHomeSession(): Promise<{
+  gmSid: string;
+  browserToken: string;
+}> {
   const response = await fetchWithTimeout(HOME_URL, {
-    method: 'GET',
+    method: "GET",
     headers: DEFAULT_HEADERS,
   });
 
@@ -59,21 +62,30 @@ async function fetchHomeSession(): Promise<{ gmSid: string; browserToken: string
   const browserToken = extractBrowserAuthToken(html);
 
   if (!gmSid) {
-    throw new Error('Failed to extract gm_sid cookie');
+    throw new Error("Failed to extract gm_sid cookie");
   }
   if (!browserToken) {
-    throw new Error('Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)');
+    throw new Error(
+      "Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)",
+    );
   }
 
   return { gmSid, browserToken };
 }
 
-async function fetchHomeSessionWithRetry(): Promise<{ gmSid: string; browserToken: string }> {
+async function fetchHomeSessionWithRetry(): Promise<{
+  gmSid: string;
+  browserToken: string;
+}> {
   try {
     return await fetchHomeSession();
   } catch (error: any) {
-    const message = String(error?.message || error || '').toLowerCase();
-    if (message.includes('401') || message.includes('429') || message.includes('extract')) {
+    const message = String(error?.message || error || "").toLowerCase();
+    if (
+      message.includes("401") ||
+      message.includes("429") ||
+      message.includes("extract")
+    ) {
       return await fetchHomeSession();
     }
     throw error;
@@ -86,10 +98,10 @@ function sleepMs(ms: number): Promise<void> {
 
 async function fetchInboxToken(email: string, gmSid: string): Promise<string> {
   const response = await fetchWithTimeout(`${BASE_URL}/inbox-token`, {
-    method: 'POST',
+    method: "POST",
     headers: {
       ...DEFAULT_HEADERS,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Cookie: `gm_sid=${gmSid}`,
     },
     body: JSON.stringify({ email }),
@@ -102,18 +114,21 @@ async function fetchInboxToken(email: string, gmSid: string): Promise<string> {
   const data = await response.json();
   const token = data?.auth?.token;
   if (!token) {
-    throw new Error('Failed to get inbox token');
+    throw new Error("Failed to get inbox token");
   }
 
   return token;
 }
 
-async function fetchInboxTokenWithRetry(email: string, gmSid: string): Promise<string> {
+async function fetchInboxTokenWithRetry(
+  email: string,
+  gmSid: string,
+): Promise<string> {
   try {
     return await fetchInboxToken(email, gmSid);
   } catch (error: any) {
-    const message = String(error?.message || error || '').toLowerCase();
-    if (message.includes('401')) {
+    const message = String(error?.message || error || "").toLowerCase();
+    if (message.includes("401")) {
       const { gmSid: sid } = await fetchHomeSessionWithRetry();
       return await fetchInboxToken(email, sid);
     }
@@ -122,19 +137,22 @@ async function fetchInboxTokenWithRetry(email: string, gmSid: string): Promise<s
 }
 
 /** 列表接口需同时带 Cookie gm_sid 与 x-inbox-token，否则返回 401 */
-function parseChatgptPackedToken(packed: string): { gmSid: string; inbox: string } {
+function parseChatgptPackedToken(packed: string): {
+  gmSid: string;
+  inbox: string;
+} {
   const t = packed.trim();
-  if (t.startsWith('{')) {
+  if (t.startsWith("{")) {
     try {
       const o = JSON.parse(t) as { gmSid?: string; inbox?: string };
-      if (typeof o.gmSid === 'string' && typeof o.inbox === 'string') {
+      if (typeof o.gmSid === "string" && typeof o.inbox === "string") {
         return { gmSid: o.gmSid, inbox: o.inbox };
       }
     } catch {
       /* ignore */
     }
   }
-  return { gmSid: '', inbox: packed };
+  return { gmSid: "", inbox: packed };
 }
 
 async function fetchEmails(
@@ -143,20 +161,23 @@ async function fetchEmails(
   gmSid: string,
 ): Promise<Email[]> {
   if (!inboxToken) {
-    throw new Error('internal error: token missing for chatgpt-org-uk');
+    throw new Error("internal error: token missing for chatgpt-org-uk");
   }
   if (!gmSid) {
-    throw new Error('internal error: gm_sid missing for chatgpt-org-uk');
+    throw new Error("internal error: gm_sid missing for chatgpt-org-uk");
   }
   const encodedEmail = encodeURIComponent(email);
-  const response = await fetchWithTimeout(`${BASE_URL}/emails?email=${encodedEmail}`, {
-    method: 'GET',
-    headers: {
-      ...DEFAULT_HEADERS,
-      Cookie: `gm_sid=${gmSid}`,
-      'x-inbox-token': inboxToken,
+  const response = await fetchWithTimeout(
+    `${BASE_URL}/emails?email=${encodedEmail}`,
+    {
+      method: "GET",
+      headers: {
+        ...DEFAULT_HEADERS,
+        Cookie: `gm_sid=${gmSid}`,
+        "x-inbox-token": inboxToken,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to get emails: ${response.status}`);
@@ -165,7 +186,7 @@ async function fetchEmails(
   const data = await response.json();
 
   if (!data.success) {
-    throw new Error('Failed to get emails');
+    throw new Error("Failed to get emails");
   }
 
   const rawEmails = data.data?.emails || [];
@@ -183,11 +204,11 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     const { gmSid, browserToken } = await fetchHomeSessionWithRetry();
 
     const response = await fetchWithTimeout(`${BASE_URL}/generate-email`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         ...DEFAULT_HEADERS,
         Cookie: `gm_sid=${gmSid}`,
-        'X-Inbox-Token': browserToken,
+        "X-Inbox-Token": browserToken,
       },
     });
 
@@ -198,7 +219,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
         await sleepMs(wait);
         continue;
       }
-      throw new Error('Failed to generate email: 429');
+      throw new Error("Failed to generate email: 429");
     }
 
     if (!response.ok) {
@@ -209,12 +230,13 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error('Failed to generate email');
+      throw new Error("Failed to generate email");
     }
 
     const email = data.data.email as string;
     const tokenFromAuth = data.auth?.token as string | undefined;
-    const inboxJwt = tokenFromAuth || (await fetchInboxTokenWithRetry(email, gmSid));
+    const inboxJwt =
+      tokenFromAuth || (await fetchInboxTokenWithRetry(email, gmSid));
 
     return {
       channel: CHANNEL,
@@ -223,12 +245,15 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     };
   }
 
-  throw new Error(`Failed to generate email: ${lastStatus || 'unknown'}`);
+  throw new Error(`Failed to generate email: ${lastStatus || "unknown"}`);
 }
 
-export async function getEmails(token: string, email: string): Promise<Email[]> {
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
   if (!token) {
-    throw new Error('internal error: token missing for chatgpt-org-uk');
+    throw new Error("internal error: token missing for chatgpt-org-uk");
   }
 
   let { gmSid, inbox } = parseChatgptPackedToken(token);
@@ -239,8 +264,8 @@ export async function getEmails(token: string, email: string): Promise<Email[]> 
   try {
     return await fetchEmails(inbox, email, gmSid);
   } catch (error: any) {
-    const message = String(error?.message || error || '').toLowerCase();
-    if (message.includes('401')) {
+    const message = String(error?.message || error || "").toLowerCase();
+    if (message.includes("401")) {
       const sess = await fetchHomeSessionWithRetry();
       const newInbox = await fetchInboxTokenWithRetry(email, sess.gmSid);
       return await fetchEmails(newInbox, email, sess.gmSid);

@@ -70,14 +70,19 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
                 pass
         text = item.get("mail_excerpt") or re.sub(r"<[^>]+>", " ", body).strip()
         text = re.sub(r"\s+", " ", text).strip()
-        out.append(normalize_email({
-            "id": item.get("mail_id"),
-            "from": item.get("mail_from"),
-            "to": email,
-            "subject": item.get("mail_subject"),
-            "text": text,
-            "html": body,
-            "date": item.get("mail_date", ""),
-            "isRead": item.get("mail_read") == 1,
-        }, email))
+        out.append(
+            normalize_email(
+                {
+                    "id": item.get("mail_id"),
+                    "from": item.get("mail_from"),
+                    "to": email,
+                    "subject": item.get("mail_subject"),
+                    "text": text,
+                    "html": body,
+                    "date": item.get("mail_date", ""),
+                    "isRead": item.get("mail_read") == 1,
+                },
+                email,
+            )
+        )
     return out

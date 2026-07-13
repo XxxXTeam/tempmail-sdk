@@ -101,8 +101,8 @@ fn encode_sess(s: &MinuteinboxSess) -> Result<String, String> {
 
 /// 从 token 字符串解码会话信息
 fn decode_sess(tok: &str) -> Result<MinuteinboxSess, String> {
-    let s: MinuteinboxSess = serde_json::from_str(tok)
-        .map_err(|_| "minuteinbox: token 反序列化失败".to_string())?;
+    let s: MinuteinboxSess =
+        serde_json::from_str(tok).map_err(|_| "minuteinbox: token 反序列化失败".to_string())?;
     if s.csrf.is_empty() {
         return Err("minuteinbox: token 中 csrf 为空".into());
     }
@@ -194,10 +194,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("minuteinbox: 创建邮箱请求失败: {}", e))?;
 
         if !resp2.status().is_success() {
-            return Err(format!(
-                "minuteinbox: 创建邮箱返回 HTTP {}",
-                resp2.status()
-            ));
+            return Err(format!("minuteinbox: 创建邮箱返回 HTTP {}", resp2.status()));
         }
 
         // 更新 Cookie
@@ -215,10 +212,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .ok_or_else(|| "minuteinbox: 响应中未找到 email 字段".to_string())?;
 
         if address.is_empty() || !address.contains('@') {
-            return Err(format!(
-                "minuteinbox: 返回的邮箱地址无效: {}",
-                address
-            ));
+            return Err(format!("minuteinbox: 返回的邮箱地址无效: {}", address));
         }
 
         let tok = encode_sess(&MinuteinboxSess {
@@ -311,10 +305,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             };
 
             // 从列表项提取基本信息（捷克语字段名）
-            let subject = item
-                .get("predmet")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let subject = item.get("predmet").and_then(|v| v.as_str()).unwrap_or("");
             let from = item.get("od").and_then(|v| v.as_str()).unwrap_or("");
             let date = item.get("kdy").and_then(|v| v.as_str()).unwrap_or("");
             let is_read = item
@@ -332,9 +323,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             reqd = reqd.header("Cookie", &sess.cookie);
 
             let html_body = match reqd.send().await {
-                Ok(r) if r.status().is_success() => {
-                    r.text().await.unwrap_or_default()
-                }
+                Ok(r) if r.status().is_success() => r.text().await.unwrap_or_default(),
                 _ => String::new(),
             };
 

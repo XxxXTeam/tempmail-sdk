@@ -207,17 +207,29 @@ def _parse_html_emails(cookie: str, recipient: str, tm_http) -> List[Email]:
             mail_id = str(idx + 1)
 
         # 提取主题
-        subject_match = re.search(r'class=["\'][^"\']*\bsubject\b[^"\']*["\'][^>]*>(.*?)</', item_html, re.DOTALL | re.I)
+        subject_match = re.search(
+            r'class=["\'][^"\']*\bsubject\b[^"\']*["\'][^>]*>(.*?)</',
+            item_html,
+            re.DOTALL | re.I,
+        )
         if subject_match:
             subject = re.sub(r"<[^>]+>", "", subject_match.group(1)).strip()
 
         # 提取发件人
-        from_match = re.search(r'class=["\'][^"\']*\b(?:from|sender)\b[^"\']*["\'][^>]*>(.*?)</', item_html, re.DOTALL | re.I)
+        from_match = re.search(
+            r'class=["\'][^"\']*\b(?:from|sender)\b[^"\']*["\'][^>]*>(.*?)</',
+            item_html,
+            re.DOTALL | re.I,
+        )
         if from_match:
             from_addr = re.sub(r"<[^>]+>", "", from_match.group(1)).strip()
 
         # 提取日期
-        date_match = re.search(r'class=["\'][^"\']*\b(?:date|time)\b[^"\']*["\'][^>]*>(.*?)</', item_html, re.DOTALL | re.I)
+        date_match = re.search(
+            r'class=["\'][^"\']*\b(?:date|time)\b[^"\']*["\'][^>]*>(.*?)</',
+            item_html,
+            re.DOTALL | re.I,
+        )
         if date_match:
             date = re.sub(r"<[^>]+>", "", date_match.group(1)).strip()
 
@@ -238,17 +250,19 @@ def _parse_html_emails(cookie: str, recipient: str, tm_http) -> List[Email]:
             except Exception:
                 pass
 
-        emails.append(Email(
-            id=mail_id,
-            from_addr=from_addr,
-            to=recipient,
-            subject=subject,
-            text=body_text,
-            html=body_html,
-            date=date,
-            is_read=False,
-            attachments=[],
-        ))
+        emails.append(
+            Email(
+                id=mail_id,
+                from_addr=from_addr,
+                to=recipient,
+                subject=subject,
+                text=body_text,
+                html=body_html,
+                date=date,
+                is_read=False,
+                attachments=[],
+            )
+        )
 
     return emails
 
@@ -271,13 +285,18 @@ def _fetch_mail_detail(cookie: str, mail_id: str, tm_http) -> dict:
     result = {"html": "", "text": "", "subject": "", "from": "", "date": ""}
 
     # 提取 iframe 内容（邮件正文通常放在 iframe 中）
-    iframe_match = re.search(r'<iframe[^>]+srcdoc=["\']([^"\']+)["\']', html, re.DOTALL | re.I)
+    iframe_match = re.search(
+        r'<iframe[^>]+srcdoc=["\']([^"\']+)["\']', html, re.DOTALL | re.I
+    )
     if iframe_match:
         import html as html_mod
+
         result["html"] = html_mod.unescape(iframe_match.group(1))
     else:
         # 尝试提取 iframe src
-        iframe_src_match = re.search(r'<iframe[^>]+src=["\']([^"\']+)["\']', html, re.DOTALL | re.I)
+        iframe_src_match = re.search(
+            r'<iframe[^>]+src=["\']([^"\']+)["\']', html, re.DOTALL | re.I
+        )
         if iframe_src_match:
             src = iframe_src_match.group(1)
             if not src.startswith("http"):
@@ -313,17 +332,29 @@ def _fetch_mail_detail(cookie: str, mail_id: str, tm_http) -> dict:
         result["text"] = re.sub(r"<[^>]+>", "", result["html"]).strip()
 
     # 提取主题
-    subj_match = re.search(r'class=["\'][^"\']*\bsubject\b[^"\']*["\'][^>]*>(.*?)</', html, re.DOTALL | re.I)
+    subj_match = re.search(
+        r'class=["\'][^"\']*\bsubject\b[^"\']*["\'][^>]*>(.*?)</',
+        html,
+        re.DOTALL | re.I,
+    )
     if subj_match:
         result["subject"] = re.sub(r"<[^>]+>", "", subj_match.group(1)).strip()
 
     # 提取发件人
-    from_match = re.search(r'class=["\'][^"\']*\b(?:from|sender)\b[^"\']*["\'][^>]*>(.*?)</', html, re.DOTALL | re.I)
+    from_match = re.search(
+        r'class=["\'][^"\']*\b(?:from|sender)\b[^"\']*["\'][^>]*>(.*?)</',
+        html,
+        re.DOTALL | re.I,
+    )
     if from_match:
         result["from"] = re.sub(r"<[^>]+>", "", from_match.group(1)).strip()
 
     # 提取日期
-    date_match = re.search(r'class=["\'][^"\']*\b(?:date|time)\b[^"\']*["\'][^>]*>(.*?)</', html, re.DOTALL | re.I)
+    date_match = re.search(
+        r'class=["\'][^"\']*\b(?:date|time)\b[^"\']*["\'][^>]*>(.*?)</',
+        html,
+        re.DOTALL | re.I,
+    )
     if date_match:
         result["date"] = re.sub(r"<[^>]+>", "", date_match.group(1)).strip()
 

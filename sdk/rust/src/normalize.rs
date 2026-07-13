@@ -94,7 +94,12 @@ pub fn normalize_email(raw: &Value, recipient_email: &str) -> Email {
 
 /// 检测内容是否为 HTML
 fn is_html_content(content: &str) -> bool {
-    let prefix: String = content.chars().take(200).collect::<String>().trim().to_lowercase();
+    let prefix: String = content
+        .chars()
+        .take(200)
+        .collect::<String>()
+        .trim()
+        .to_lowercase();
     if prefix.starts_with("<!doctype html")
         || prefix.starts_with("<html")
         || prefix.starts_with("<body")

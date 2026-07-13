@@ -61,7 +61,7 @@ def _pick_domain(domains: List[str], preferred: Optional[str]) -> str:
 
 def _random_username(length: int) -> str:
     chars = string.ascii_letters + string.digits
-    return ''.join(random.choice(chars) for _ in range(length))
+    return "".join(random.choice(chars) for _ in range(length))
 
 
 def generate_email(domain: Optional[str] = None, channel: str = CHANNEL) -> EmailInfo:

@@ -52,7 +52,9 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
     token 存储会话 Cookie 串，供后续 checker.php / view 请求使用。
     """
     headers = _base_headers()
-    headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    headers["Accept"] = (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    )
 
     resp = tm_http.get(f"{BASE_URL}/", headers=headers)
     resp.raise_for_status()
@@ -79,7 +81,9 @@ def _fetch_body(cookie_hdr: str, date: str) -> str:
     if not (date or "").strip():
         return ""
     headers = _base_headers()
-    headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    headers["Accept"] = (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    )
     headers["Cookie"] = cookie_hdr
     try:
         resp = tm_http.get(f"{BASE_URL}/view/{quote(date, safe='')}", headers=headers)

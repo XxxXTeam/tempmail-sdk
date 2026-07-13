@@ -1,10 +1,10 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'temp-mail-io';
-const BASE_URL = 'https://api.internal.temp-mail.io/api/v3';
-const PAGE_URL = 'https://temp-mail.io/en';
+const CHANNEL: Channel = "temp-mail-io";
+const BASE_URL = "https://api.internal.temp-mail.io/api/v3";
+const PAGE_URL = "https://temp-mail.io/en";
 
 let cachedCorsHeader: string | null = null;
 
@@ -14,8 +14,8 @@ async function fetchCorsHeader(): Promise<string> {
   try {
     const response = await fetchWithTimeout(PAGE_URL, {
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
       },
     });
     const html = await response.text();
@@ -28,28 +28,28 @@ async function fetchCorsHeader(): Promise<string> {
     /* fallback below */
   }
 
-  cachedCorsHeader = '1';
+  cachedCorsHeader = "1";
   return cachedCorsHeader;
 }
 
 async function getApiHeaders(): Promise<Record<string, string>> {
   const corsHeader = await fetchCorsHeader();
   return {
-    'Content-Type': 'application/json',
-    'Application-Name': 'web',
-    'Application-Version': '4.0.0',
-    'X-CORS-Header': corsHeader,
-    'User-Agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0',
-    origin: 'https://temp-mail.io',
-    referer: 'https://temp-mail.io/',
+    "Content-Type": "application/json",
+    "Application-Name": "web",
+    "Application-Version": "4.0.0",
+    "X-CORS-Header": corsHeader,
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+    origin: "https://temp-mail.io",
+    referer: "https://temp-mail.io/",
   };
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const headers = await getApiHeaders();
   const response = await fetchWithTimeout(`${BASE_URL}/email/new`, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify({ min_name_length: 10, max_name_length: 10 }),
   });
@@ -60,7 +60,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
   const data = await response.json();
   if (!data.email || !data.token) {
-    throw new Error('temp-mail-io: invalid generate response');
+    throw new Error("temp-mail-io: invalid generate response");
   }
 
   return {
@@ -72,10 +72,13 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
 export async function getEmails(email: string): Promise<Email[]> {
   const headers = await getApiHeaders();
-  const response = await fetchWithTimeout(`${BASE_URL}/email/${email}/messages`, {
-    method: 'GET',
-    headers,
-  });
+  const response = await fetchWithTimeout(
+    `${BASE_URL}/email/${email}/messages`,
+    {
+      method: "GET",
+      headers,
+    },
+  );
 
   if (!response.ok) {
     throw new Error(`temp-mail-io messages: ${response.status}`);

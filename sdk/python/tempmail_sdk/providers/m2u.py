@@ -30,7 +30,10 @@ def _unpack_token(token: str) -> tuple[str, str]:
         try:
             data = json.loads(value)
             if isinstance(data, dict):
-                return str(data.get("token") or "").strip(), str(data.get("viewToken") or "").strip()
+                return (
+                    str(data.get("token") or "").strip(),
+                    str(data.get("viewToken") or "").strip(),
+                )
         except Exception:
             return "", ""
     return value, ""
@@ -39,7 +42,10 @@ def _unpack_token(token: str) -> tuple[str, str]:
 def _flatten_message(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
     return {
         "id": raw.get("id") or raw.get("message_id"),
-        "from": raw.get("from_addr") or raw.get("from_address") or raw.get("from") or "",
+        "from": raw.get("from_addr")
+        or raw.get("from_address")
+        or raw.get("from")
+        or "",
         "to": recipient,
         "subject": raw.get("subject") or "",
         "text": raw.get("text_body") or raw.get("body_text") or raw.get("text") or "",
@@ -79,7 +85,9 @@ def generate_email() -> EmailInfo:
     )
 
 
-def _fetch_detail(token: str, view_token: str, message_id: str) -> Optional[Dict[str, Any]]:
+def _fetch_detail(
+    token: str, view_token: str, message_id: str
+) -> Optional[Dict[str, Any]]:
     mailbox_token = quote(token, safe="")
     encoded_message_id = quote(message_id, safe="")
     resp = tm_http.get(
@@ -124,6 +132,10 @@ def get_emails(token: str, email: str) -> List[Email]:
         if not isinstance(item, dict):
             continue
         message_id = str(item.get("id") or item.get("message_id") or "").strip()
-        detail = _fetch_detail(mailbox_token, view_token, message_id) if message_id else None
-        emails.append(normalize_email(_flatten_message(detail or item, address), address))
+        detail = (
+            _fetch_detail(mailbox_token, view_token, message_id) if message_id else None
+        )
+        emails.append(
+            normalize_email(_flatten_message(detail or item, address), address)
+        )
     return emails

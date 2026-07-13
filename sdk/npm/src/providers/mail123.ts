@@ -1,9 +1,9 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'mail123';
-const API_BASE = 'https://mail123.fr/api/v1';
+const CHANNEL: Channel = "mail123";
+const API_BASE = "https://mail123.fr/api/v1";
 
 interface MailboxResponse {
   address?: string;
@@ -23,8 +23,8 @@ interface DetailResponse {
 async function fetchJSON<T>(url: string): Promise<T> {
   const response = await fetchWithTimeout(url, {
     headers: {
-      Accept: 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
     },
   });
   if (!response.ok) {
@@ -33,7 +33,10 @@ async function fetchJSON<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-function flattenMessage(raw: Record<string, unknown>, recipient: string): Record<string, unknown> {
+function flattenMessage(
+  raw: Record<string, unknown>,
+  recipient: string,
+): Record<string, unknown> {
   return {
     ...raw,
     id: raw.id,
@@ -43,47 +46,59 @@ function flattenMessage(raw: Record<string, unknown>, recipient: string): Record
     text: raw.text || raw.preview,
     html: raw.html,
     date: raw.date,
-    isRead: typeof raw.is_unread === 'boolean' ? !raw.is_unread : raw.isRead,
+    isRead: typeof raw.is_unread === "boolean" ? !raw.is_unread : raw.isRead,
     attachments: raw.attachments,
   };
 }
 
 export async function generateEmail(): Promise<InternalEmailInfo> {
   const data = await fetchJSON<MailboxResponse>(`${API_BASE}/mailbox/new`);
-  const email = String(data.address || '').trim();
-  if (!email || !email.includes('@')) {
-    throw new Error('mail123: invalid mailbox response');
+  const email = String(data.address || "").trim();
+  if (!email || !email.includes("@")) {
+    throw new Error("mail123: invalid mailbox response");
   }
   return {
     channel: CHANNEL,
     email,
     token: email,
-    expiresAt: typeof data.expires_in_days === 'number' ? Date.now() + data.expires_in_days * 86400000 : undefined,
+    expiresAt:
+      typeof data.expires_in_days === "number"
+        ? Date.now() + data.expires_in_days * 86400000
+        : undefined,
   };
 }
 
-async function fetchDetail(address: string, messageId: string): Promise<Record<string, unknown> | null> {
+async function fetchDetail(
+  address: string,
+  messageId: string,
+): Promise<Record<string, unknown> | null> {
   try {
     const data = await fetchJSON<DetailResponse>(
       `${API_BASE}/mailbox/${encodeURIComponent(address)}/messages/${encodeURIComponent(messageId)}`,
     );
-    return data.message && typeof data.message === 'object' ? data.message : null;
+    return data.message && typeof data.message === "object"
+      ? data.message
+      : null;
   } catch {
     return null;
   }
 }
 
 export async function getEmails(email: string): Promise<Email[]> {
-  const address = String(email || '').trim();
-  if (!address) throw new Error('mail123: empty email');
+  const address = String(email || "").trim();
+  if (!address) throw new Error("mail123: empty email");
 
-  const data = await fetchJSON<ListResponse>(`${API_BASE}/mailbox/${encodeURIComponent(address)}/messages?limit=50`);
+  const data = await fetchJSON<ListResponse>(
+    `${API_BASE}/mailbox/${encodeURIComponent(address)}/messages?limit=50`,
+  );
   const rows = Array.isArray(data.messages) ? data.messages : [];
   const emails: Email[] = [];
   for (const row of rows) {
-    const id = row.id == null ? '' : String(row.id);
+    const id = row.id == null ? "" : String(row.id);
     const detail = id ? await fetchDetail(address, id) : null;
-    emails.push(normalizeEmail(flattenMessage(detail || row, address), address));
+    emails.push(
+      normalizeEmail(flattenMessage(detail || row, address), address),
+    );
   }
   return emails;
 }

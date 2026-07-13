@@ -63,7 +63,9 @@ def _cookie_header(resp: requests.Response) -> str:
 
 
 def _encode_token(csrf: str, cookie_hdr: str) -> str:
-    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return _TOK_PREFIX + base64.b64encode(raw).decode("ascii")
 
 
@@ -71,7 +73,7 @@ def _decode_token(token: str) -> Tuple[str, str]:
     if not token.startswith(_TOK_PREFIX):
         raise ValueError("tempmail-fyi: 无效的 token")
     try:
-        data = base64.b64decode(token[len(_TOK_PREFIX):])
+        data = base64.b64decode(token[len(_TOK_PREFIX) :])
         o = json.loads(data.decode("utf-8"))
     except (ValueError, UnicodeDecodeError) as e:
         raise ValueError("tempmail-fyi: 无效的 token") from e
@@ -113,7 +115,9 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
         raise RuntimeError("tempmail-fyi: 创建邮箱响应格式异常")
     if not data.get("success"):
         err = str(data.get("error") or "").strip()
-        raise RuntimeError(f"tempmail-fyi: 创建邮箱失败{'：' + err if err else '（success=false）'}")
+        raise RuntimeError(
+            f"tempmail-fyi: 创建邮箱失败{'：' + err if err else '（success=false）'}"
+        )
 
     email = str(data.get("email_address") or "").strip()
     if not email or "@" not in email:
@@ -151,7 +155,9 @@ def get_emails(email: str, token: str) -> List[Email]:
         raise RuntimeError("tempmail-fyi: 邮件列表响应格式异常")
     if not data.get("success"):
         err = str(data.get("error") or "").strip()
-        raise RuntimeError(f"tempmail-fyi: 获取邮件列表失败{'：' + err if err else '（success=false）'}")
+        raise RuntimeError(
+            f"tempmail-fyi: 获取邮件列表失败{'：' + err if err else '（success=false）'}"
+        )
 
     emails = data.get("emails")
     if not isinstance(emails, list) or not emails:

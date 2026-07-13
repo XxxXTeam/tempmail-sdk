@@ -19,19 +19,29 @@ DEFAULT_HEADERS = {
 }
 
 
-def _fetch_json(path: str, *, method: str = "GET", headers: Optional[Dict[str, str]] = None, payload: Optional[Dict[str, Any]] = None) -> Tuple[int, Dict[str, Any]]:
+def _fetch_json(
+    path: str,
+    *,
+    method: str = "GET",
+    headers: Optional[Dict[str, str]] = None,
+    payload: Optional[Dict[str, Any]] = None,
+) -> Tuple[int, Dict[str, Any]]:
     request_headers = dict(DEFAULT_HEADERS)
     if headers:
         request_headers.update(headers)
     if method == "POST":
-        resp = tm_http.post(f"{BASE_URL}{path}", headers=request_headers, json=payload or {})
+        resp = tm_http.post(
+            f"{BASE_URL}{path}", headers=request_headers, json=payload or {}
+        )
     else:
         resp = tm_http.get(f"{BASE_URL}{path}", headers=request_headers)
     text = resp.text or ""
     try:
         data = json.loads(text) if text else {}
     except Exception as exc:
-        raise ValueError(f"ockito invalid JSON: {path} HTTP {resp.status_code}") from exc
+        raise ValueError(
+            f"ockito invalid JSON: {path} HTTP {resp.status_code}"
+        ) from exc
     if not resp.ok:
         raise ValueError(f"ockito http {resp.status_code}")
     return resp.status_code, data if isinstance(data, dict) else {}
@@ -72,7 +82,9 @@ def _refresh_access_token(refresh_token: str) -> str:
     return access_token
 
 
-def _fetch_bearer_json(path: str, access_token: str, refresh_token: str) -> Dict[str, Any]:
+def _fetch_bearer_json(
+    path: str, access_token: str, refresh_token: str
+) -> Dict[str, Any]:
     try:
         _, data = _fetch_json(path, headers={"Authorization": f"Bearer {access_token}"})
         return data
@@ -102,7 +114,14 @@ def _flatten_message(raw: Dict[str, Any], recipient: str) -> Dict[str, Any]:
     obj = raw.get("obj") if isinstance(raw.get("obj"), dict) else raw
     return {
         "id": raw.get("uid") or "",
-        "from": obj.get("sender_email") or obj.get("SenderEmail") or obj.get("from_") or obj.get("From") or obj.get("from") or obj.get("sender_name") or obj.get("SenderName") or "",
+        "from": obj.get("sender_email")
+        or obj.get("SenderEmail")
+        or obj.get("from_")
+        or obj.get("From")
+        or obj.get("from")
+        or obj.get("sender_name")
+        or obj.get("SenderName")
+        or "",
         "to": obj.get("to") or obj.get("To") or recipient,
         "subject": obj.get("subject") or obj.get("Subject") or "",
         "text": obj.get("text") or "",
@@ -120,7 +139,9 @@ def generate_email() -> EmailInfo:
     if not access_token or not refresh_token:
         raise ValueError("ockito: invalid token response")
 
-    _, email_data = _fetch_json("/email", headers={"Authorization": f"Bearer {access_token}"})
+    _, email_data = _fetch_json(
+        "/email", headers={"Authorization": f"Bearer {access_token}"}
+    )
     email_value = email_data.get("email")
     email = ""
     if isinstance(email_value, str):
@@ -130,7 +151,9 @@ def generate_email() -> EmailInfo:
     if not email or "@" not in email:
         raise ValueError("ockito: invalid email response")
 
-    return EmailInfo(channel=CHANNEL, email=email, _token=_pack_token(access_token, refresh_token))
+    return EmailInfo(
+        channel=CHANNEL, email=email, _token=_pack_token(access_token, refresh_token)
+    )
 
 
 def get_emails(token: str, email: str) -> List[Email]:
@@ -139,7 +162,9 @@ def get_emails(token: str, email: str) -> List[Email]:
     if not address:
         raise ValueError("ockito: empty email")
 
-    data = _fetch_bearer_json(f"/retrieve/{quote(address, safe='')}/emails", access_token, refresh_token)
+    data = _fetch_bearer_json(
+        f"/retrieve/{quote(address, safe='')}/emails", access_token, refresh_token
+    )
     rows = data.get("inbox") or []
     if not isinstance(rows, list):
         return []

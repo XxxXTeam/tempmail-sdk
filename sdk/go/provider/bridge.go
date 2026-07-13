@@ -19,6 +19,8 @@ type ConfigSnapshot struct {
 	DropmailAuthToken        string
 	DropmailDisableAutoToken bool
 	DropmailRenewLifetime    string
+	ApihzID                  string
+	ApihzKey                 string
 }
 
 // CreatedMailbox 创建邮箱的统一中间结果，由 tempemail 转为 EmailInfo

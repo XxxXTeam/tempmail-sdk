@@ -65,8 +65,7 @@ fn init_session() -> Result<(String, String), String> {
 
         /* 从 HTML 中提取 <input id="eposta_adres" value="xxx@yevme.com"> */
         let re =
-            Regex::new(r#"<input[^>]+id\s*=\s*"eposta_adres"[^>]+value\s*=\s*"([^"]+)""#)
-                .unwrap();
+            Regex::new(r#"<input[^>]+id\s*=\s*"eposta_adres"[^>]+value\s*=\s*"([^"]+)""#).unwrap();
         let email = re
             .captures(&html)
             .and_then(|c| c.get(1))

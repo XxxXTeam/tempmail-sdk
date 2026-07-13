@@ -35,9 +35,7 @@ _SENDER_RE = re.compile(
     r'(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>'
 )
 _BODY_RE = re.compile(r'(?is)<div\s+class="email-body"\s*>([\s\S]*?)</div>')
-_FROM_ADDR_RE = re.compile(
-    r"<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>"
-)
+_FROM_ADDR_RE = re.compile(r"<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>")
 _TAG_RE = re.compile(r"<[^>]+>")
 
 _DEFAULT_HEADERS = {
@@ -115,7 +113,9 @@ def _page_headers(referer: str, ua: str) -> dict:
 
 
 def _encode_sess(locale: str, cookie_hdr: str) -> str:
-    raw = json.dumps({"l": locale, "c": cookie_hdr}, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps({"l": locale, "c": cookie_hdr}, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return TOK_PREFIX + base64.standard_b64encode(raw).decode("ascii")
 
 

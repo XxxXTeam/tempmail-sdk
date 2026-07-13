@@ -1,11 +1,20 @@
-import { TempEmailClient, Channel, setConfig } from '../src';
-import { sendSmtp } from './smtp-env';
+import { TempEmailClient, Channel, setConfig } from "../src";
+import { sendSmtp } from "./smtp-env";
 
 // 上次测试 SMTP 收信成功的 12 个渠道
 const smtpWorkingChannels: Channel[] = [
-  'tempmail', 'ta-easy', '10minute-one', 'mffac', 'tempmail-lol',
-  'chatgpt-org-uk', 'awamail', 'mail-tm', 'dropmail', 'guerrillamail',
-  'maildrop', 'vip-215',
+  "tempmail",
+  "ta-easy",
+  "10minute-one",
+  "mffac",
+  "tempmail-lol",
+  "chatgpt-org-uk",
+  "awamail",
+  "mail-tm",
+  "dropmail",
+  "guerrillamail",
+  "maildrop",
+  "vip-215",
 ];
 
 function sleep(ms: number) {
@@ -44,7 +53,9 @@ interface ContentResult {
   issue: string;
 }
 
-async function testChannelContent(channel: Channel): Promise<ContentResult | null> {
+async function testChannelContent(
+  channel: Channel,
+): Promise<ContentResult | null> {
   console.log(`\n--- 测试 ${channel} 邮件内容 ---`);
 
   const client = new TempEmailClient();
@@ -68,7 +79,10 @@ async function testChannelContent(channel: Channel): Promise<ContentResult | nul
     if (!result.success) continue;
 
     const found = result.emails.find(
-      (e) => e.subject?.includes(marker) || e.text?.includes(marker) || e.html?.includes(marker)
+      (e) =>
+        e.subject?.includes(marker) ||
+        e.text?.includes(marker) ||
+        e.html?.includes(marker),
     );
     if (found) {
       const r: ContentResult = {
@@ -77,18 +91,18 @@ async function testChannelContent(channel: Channel): Promise<ContentResult | nul
         hasSubject: !!found.subject && found.subject.trim().length > 0,
         hasText: !!found.text && found.text.trim().length > 0,
         hasHtml: !!found.html && found.html.trim().length > 0,
-        subject: found.subject || '(空)',
-        textLen: (found.text || '').length,
-        htmlLen: (found.html || '').length,
-        textPreview: (found.text || '').substring(0, 100),
-        htmlPreview: (found.html || '').substring(0, 100),
-        issue: '',
+        subject: found.subject || "(空)",
+        textLen: (found.text || "").length,
+        htmlLen: (found.html || "").length,
+        textPreview: (found.text || "").substring(0, 100),
+        htmlPreview: (found.html || "").substring(0, 100),
+        issue: "",
       };
 
-      if (!r.hasSubject) r.issue += '缺少Subject; ';
-      if (!r.hasText) r.issue += '缺少Text; ';
-      if (!r.hasHtml) r.issue += '缺少HTML; ';
-      if (!r.issue) r.issue = '正常';
+      if (!r.hasSubject) r.issue += "缺少Subject; ";
+      if (!r.hasText) r.issue += "缺少Text; ";
+      if (!r.hasHtml) r.issue += "缺少HTML; ";
+      if (!r.issue) r.issue = "正常";
 
       console.log(`  ✅ 收到邮件`);
       console.log(`    Subject: ${r.subject}`);
@@ -104,10 +118,10 @@ async function testChannelContent(channel: Channel): Promise<ContentResult | nul
 async function main() {
   setConfig({ telemetryEnabled: false });
 
-  console.log('======================================');
-  console.log('  邮件内容完整性测试');
+  console.log("======================================");
+  console.log("  邮件内容完整性测试");
   console.log(`  时间: ${new Date().toISOString()}`);
-  console.log('======================================');
+  console.log("======================================");
 
   const results: ContentResult[] = [];
   for (const ch of smtpWorkingChannels) {
@@ -115,16 +129,22 @@ async function main() {
     if (r) results.push(r);
   }
 
-  console.log('\n\n========== 邮件内容测试汇总 ==========');
-  console.log(`渠道`.padEnd(22) + `Subject`.padEnd(10) + `Text`.padEnd(10) + `HTML`.padEnd(10) + `状态`);
-  console.log('-'.repeat(70));
+  console.log("\n\n========== 邮件内容测试汇总 ==========");
+  console.log(
+    `渠道`.padEnd(22) +
+      `Subject`.padEnd(10) +
+      `Text`.padEnd(10) +
+      `HTML`.padEnd(10) +
+      `状态`,
+  );
+  console.log("-".repeat(70));
   for (const r of results) {
     console.log(
-      `${r.channel.padEnd(22)}${(r.hasSubject ? '✅' : '❌').padEnd(10)}${(r.hasText ? `✅(${r.textLen})` : '❌').padEnd(10)}${(r.hasHtml ? `✅(${r.htmlLen})` : '❌').padEnd(10)}${r.issue}`
+      `${r.channel.padEnd(22)}${(r.hasSubject ? "✅" : "❌").padEnd(10)}${(r.hasText ? `✅(${r.textLen})` : "❌").padEnd(10)}${(r.hasHtml ? `✅(${r.htmlLen})` : "❌").padEnd(10)}${r.issue}`,
     );
   }
 
-  const issues = results.filter((r) => r.issue !== '正常');
+  const issues = results.filter((r) => r.issue !== "正常");
   if (issues.length > 0) {
     console.log(`\n⚠️ 有 ${issues.length} 个渠道存在内容问题:`);
     for (const r of issues) {
@@ -133,7 +153,7 @@ async function main() {
       if (r.htmlPreview) console.log(`    HTML预览: ${r.htmlPreview}`);
     }
   } else {
-    console.log('\n✅ 所有渠道邮件内容完整');
+    console.log("\n✅ 所有渠道邮件内容完整");
   }
 }
 

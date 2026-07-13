@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，公开 **176** 个 `channel` 标识，按独立服务商合并为 **67** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。`ListChannels` 顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的公共列表顺序对齐；随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+Go 语言临时邮箱 SDK，公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。`ListChannels` 顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的公共列表顺序对齐；随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 ## 安装
 
@@ -38,15 +38,14 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `mailforspam` | mailforspam.com | `ChannelMailforspam` | 公开 REST：`/api/mailboxes/{email}/emails` + `/api/mailboxes/{email}/emails/{id}`；详情含 `body_text` / `body_html` |
 | `mailforspam-tempmail-io` | tempmail.io | `ChannelMailforspamTempmailIo` | MailForSpam API 固定域名 `tempmail.io` |
 | `mailforspam-disposable` | disposable.email | `ChannelMailforspamDisposable` | MailForSpam API 固定域名 `disposable.email` |
-| `tempmailo` | tempmailo.com | `ChannelTempmailo` | `GET /changemail` 建址，`POST /` 传 `mail` 拉信；返回对象直接含 `text` / `html` |
 | `tempmailc` | tempmailc.com | `ChannelTempmailc` | Public API：`GET /api/v1/new` 建址，`GET /api/v1/inbox` 拉列表，`GET /api/v1/message` 读取 `text` / `html` 正文 |
 | `mailnesia` | mailnesia.com | `ChannelMailnesia` | 任意 `{local}@mailnesia.com` 建址；HTML 列表 `tr.emailheader` + 详情 `text_plain_{id}` / `text_html_{id}` 正文 |
 | `throwawaymail` | throwawaymail.app | `ChannelThrowawaymail` | Web API 建址并轮询收信；Token 由 SDK 内部维护 |
 | `shitty-email` | shitty.email | `ChannelShittyEmail` | `POST /api/inbox` 建址；`X-Session-Token` + `GET /api/inbox` 拉列表，`GET /api/email/{id}` 读取 `text` / `html` 正文 |
 | `tempmailpro` | tempmailpro.us | `ChannelTempmailpro` | `POST /api/v1/mailbox/create` 建箱；`GET /api/v1/mailbox/{token}/emails` 拉列表，详情 `body_text` / `body_html` 映射统一正文 |
 | `devmail-uk` | devmail.uk | `ChannelDevmailUk` | `GET /api/new` 建址；`GET /api/inbox/{mailbox}?detail=true` 拉列表；生成接口返回的 `email` / `mailbox` 字段均兼容解析 |
-| `cleantempmail` | cleantempmail.com | `ChannelCleanTempMail` | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
 | `inboxkitten` | inboxkitten.com | `ChannelInboxkitten` | 公开 API 拉取收件箱列表与详情 |
+| `cleantempmail` | cleantempmail.com | `ChannelCleanTempMail` | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
 | `getnada` | getnada.net | `ChannelGetnada` | `POST /api/inbox/open` 建箱；`GET /api/inbox/messages` 列表；`GET /api/inbox/message` 详情含 `text_plain` / `html_sanitized` |
 | `1vpn-net` | 1vpn.net | `ChannelOneVpnNet` | getnada 固定域名 `1vpn.net` |
 | `abematv-com` | abematv.com | `ChannelAbematvCom` | getnada 固定域名 `abematv.com` |
@@ -142,7 +141,6 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `emailnator` | emailnator.com | `ChannelEmailnator` | XSRF + Cookie；Gmail/GoogleMail alias 选项生成，`messageID` 读取 HTML 正文 |
 | `temporam` | temporam.com | `ChannelTemporam` | 公开 REST：`/api/domains`、`/api/emails?email=`、`/api/emails/{id}` |
 | `neighbours` | neighbours.sh | `ChannelNeighbours` | `GET /config/domains` 获取域名；`GET /inbox/{address}` / `GET /inbox/{address}/{uid}` 拉信；`404` 视为空收件箱 |
-| `fake-email-site` | fake-email.site | `ChannelFakeEmailSite` | `POST /api/temporary-address` 建箱；`GET /api/inbox/poll?address=` 拉信；返回 `temp_email_addr` / `messages` |
 | `sharklasers` | sharklasers.com | `ChannelSharklasers` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `sharklasers-com` | sharklasers.com | `ChannelSharklasersCom` | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
 | `grr-la` | grr.la | `ChannelGrrLa` | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
@@ -160,6 +158,131 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `anonbox` | anonbox.net | `ChannelAnonbox` | `GET /en/` 解析页面建箱；`GET /{token}/` 拉信，token 形如 `inbox/secret`，mbox 明文解析 |
 | `duckmail` | duckmail.sbs | `ChannelDuckmail` | `GET /domains?page=1` 取域名；`POST /accounts` 创建账号；`POST /token` 获取 Bearer Token；`GET /messages` 拉列表 |
 | `mailinator` | mailinator.com | `ChannelMailinator` | 公开 REST：`GET /api/v2/domains/public/inboxes/{inbox}` 拉列表；`GET /api/v2/domains/public/messages/{id}/{text|texthtml|attachments}` 详情 |
+| `tempmail365` |  | `ChannelTempmail365` | tempmail365 |
+| `tempinbox` |  | `ChannelTempinbox` | tempinbox |
+| `byom` |  | `ChannelByom` | byom |
+| `anonymmail` |  | `ChannelAnonymmail` | anonymmail |
+| `eyepaste` |  | `ChannelEyepaste` | eyepaste |
+| `mail-sunls` |  | `ChannelMailSunls` | mail-sunls |
+| `expressinboxhub` |  | `ChannelExpressinboxhub` | expressinboxhub |
+| `lroid` |  | `ChannelLroid` | lroid |
+| `haribu` |  | `ChannelHaribu` | haribu |
+| `rootsh` |  | `ChannelRootsh` | rootsh |
+| `fake-email-site` | fake-email.site | `ChannelFakeEmailSite` | `POST /api/temporary-address` 建箱；`GET /api/inbox/poll?address=` 拉信；返回 `temp_email_addr` / `messages` |
+| `mohmal` |  | `ChannelMohmal` | mohmal |
+| `mailgolem` |  | `ChannelMailgolem` | mailgolem |
+| `best-temp-mail` |  | `ChannelBestTempMail` | best-temp-mail |
+| `disposablemail-app` |  | `ChannelDisposablemailApp` | disposablemail-app |
+| `mailtemp-cc` |  | `ChannelMailtempCc` | mailtemp-cc |
+| `minuteinbox` |  | `ChannelMinuteinbox` | minuteinbox |
+| `mailcatch` |  | `ChannelMailcatch` | mailcatch |
+| `tempemail-co` |  | `ChannelTempemailCo` | tempemail-co |
+| `tempemails-net` |  | `ChannelTempemailsNet` | tempemails-net |
+| `altmails` |  | `ChannelAltmails` | altmails |
+| `tempemail-info` |  | `ChannelTempemailInfo` | tempemail-info |
+| `smailpro` |  | `ChannelSmailpro` | smailpro |
+| `tempmailten` |  | `ChannelTempmailten` | tempmailten |
+| `maildrop-cc` |  | `ChannelMaildropCc` | maildrop-cc |
+| `10minutemail-net` |  | `ChannelTenminutemailNet` | 10minutemail-net |
+| `linshiyouxiang-net` |  | `ChannelLinshiyouxiangNet` | linshiyouxiang-net |
+| `tempmail-fyi` |  | `ChannelTempMailFyi` | tempmail-fyi |
+| `disposablemail-com` |  | `ChannelDisposablemailCom` | disposablemail-com |
+| `tempp-mails` |  | `ChannelTemppMails` | tempp-mails |
+| `emailtemp-org` |  | `ChannelEmailtempOrg` | emailtemp-org |
+| `mytempmail-cc` |  | `ChannelMytempmailCc` | mytempmail-cc |
+| `temp-mail-now` |  | `ChannelTempMailNow` | temp-mail-now |
+| `mail-td` |  | `ChannelMailTd` | mail-td |
+| `mailhole-de` |  | `ChannelMailholeDe` | mailhole-de |
+| `tmail-link` |  | `ChannelTmailLink` | tmail-link |
+| `24mail-chacuo` |  | `Channel24mailChacuo` | 24mail-chacuo |
+| `nimail` |  | `ChannelNimail` | nimail |
+| `freecustom` |  | `ChannelFreecustom` | freecustom |
+| `16888888-cyou` |  | `ChannelN16888888Cyou` | 16888888-cyou |
+| `17666688-shop` |  | `ChannelN17666688Shop` | 17666688-shop |
+| `282mail-com` |  | `ChannelN282mailCom` | 282mail-com |
+| `blackhole-djurby-se` |  | `ChannelBlackholeDjurbySe` | blackhole-djurby-se |
+| `block-bdea-cc` |  | `ChannelBlockBdeaCc` | block-bdea-cc |
+| `bsdu32-buzz` |  | `ChannelBsdu32Buzz` | bsdu32-buzz |
+| `b-smelly-cc` |  | `ChannelBSmellyCc` | b-smelly-cc |
+| `carlton183-changeip-net` |  | `ChannelCarlton183ChangeipNet` | carlton183-changeip-net |
+| `dea-soon-it` |  | `ChannelDeaSoonIt` | dea-soon-it |
+| `disposable-al-sudani-com` |  | `ChannelDisposableAlSudaniCom` | disposable-al-sudani-com |
+| `disposable-nogonad-nl` |  | `ChannelDisposableNogonadNl` | disposable-nogonad-nl |
+| `doxu243-buzz` |  | `ChannelDoxu243Buzz` | doxu243-buzz |
+| `easyme-pro` |  | `ChannelEasymePro` | easyme-pro |
+| `ebs-com-ar` |  | `ChannelEbsComAr` | ebs-com-ar |
+| `etgdev-de` |  | `ChannelEtgdevDe` | etgdev-de |
+| `evergreenco-shop` |  | `ChannelEvergreencoShop` | evergreenco-shop |
+| `fwd2m-eszett-es` |  | `ChannelFwd2mEszettEs` | fwd2m-eszett-es |
+| `jama-trenet-eu` |  | `ChannelJamaTrenetEu` | jama-trenet-eu |
+| `j-fairuse-org` |  | `ChannelJFairuseOrg` | j-fairuse-org |
+| `layueming-pics` |  | `ChannelLayuemingPics` | layueming-pics |
+| `m-887-at` |  | `ChannelM887At` | m-887-at |
+| `m8r-davidfuhr-de` |  | `ChannelM8rDavidfuhrDe` | m8r-davidfuhr-de |
+| `m8r-mcasal-com` |  | `ChannelM8rMcasalCom` | m8r-mcasal-com |
+| `mail-bentrask-com` |  | `ChannelMailBentraskCom` | mail-bentrask-com |
+| `mail-fsmash-org` |  | `ChannelMailFsmashOrg` | mail-fsmash-org |
+| `mailinatorzz-mooo-com` |  | `ChannelMailinatorzzmoooCom` | mailinatorzz-mooo-com |
+| `mi-meon-be` |  | `ChannelMiMeonBe` | mi-meon-be |
+| `mingyuekeji-online` |  | `ChannelMingyuekejiOnline` | mingyuekeji-online |
+| `mingyueming-click` |  | `ChannelMingyuemingClick` | mingyueming-click |
+| `mingyueming-shop` |  | `ChannelMingyuemingShop` | mingyueming-shop |
+| `mingyukeji-lol` |  | `ChannelMingyukejiLol` | mingyukeji-lol |
+| `mn-curppa-com` |  | `ChannelMnCurppaCom` | mn-curppa-com |
+| `m-nik-me` |  | `ChannelMNikMe` | m-nik-me |
+| `mtmdev-com` |  | `ChannelMtmdevCom` | mtmdev-com |
+| `nospam-thurstons-us` |  | `ChannelNospamThurstonsUs` | nospam-thurstons-us |
+| `notfond-404-mn` |  | `ChannelNotfond404Mn` | notfond-404-mn |
+| `null-k3vin-net` |  | `ChannelNullK3vinNet` | null-k3vin-net |
+| `nuxh62-space` |  | `ChannelNuxh62Space` | nuxh62-space |
+| `proid-cloud-ip-cc` |  | `ChannelProidCloudIpCc` | proid-cloud-ip-cc |
+| `ramjane-mooo-com` |  | `ChannelRamjaneMoooCom` | ramjane-mooo-com |
+| `rauxa-seny-cat` |  | `ChannelRauxaSenyCat` | rauxa-seny-cat |
+| `really-istrash-com` |  | `ChannelReallyIstrashCom` | really-istrash-com |
+| `sbook-pics` |  | `ChannelSbookPics` | sbook-pics |
+| `spam-hortuk-ovh` |  | `ChannelSpamHortukOvh` | spam-hortuk-ovh |
+| `sp-woot-at` |  | `ChannelSpWootAt` | sp-woot-at |
+| `test-unergie-com` |  | `ChannelTestUnergieCom` | test-unergie-com |
+| `torch-yi-org` |  | `ChannelTorchYiOrg` | torch-yi-org |
+| `t-zibet-net` |  | `ChannelTZibetNet` | t-zibet-net |
+| `xue32-buzz` |  | `ChannelXue32Buzz` | xue32-buzz |
+| `apihz` |  | `ChannelApihz` | apihz |
+| `sogetthis-com` |  | `ChannelSogetthisCom` | sogetthis-com |
+| `bobmail-info` |  | `ChannelBobmailInfo` | bobmail-info |
+| `suremail-info` |  | `ChannelSuremailInfo` | suremail-info |
+| `binkmail-com` |  | `ChannelBinkmailCom` | binkmail-com |
+| `veryrealemail-com` |  | `ChannelVeryrealemailCom` | veryrealemail-com |
+| `mailmomy` |  | `ChannelMailmomy` | mailmomy |
+| `chammy-info` |  | `ChannelChammyInfo` | chammy-info |
+| `thisisnotmyrealemail-com` |  | `ChannelThisisnotmyrealemailCom` | thisisnotmyrealemail-com |
+| `notmailinator-com` |  | `ChannelNotmailinatorCom` | notmailinator-com |
+| `spamhereplease-com` |  | `ChannelSpamherepleaseCom` | spamhereplease-com |
+| `sendspamhere-com` |  | `ChannelSendspamhereCom` | sendspamhere-com |
+| `sendfree-org` |  | `ChannelSendfreeOrg` | sendfree-org |
+| `junk-beats-org` |  | `ChannelJunkBeatsOrg` | junk-beats-org |
+| `junk-ihmehl-com` |  | `ChannelJunkIhmehlCom` | junk-ihmehl-com |
+| `junk-noplay-org` |  | `ChannelJunkNoplayOrg` | junk-noplay-org |
+| `junk-vanillasystem-com` |  | `ChannelJunkVanillasystemCom` | junk-vanillasystem-com |
+| `spam-jasonpearce-com` |  | `ChannelSpamJasonpearceCom` | spam-jasonpearce-com |
+| `fish-skytale-net` |  | `ChannelFishSkytaleNet` | fish-skytale-net |
+| `spam-mccrew-com` |  | `ChannelSpamMccrewCom` | spam-mccrew-com |
+| `dropmail-click` |  | `ChannelDropmailClick` | dropmail-click |
+| `spam-coroiu-com` |  | `ChannelSpamCoroiuCom` | spam-coroiu-com |
+| `spam-deluser-net` |  | `ChannelSpamDeluserNet` | spam-deluser-net |
+| `spam-dhsf-net` |  | `ChannelSpamDhsfNet` | spam-dhsf-net |
+| `spam-lucatnt-com` |  | `ChannelSpamLucatntCom` | spam-lucatnt-com |
+| `spam-lyceum-life-com-ru` |  | `ChannelSpamLyceumLifeComRu` | spam-lyceum-life-com-ru |
+| `spam-netpirates-net` |  | `ChannelSpamNetpiratesNet` | spam-netpirates-net |
+| `spam-no-ip-net` |  | `ChannelSpamNoIpNet` | spam-no-ip-net |
+| `spam-ozh-org` |  | `ChannelSpamOzhOrg` | spam-ozh-org |
+| `spam-pyphus-org` |  | `ChannelSpamPyphusOrg` | spam-pyphus-org |
+| `spam-shep-pw` |  | `ChannelSpamShepPw` | spam-shep-pw |
+| `spam-wtf-at` |  | `ChannelSpamWtfAt` | spam-wtf-at |
+| `spam-wulczer-org` |  | `ChannelSpamWulczerOrg` | spam-wulczer-org |
+| `crap-kakadua-net` |  | `ChannelCrapKakaduaNet` | crap-kakadua-net |
+| `spam-janlugt-nl` |  | `ChannelSpamJanlugtNl` | spam-janlugt-nl |
+| `min-burningfish-net` |  | `ChannelMinBurningfishNet` | min-burningfish-net |
+| `sink-fblay-com` |  | `ChannelSinkFblayCom` | sink-fblay-com |
 
 > **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 

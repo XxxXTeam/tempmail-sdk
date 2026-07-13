@@ -48,14 +48,19 @@ def get_emails(token: str, email: str = "", **kwargs) -> list:
 
     out = []
     for raw in mail_list:
-        out.append(normalize_email({
-            "id": raw.get("id") or raw.get("_id", ""),
-            "from": raw.get("from") or raw.get("sender", ""),
-            "to": email,
-            "subject": raw.get("subject", ""),
-            "text": raw.get("body") or raw.get("text", ""),
-            "html": raw.get("html") or raw.get("body", ""),
-            "date": raw.get("date") or raw.get("receivedAt", ""),
-            "isRead": False,
-        }, email))
+        out.append(
+            normalize_email(
+                {
+                    "id": raw.get("id") or raw.get("_id", ""),
+                    "from": raw.get("from") or raw.get("sender", ""),
+                    "to": email,
+                    "subject": raw.get("subject", ""),
+                    "text": raw.get("body") or raw.get("text", ""),
+                    "html": raw.get("html") or raw.get("body", ""),
+                    "date": raw.get("date") or raw.get("receivedAt", ""),
+                    "isRead": False,
+                },
+                email,
+            )
+        )
     return out

@@ -59,7 +59,9 @@ def _cookie_header(resp: requests.Response) -> str:
 
 
 def _encode_token(csrf: str, cookie_hdr: str) -> str:
-    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps({"t": csrf, "c": cookie_hdr}, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return _TOK_PREFIX + base64.b64encode(raw).decode("ascii")
 
 
@@ -67,7 +69,7 @@ def _decode_token(token: str) -> Tuple[str, str]:
     if not token.startswith(_TOK_PREFIX):
         raise ValueError("tempp-mails: 无效的 token")
     try:
-        data = base64.b64decode(token[len(_TOK_PREFIX):])
+        data = base64.b64decode(token[len(_TOK_PREFIX) :])
         o = json.loads(data.decode("utf-8"))
     except (ValueError, UnicodeDecodeError) as e:
         raise ValueError("tempp-mails: 无效的 token") from e
@@ -121,7 +123,9 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
     if not mailbox or "@" not in mailbox:
         raise RuntimeError(f"tempp-mails: 邮箱地址无效: {mailbox!r}")
 
-    return EmailInfo(channel=channel, email=mailbox, _token=_encode_token(csrf, cookie_hdr))
+    return EmailInfo(
+        channel=channel, email=mailbox, _token=_encode_token(csrf, cookie_hdr)
+    )
 
 
 def _fetch_view(cookie_hdr: str, mid: str) -> str:

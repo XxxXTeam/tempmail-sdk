@@ -111,7 +111,9 @@ def _connect_socket(host: str):
             if isinstance(packet, bytes):
                 packet = packet.decode("utf-8", errors="ignore")
             if not isinstance(packet, str) or not packet.startswith("0"):
-                raise RuntimeError(f"tempmail-cn: unexpected open packet for EIO={version}")
+                raise RuntimeError(
+                    f"tempmail-cn: unexpected open packet for EIO={version}"
+                )
             ws.send("40")
             return ws
         except Exception as exc:  # noqa: BLE001
@@ -127,7 +129,9 @@ def _connect_socket(host: str):
 
 
 def _send_event(ws, event: str, payload) -> None:
-    packet = "42" + json.dumps([event, payload], ensure_ascii=False, separators=(",", ":"))
+    packet = "42" + json.dumps(
+        [event, payload], ensure_ascii=False, separators=(",", ":")
+    )
     ws.send(packet)
 
 
@@ -160,12 +164,14 @@ def _stable_message_id(raw: dict, recipient_email: str) -> str:
         val = _value_string(headers.get(key))
         if val:
             return val
-    return "\n".join([
-        _value_string(headers.get("from")),
-        _value_string(headers.get("subject")),
-        _value_string(headers.get("date")),
-        recipient_email,
-    ])
+    return "\n".join(
+        [
+            _value_string(headers.get("from")),
+            _value_string(headers.get("subject")),
+            _value_string(headers.get("date")),
+            recipient_email,
+        ]
+    )
 
 
 def _flatten_mail(raw: dict, recipient_email: str) -> dict:
@@ -261,7 +267,9 @@ def _ensure_ws(email: str) -> None:
         if box.started:
             return
         box.started = True
-        t = threading.Thread(target=_ws_run, args=(email, local, host, box), daemon=True)
+        t = threading.Thread(
+            target=_ws_run, args=(email, local, host, box), daemon=True
+        )
         box.thread = t
         t.start()
     time.sleep(0.08)

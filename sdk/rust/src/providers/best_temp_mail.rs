@@ -78,15 +78,9 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .await
             .map_err(|e| format!("best-temp-mail: 解析创建邮箱响应失败: {}", e))?;
 
-        let status = data
-            .get("status")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let status = data.get("status").and_then(|v| v.as_str()).unwrap_or("");
         if status != "success" {
-            return Err(format!(
-                "best-temp-mail: 创建邮箱失败, status={}",
-                status
-            ));
+            return Err(format!("best-temp-mail: 创建邮箱失败, status={}", status));
         }
 
         let info = data
@@ -109,10 +103,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .ok_or("best-temp-mail: 响应中缺少 update_tag 字段")?;
 
         if address.is_empty() || !address.contains('@') {
-            return Err(format!(
-                "best-temp-mail: 返回的邮箱地址无效: {}",
-                address
-            ));
+            return Err(format!("best-temp-mail: 返回的邮箱地址无效: {}", address));
         }
 
         // 将 intToken + id + update_tag 序列化为 JSON 存入 token
@@ -192,10 +183,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             .await
             .map_err(|e| format!("best-temp-mail: 解析邮件列表响应失败: {}", e))?;
 
-        let status = data
-            .get("status")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let status = data.get("status").and_then(|v| v.as_str()).unwrap_or("");
         if status != "success" {
             return Err(format!(
                 "best-temp-mail: 获取邮件列表失败, status={}",

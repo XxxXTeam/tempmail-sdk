@@ -70,7 +70,9 @@ def _create_address(session: Dict[str, str]) -> Dict[str, Any]:
 
 
 def _fetch_rows(cookie: str) -> List[Dict[str, Any]]:
-    resp = tm_http.get(f"{BASE_URL}/index/refresh", headers=_ajax_headers(cookie), timeout=15)
+    resp = tm_http.get(
+        f"{BASE_URL}/index/refresh", headers=_ajax_headers(cookie), timeout=15
+    )
     resp.raise_for_status()
     data = _json(resp.text)
     return data if isinstance(data, list) else []
@@ -92,7 +94,9 @@ def _fetch_detail(cookie: str, message_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _flatten(row: Dict[str, Any], detail: Optional[Dict[str, Any]], recipient: str) -> Dict[str, Any]:
+def _flatten(
+    row: Dict[str, Any], detail: Optional[Dict[str, Any]], recipient: str
+) -> Dict[str, Any]:
     detail = detail or {}
     return {
         "id": detail.get("id") or row.get("id"),

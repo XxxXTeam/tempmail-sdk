@@ -1,4 +1,10 @@
-import { generateEmail, getEmails, TempEmailClient, Channel, setConfig } from '../src';
+import {
+  generateEmail,
+  getEmails,
+  TempEmailClient,
+  Channel,
+  setConfig,
+} from "../src";
 
 setConfig({ telemetryEnabled: false });
 
@@ -8,19 +14,26 @@ async function testChannel(channel: Channel) {
     const client = new TempEmailClient();
     const info = await client.generate({ channel, channelFallback: false });
     if (!info) {
-      console.log('  ❌ 生成邮箱失败: 返回 null');
+      console.log("  ❌ 生成邮箱失败: 返回 null");
       return;
     }
     console.log(`  ✅ 生成邮箱: ${info.email}`);
     const result = await client.getEmails();
-    console.log(`  ${result.success ? '✅' : '❌'} 获取邮件: success=${result.success}, count=${result.emails.length}`);
+    console.log(
+      `  ${result.success ? "✅" : "❌"} 获取邮件: success=${result.success}, count=${result.emails.length}`,
+    );
   } catch (e: any) {
     console.log(`  ❌ 异常: ${e.message}`);
   }
 }
 
 async function main() {
-  const channels: Channel[] = ['moakt', 'catchmail-mailistry', 'tempmail-cn', 'mailforspam-disposable'];
+  const channels: Channel[] = [
+    "moakt",
+    "catchmail-mailistry",
+    "tempmail-cn",
+    "mailforspam-disposable",
+  ];
   for (const ch of channels) {
     await testChannel(ch);
   }

@@ -1,23 +1,27 @@
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'tempmail';
-const BASE_URL = 'https://api.tempmail.ing/api';
+const CHANNEL: Channel = "tempmail";
+const BASE_URL = "https://api.tempmail.ing/api";
 
 const DEFAULT_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-  'Content-Type': 'application/json',
-  'Referer': 'https://tempmail.ing/',
-  'sec-ch-ua': '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'DNT': '1',
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+  "Content-Type": "application/json",
+  Referer: "https://tempmail.ing/",
+  "sec-ch-ua":
+    '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": '"Windows"',
+  DNT: "1",
 };
 
-export async function generateEmail(duration: number = 30): Promise<InternalEmailInfo> {
+export async function generateEmail(
+  duration: number = 30,
+): Promise<InternalEmailInfo> {
   const response = await fetchWithTimeout(`${BASE_URL}/generate`, {
-    method: 'POST',
+    method: "POST",
     headers: DEFAULT_HEADERS,
     body: JSON.stringify({ duration }),
   });
@@ -27,9 +31,9 @@ export async function generateEmail(duration: number = 30): Promise<InternalEmai
   }
 
   const data = await response.json();
-  
+
   if (!data.success) {
-    throw new Error('Failed to generate email');
+    throw new Error("Failed to generate email");
   }
 
   return {
@@ -42,23 +46,28 @@ export async function generateEmail(duration: number = 30): Promise<InternalEmai
 
 export async function getEmails(email: string): Promise<Email[]> {
   const encodedEmail = encodeURIComponent(email);
-  const response = await fetchWithTimeout(`${BASE_URL}/emails/${encodedEmail}`, {
-    method: 'GET',
-    headers: DEFAULT_HEADERS,
-  });
+  const response = await fetchWithTimeout(
+    `${BASE_URL}/emails/${encodedEmail}`,
+    {
+      method: "GET",
+      headers: DEFAULT_HEADERS,
+    },
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to get emails: ${response.status}`);
   }
 
   const data = await response.json();
-  
+
   if (!data.success) {
-    throw new Error('Failed to get emails');
+    throw new Error("Failed to get emails");
   }
 
   const rawEmails = data.emails || [];
-  return rawEmails.map((raw: any) => normalizeEmail(flattenMessage(raw, email), email));
+  return rawEmails.map((raw: any) =>
+    normalizeEmail(flattenMessage(raw, email), email),
+  );
 }
 
 /**
@@ -73,13 +82,13 @@ export async function getEmails(email: string): Promise<Email[]> {
  */
 function flattenMessage(raw: any, recipientEmail: string): any {
   return {
-    id: raw.id ?? '',
-    from: raw.from_address || raw.from || '',
+    id: raw.id ?? "",
+    from: raw.from_address || raw.from || "",
     to: recipientEmail,
-    subject: raw.subject || '',
-    text: raw.text || '',
-    html: raw.content || raw.html || '',
-    date: raw.received_at || raw.date || '',
+    subject: raw.subject || "",
+    text: raw.text || "",
+    html: raw.content || raw.html || "",
+    date: raw.received_at || raw.date || "",
     isRead: raw.is_read === 1 || raw.is_read === true,
     attachments: raw.attachments || [],
   };

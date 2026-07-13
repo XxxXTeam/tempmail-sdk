@@ -100,8 +100,8 @@ fn encode_sess(s: &TempemailCoSess) -> Result<String, String> {
 
 /// 从 token 字符串解码会话信息
 fn decode_sess(tok: &str) -> Result<TempemailCoSess, String> {
-    let s: TempemailCoSess = serde_json::from_str(tok)
-        .map_err(|_| "tempemail-co: token 反序列化失败".to_string())?;
+    let s: TempemailCoSess =
+        serde_json::from_str(tok).map_err(|_| "tempemail-co: token 反序列化失败".to_string())?;
     if s.address.is_empty() {
         return Err("tempemail-co: token 中 address 为空".into());
     }
@@ -158,10 +158,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .map_err(|e| format!("tempemail-co: 创建邮箱请求失败: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!(
-                "tempemail-co: 创建邮箱返回 HTTP {}",
-                resp.status()
-            ));
+            return Err(format!("tempemail-co: 创建邮箱返回 HTTP {}", resp.status()));
         }
 
         // 收集 Set-Cookie
@@ -190,10 +187,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             .ok_or_else(|| "tempemail-co: 响应中未找到 address 字段".to_string())?;
 
         if address.is_empty() || !address.contains('@') {
-            return Err(format!(
-                "tempemail-co: 返回的邮箱地址无效: {}",
-                address
-            ));
+            return Err(format!("tempemail-co: 返回的邮箱地址无效: {}", address));
         }
 
         let tok = encode_sess(&TempemailCoSess {
@@ -271,10 +265,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         }
 
         // 从 mails 字段的 HTML 中用正则提取邮件 ID
-        let mails_html = body
-            .get("mails")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let mails_html = body.get("mails").and_then(|v| v.as_str()).unwrap_or("");
 
         let mail_ids: Vec<String> = MAIL_ID_RE
             .captures_iter(mails_html)
@@ -296,9 +287,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             reqd = reqd.header("Cookie", &sess.cookie);
 
             let detail = match reqd.send().await {
-                Ok(r) if r.status().is_success() => {
-                    r.json::<Value>().await.unwrap_or(Value::Null)
-                }
+                Ok(r) if r.status().is_success() => r.json::<Value>().await.unwrap_or(Value::Null),
                 _ => continue,
             };
 

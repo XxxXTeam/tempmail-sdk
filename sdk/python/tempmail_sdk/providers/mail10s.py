@@ -54,4 +54,8 @@ def get_emails(email: str) -> List[Email]:
     messages = data.get("data", {}).get("messages") if isinstance(data, dict) else []
     if not isinstance(messages, list):
         return []
-    return [normalize_email(_flatten(row, address), address) for row in messages if isinstance(row, dict)]
+    return [
+        normalize_email(_flatten(row, address), address)
+        for row in messages
+        if isinstance(row, dict)
+    ]

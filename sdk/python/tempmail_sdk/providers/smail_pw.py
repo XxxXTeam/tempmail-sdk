@@ -115,7 +115,9 @@ def _resolve_flight_deferred_row(root: list, obj: dict) -> dict | None:
             continue
         key = root[key_idx]
         val = root[val_idx]
-        if key == "time" and (isinstance(val, int) or (isinstance(val, str) and str(val).isdigit())):
+        if key == "time" and (
+            isinstance(val, int) or (isinstance(val, str) and str(val).isdigit())
+        ):
             fields["time"] = int(val)
         elif isinstance(key, str) and isinstance(val, str):
             fields[key] = val

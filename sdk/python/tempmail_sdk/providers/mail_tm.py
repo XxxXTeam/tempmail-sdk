@@ -72,7 +72,7 @@ def _flatten_message(msg: dict, recipient_email: str) -> dict:
         html_content = "".join(html_content)
 
     attachments = []
-    for a in (msg.get("attachments") or []):
+    for a in msg.get("attachments") or []:
         att = {
             "filename": a.get("filename", ""),
             "size": a.get("size"),

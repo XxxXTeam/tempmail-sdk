@@ -28,31 +28,39 @@ _DATA_EMAIL_RE = re.compile(r'data-email="([^"]+)"')
 
 # 解析收件箱表格行: 发件人、主题、时间、邮件链接
 _INBOX_ROW_RE = re.compile(
-    r'(?is)<tr[^>]*>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>'
+    r"(?is)<tr[^>]*>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>"
 )
 
 # 提取邮件详情链接中的 ID
-_MESSAGE_LINK_RE = re.compile(r'/en/message/(\d+)')
+_MESSAGE_LINK_RE = re.compile(r"/en/message/(\d+)")
 
 # 提取邮件正文区域
-_MESSAGE_BODY_RE = re.compile(r'(?is)<div[^>]*class="[^"]*mail-content[^"]*"[^>]*>([\s\S]*?)</div>')
+_MESSAGE_BODY_RE = re.compile(
+    r'(?is)<div[^>]*class="[^"]*mail-content[^"]*"[^>]*>([\s\S]*?)</div>'
+)
 
 # 备选正文提取（如果 mail-content 找不到，尝试 message-body）
-_MESSAGE_BODY_ALT_RE = re.compile(r'(?is)<div[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)</div>')
+_MESSAGE_BODY_ALT_RE = re.compile(
+    r'(?is)<div[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)</div>'
+)
 
 # 提取邮件详情页中的发件人
-_DETAIL_FROM_RE = re.compile(r'(?is)<span[^>]*class="[^"]*from[^"]*"[^>]*>([\s\S]*?)</span>')
+_DETAIL_FROM_RE = re.compile(
+    r'(?is)<span[^>]*class="[^"]*from[^"]*"[^>]*>([\s\S]*?)</span>'
+)
 
 # 提取邮件详情页中的主题
-_DETAIL_SUBJECT_RE = re.compile(r'(?is)<span[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)</span>')
+_DETAIL_SUBJECT_RE = re.compile(
+    r'(?is)<span[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)</span>'
+)
 
 # 提取邮件详情页中的日期
-_DETAIL_DATE_RE = re.compile(r'(?is)<span[^>]*class="[^"]*date[^"]*"[^>]*>([\s\S]*?)</span>')
+_DETAIL_DATE_RE = re.compile(
+    r'(?is)<span[^>]*class="[^"]*date[^"]*"[^>]*>([\s\S]*?)</span>'
+)
 
 # 从发件人字段提取邮箱地址
-_FROM_ADDR_RE = re.compile(
-    r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-)
+_FROM_ADDR_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 
 # 清除 HTML 标签
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -108,7 +116,7 @@ def _decode_token(tok: str) -> str:
     if not tok.startswith(TOK_PREFIX):
         raise ValueError("mohmal: invalid session token")
     try:
-        data = base64.standard_b64decode(tok[len(TOK_PREFIX):].encode("ascii"))
+        data = base64.standard_b64decode(tok[len(TOK_PREFIX) :].encode("ascii"))
         o = json.loads(data.decode("utf-8"))
     except (json.JSONDecodeError, ValueError) as e:
         raise ValueError("mohmal: invalid session token") from e

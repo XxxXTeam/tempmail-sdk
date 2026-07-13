@@ -1,22 +1,22 @@
-import WebSocket from 'ws';
-import { InternalEmailInfo, Email, Channel } from '../types';
-import { normalizeEmail } from '../normalize';
-import { fetchWithTimeout } from '../retry';
+import WebSocket from "ws";
+import { InternalEmailInfo, Email, Channel } from "../types";
+import { normalizeEmail } from "../normalize";
+import { fetchWithTimeout } from "../retry";
 
-const CHANNEL: Channel = 'tempmail-cn';
-const DEFAULT_HOST = 'tempmail.cn';
+const CHANNEL: Channel = "tempmail-cn";
+const DEFAULT_HOST = "tempmail.cn";
 const CONNECT_TIMEOUT_MS = 15000;
 const HANDSHAKE_WAIT_MS = 1000;
 const INITIAL_SYNC_WAIT_MS = 80;
 const SOCKET_IO_VERSIONS = [4, 3];
 
 const DEFAULT_HEADERS: Record<string, string> = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0',
-  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-  'Cache-Control': 'no-cache',
-  DNT: '1',
-  Pragma: 'no-cache',
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+  "Cache-Control": "no-cache",
+  DNT: "1",
+  Pragma: "no-cache",
 };
 
 type BoxState = {
@@ -43,7 +43,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 function normalizeHost(domain?: string | null): string {
-  const raw = String(domain || '').trim();
+  const raw = String(domain || "").trim();
   if (!raw) {
     return DEFAULT_HOST;
   }
@@ -55,16 +55,16 @@ function normalizeHost(domain?: string | null): string {
     } catch {
       host = raw;
     }
-  } else if (host.includes('/')) {
+  } else if (host.includes("/")) {
     try {
       host = new URL(`https://${host}`).host;
     } catch {
-      host = host.split('/')[0];
+      host = host.split("/")[0];
     }
   }
 
-  host = host.replace(/^\.+|\.+$/g, '');
-  const at = host.lastIndexOf('@');
+  host = host.replace(/^\.+|\.+$/g, "");
+  const at = host.lastIndexOf("@");
   if (at >= 0) {
     host = host.slice(at + 1);
   }
@@ -73,9 +73,9 @@ function normalizeHost(domain?: string | null): string {
 
 function splitAddress(email: string): { local: string; host: string } {
   const trimmed = email.trim();
-  const at = trimmed.indexOf('@');
+  const at = trimmed.indexOf("@");
   if (at <= 0 || at === trimmed.length - 1) {
-    throw new Error('tempmail-cn: invalid email address');
+    throw new Error("tempmail-cn: invalid email address");
   }
   return {
     local: trimmed.slice(0, at),
@@ -99,13 +99,15 @@ function sendEvent(ws: WebSocket, event: string, payload: unknown): void {
   ws.send(`42${JSON.stringify([event, payload])}`);
 }
 
-function parseEventPacket(packet: string): { event: string; payload: any } | null {
-  if (!packet.startsWith('42')) {
+function parseEventPacket(
+  packet: string,
+): { event: string; payload: any } | null {
+  if (!packet.startsWith("42")) {
     return null;
   }
   try {
     const decoded = JSON.parse(packet.slice(2));
-    if (!Array.isArray(decoded) || typeof decoded[0] !== 'string') {
+    if (!Array.isArray(decoded) || typeof decoded[0] !== "string") {
       return null;
     }
     return { event: decoded[0], payload: decoded[1] };
@@ -119,9 +121,9 @@ function stableMessageId(raw: any, recipientEmail: string): string {
   return String(
     raw?.id ??
       raw?.messageId ??
-      headers['message-id'] ??
+      headers["message-id"] ??
       headers.messageId ??
-      `${headers.from || raw?.from || ''}\n${headers.subject || raw?.subject || ''}\n${headers.date || raw?.date || ''}\n${recipientEmail}`,
+      `${headers.from || raw?.from || ""}\n${headers.subject || raw?.subject || ""}\n${headers.date || raw?.date || ""}\n${recipientEmail}`,
   );
 }
 
@@ -129,12 +131,12 @@ function flattenMail(raw: any, recipientEmail: string): any {
   const headers = raw?.headers || {};
   return {
     id: stableMessageId(raw, recipientEmail),
-    from: headers.from || raw?.from || '',
+    from: headers.from || raw?.from || "",
     to: recipientEmail,
-    subject: headers.subject || raw?.subject || '',
-    text: raw?.text || raw?.body || '',
-    html: raw?.html || '',
-    date: headers.date || raw?.date || '',
+    subject: headers.subject || raw?.subject || "",
+    text: raw?.text || raw?.body || "",
+    html: raw?.html || "",
+    date: headers.date || raw?.date || "",
     isRead: false,
     attachments: Array.isArray(raw?.attachments) ? raw.attachments : [],
   };
@@ -160,9 +162,9 @@ async function connectSocket(host: string): Promise<WebSocket> {
             clearTimeout(timer);
             timer = undefined;
           }
-          ws.off('message', onMessage);
-          ws.off('error', onError);
-          ws.off('close', onClose);
+          ws.off("message", onMessage);
+          ws.off("error", onError);
+          ws.off("close", onClose);
         };
 
         const resolveOnce = () => {
@@ -191,47 +193,58 @@ async function connectSocket(host: string): Promise<WebSocket> {
 
         const onMessage = (data: WebSocket.RawData) => {
           const packet = data.toString();
-          if (packet === '2') {
+          if (packet === "2") {
             try {
-              ws.send('3');
+              ws.send("3");
             } catch {
               /* ignore send errors during probing */
             }
             return;
           }
           if (!sentConnect) {
-            if (!packet.startsWith('0')) {
-              rejectOnce(new Error(`tempmail-cn: unexpected open packet for EIO=${version}`));
+            if (!packet.startsWith("0")) {
+              rejectOnce(
+                new Error(
+                  `tempmail-cn: unexpected open packet for EIO=${version}`,
+                ),
+              );
               return;
             }
             sentConnect = true;
             try {
-              ws.send('40');
+              ws.send("40");
             } catch (error) {
-              rejectOnce(error instanceof Error ? error : new Error(String(error)));
+              rejectOnce(
+                error instanceof Error ? error : new Error(String(error)),
+              );
               return;
             }
             armHandshakeFallback();
             return;
           }
-          if (packet.startsWith('40')) {
+          if (packet.startsWith("40")) {
             resolveOnce();
           }
         };
 
         const onError = (error: Error) => rejectOnce(error);
-        const onClose = () => rejectOnce(new Error(`tempmail-cn: websocket closed during EIO=${version} handshake`));
+        const onClose = () =>
+          rejectOnce(
+            new Error(
+              `tempmail-cn: websocket closed during EIO=${version} handshake`,
+            ),
+          );
 
-        ws.on('message', onMessage);
-        ws.once('error', onError);
-        ws.once('close', onClose);
+        ws.on("message", onMessage);
+        ws.once("error", onError);
+        ws.once("close", onClose);
       });
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
   }
 
-  throw lastError || new Error('tempmail-cn: websocket handshake failed');
+  throw lastError || new Error("tempmail-cn: websocket handshake failed");
 }
 
 async function requestShortId(host: string): Promise<string> {
@@ -245,14 +258,14 @@ async function requestShortId(host: string): Promise<string> {
       } catch {
         /* ignore close errors */
       }
-      reject(new Error('tempmail-cn: timed out waiting for mailbox'));
+      reject(new Error("tempmail-cn: timed out waiting for mailbox"));
     }, CONNECT_TIMEOUT_MS);
 
     const cleanup = () => {
       clearTimeout(timer);
-      ws.off('message', onMessage);
-      ws.off('error', onError);
-      ws.off('close', onClose);
+      ws.off("message", onMessage);
+      ws.off("error", onError);
+      ws.off("close", onClose);
     };
 
     const finish = (value: string) => {
@@ -277,25 +290,30 @@ async function requestShortId(host: string): Promise<string> {
 
     const onMessage = (data: WebSocket.RawData) => {
       const packet = data.toString();
-      if (packet === '2') {
-        ws.send('3');
+      if (packet === "2") {
+        ws.send("3");
         return;
       }
       const decoded = parseEventPacket(packet);
-      if (!decoded || decoded.event !== 'mailbox' || typeof decoded.payload !== 'string') {
+      if (
+        !decoded ||
+        decoded.event !== "mailbox" ||
+        typeof decoded.payload !== "string"
+      ) {
         return;
       }
       finish(decoded.payload);
     };
 
     const onError = (error: Error) => fail(error);
-    const onClose = () => fail(new Error('tempmail-cn: websocket closed before shortid arrived'));
+    const onClose = () =>
+      fail(new Error("tempmail-cn: websocket closed before shortid arrived"));
 
-    ws.on('message', onMessage);
-    ws.once('error', onError);
-    ws.once('close', onClose);
+    ws.on("message", onMessage);
+    ws.once("error", onError);
+    ws.once("close", onClose);
 
-    sendEvent(ws, 'request mailbox', true);
+    sendEvent(ws, "request mailbox", true);
   });
 }
 
@@ -322,11 +340,11 @@ async function ensureMailbox(email: string): Promise<void> {
         st.connectPromise = undefined;
       };
 
-      ws.on('message', (data: WebSocket.RawData) => {
+      ws.on("message", (data: WebSocket.RawData) => {
         const packet = data.toString();
-        if (packet === '2') {
+        if (packet === "2") {
           try {
-            ws.send('3');
+            ws.send("3");
           } catch {
             /* ignore late pong failures */
           }
@@ -334,11 +352,14 @@ async function ensureMailbox(email: string): Promise<void> {
         }
 
         const decoded = parseEventPacket(packet);
-        if (!decoded || decoded.event !== 'mail' || !decoded.payload) {
+        if (!decoded || decoded.event !== "mail" || !decoded.payload) {
           return;
         }
 
-        const normalized = normalizeEmail(flattenMail(decoded.payload, email), email);
+        const normalized = normalizeEmail(
+          flattenMail(decoded.payload, email),
+          email,
+        );
         if (!normalized.id || st.seenIds.has(normalized.id)) {
           return;
         }
@@ -347,10 +368,10 @@ async function ensureMailbox(email: string): Promise<void> {
         st.emails.push(normalized);
       });
 
-      ws.on('close', detach);
-      ws.on('error', detach);
+      ws.on("close", detach);
+      ws.on("error", detach);
 
-      sendEvent(ws, 'set mailbox', local);
+      sendEvent(ws, "set mailbox", local);
       await sleep(INITIAL_SYNC_WAIT_MS);
     } catch (error) {
       st.connectPromise = undefined;
@@ -361,7 +382,9 @@ async function ensureMailbox(email: string): Promise<void> {
   return st.connectPromise;
 }
 
-export async function generateEmail(domain?: string | null): Promise<InternalEmailInfo> {
+export async function generateEmail(
+  domain?: string | null,
+): Promise<InternalEmailInfo> {
   const host = normalizeHost(domain);
   const shortid = await requestShortId(host);
   return {
@@ -376,22 +399,27 @@ export async function getEmails(email: string): Promise<Email[]> {
   const res = await fetchWithTimeout(url, {
     headers: {
       ...DEFAULT_HEADERS,
-      Accept: 'application/json',
+      Accept: "application/json",
       Referer: `https://${host}/`,
     },
   });
   if (!res.ok) throw new Error(`tempmail-cn: get mails failed: ${res.status}`);
-  const data = await res.json() as { mails?: unknown[] };
+  const data = (await res.json()) as { mails?: unknown[] };
   const list = Array.isArray(data.mails) ? data.mails : [];
-  return list.map((raw: any) => normalizeEmail({
-    id: raw.id ?? raw._id ?? '',
-    from: raw.from ?? raw.headers?.from ?? '',
-    to: email,
-    subject: raw.subject ?? raw.headers?.subject ?? '',
-    text: raw.text ?? raw.body ?? '',
-    html: raw.html ?? '',
-    date: raw.date ?? raw.headers?.date ?? '',
-    isRead: false,
-    attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
-  }, email));
+  return list.map((raw: any) =>
+    normalizeEmail(
+      {
+        id: raw.id ?? raw._id ?? "",
+        from: raw.from ?? raw.headers?.from ?? "",
+        to: email,
+        subject: raw.subject ?? raw.headers?.subject ?? "",
+        text: raw.text ?? raw.body ?? "",
+        html: raw.html ?? "",
+        date: raw.date ?? raw.headers?.date ?? "",
+        isRead: false,
+        attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
+      },
+      email,
+    ),
+  );
 }

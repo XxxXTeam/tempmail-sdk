@@ -99,9 +99,8 @@ fn random_username() -> String {
 /// 创建临时邮箱
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
     // 获取域名列表，失败则使用备用列表
-    let domains = fetch_domains().unwrap_or_else(|_| {
-        FALLBACK_DOMAINS.iter().map(|s| s.to_string()).collect()
-    });
+    let domains = fetch_domains()
+        .unwrap_or_else(|_| FALLBACK_DOMAINS.iter().map(|s| s.to_string()).collect());
     let d = pick_domain(&domains, domain)?;
     let user = random_username();
     let addr = format!("{}@{}", user, d);
@@ -123,10 +122,7 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         }
         let data: Value = resp.json().await.map_err(|e| e.to_string())?;
         if data.get("success").and_then(|x| x.as_bool()) != Some(true) {
-            return Err(format!(
-                "tempmail365: 创建邮箱失败: {}",
-                data.to_string()
-            ));
+            return Err(format!("tempmail365: 创建邮箱失败: {}", data.to_string()));
         }
         Ok(EmailInfo {
             channel: Channel::Tempmail365,
