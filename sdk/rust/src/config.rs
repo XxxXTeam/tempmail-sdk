@@ -18,7 +18,7 @@ use std::sync::{
 };
 use std::time::Duration;
 use wreq::Client;
-use wreq_util::Emulation;
+use wreq_util::Profile;
 
 /// SDK 全局配置
 #[derive(Debug, Clone)]
@@ -59,38 +59,38 @@ impl Default for SDKConfig {
 }
 
 /**
- * 浏览器指纹配置：Emulation profile 与 User-Agent 的配对
+ * 浏览器指纹配置：Profile 与 User-Agent 的配对
  * 确保 TLS/HTTP2 指纹与 HTTP 层 UA 一致，避免被检测
  */
 struct BrowserConfig {
-    emulation: Emulation,
+    profile: Profile,
     ua: &'static str,
 }
 
 /* 浏览器配置池：覆盖多平台多浏览器 */
 static BROWSER_CONFIGS: &[BrowserConfig] = &[
     /* Chrome - Windows */
-    BrowserConfig { emulation: Emulation::Chrome131, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
-    BrowserConfig { emulation: Emulation::Chrome133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" },
+    BrowserConfig { profile: Profile::Chrome131, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
+    BrowserConfig { profile: Profile::Chrome133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" },
     /* Chrome - macOS */
-    BrowserConfig { emulation: Emulation::Chrome131, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
-    BrowserConfig { emulation: Emulation::Chrome133, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" },
+    BrowserConfig { profile: Profile::Chrome131, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
+    BrowserConfig { profile: Profile::Chrome133, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" },
     /* Chrome - Linux */
-    BrowserConfig { emulation: Emulation::Chrome131, ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
+    BrowserConfig { profile: Profile::Chrome131, ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
     /* Edge - Windows（基于 Chromium，使用 Chrome 指纹） */
-    BrowserConfig { emulation: Emulation::Chrome131, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0" },
-    BrowserConfig { emulation: Emulation::Chrome133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0" },
+    BrowserConfig { profile: Profile::Chrome131, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0" },
+    BrowserConfig { profile: Profile::Chrome133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0" },
     /* Firefox - Windows */
-    BrowserConfig { emulation: Emulation::Firefox133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0" },
-    BrowserConfig { emulation: Emulation::Firefox136, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0" },
+    BrowserConfig { profile: Profile::Firefox133, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0" },
+    BrowserConfig { profile: Profile::Firefox136, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0" },
     /* Firefox - macOS */
-    BrowserConfig { emulation: Emulation::Firefox133, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) Gecko/20100101 Firefox/133.0" },
+    BrowserConfig { profile: Profile::Firefox133, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) Gecko/20100101 Firefox/133.0" },
     /* Firefox - Linux */
-    BrowserConfig { emulation: Emulation::Firefox136, ua: "Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" },
+    BrowserConfig { profile: Profile::Firefox136, ua: "Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" },
     /* Safari - macOS */
-    BrowserConfig { emulation: Emulation::Safari18_2, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15" },
+    BrowserConfig { profile: Profile::Safari18_2, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15" },
     /* Safari - iOS */
-    BrowserConfig { emulation: Emulation::SafariIPad18, ua: "Mozilla/5.0 (iPad; CPU OS 18_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Mobile/15E148 Safari/604.1" },
+    BrowserConfig { profile: Profile::SafariIPad18, ua: "Mozilla/5.0 (iPad; CPU OS 18_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Mobile/15E148 Safari/604.1" },
 ];
 
 /* 当前选中的浏览器配置索引 */
@@ -258,12 +258,12 @@ pub fn http_client() -> Client {
 
     log::debug!(
         "创建 wreq 客户端, emulation={:?}, ua={}",
-        bc.emulation,
+        bc.profile,
         bc.ua
     );
 
     let mut builder = Client::builder()
-        .emulation(bc.emulation)
+        .emulation(bc.profile)
         .timeout(Duration::from_secs(cfg.timeout_secs))
         .cookie_store(true);
 
@@ -276,7 +276,7 @@ pub fn http_client() -> Client {
 
     /* SSL 验证 */
     if cfg.insecure {
-        builder = builder.cert_verification(false);
+        builder = builder.tls_cert_verification(false);
     }
 
     let client = builder.build().unwrap();
@@ -309,11 +309,11 @@ pub fn http_client_no_cookie_jar() -> Client {
 
     log::debug!(
         "创建 wreq 客户端 (无 Cookie 罐), emulation={:?}",
-        bc.emulation
+        bc.profile
     );
 
     let mut builder = Client::builder()
-        .emulation(bc.emulation)
+        .emulation(bc.profile)
         .timeout(Duration::from_secs(cfg.timeout_secs))
         .cookie_store(false);
 
@@ -324,7 +324,7 @@ pub fn http_client_no_cookie_jar() -> Client {
     }
 
     if cfg.insecure {
-        builder = builder.cert_verification(false);
+        builder = builder.tls_cert_verification(false);
     }
 
     let client = builder.build().unwrap();
@@ -356,14 +356,14 @@ pub fn http_client_tenmail_wangtz() -> Client {
     let bc = pick_random_browser();
     log::debug!(
         "创建 wreq 客户端 (10mail-wangtz, 跳过证书校验), emulation={:?}",
-        bc.emulation
+        bc.profile
     );
 
     let mut builder = Client::builder()
-        .emulation(bc.emulation)
+        .emulation(bc.profile)
         .timeout(Duration::from_secs(cfg.timeout_secs))
         .cookie_store(true)
-        .cert_verification(false);
+        .tls_cert_verification(false);
 
     if let Some(ref proxy_url) = cfg.proxy {
         if let Ok(proxy) = wreq::Proxy::all(proxy_url) {

@@ -46,7 +46,7 @@ fn long_poll_client() -> Result<wreq::Client, String> {
         }
     }
     if cfg.insecure {
-        builder = builder.cert_verification(false);
+        builder = builder.tls_cert_verification(false);
     }
 
     builder.build().map_err(|e| e.to_string())
