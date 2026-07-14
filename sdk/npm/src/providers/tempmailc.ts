@@ -62,11 +62,14 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error("tempmailc: invalid new email response");
   }
 
-  return { channel: CHANNEL, email };
+  return { channel: CHANNEL, email, token: email };
 }
 
-export async function getEmails(email: string): Promise<Email[]> {
-  const address = String(email || "").trim();
+export async function getEmails(
+  token: string,
+  email: string,
+): Promise<Email[]> {
+  const address = String(token || email || "").trim();
   if (!address) throw new Error("tempmailc: empty email");
 
   const response = await fetchWithTimeout(

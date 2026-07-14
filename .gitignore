@@ -70,3 +70,9 @@ sdk/npm/test/smtp-verify.ts
 sdk/npm/test/domain-smtp-verify.ts
 sdk/npm/test/api-probe.js
 sdk/c/build-strict/
+build/.cmake/
+build/CMakeFiles/
+build/compile_commands.json
+build/cmake_install.cmake
+build/CMakeCache.txt
+build/Makefile

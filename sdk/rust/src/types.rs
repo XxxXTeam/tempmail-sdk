@@ -55,6 +55,10 @@ pub enum Channel {
     MailforspamDisposable,
     #[serde(rename = "tempmailc")]
     Tempmailc,
+    #[serde(rename = "tempmail-fish")]
+    TempmailFish,
+    #[serde(rename = "neighbours-sh")]
+    NeighboursSh,
     #[serde(rename = "mailnesia")]
     Mailnesia,
     #[serde(rename = "throwawaymail")]
@@ -627,6 +631,8 @@ impl std::fmt::Display for Channel {
             Channel::MailforspamTempmailIo => write!(f, "mailforspam-tempmail-io"),
             Channel::MailforspamDisposable => write!(f, "mailforspam-disposable"),
             Channel::Tempmailc => write!(f, "tempmailc"),
+            Channel::TempmailFish => write!(f, "tempmail-fish"),
+            Channel::NeighboursSh => write!(f, "neighbours-sh"),
             Channel::Mailnesia => write!(f, "mailnesia"),
             Channel::Throwawaymail => write!(f, "throwawaymail"),
             Channel::ShittyEmail => write!(f, "shitty-email"),

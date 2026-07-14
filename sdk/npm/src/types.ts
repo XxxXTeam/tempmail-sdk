@@ -29,6 +29,8 @@ export type Channel =
   | "tempmailc"
   | "mailnesia"
   | "throwawaymail"
+  | "tempmail-fish"
+  | "neighbours-sh"
   | "shitty-email"
   | "tempmailpro"
   | "devmail-uk"

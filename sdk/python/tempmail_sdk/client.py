@@ -52,6 +52,8 @@ from .providers import (
     catchmail,
     mailforspam,
     tempmailc,
+    tempmail_fish,
+    neighbours_sh,
     mailnesia,
     throwawaymail,
     shitty_email,
@@ -228,6 +230,8 @@ ALL_CHANNELS = [
     "mailforspam-tempmail-io",
     "mailforspam-disposable",
     "tempmailc",
+    "tempmail-fish",
+    "neighbours-sh",
     "mailnesia",
     "throwawaymail",
     "shitty-email",
@@ -545,6 +549,12 @@ CHANNEL_INFO_MAP = {
     ),
     "tempmailc": ChannelInfo(
         channel="tempmailc", name="TempMailC", website="tempmailc.com"
+    ),
+    "tempmail-fish": ChannelInfo(
+        channel="tempmail-fish", name="TempMail Fish", website="tempmail.fish"
+    ),
+    "neighbours-sh": ChannelInfo(
+        channel="neighbours-sh", name="Neighbours", website="neighbours.sh"
     ),
     "mailnesia": ChannelInfo(
         channel="mailnesia", name="Mailnesia", website="mailnesia.com"
@@ -1502,6 +1512,8 @@ _GENERATE_DISPATCH = {
         mailforspam.generate_email("disposable.email"), "mailforspam-disposable"
     ),
     "tempmailc": lambda o: tempmailc.generate_email(),
+    "tempmail-fish": lambda o: tempmail_fish.generate_email(),
+    "neighbours-sh": lambda o: neighbours_sh.generate_email(),
     "mailnesia": lambda o: mailnesia.generate_email(),
     "throwawaymail": lambda o: throwawaymail.generate_email(),
     "shitty-email": lambda o: shitty_email.generate_email(),
@@ -1922,6 +1934,10 @@ _GET_EMAILS_DISPATCH = {
     "mailforspam-tempmail-io": lambda e, t: mailforspam.get_emails(e),
     "mailforspam-disposable": lambda e, t: mailforspam.get_emails(e),
     "tempmailc": lambda e, t: tempmailc.get_emails(e),
+    "tempmail-fish": lambda e, t: tempmail_fish.get_emails(
+        _require_token(t, "tempmail-fish"), e
+    ),
+    "neighbours-sh": lambda e, t: neighbours_sh.get_emails(e),
     "mailnesia": lambda e, t: mailnesia.get_emails(e),
     "throwawaymail": lambda e, t: throwawaymail.get_emails(
         _require_token(t, "throwawaymail"), e

@@ -213,6 +213,14 @@ tm_email_info_t *tm_provider_throwawaymail_generate(void);
 tm_email_t *tm_provider_throwawaymail_get_emails(const char *mailbox_id,
                                                  const char *email, int *count);
 
+tm_email_info_t *tm_provider_tempmail_fish_generate(void);
+tm_email_t *tm_provider_tempmail_fish_get_emails(const char *token,
+                                                 const char *email, int *count);
+
+tm_email_info_t *tm_provider_neighbours_sh_generate(void);
+tm_email_t *tm_provider_neighbours_sh_get_emails(const char *token,
+                                                 const char *email, int *count);
+
 tm_email_info_t *tm_provider_shitty_email_generate(void);
 tm_email_t *tm_provider_shitty_email_get_emails(const char *token,
                                                 const char *email, int *count);

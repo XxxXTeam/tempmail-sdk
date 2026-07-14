@@ -12,6 +12,8 @@ import * as mailforspam from "./providers/mailforspam";
 import * as tempmailc from "./providers/tempmailc";
 import * as mailnesia from "./providers/mailnesia";
 import * as throwawaymail from "./providers/throwawaymail";
+import * as tempmailFish from "./providers/tempmail-fish";
+import * as neighboursSh from "./providers/neighbours-sh";
 import * as shittyEmail from "./providers/shitty-email";
 import * as tempmailpro from "./providers/tempmailpro";
 import * as m2u from "./providers/m2u";
@@ -272,6 +274,8 @@ const allChannels: Channel[] = [
   "tempmailc",
   "mailnesia",
   "throwawaymail",
+  "tempmail-fish",
+  "neighbours-sh",
   "shitty-email",
   "tempmailpro",
   "devmail-uk",
@@ -635,6 +639,16 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
     channel: "throwawaymail",
     name: "ThrowawayMail",
     website: "throwawaymail.app",
+  },
+  "tempmail-fish": {
+    channel: "tempmail-fish",
+    name: "TempMail Fish",
+    website: "tempmail.fish",
+  },
+  "neighbours-sh": {
+    channel: "neighbours-sh",
+    name: "Neighbours",
+    website: "neighbours.sh",
   },
   "shitty-email": {
     channel: "shitty-email",
@@ -1885,6 +1899,10 @@ async function generateEmailOnce(
       return mailnesia.generateEmail();
     case "throwawaymail":
       return throwawaymail.generateEmail();
+    case "tempmail-fish":
+      return tempmailFish.generateEmail();
+    case "neighbours-sh":
+      return neighboursSh.generateEmail();
     case "shitty-email":
       return shittyEmail.generateEmail();
     case "tempmailpro":
@@ -2583,13 +2601,19 @@ async function getEmailsOnce(
     case "mailforspam-disposable":
       return mailforspam.getEmails(email);
     case "tempmailc":
-      return tempmailc.getEmails(email);
+      return tempmailc.getEmails(token || "", email);
     case "mailnesia":
       return mailnesia.getEmails(email);
     case "throwawaymail":
       if (!token)
         throw new Error("internal error: token missing for throwawaymail");
       return throwawaymail.getEmails(token, email);
+    case "tempmail-fish":
+      if (!token)
+        throw new Error("internal error: token missing for tempmail-fish");
+      return tempmailFish.getEmails(token, email);
+    case "neighbours-sh":
+      return neighboursSh.getEmails(token || "", email);
     case "shitty-email":
       if (!token)
         throw new Error("internal error: token missing for shitty-email");

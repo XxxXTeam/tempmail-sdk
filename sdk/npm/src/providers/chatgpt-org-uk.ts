@@ -1,32 +1,30 @@
 import { InternalEmailInfo, Email, Channel } from "../types";
 import { normalizeEmail } from "../normalize";
 import { fetchWithTimeout } from "../retry";
+import { randomInt } from "crypto";
 
 const CHANNEL: Channel = "chatgpt-org-uk";
 const BASE_URL = "https://mail.chatgpt.org.uk/api";
-const HOME_URL = "https://mail.chatgpt.org.uk/";
 
-const DEFAULT_HEADERS = {
+const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
   Accept: "*/*",
-  Referer: "https://mail.chatgpt.org.uk/",
+  Referer: "https://mail.chatgpt.org.uk/zh/",
   Origin: "https://mail.chatgpt.org.uk",
   DNT: "1",
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin",
 };
 
-/** 从首页 HTML 解析 window.__BROWSER_AUTH（服务端注入的会话 JWT，供 X-Inbox-Token） */
-function extractBrowserAuthToken(html: string): string {
-  const m = html.match(/__BROWSER_AUTH\s*=\s*(\{[\s\S]*?\})\s*;/);
-  if (!m) {
-    return "";
+function randomUsername(length: number = 10): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += chars[randomInt(chars.length)];
   }
-  try {
-    const o = JSON.parse(m[1]) as { token?: string };
-    return typeof o.token === "string" ? o.token : "";
-  } catch {
-    return "";
-  }
+  return out;
 }
 
 function extractGmSid(response: Response): string {
@@ -34,9 +32,7 @@ function extractGmSid(response: Response): string {
   if (typeof h.getSetCookie === "function") {
     for (const line of h.getSetCookie()) {
       const match = line.match(/^gm_sid=([^;]+)/);
-      if (match) {
-        return match[1];
-      }
+      if (match) return match[1];
     }
   }
   const setCookie = response.headers.get("set-cookie") || "";
@@ -44,128 +40,101 @@ function extractGmSid(response: Response): string {
   return match ? match[1] : "";
 }
 
-async function fetchHomeSession(): Promise<{
-  gmSid: string;
-  browserToken: string;
-}> {
-  const response = await fetchWithTimeout(HOME_URL, {
+/**
+ * 获取可用域名列表
+ */
+async function fetchDomains(): Promise<string[]> {
+  const response = await fetchWithTimeout(`${BASE_URL}/domains/public`, {
     method: "GET",
     headers: DEFAULT_HEADERS,
   });
-
   if (!response.ok) {
-    throw new Error(`Failed to load mail.chatgpt.org.uk: ${response.status}`);
+    throw new Error(`chatgpt-org-uk: 获取域名失败 ${response.status}`);
   }
-
-  const html = await response.text();
-  const gmSid = extractGmSid(response);
-  const browserToken = extractBrowserAuthToken(html);
-
-  if (!gmSid) {
-    throw new Error("Failed to extract gm_sid cookie");
+  const data = (await response.json()) as {
+    success: boolean;
+    data: { domains: Array<{ domain_name: string; is_active: number }> };
+  };
+  if (!data.success || !Array.isArray(data.data?.domains)) {
+    throw new Error("chatgpt-org-uk: 域名响应格式无效");
   }
-  if (!browserToken) {
-    throw new Error(
-      "Failed to extract __BROWSER_AUTH from homepage (API now requires browser session)",
-    );
-  }
-
-  return { gmSid, browserToken };
+  return data.data.domains
+    .filter((d) => d.is_active === 1)
+    .map((d) => d.domain_name);
 }
 
-async function fetchHomeSessionWithRetry(): Promise<{
-  gmSid: string;
-  browserToken: string;
-}> {
-  try {
-    return await fetchHomeSession();
-  } catch (error: any) {
-    const message = String(error?.message || error || "").toLowerCase();
-    if (
-      message.includes("401") ||
-      message.includes("429") ||
-      message.includes("extract")
-    ) {
-      return await fetchHomeSession();
-    }
-    throw error;
-  }
-}
-
-function sleepMs(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function fetchInboxToken(email: string, gmSid: string): Promise<string> {
+/**
+ * 创建收件箱并获取 inbox token + gm_sid cookie
+ */
+async function createInbox(email: string): Promise<{ token: string; gmSid: string }> {
   const response = await fetchWithTimeout(`${BASE_URL}/inbox-token`, {
     method: "POST",
     headers: {
       ...DEFAULT_HEADERS,
       "Content-Type": "application/json",
-      Cookie: `gm_sid=${gmSid}`,
     },
     body: JSON.stringify({ email }),
   });
-
   if (!response.ok) {
-    throw new Error(`Failed to get inbox token: ${response.status}`);
+    throw new Error(`chatgpt-org-uk: 创建收件箱失败 ${response.status}`);
   }
-
-  const data = await response.json();
-  const token = data?.auth?.token;
-  if (!token) {
-    throw new Error("Failed to get inbox token");
+  const gmSid = extractGmSid(response);
+  const data = (await response.json()) as {
+    success: boolean;
+    auth?: { token?: string };
+  };
+  if (!data.success || !data.auth?.token) {
+    throw new Error("chatgpt-org-uk: inbox-token 响应缺少 token");
   }
-
-  return token;
+  return { token: data.auth.token, gmSid };
 }
 
-async function fetchInboxTokenWithRetry(
+export async function generateEmail(): Promise<InternalEmailInfo> {
+  const domains = await fetchDomains();
+  if (domains.length === 0) {
+    throw new Error("chatgpt-org-uk: 无可用域名");
+  }
+  const domain = domains[randomInt(domains.length)];
+  const username = randomUsername(10);
+  const email = `${username}@${domain}`;
+  const { token, gmSid } = await createInbox(email);
+
+  return {
+    channel: CHANNEL,
+    email,
+    token: JSON.stringify({ gmSid, inbox: token }),
+  };
+}
+
+export async function getEmails(
+  token: string,
   email: string,
-  gmSid: string,
-): Promise<string> {
-  try {
-    return await fetchInboxToken(email, gmSid);
-  } catch (error: any) {
-    const message = String(error?.message || error || "").toLowerCase();
-    if (message.includes("401")) {
-      const { gmSid: sid } = await fetchHomeSessionWithRetry();
-      return await fetchInboxToken(email, sid);
-    }
-    throw error;
-  }
-}
-
-/** 列表接口需同时带 Cookie gm_sid 与 x-inbox-token，否则返回 401 */
-function parseChatgptPackedToken(packed: string): {
-  gmSid: string;
-  inbox: string;
-} {
-  const t = packed.trim();
-  if (t.startsWith("{")) {
-    try {
-      const o = JSON.parse(t) as { gmSid?: string; inbox?: string };
-      if (typeof o.gmSid === "string" && typeof o.inbox === "string") {
-        return { gmSid: o.gmSid, inbox: o.inbox };
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-  return { gmSid: "", inbox: packed };
-}
-
-async function fetchEmails(
-  inboxToken: string,
-  email: string,
-  gmSid: string,
 ): Promise<Email[]> {
+  if (!token) {
+    throw new Error("chatgpt-org-uk: token 不能为空");
+  }
+
+  let gmSid = "";
+  let inboxToken = "";
+  try {
+    const parsed = JSON.parse(token) as { gmSid?: string; inbox?: string };
+    gmSid = parsed.gmSid || "";
+    inboxToken = parsed.inbox || "";
+  } catch {
+    inboxToken = token;
+  }
+
   if (!inboxToken) {
-    throw new Error("internal error: token missing for chatgpt-org-uk");
+    throw new Error("chatgpt-org-uk: inbox token 缺失");
   }
+
+  /* 如果 gmSid 丢失，重新获取 */
   if (!gmSid) {
-    throw new Error("internal error: gm_sid missing for chatgpt-org-uk");
+    const sess = await createInbox(email);
+    gmSid = sess.gmSid;
+    inboxToken = sess.token;
   }
+
   const encodedEmail = encodeURIComponent(email);
   const response = await fetchWithTimeout(
     `${BASE_URL}/emails?email=${encodedEmail}`,
@@ -180,96 +149,34 @@ async function fetchEmails(
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to get emails: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  if (!data.success) {
-    throw new Error("Failed to get emails");
-  }
-
-  const rawEmails = data.data?.emails || [];
-  return rawEmails.map((raw: any) => normalizeEmail(raw, email));
-}
-
-export async function generateEmail(): Promise<InternalEmailInfo> {
-  /*
-   * generate-email 常返回 429；每次重试前重新拉首页以换新 gm_sid / __BROWSER_AUTH，并做指数退避。
-   */
-  const maxAttempts = 6;
-  let lastStatus = 0;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const { gmSid, browserToken } = await fetchHomeSessionWithRetry();
-
-    const response = await fetchWithTimeout(`${BASE_URL}/generate-email`, {
-      method: "GET",
-      headers: {
-        ...DEFAULT_HEADERS,
-        Cookie: `gm_sid=${gmSid}`,
-        "X-Inbox-Token": browserToken,
-      },
-    });
-
-    if (response.status === 429) {
-      lastStatus = 429;
-      if (attempt < maxAttempts - 1) {
-        const wait = Math.min(3000 * 2 ** attempt, 60_000);
-        await sleepMs(wait);
-        continue;
+    if (response.status === 401 || response.status === 403) {
+      const sess = await createInbox(email);
+      const retry = await fetchWithTimeout(
+        `${BASE_URL}/emails?email=${encodedEmail}`,
+        {
+          method: "GET",
+          headers: {
+            ...DEFAULT_HEADERS,
+            Cookie: `gm_sid=${sess.gmSid}`,
+            "x-inbox-token": sess.token,
+          },
+        },
+      );
+      if (!retry.ok) {
+        throw new Error(`chatgpt-org-uk: 获取邮件失败 ${retry.status}`);
       }
-      throw new Error("Failed to generate email: 429");
+      const retryData = (await retry.json()) as { success: boolean; data?: { emails?: any[] } };
+      if (!retryData.success) return [];
+      return (retryData.data?.emails || []).map((raw: any) =>
+        normalizeEmail(raw, email),
+      );
     }
-
-    if (!response.ok) {
-      lastStatus = response.status;
-      throw new Error(`Failed to generate email: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error("Failed to generate email");
-    }
-
-    const email = data.data.email as string;
-    const tokenFromAuth = data.auth?.token as string | undefined;
-    const inboxJwt =
-      tokenFromAuth || (await fetchInboxTokenWithRetry(email, gmSid));
-
-    return {
-      channel: CHANNEL,
-      email,
-      token: JSON.stringify({ gmSid, inbox: inboxJwt }),
-    };
+    throw new Error(`chatgpt-org-uk: 获取邮件失败 ${response.status}`);
   }
 
-  throw new Error(`Failed to generate email: ${lastStatus || "unknown"}`);
-}
-
-export async function getEmails(
-  token: string,
-  email: string,
-): Promise<Email[]> {
-  if (!token) {
-    throw new Error("internal error: token missing for chatgpt-org-uk");
-  }
-
-  let { gmSid, inbox } = parseChatgptPackedToken(token);
-  if (!gmSid) {
-    gmSid = (await fetchHomeSessionWithRetry()).gmSid;
-  }
-
-  try {
-    return await fetchEmails(inbox, email, gmSid);
-  } catch (error: any) {
-    const message = String(error?.message || error || "").toLowerCase();
-    if (message.includes("401")) {
-      const sess = await fetchHomeSessionWithRetry();
-      const newInbox = await fetchInboxTokenWithRetry(email, sess.gmSid);
-      return await fetchEmails(newInbox, email, sess.gmSid);
-    }
-    throw error;
-  }
+  const data = (await response.json()) as { success: boolean; data?: { emails?: any[] } };
+  if (!data.success) return [];
+  return (data.data?.emails || []).map((raw: any) =>
+    normalizeEmail(raw, email),
+  );
 }

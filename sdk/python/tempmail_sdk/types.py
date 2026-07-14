@@ -31,6 +31,8 @@ Channel = Literal[
     "mailforspam-tempmail-io",
     "mailforspam-disposable",
     "tempmailc",
+    "tempmail-fish",
+    "neighbours-sh",
     "mailnesia",
     "throwawaymail",
     "shitty-email",

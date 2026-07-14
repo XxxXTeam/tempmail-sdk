@@ -46,6 +46,8 @@ static const char *channel_names[] = {
     "tempmailc",
     "mailnesia",
     "throwawaymail",
+    "tempmail-fish",
+    "neighbours-sh",
     "inboxkitten",
     "getnada",
     "mail123",

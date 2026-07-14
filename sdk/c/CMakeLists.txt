@@ -52,6 +52,8 @@ add_library(tempmail_sdk STATIC
     src/providers/tempmailc.c
     src/providers/mailnesia.c
     src/providers/throwawaymail.c
+    src/providers/tempmail_fish.c
+    src/providers/neighbours_sh.c
     src/providers/shitty_email.c
     src/providers/tempmailpro.c
     src/providers/devmail_uk.c

@@ -33,6 +33,8 @@ const (
 	ChannelTempmailc               Channel = "tempmailc"                // tempmailc.com
 	ChannelMailnesia               Channel = "mailnesia"                // mailnesia.com
 	ChannelThrowawaymail           Channel = "throwawaymail"            // throwawaymail.app
+	ChannelTempmailFish            Channel = "tempmail-fish"            // tempmail.fish
+	ChannelNeighboursSh            Channel = "neighbours-sh"            // neighbours.sh
 	ChannelShittyEmail             Channel = "shitty-email"             // shitty.email
 	ChannelTempmailpro             Channel = "tempmailpro"              // tempmailpro.us
 	ChannelDevmailUk               Channel = "devmail-uk"               // devmail.uk

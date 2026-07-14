@@ -35,6 +35,8 @@ var allChannels = []Channel{
 	ChannelTempmailc,
 	ChannelMailnesia,
 	ChannelThrowawaymail,
+	ChannelTempmailFish,
+	ChannelNeighboursSh,
 	ChannelShittyEmail,
 	ChannelTempmailpro,
 	ChannelDevmailUk,
@@ -351,6 +353,8 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmailc:               {Channel: ChannelTempmailc, Name: "TempMailC", Website: "tempmailc.com"},
 	ChannelMailnesia:               {Channel: ChannelMailnesia, Name: "Mailnesia", Website: "mailnesia.com"},
 	ChannelThrowawaymail:           {Channel: ChannelThrowawaymail, Name: "ThrowawayMail", Website: "throwawaymail.app"},
+	ChannelTempmailFish:            {Channel: ChannelTempmailFish, Name: "TempMail Fish", Website: "tempmail.fish"},
+	ChannelNeighboursSh:            {Channel: ChannelNeighboursSh, Name: "Neighbours", Website: "neighbours.sh"},
 	ChannelShittyEmail:             {Channel: ChannelShittyEmail, Name: "shitty.email", Website: "shitty.email"},
 	ChannelTempmailpro:             {Channel: ChannelTempmailpro, Name: "TempMail Pro", Website: "tempmailpro.us"},
 	ChannelDevmailUk:               {Channel: ChannelDevmailUk, Name: "DevMail UK", Website: "devmail.uk"},
@@ -754,6 +758,12 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 
 	case ChannelThrowawaymail:
 		return fromMailbox(prov.ThrowawaymailGenerate())
+
+	case ChannelTempmailFish:
+		return fromMailbox(prov.TempmailFishGenerate())
+
+	case ChannelNeighboursSh:
+		return fromMailbox(prov.NeighboursShGenerate())
 
 	case ChannelInboxkitten:
 		return fromMailbox(prov.InboxkittenGenerate())
@@ -1469,6 +1479,15 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for throwawaymail channel")
 		}
 		return normEmailsResult(prov.ThrowawaymailGetEmails(token, email))
+
+	case ChannelTempmailFish:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempmail-fish channel")
+		}
+		return normEmailsResult(prov.TempmailFishGetEmails(token, email))
+
+	case ChannelNeighboursSh:
+		return normEmailsResult(prov.NeighboursShGetEmails(token, email))
 
 	case ChannelInboxkitten:
 		return normEmailsResult(prov.InboxkittenGetEmails(email))

@@ -42,6 +42,8 @@ static const tm_channel_t g_channel_try_order[] = {
     CHANNEL_TEMPMAILC,
     CHANNEL_MAILNESIA,
     CHANNEL_THROWAWAYMAIL,
+    CHANNEL_TEMPMAIL_FISH,
+    CHANNEL_NEIGHBOURS_SH,
     CHANNEL_SHITTY_EMAIL,
     CHANNEL_TEMPMAILPRO,
     CHANNEL_DEVMAIL_UK,
@@ -325,6 +327,8 @@ static const tm_channel_info_t g_channel_infos[] = {
     {CHANNEL_TEMPMAILC, "TempMailC", "tempmailc.com"},
     {CHANNEL_MAILNESIA, "Mailnesia", "mailnesia.com"},
     {CHANNEL_THROWAWAYMAIL, "ThrowawayMail", "throwawaymail.app"},
+    {CHANNEL_TEMPMAIL_FISH, "TempMail Fish", "tempmail.fish"},
+    {CHANNEL_NEIGHBOURS_SH, "Neighbours", "neighbours.sh"},
     {CHANNEL_SHITTY_EMAIL, "shitty.email", "shitty.email"},
     {CHANNEL_TEMPMAILPRO, "TempMail Pro", "tempmailpro.us"},
     {CHANNEL_DEVMAIL_UK, "DevMail UK", "devmail.uk"},
@@ -944,6 +948,12 @@ static tm_email_info_t *tm_try_generate(tm_channel_t channel, int duration,
       break;
     case CHANNEL_THROWAWAYMAIL:
       result = tm_provider_throwawaymail_generate();
+      break;
+    case CHANNEL_TEMPMAIL_FISH:
+      result = tm_provider_tempmail_fish_generate();
+      break;
+    case CHANNEL_NEIGHBOURS_SH:
+      result = tm_provider_neighbours_sh_generate();
       break;
     case CHANNEL_SHITTY_EMAIL:
       result = tm_provider_shitty_email_generate();
@@ -2033,6 +2043,18 @@ tm_get_emails_result_t *tm_get_emails(const tm_email_info_t *email_info,
         break;
       }
       emails = tm_provider_throwawaymail_get_emails(email_info->token,
+                                                    email_info->email, &count);
+      break;
+    case CHANNEL_TEMPMAIL_FISH:
+      if (!email_info->token) {
+        count = -1;
+        break;
+      }
+      emails = tm_provider_tempmail_fish_get_emails(email_info->token,
+                                                    email_info->email, &count);
+      break;
+    case CHANNEL_NEIGHBOURS_SH:
+      emails = tm_provider_neighbours_sh_get_emails(email_info->token,
                                                     email_info->email, &count);
       break;
     case CHANNEL_SHITTY_EMAIL:

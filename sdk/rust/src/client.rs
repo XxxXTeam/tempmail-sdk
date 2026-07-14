@@ -34,6 +34,8 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::MailforspamTempmailIo,
     Channel::MailforspamDisposable,
     Channel::Tempmailc,
+    Channel::TempmailFish,
+    Channel::NeighboursSh,
     Channel::Mailnesia,
     Channel::Throwawaymail,
     Channel::ShittyEmail,
@@ -410,6 +412,16 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             channel: Channel::Tempmailc,
             name: "TempMailC",
             website: "tempmailc.com",
+        },
+        Channel::TempmailFish => ChannelInfo {
+            channel: Channel::TempmailFish,
+            name: "TempMail Fish",
+            website: "tempmail.fish",
+        },
+        Channel::NeighboursSh => ChannelInfo {
+            channel: Channel::NeighboursSh,
+            name: "Neighbours",
+            website: "neighbours.sh",
         },
         Channel::Mailnesia => ChannelInfo {
             channel: Channel::Mailnesia,
@@ -1749,6 +1761,8 @@ fn generate_email_once(
                 .map(|info| with_channel(info, Channel::MailforspamDisposable))
         }
         Channel::Tempmailc => providers::tempmailc::generate_email(),
+        Channel::TempmailFish => providers::tempmail_fish::generate_email(),
+        Channel::NeighboursSh => providers::neighbours_sh::generate_email(),
         Channel::Mailnesia => providers::mailnesia::generate_email(),
         Channel::Throwawaymail => providers::throwawaymail::generate_email(),
         Channel::ShittyEmail => providers::shitty_email::generate_email(),
@@ -2225,6 +2239,14 @@ fn get_emails_once(
         Channel::MailforspamTempmailIo => providers::mailforspam::get_emails(email),
         Channel::MailforspamDisposable => providers::mailforspam::get_emails(email),
         Channel::Tempmailc => providers::tempmailc::get_emails(email),
+        Channel::TempmailFish => {
+            let t = token.ok_or("token is required for tempmail-fish")?;
+            providers::tempmail_fish::get_emails(t, email)
+        }
+        Channel::NeighboursSh => {
+            let t = token.ok_or("token is required for neighbours-sh")?;
+            providers::neighbours_sh::get_emails(t, email)
+        }
         Channel::Mailnesia => providers::mailnesia::get_emails(email),
         Channel::Throwawaymail => {
             let t = token.ok_or("token is required for throwawaymail")?;

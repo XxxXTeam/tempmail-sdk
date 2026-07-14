@@ -256,11 +256,7 @@ pub fn http_client() -> Client {
     let cfg = get_config();
     let bc = pick_random_browser();
 
-    log::debug!(
-        "创建 wreq 客户端, emulation={:?}, ua={}",
-        bc.profile,
-        bc.ua
-    );
+    log::debug!("创建 wreq 客户端, emulation={:?}, ua={}", bc.profile, bc.ua);
 
     let mut builder = Client::builder()
         .emulation(bc.profile)

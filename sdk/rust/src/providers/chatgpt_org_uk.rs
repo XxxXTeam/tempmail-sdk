@@ -1,10 +1,14 @@
 /*!
  * mail.chatgpt.org.uk 渠道实现
+ *
+ * 新流程（与 npm SDK 对齐）：
+ * 1. GET  /api/domains/public 获取可用域名（过滤 is_active=1）
+ * 2. 本地生成随机用户名，组合邮箱地址
+ * 3. POST /api/inbox-token 创建收件箱，返回 auth.token，响应头 set-cookie 提供 gm_sid
+ * 4. GET  /api/emails?email=xxx 拉取邮件（Cookie: gm_sid, x-inbox-token: jwt）
  */
 
-use std::sync::LazyLock;
-
-use regex::Regex;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -13,21 +17,10 @@ use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 
 const BASE_URL: &str = "https://mail.chatgpt.org.uk/api";
-const HOME_URL: &str = "https://mail.chatgpt.org.uk/";
+const REFERER: &str = "https://mail.chatgpt.org.uk/zh/";
+const ORIGIN: &str = "https://mail.chatgpt.org.uk";
 
-static BROWSER_AUTH_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"__BROWSER_AUTH\s*=\s*(\{[\s\S]*?\})\s*;").expect("browser auth regex")
-});
-
-fn is_401_error(message: &str) -> bool {
-    message.contains("401")
-}
-
-fn is_retry_home_error(message: &str) -> bool {
-    let m = message.to_lowercase();
-    is_401_error(message) || m.contains("extract") || m.contains("gm_sid")
-}
-
+/// 打包 token：同时持久化 gm_sid 与 inbox jwt
 #[derive(Debug, Serialize, Deserialize)]
 struct ChatgptPackedToken {
     #[serde(rename = "gmSid")]
@@ -35,91 +28,102 @@ struct ChatgptPackedToken {
     inbox: String,
 }
 
-fn extract_browser_auth(html: &str) -> String {
-    let Some(caps) = BROWSER_AUTH_RE.captures(html) else {
-        return String::new();
-    };
-    let Some(json_s) = caps.get(1) else {
-        return String::new();
-    };
-    let Ok(v) = serde_json::from_str::<Value>(json_s.as_str()) else {
-        return String::new();
-    };
-    v.get("token")
-        .and_then(|t| t.as_str())
-        .unwrap_or("")
-        .to_string()
+/// 判定是否为需要重新建立会话的鉴权错误（401 / 403）
+fn is_auth_error(message: &str) -> bool {
+    message.contains("401") || message.contains("403")
 }
 
-fn fetch_home_session_once() -> Result<(String, String), String> {
+/// 生成指定长度的随机用户名（小写字母 + 数字）
+fn random_username(len: usize) -> String {
+    const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+    let mut rng = rand::thread_rng();
+    (0..len)
+        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .collect()
+}
+
+/// 解析已打包的 token，返回 (gm_sid, inbox)
+fn parse_packed_token(packed: &str) -> (String, String) {
+    let t = packed.trim();
+    if t.starts_with('{') {
+        if let Ok(p) = serde_json::from_str::<ChatgptPackedToken>(t) {
+            return (p.gm_sid, p.inbox);
+        }
+    }
+    (String::new(), packed.to_string())
+}
+
+/// 获取可用域名列表（仅保留 is_active == 1）
+fn fetch_domains() -> Result<Vec<String>, String> {
     block_on(async {
         let resp = http_client()
-            .get(HOME_URL)
+            .get(format!("{}/domains/public", BASE_URL))
             .header("User-Agent", get_current_ua())
             .header("Accept", "*/*")
-            .header("Referer", HOME_URL)
-            .header("Origin", "https://mail.chatgpt.org.uk")
+            .header("Referer", REFERER)
+            .header("Origin", ORIGIN)
             .header("DNT", "1")
             .send()
             .await
-            .map_err(|e| format!("chatgpt-org-uk home request failed: {}", e))?;
+            .map_err(|e| format!("chatgpt-org-uk domains request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("chatgpt-org-uk home failed: {}", resp.status()));
+            return Err(format!("chatgpt-org-uk domains failed: {}", resp.status()));
         }
 
-        let gm_sid = resp
-            .headers()
-            .get_all("set-cookie")
-            .iter()
-            .filter_map(|v| v.to_str().ok())
-            .find_map(|s| {
-                let part = s.split(';').next().unwrap_or("");
-                if part.starts_with("gm_sid=") {
-                    Some(part["gm_sid=".len()..].to_string())
-                } else {
-                    None
-                }
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("parse failed: {}", e))?;
+        if !data["success"].as_bool().unwrap_or(false) {
+            return Err("chatgpt-org-uk: 域名响应格式无效".into());
+        }
+
+        let domains: Vec<String> = data["data"]["domains"]
+            .as_array()
+            .map(|arr| {
+                arr.iter()
+                    .filter(|d| d["is_active"].as_i64().unwrap_or(0) == 1)
+                    .filter_map(|d| d["domain_name"].as_str().map(|s| s.to_string()))
+                    .collect()
             })
-            .ok_or("Failed to extract gm_sid cookie")?;
+            .unwrap_or_default();
 
-        let html = resp.text().await.map_err(|e| format!("read body: {}", e))?;
-        let browser = extract_browser_auth(&html);
-        if browser.is_empty() {
-            return Err("Failed to extract __BROWSER_AUTH from homepage".into());
+        if domains.is_empty() {
+            return Err("chatgpt-org-uk: 无可用域名".into());
         }
-
-        Ok((gm_sid, browser))
+        Ok(domains)
     })
 }
 
-fn fetch_home_session() -> Result<(String, String), String> {
-    match fetch_home_session_once() {
-        Ok(v) => Ok(v),
-        Err(err) => {
-            if is_retry_home_error(&err) {
-                fetch_home_session_once()
-            } else {
-                Err(err)
-            }
-        }
-    }
+/// 从 set-cookie 响应头提取 gm_sid
+fn extract_gm_sid(resp: &wreq::Response) -> String {
+    resp.headers()
+        .get_all("set-cookie")
+        .iter()
+        .filter_map(|v| v.to_str().ok())
+        .find_map(|s| {
+            s.split(';').find_map(|part| {
+                let part = part.trim();
+                part.strip_prefix("gm_sid=").map(|v| v.to_string())
+            })
+        })
+        .unwrap_or_default()
 }
 
-fn fetch_inbox_token_once(email: &str, gm_sid: &str) -> Result<String, String> {
+/// 创建收件箱：POST /api/inbox-token，返回 (inbox_jwt, gm_sid)
+fn create_inbox(email: &str) -> Result<(String, String), String> {
     let email = email.to_string();
-    let gm_sid = gm_sid.to_string();
     block_on(async {
         let resp = http_client()
             .post(format!("{}/inbox-token", BASE_URL))
             .header("User-Agent", get_current_ua())
             .header("Accept", "*/*")
-            .header("Referer", HOME_URL)
-            .header("Origin", "https://mail.chatgpt.org.uk")
+            .header("Referer", REFERER)
+            .header("Origin", ORIGIN)
             .header("DNT", "1")
             .header("Content-Type", "application/json")
-            .header("Cookie", format!("gm_sid={}", gm_sid))
-            .json(&serde_json::json!({"email": email}))
+            .json(&serde_json::json!({ "email": email }))
             .send()
             .await
             .map_err(|e| format!("chatgpt-org-uk inbox-token request failed: {}", e))?;
@@ -131,99 +135,35 @@ fn fetch_inbox_token_once(email: &str, gm_sid: &str) -> Result<String, String> {
             ));
         }
 
-        let data: Value = resp
-            .json()
-            .await
-            .map_err(|e| format!("parse failed: {}", e))?;
-        let token = data["auth"]["token"].as_str().unwrap_or("");
-        if token.is_empty() {
-            return Err("Failed to get inbox token".into());
-        }
-
-        Ok(token.to_string())
-    })
-}
-
-fn fetch_inbox_token_with_retry(email: &str, gm_sid: &str) -> Result<String, String> {
-    match fetch_inbox_token_once(email, gm_sid) {
-        Ok(t) => Ok(t),
-        Err(err) => {
-            if is_401_error(&err) {
-                let (sid, _) = fetch_home_session()?;
-                return fetch_inbox_token_once(email, &sid);
-            }
-            Err(err)
-        }
-    }
-}
-
-fn refresh_inbox_pair(email: &str) -> Result<(String, String), String> {
-    let (gm_sid, _) = fetch_home_session()?;
-    let inbox = fetch_inbox_token_with_retry(email, &gm_sid)?;
-    Ok((inbox, gm_sid))
-}
-
-fn parse_packed_token(packed: &str) -> (String, String) {
-    let t = packed.trim();
-    if t.starts_with('{') {
-        if let Ok(p) = serde_json::from_str::<ChatgptPackedToken>(t) {
-            if !p.gm_sid.is_empty() && !p.inbox.is_empty() {
-                return (p.gm_sid, p.inbox);
-            }
-        }
-    }
-    (String::new(), packed.to_string())
-}
-
-pub fn generate_email() -> Result<EmailInfo, String> {
-    let (gm_sid, browser_token) = fetch_home_session()?;
-
-    let (email, inbox_from_auth) = block_on(async {
-        let resp = http_client()
-            .get(format!("{}/generate-email", BASE_URL))
-            .header("User-Agent", get_current_ua())
-            .header("Accept", "*/*")
-            .header("Referer", HOME_URL)
-            .header("Origin", "https://mail.chatgpt.org.uk")
-            .header("DNT", "1")
-            .header("Cookie", format!("gm_sid={}", gm_sid))
-            .header("X-Inbox-Token", &browser_token)
-            .send()
-            .await
-            .map_err(|e| format!("chatgpt-org-uk request failed: {}", e))?;
-
-        if !resp.status().is_success() {
-            return Err(format!("chatgpt-org-uk generate failed: {}", resp.status()));
-        }
-
+        let gm_sid = extract_gm_sid(&resp);
         let data: Value = resp
             .json()
             .await
             .map_err(|e| format!("parse failed: {}", e))?;
         if !data["success"].as_bool().unwrap_or(false) {
-            return Err("Failed to generate email".into());
+            return Err("chatgpt-org-uk: inbox-token 响应无效".into());
+        }
+        let token = data["auth"]["token"].as_str().unwrap_or("");
+        if token.is_empty() {
+            return Err("chatgpt-org-uk: inbox-token 响应缺少 token".into());
         }
 
-        let email = data["data"]["email"].as_str().unwrap_or("").to_string();
-        if email.is_empty() {
-            return Err("Failed to generate email".into());
-        }
-
-        let from_auth = data["auth"]["token"].as_str().unwrap_or("").to_string();
-        Ok((email, from_auth))
-    })?;
-
-    let inbox_jwt = if !inbox_from_auth.is_empty() {
-        inbox_from_auth
-    } else {
-        fetch_inbox_token_once(&email, &gm_sid)?
-    };
-
-    let packed = serde_json::to_string(&ChatgptPackedToken {
-        gm_sid: gm_sid.clone(),
-        inbox: inbox_jwt,
+        Ok((token.to_string(), gm_sid))
     })
-    .map_err(|e| e.to_string())?;
+}
+
+pub fn generate_email() -> Result<EmailInfo, String> {
+    let domains = fetch_domains()?;
+    let domain = {
+        let mut rng = rand::thread_rng();
+        &domains[rng.gen_range(0..domains.len())]
+    };
+    let email = format!("{}@{}", random_username(10), domain);
+
+    let (inbox, gm_sid) = create_inbox(&email)?;
+
+    let packed =
+        serde_json::to_string(&ChatgptPackedToken { gm_sid, inbox }).map_err(|e| e.to_string())?;
 
     Ok(EmailInfo {
         channel: Channel::ChatgptOrgUk,
@@ -234,6 +174,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     })
 }
 
+/// 拉取邮件列表
 fn fetch_emails(inbox: &str, email: &str, gm_sid: &str) -> Result<Vec<Email>, String> {
     let inbox = inbox.to_string();
     let email = email.to_string();
@@ -247,8 +188,8 @@ fn fetch_emails(inbox: &str, email: &str, gm_sid: &str) -> Result<Vec<Email>, St
             ))
             .header("User-Agent", get_current_ua())
             .header("Accept", "*/*")
-            .header("Referer", HOME_URL)
-            .header("Origin", "https://mail.chatgpt.org.uk")
+            .header("Referer", REFERER)
+            .header("Origin", ORIGIN)
             .header("DNT", "1")
             .header("Cookie", format!("gm_sid={}", gm_sid))
             .header("x-inbox-token", inbox)
@@ -268,7 +209,7 @@ fn fetch_emails(inbox: &str, email: &str, gm_sid: &str) -> Result<Vec<Email>, St
             .await
             .map_err(|e| format!("parse failed: {}", e))?;
         if !data["success"].as_bool().unwrap_or(false) {
-            return Err("Failed to get emails".into());
+            return Ok(Vec::new());
         }
 
         Ok(data["data"]["emails"]
@@ -283,17 +224,24 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         return Err("token is required for chatgpt-org-uk".into());
     }
 
-    let (mut gm_sid, inbox) = parse_packed_token(token);
+    let (mut gm_sid, mut inbox) = parse_packed_token(token);
+    if inbox.is_empty() {
+        return Err("chatgpt-org-uk: inbox token 缺失".into());
+    }
+
+    // gm_sid 丢失时重建会话
     if gm_sid.is_empty() {
-        gm_sid = fetch_home_session()?.0;
+        let (new_inbox, new_sid) = create_inbox(email)?;
+        inbox = new_inbox;
+        gm_sid = new_sid;
     }
 
     match fetch_emails(&inbox, email, &gm_sid) {
         Ok(emails) => Ok(emails),
         Err(err) => {
-            if is_401_error(&err) {
-                let (refreshed, sid) = refresh_inbox_pair(email)?;
-                return fetch_emails(&refreshed, email, &sid);
+            if is_auth_error(&err) {
+                let (new_inbox, new_sid) = create_inbox(email)?;
+                return fetch_emails(&new_inbox, email, &new_sid);
             }
             Err(err)
         }

@@ -2,11 +2,12 @@ package provider
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/url"
-	"regexp"
 	"strings"
 
 	http "github.com/bogdanfinn/fhttp"
@@ -14,16 +15,20 @@ import (
 )
 
 const chatgptOrgUkBaseURL = "https://mail.chatgpt.org.uk/api"
-const chatgptOrgUkHomeURL = "https://mail.chatgpt.org.uk/"
 
+// 请求头，参照官网 Web 客户端；Referer 使用 /zh/ 前缀
 var chatgptOrgUkHeaders = map[string]string{
-	"Accept":  "*/*",
-	"Referer": "https://mail.chatgpt.org.uk/",
-	"Origin":  "https://mail.chatgpt.org.uk",
-	"DNT":     "1",
+	"Accept":         "*/*",
+	"Referer":        "https://mail.chatgpt.org.uk/zh/",
+	"Origin":         "https://mail.chatgpt.org.uk",
+	"DNT":            "1",
+	"sec-fetch-dest": "empty",
+	"sec-fetch-mode": "cors",
+	"sec-fetch-site": "same-origin",
 }
 
-var chatgptOrgUkBrowserAuthRe = regexp.MustCompile(`__BROWSER_AUTH\s*=\s*(\{[\s\S]*?\})\s*;`)
+// 用户名字符集：小写字母 + 数字
+const chatgptOrgUkUsernameChars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 func setChatgptOrgUkHeaders(req *http.Request) {
 	for k, v := range chatgptOrgUkHeaders {
@@ -32,22 +37,29 @@ func setChatgptOrgUkHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", GetCurrentUA())
 }
 
-type ChatgptOrgUkGenerateResponse struct {
+// chatgptOrgUkDomainsResponse 对应 GET /api/domains/public 响应
+type chatgptOrgUkDomainsResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		Domains []struct {
+			DomainName string `json:"domain_name"`
+			IsActive   int    `json:"is_active"`
+		} `json:"domains"`
+	} `json:"data"`
+}
+
+// chatgptOrgUkInboxTokenResponse 对应 POST /api/inbox-token 响应
+type chatgptOrgUkInboxTokenResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
 		Email string `json:"email"`
 	} `json:"data"`
-	Auth *struct {
-		Token string `json:"token"`
-	} `json:"auth"`
-}
-
-type chatgptOrgUkInboxTokenResponse struct {
 	Auth struct {
 		Token string `json:"token"`
 	} `json:"auth"`
 }
 
+// chatgptOrgUkEmailsResponse 对应 GET /api/emails 响应
 type chatgptOrgUkEmailsResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
@@ -56,143 +68,126 @@ type chatgptOrgUkEmailsResponse struct {
 	} `json:"data"`
 }
 
+// chatgptOrgUkPackedToken 打包存储 gm_sid 与 inbox JWT
 type chatgptOrgUkPackedToken struct {
 	GmSid string `json:"gmSid"`
 	Inbox string `json:"inbox"`
 }
 
-func chatgptOrgUkExtractBrowserAuth(html string) string {
-	m := chatgptOrgUkBrowserAuthRe.FindStringSubmatch(html)
-	if len(m) < 2 {
-		return ""
+// chatgptOrgUkRandomUsername 本地生成随机用户名
+func chatgptOrgUkRandomUsername(length int) (string, error) {
+	var b strings.Builder
+	n := big.NewInt(int64(len(chatgptOrgUkUsernameChars)))
+	for i := 0; i < length; i++ {
+		idx, err := rand.Int(rand.Reader, n)
+		if err != nil {
+			return "", err
+		}
+		b.WriteByte(chatgptOrgUkUsernameChars[idx.Int64()])
 	}
-	var o struct {
-		Token string `json:"token"`
-	}
-	if json.Unmarshal([]byte(m[1]), &o) != nil || o.Token == "" {
-		return ""
-	}
-	return o.Token
+	return b.String(), nil
 }
 
-func chatgptOrgUkFetchHomeSession(client tls_client.HttpClient) (gmSid string, browserToken string, err error) {
-	req, err := http.NewRequest("GET", chatgptOrgUkHomeURL, nil)
+// chatgptOrgUkExtractGmSid 从响应 set-cookie 中提取 gm_sid
+func chatgptOrgUkExtractGmSid(resp *http.Response) string {
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "gm_sid" {
+			return cookie.Value
+		}
+	}
+	return ""
+}
+
+// chatgptOrgUkFetchDomains 获取可用域名列表（过滤 is_active=1）
+func chatgptOrgUkFetchDomains(client tls_client.HttpClient) ([]string, error) {
+	req, err := http.NewRequest("GET", chatgptOrgUkBaseURL+"/domains/public", nil)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	setChatgptOrgUkHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if err := CheckHTTPStatus(resp, "chatgpt-org-uk home"); err != nil {
-		return "", "", err
+	if err := CheckHTTPStatus(resp, "chatgpt-org-uk domains"); err != nil {
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	for _, cookie := range resp.Cookies() {
-		if cookie.Name == "gm_sid" {
-			gmSid = cookie.Value
-			break
+	var result chatgptOrgUkDomainsResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if !result.Success {
+		return nil, fmt.Errorf("chatgpt-org-uk: 获取域名失败")
+	}
+
+	domains := make([]string, 0, len(result.Data.Domains))
+	for _, d := range result.Data.Domains {
+		if d.IsActive == 1 && d.DomainName != "" {
+			domains = append(domains, d.DomainName)
 		}
 	}
-	if gmSid == "" {
-		return "", "", fmt.Errorf("failed to extract gm_sid cookie")
+	if len(domains) == 0 {
+		return nil, fmt.Errorf("chatgpt-org-uk: 无可用域名")
 	}
-	browserToken = chatgptOrgUkExtractBrowserAuth(string(body))
-	if browserToken == "" {
-		return "", "", fmt.Errorf("failed to extract __BROWSER_AUTH from homepage")
-	}
-	return gmSid, browserToken, nil
+	return domains, nil
 }
 
-func chatgptOrgUkFetchHomeSessionWithRetry(client tls_client.HttpClient) (gmSid string, browserToken string, err error) {
-	gmSid, browserToken, err = chatgptOrgUkFetchHomeSession(client)
-	if err == nil {
-		return gmSid, browserToken, nil
-	}
-	msg := strings.ToLower(err.Error())
-	if strings.Contains(msg, "401") || strings.Contains(msg, "extract") || strings.Contains(msg, "gm_sid") {
-		return chatgptOrgUkFetchHomeSession(client)
-	}
-	return "", "", err
-}
-
-func chatgptOrgUkFetchInboxToken(client tls_client.HttpClient, email string, gmSid string) (string, error) {
+// chatgptOrgUkCreateInbox 调用 inbox-token 创建收件箱，返回 inbox JWT 与 gm_sid
+func chatgptOrgUkCreateInbox(client tls_client.HttpClient, email string) (inbox string, gmSid string, err error) {
 	payload, err := json.Marshal(map[string]string{"email": email})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	req, err := http.NewRequest("POST", chatgptOrgUkBaseURL+"/inbox-token", bytes.NewReader(payload))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	setChatgptOrgUkHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", fmt.Sprintf("gm_sid=%s", gmSid))
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
 	if err := CheckHTTPStatus(resp, "chatgpt-org-uk inbox-token"); err != nil {
-		return "", err
+		return "", "", err
 	}
+
+	gmSid = chatgptOrgUkExtractGmSid(resp)
 
 	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var result chatgptOrgUkInboxTokenResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
-	}
-	if result.Auth.Token == "" {
-		return "", fmt.Errorf("failed to get inbox token")
-	}
-	return result.Auth.Token, nil
-}
-
-func chatgptOrgUkFetchInboxTokenWithRetry(client tls_client.HttpClient, email string) (inbox string, gmSid string, err error) {
-	gmSid, _, err = chatgptOrgUkFetchHomeSessionWithRetry(client)
 	if err != nil {
 		return "", "", err
 	}
 
-	token, err := chatgptOrgUkFetchInboxToken(client, email, gmSid)
-	if err == nil {
-		return token, gmSid, nil
+	var result chatgptOrgUkInboxTokenResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", "", err
 	}
-	if strings.Contains(err.Error(), ": 401") {
-		gmSid, _, err = chatgptOrgUkFetchHomeSessionWithRetry(client)
-		if err != nil {
-			return "", "", err
-		}
-		token, err = chatgptOrgUkFetchInboxToken(client, email, gmSid)
-		if err != nil {
-			return "", "", err
-		}
-		return token, gmSid, nil
+	if !result.Success || result.Auth.Token == "" {
+		return "", "", fmt.Errorf("chatgpt-org-uk: inbox-token 响应缺少 token")
 	}
-	return "", "", err
+	return result.Auth.Token, gmSid, nil
 }
 
+// chatgptOrgUkParsePackedToken 解析打包的 token
 func chatgptOrgUkParsePackedToken(packed string) (gmSid string, inbox string) {
 	t := strings.TrimSpace(packed)
 	if strings.HasPrefix(t, "{") {
 		var p chatgptOrgUkPackedToken
-		if json.Unmarshal([]byte(t), &p) == nil && p.GmSid != "" && p.Inbox != "" {
+		if json.Unmarshal([]byte(t), &p) == nil && p.Inbox != "" {
 			return p.GmSid, p.Inbox
 		}
 	}
@@ -202,59 +197,29 @@ func chatgptOrgUkParsePackedToken(packed string) (gmSid string, inbox string) {
 func ChatgptOrgUkGenerate() (*CreatedMailbox, error) {
 	client := HTTPClient()
 
-	gmSid, browserToken, err := chatgptOrgUkFetchHomeSessionWithRetry(client)
+	domains, err := chatgptOrgUkFetchDomains(client)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", chatgptOrgUkBaseURL+"/generate-email", nil)
+	idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(domains))))
 	if err != nil {
 		return nil, err
 	}
-	setChatgptOrgUkHeaders(req)
-	req.Header.Set("Cookie", fmt.Sprintf("gm_sid=%s", gmSid))
-	req.Header.Set("X-Inbox-Token", browserToken)
+	domain := domains[idx.Int64()]
 
-	resp, err := client.Do(req)
+	username, err := chatgptOrgUkRandomUsername(10)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	email := username + "@" + domain
 
-	if err := CheckHTTPStatus(resp, "chatgpt-org-uk generate"); err != nil {
-		return nil, err
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	inbox, gmSid, err := chatgptOrgUkCreateInbox(client, email)
 	if err != nil {
 		return nil, err
 	}
 
-	var result ChatgptOrgUkGenerateResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
-	}
-
-	if !result.Success {
-		return nil, fmt.Errorf("failed to generate email")
-	}
-
-	email := result.Data.Email
-	if email == "" {
-		return nil, fmt.Errorf("failed to generate email")
-	}
-
-	var inboxJwt string
-	if result.Auth != nil && result.Auth.Token != "" {
-		inboxJwt = result.Auth.Token
-	} else {
-		inboxJwt, err = chatgptOrgUkFetchInboxToken(client, email, gmSid)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	packed, err := json.Marshal(chatgptOrgUkPackedToken{GmSid: gmSid, Inbox: inboxJwt})
+	packed, err := json.Marshal(chatgptOrgUkPackedToken{GmSid: gmSid, Inbox: inbox})
 	if err != nil {
 		return nil, err
 	}
@@ -269,10 +234,15 @@ func ChatgptOrgUkGetEmails(email string, token string) ([]NormEmail, error) {
 	encodedEmail := url.QueryEscape(email)
 
 	gmSid, inbox := chatgptOrgUkParsePackedToken(token)
+	if inbox == "" {
+		return nil, fmt.Errorf("chatgpt-org-uk: inbox token 缺失")
+	}
 	client := HTTPClient()
+
+	// gm_sid 丢失时重新创建 session
 	if gmSid == "" {
 		var err error
-		gmSid, _, err = chatgptOrgUkFetchHomeSessionWithRetry(client)
+		inbox, gmSid, err = chatgptOrgUkCreateInbox(client, email)
 		if err != nil {
 			return nil, err
 		}
@@ -306,7 +276,6 @@ func ChatgptOrgUkGetEmails(email string, token string) ([]NormEmail, error) {
 		if err := json.Unmarshal(body, &result); err != nil {
 			return nil, err
 		}
-
 		if !result.Success {
 			return nil, fmt.Errorf("failed to get emails")
 		}
@@ -318,8 +287,9 @@ func ChatgptOrgUkGetEmails(email string, token string) ([]NormEmail, error) {
 	if err == nil {
 		return emails, nil
 	}
-	if strings.Contains(err.Error(), ": 401") {
-		refreshed, sid, refreshErr := chatgptOrgUkFetchInboxTokenWithRetry(client, email)
+	// 401/403 时重新创建 session 后重试一次
+	if strings.Contains(err.Error(), ": 401") || strings.Contains(err.Error(), ": 403") {
+		refreshed, sid, refreshErr := chatgptOrgUkCreateInbox(client, email)
 		if refreshErr != nil {
 			return nil, err
 		}
