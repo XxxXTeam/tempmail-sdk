@@ -1,6 +1,7 @@
 import { InternalEmailInfo, Email, Channel } from "../types";
 import { normalizeEmail } from "../normalize";
 import { fetchWithTimeout } from "../retry";
+import { randomInt } from "crypto";
 
 const BASE_URL = "https://mail.zhujump.com";
 const LOGIN_REFERER = `${BASE_URL}/zh-CN/login`;
@@ -32,7 +33,7 @@ function randomValue(prefix: string, size: number): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let out = prefix;
   for (let i = 0; i < size; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
+    out += chars[randomInt(chars.length)];
   }
   return out;
 }

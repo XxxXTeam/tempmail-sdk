@@ -148,7 +148,13 @@ function parseMailListHtml(
  * 去除 HTML 标签，保留纯文本
  */
 function stripHtmlTags(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
+  let result = html;
+  let prev: string;
+  do {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, "");
+  } while (result !== prev);
+  return result;
 }
 
 /**

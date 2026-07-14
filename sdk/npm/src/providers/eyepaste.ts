@@ -76,10 +76,10 @@ function decodeXmlEntities(text: string): string {
   result = result
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
   return result;
 }
 
@@ -172,8 +172,14 @@ export async function getEmails(email: string): Promise<Email[]> {
     const description = extractTag(item, "description");
     const parsed = parseDescription(description);
     const html = parsed.body || "";
-    /* 从 HTML 中提取纯文本 */
-    const text = html.replace(/<[^>]*>/g, "").trim();
+    /* 从 HTML 中提取纯文本（循环清理避免嵌套标签残留） */
+    let text = html;
+    let prev: string;
+    do {
+      prev = text;
+      text = text.replace(/<[^>]*>/g, "");
+    } while (text !== prev);
+    text = text.trim();
 
     let dateStr = "";
     try {

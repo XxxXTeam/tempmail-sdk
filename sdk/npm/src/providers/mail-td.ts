@@ -1,7 +1,7 @@
 import { InternalEmailInfo, Email, Channel } from "../types";
 import { normalizeEmail } from "../normalize";
 import { fetchWithTimeout } from "../retry";
-import { createHash } from "crypto";
+import { createHash, randomInt } from "crypto";
 
 const CHANNEL: Channel = "mail-td";
 const BASE_URL = "https://api.mail.td/api";
@@ -62,7 +62,7 @@ function randomString(length: number): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
   for (let i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
+    result += chars[randomInt(chars.length)];
   }
   return result;
 }
@@ -99,11 +99,12 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     throw new Error("mail-td: 无可用域名");
   }
 
-  const domain = domains[Math.floor(Math.random() * domains.length)];
+  const domain = domains[randomInt(domains.length)];
   const username = randomString(10);
   const address = `${username}@${domain}`;
   const password = randomString(20);
-  const authKey = createHash("sha256").update(password).digest("hex");
+  /* auth_key 由 mail.td API 规定为 SHA-256(password)，属第三方认证协议要求，非本地密码存储 */
+  const authKey = createHash("sha256").update(password).digest("hex"); // lgtm[js/insufficient-password-hash]
 
   const addressLower = address.toLowerCase().trim();
   let difficulty = 15;

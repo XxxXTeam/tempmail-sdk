@@ -271,14 +271,19 @@ function extractText(cell: string): string {
       return decoded;
     }
   }
-  let text = cell.replace(TAG_RE, "");
+  let text = cell;
+  let prev: string;
+  do {
+    prev = text;
+    text = text.replace(TAG_RE, "");
+  } while (text !== prev);
   text = text
     .replace(/&nbsp;/g, " ")
     .replace(/&#160;/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"');
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&");
   return text.trim();
 }
 

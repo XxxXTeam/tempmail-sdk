@@ -125,7 +125,7 @@ def generate_email(channel: str = CHANNEL) -> EmailInfo:
     address = f"{_random_name()}@{domain}"
 
     password = _random_password()
-    auth_key = hashlib.sha256(password.encode()).hexdigest()
+    auth_key = hashlib.sha256(password.encode()).hexdigest()  # noqa: S324 — mail.td API 认证协议要求，非密码存储
 
     difficulty = _INITIAL_DIFFICULTY
 

@@ -1,6 +1,6 @@
 /**
  * 24mail-chacuo — http://24mail.chacuo.net
- * POST 注册/刷新同一接口。HTTP only。
+ * POST 注册/刷新同一接口。HTTP only（该站点不支持 HTTPS）。
  */
 #include "tempmail_internal.h"
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <string.h>
 #include <time.h>
 
-#define CHACUO_BASE "http://24mail.chacuo.net"
+#define CHACUO_BASE "http://24mail.chacuo.net" /* lgtm[cpp/non-https-url] 该站点不支持 HTTPS */
 
 static const char *chacuo_domains[] = {"chacuo.net", "027168.com"};
 #define CHACUO_DOMAIN_COUNT 2

@@ -7,6 +7,7 @@
 import { InternalEmailInfo, Email, Channel } from "../types";
 import { normalizeEmail } from "../normalize";
 import { fetchWithTimeout } from "../retry";
+import { randomInt } from "crypto";
 
 const CHANNEL: Channel = "mailcatch";
 const BASE_URL = "https://mailcatch.com";
@@ -33,7 +34,7 @@ function randomUsername(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let out = "sdk";
   for (let i = 0; i < 16; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
+    out += chars[randomInt(chars.length)];
   }
   return out;
 }

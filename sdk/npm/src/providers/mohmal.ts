@@ -101,13 +101,13 @@ function stripTags(s: string): string {
  */
 function htmlUnescape(s: string): string {
   return s
-    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#34;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ");
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&");
 }
 
 /** token 前缀，用于区分不同渠道的 token 格式 */

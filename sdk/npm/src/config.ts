@@ -117,10 +117,10 @@ let globalConfig: SDKConfig = loadEnvConfig();
  */
 export function setConfig(config: SDKConfig): void {
   globalConfig = { ...config };
-  /* Node.js 环境下 insecure 自动设置环境变量 */
+  /* Node.js 环境下 insecure 自动设置环境变量（用户通过 TEMPMAIL_INSECURE=1 显式启用） */
   if (typeof process !== "undefined" && process.env) {
     if (config.insecure) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // lgtm[js/disabling-certificate-validation]
     } else {
       delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
     }

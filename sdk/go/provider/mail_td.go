@@ -176,7 +176,7 @@ func MailTdGenerate() (*CreatedMailbox, error) {
 	username := mailTdRandomString(10)
 	address := username + "@" + domain
 	password := mailTdRandomString(20)
-	authKeyBytes := sha256.Sum256([]byte(password))
+	authKeyBytes := sha256.Sum256([]byte(password)) //nolint:gosec // mail.td API 认证协议要求，非密码存储
 	authKey := fmt.Sprintf("%x", authKeyBytes)
 
 	addressLower := strings.ToLower(strings.TrimSpace(address))

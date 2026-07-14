@@ -12,6 +12,9 @@ on:
         required: false
         default: ''
 
+permissions:
+  contents: read
+
 jobs:
   # Go SDK 构建检查
   go-build:

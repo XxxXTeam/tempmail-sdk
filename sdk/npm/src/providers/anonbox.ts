@@ -20,9 +20,9 @@ function stripTags(html: string): string {
   return html
     .replace(TAG_RE, "")
     .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
     .trim();
 }
 
