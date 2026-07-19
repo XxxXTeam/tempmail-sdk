@@ -231,7 +231,7 @@ tm_email_info_t *tm_provider_dropmail_me_generate(void) {
 
   info->email = tm_strdup(email_addr);
   info->token = tm_strdup(token_str);
-  info->expires_at = tm_strdup(expires_at);
+  info->expires_at = 0;
   free(token_str);
   cJSON_Delete(root);
   return info;
