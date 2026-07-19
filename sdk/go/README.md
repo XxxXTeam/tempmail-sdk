@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Go 语言临时邮箱 SDK，公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。`ListChannels` 顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的公共列表顺序对齐；随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+Go 语言临时邮箱 SDK，公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。`ListChannels` 顺序与 `client.go` 中 `allChannels` 一致，并与 npm / Rust / Python / C 的公共列表顺序对齐；随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 ## 安装
 
@@ -283,6 +283,17 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 | `spam-janlugt-nl` |  | `ChannelSpamJanlugtNl` | spam-janlugt-nl |
 | `min-burningfish-net` |  | `ChannelMinBurningfishNet` | min-burningfish-net |
 | `sink-fblay-com` |  | `ChannelSinkFblayCom` | sink-fblay-com |
+| `tempmail-fish` |  | `ChannelTempmailFish` | tempmail-fish |
+| `neighbours-sh` |  | `ChannelNeighboursSh` | neighbours-sh |
+| `tempgmailer` |  | `ChannelTempgmailer` | tempgmailer |
+| `temp-mail-org` |  | `ChannelTempMailOrg` | temp-mail-org |
+| `xkx-me` |  | `ChannelXkxMe` | xkx-me |
+| `gonebox-email` |  | `ChannelGoneboxEmail` | gonebox-email |
+| `mailcat-ai` |  | `ChannelMailcatAi` | mailcat-ai |
+| `tempgo-email` |  | `ChannelTempgoEmail` | tempgo-email |
+| `restmail-net` |  | `ChannelRestmailNet` | restmail-net |
+| `dropmail-me` |  | `ChannelDropmailMe` | dropmail-me |
+| `ten-minute-mail-net` |  | `ChannelTenMinuteMailNet` | ten-minute-mail-net |
 
 > **提示：** Token 等认证信息由 SDK 内部自动维护，用户无需关心。
 

@@ -6,6 +6,10 @@ use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use serde_json::Value;
+use std::sync::LazyLock;
+
+static HTML_TAG_RE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"<[^>]+>").unwrap());
 
 const BASE_URL: &str = "https://api.guerrillamail.com/ajax.php";
 
@@ -113,10 +117,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
             let text = if body.is_empty() {
                 item["mail_excerpt"].as_str().unwrap_or("").to_string()
             } else {
-                // 去除 HTML 标签提取纯文本
-                let re = regex::Regex::new(r"<[^>]+>")
-                    .unwrap_or_else(|_| regex::Regex::new("").unwrap());
-                let stripped = re.replace_all(&body, " ");
+                let stripped = HTML_TAG_RE.replace_all(&body, " ");
                 stripped.split_whitespace().collect::<Vec<_>>().join(" ")
             };
 

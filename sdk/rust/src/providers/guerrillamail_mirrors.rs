@@ -7,6 +7,10 @@ use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use serde_json::Value;
+use std::sync::LazyLock;
+
+static HTML_TAG_RE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"<[^>]+>").unwrap());
 
 fn mirror_generate(channel: Channel, base_url: &str) -> Result<EmailInfo, String> {
     let base_url = base_url.to_string();
@@ -114,9 +118,7 @@ fn mirror_get_emails(base_url: &str, token: &str, email: &str) -> Result<Vec<Ema
             let text = if body.is_empty() {
                 item["mail_excerpt"].as_str().unwrap_or("").to_string()
             } else {
-                let re = regex::Regex::new(r"<[^>]+>")
-                    .unwrap_or_else(|_| regex::Regex::new("").unwrap());
-                let stripped = re.replace_all(&body, " ");
+                let stripped = HTML_TAG_RE.replace_all(&body, " ");
                 stripped.split_whitespace().collect::<Vec<_>>().join(" ")
             };
 

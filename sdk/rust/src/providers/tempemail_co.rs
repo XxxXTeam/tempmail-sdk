@@ -249,15 +249,7 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         // 检查 count 字段，0 表示无邮件
         let count = body
             .get("count")
-            .and_then(|v| {
-                if let Some(n) = v.as_i64() {
-                    Some(n)
-                } else if let Some(n) = v.as_u64() {
-                    Some(n as i64)
-                } else {
-                    None
-                }
-            })
+            .and_then(|v| v.as_i64().or_else(|| v.as_u64().map(|n| n as i64)))
             .unwrap_or(0);
 
         if count <= 0 {

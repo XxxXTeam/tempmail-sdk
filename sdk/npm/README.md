@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,7 +17,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **268** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **100** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+共 **279** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **109** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
@@ -289,6 +289,17 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `spam-janlugt-nl` |  | ✅ | spam-janlugt-nl |
 | `min-burningfish-net` |  | ✅ | min-burningfish-net |
 | `sink-fblay-com` |  | ✅ | sink-fblay-com |
+| `tempmail-fish` |  | - | tempmail-fish |
+| `neighbours-sh` |  | - | neighbours-sh |
+| `tempgmailer` |  | - | tempgmailer |
+| `temp-mail-org` |  | ✅ | temp-mail-org |
+| `xkx-me` |  | ✅ | xkx-me |
+| `gonebox-email` |  | ✅ | gonebox-email |
+| `mailcat-ai` |  | ✅ | mailcat-ai |
+| `tempgo-email` |  | ✅ | tempgo-email |
+| `restmail-net` |  | - | restmail-net |
+| `dropmail-me` |  | ✅ | dropmail-me |
+| `ten-minute-mail-net` |  | ✅ | ten-minute-mail-net |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 

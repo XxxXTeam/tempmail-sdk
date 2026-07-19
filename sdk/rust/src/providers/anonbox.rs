@@ -25,7 +25,7 @@ static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").unwrap(
 static EXPIRES_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?is)Your mail address is valid until:</dt>\s*<dd><p>([^<]+)</p>").unwrap()
 });
-static MBOX_SPLIT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\r?\n(?=From )").unwrap());
+static MBOX_SPLIT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\r?\nFrom ").unwrap());
 
 fn strip_tags(html: &str) -> String {
     let s = TAG_RE.replace_all(html, "");
@@ -187,6 +187,7 @@ fn mbox_block_to_email(block: &str, recipient: &str) -> Email {
             let boundary = bm.get(1).map(|m| m.as_str()).unwrap_or("");
             let esc = regex::escape(boundary);
             let part_re = Regex::new(&format!(r"\r?\n--{esc}(?:--)?\r?\n")).unwrap();
+            let pct_re = Regex::new(r"(?i)^content-type:\s*([^\s;]+)").unwrap();
             for part in part_re.split(&body) {
                 let part = part.trim();
                 if part.is_empty() || part == "--" {
@@ -195,7 +196,6 @@ fn mbox_block_to_email(block: &str, recipient: &str) -> Email {
                 if let Some(sep) = part.find("\n\n") {
                     let ph = &part[..sep];
                     let pb = &part[sep + 2..];
-                    let pct_re = Regex::new(r"(?i)^content-type:\s*([^\s;]+)").unwrap();
                     let pct = pct_re
                         .captures(ph)
                         .and_then(|c| c.get(1).map(|m| m.as_str().to_lowercase()))
@@ -316,7 +316,15 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
         }
         let blocks: Vec<String> = MBOX_SPLIT
             .split(t)
-            .map(|s| s.trim().to_string())
+            .enumerate()
+            .map(|(i, s)| {
+                let trimmed = s.trim();
+                if i == 0 {
+                    trimmed.to_string()
+                } else {
+                    format!("From {}", trimmed)
+                }
+            })
             .filter(|s| !s.is_empty())
             .collect();
         Ok(blocks

@@ -352,20 +352,18 @@ pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
                 .unwrap_or("")
                 .trim()
                 .to_string();
-            let has_body = obj
+            let has_body = !obj
                 .get("content")
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .trim()
                 .is_empty()
-                == false
-                || obj
+                || !obj
                     .get("html")
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .trim()
-                    .is_empty()
-                    == false;
+                    .is_empty();
             if !message_id.is_empty() && !has_body {
                 let detail_resp = json_headers(
                     http_client_no_cookie_jar().get(format!(

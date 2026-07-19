@@ -129,6 +129,7 @@ export type Channel =
   | "tempmail-lol-v2"
   | "tempgbox"
   | "emailnator"
+  | "tempgmailer"
   | "temporam"
   | "neighbours"
   | "sharklasers"
@@ -272,7 +273,15 @@ export type Channel =
   | "j-fairuse-org"
   | "mn-curppa-com"
   | "mailinatorzz-mooo-com"
-  | "notfond-404-mn";
+  | "notfond-404-mn"
+  | "temp-mail-org"
+  | "xkx-me"
+  | "gonebox-email"
+  | "mailcat-ai"
+  | "tempgo-email"
+  | "restmail-net"
+  | "dropmail-me"
+  | "ten-minute-mail-net";
 
 /**
  * 创建临时邮箱后返回的邮箱信息
@@ -402,8 +411,22 @@ export interface GenerateEmailOptions {
   duration?: number;
   /** 指定邮箱域名或接入域名（如 `tempmail-cn` 自定义域名） */
   domain?: string | null;
+  /**
+   * 精确匹配邮箱后缀（如 "@gmail.com"）
+   * 指定后仅尝试已知支持该后缀域名的渠道
+   */
+  suffix?: string;
+  /**
+   * 支持多个域名模糊匹配（如 ["outlook.com", "hotmail.com"]）
+   * 指定后仅尝试已知支持这些域名的渠道（支持子域名匹配）
+   */
+  domains?: string[];
   /** 重试配置，不传则使用默认值（最多重试 2 次） */
   retry?: RetryConfig;
+  /** 最大尝试渠道数，默认 20，超出后停止尝试 */
+  maxChannelsTried?: number;
+  /** 整体超时时间（毫秒），默认 60000（60秒），超出后停止尝试 */
+  totalTimeout?: number;
 }
 
 /**

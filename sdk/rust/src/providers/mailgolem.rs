@@ -101,6 +101,7 @@ async fn fetch_session() -> Result<(String, String), String> {
 /// 创建临时邮箱
 /// 1. GET / 获取 session cookie + CSRF token
 /// 2. GET /random-email-address 获取随机邮箱地址
+///
 /// token 存储 CSRF token 值
 pub fn generate_email() -> Result<EmailInfo, String> {
     block_on(async {

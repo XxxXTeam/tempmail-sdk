@@ -286,6 +286,13 @@ static const tm_channel_t g_channel_try_order[] = {
     CHANNEL_SPAM_JANLUGT_NL,
     CHANNEL_MIN_BURNINGFISH_NET,
     CHANNEL_SINK_FBLAY_COM,
+    CHANNEL_TEMPGMAILER,
+    CHANNEL_TEMP_MAIL_ORG,
+    CHANNEL_XKX_ME,
+    CHANNEL_GONEBOX_EMAIL,
+    CHANNEL_MAILCAT_AI,
+    CHANNEL_TEMPGO_EMAIL,
+    CHANNEL_RESTMAIL_NET,
 };
 
 #define TM_CHANNEL_TRY_N                                                       \
@@ -598,6 +605,13 @@ static const tm_channel_info_t g_channel_infos[] = {
     {CHANNEL_MIN_BURNINGFISH_NET, "Mailinator (min.burningfish.net)",
      "mailinator.com"},
     {CHANNEL_SINK_FBLAY_COM, "Mailinator (sink.fblay.com)", "mailinator.com"},
+    {CHANNEL_TEMPGMAILER, "TempGmailer", "tempgmailer.com"},
+    {CHANNEL_TEMP_MAIL_ORG, "Temp-Mail.org", "temp-mail.org"},
+    {CHANNEL_XKX_ME, "XKX.me", "xkx.me"},
+    {CHANNEL_GONEBOX_EMAIL, "Gonebox Email", "gonebox.email"},
+    {CHANNEL_MAILCAT_AI, "Mailcat AI", "mailcat.ai"},
+    {CHANNEL_TEMPGO_EMAIL, "TempGo Email", "tempgo.email"},
+    {CHANNEL_RESTMAIL_NET, "Restmail.net", "restmail.net"},
 };
 
 const tm_channel_info_t *tm_list_channels(int *count) {
@@ -1517,6 +1531,21 @@ static tm_email_info_t *tm_try_generate(tm_channel_t channel, int duration,
     case CHANNEL_XUE32_BUZZ:
       result = tm_provider_xue32_buzz_generate();
       break;
+    case CHANNEL_XKX_ME:
+      result = tm_provider_xkx_me_generate();
+      break;
+    case CHANNEL_GONEBOX_EMAIL:
+      result = tm_provider_gonebox_email_generate();
+      break;
+    case CHANNEL_MAILCAT_AI:
+      result = tm_provider_mailcat_ai_generate();
+      break;
+    case CHANNEL_TEMPGO_EMAIL:
+      result = tm_provider_tempgo_email_generate();
+      break;
+    case CHANNEL_RESTMAIL_NET:
+      result = tm_provider_restmail_net_generate();
+      break;
     case CHANNEL_B_SMELLY_CC:
       result = tm_provider_b_smelly_cc_generate();
       break;
@@ -1541,6 +1570,9 @@ static tm_email_info_t *tm_try_generate(tm_channel_t channel, int duration,
     case CHANNEL_NOTFOND_404_MN:
       result = tm_provider_notfond_404_mn_generate();
       break;
+    case CHANNEL_TEMPGMAILER:   /* 暂未实现 */
+    case CHANNEL_TEMP_MAIL_ORG: /* 暂未实现 */
+      return NULL;
     default:
       return NULL;
     }
@@ -2701,6 +2733,37 @@ tm_get_emails_result_t *tm_get_emails(const tm_email_info_t *email_info,
     case CHANNEL_XUE32_BUZZ:
       emails = tm_provider_xue32_buzz_get_emails(email_info->email, &count);
       break;
+    case CHANNEL_XKX_ME:
+      if (!email_info->token) {
+        count = -1;
+        break;
+      }
+      emails = tm_provider_xkx_me_get_emails(email_info->token,
+                                              email_info->email, &count);
+      break;
+    case CHANNEL_GONEBOX_EMAIL:
+      emails =
+          tm_provider_gonebox_email_get_emails(email_info->email, &count);
+      break;
+    case CHANNEL_MAILCAT_AI:
+      if (!email_info->token) {
+        count = -1;
+        break;
+      }
+      emails = tm_provider_mailcat_ai_get_emails(email_info->token,
+                                                 email_info->email, &count);
+      break;
+    case CHANNEL_TEMPGO_EMAIL:
+      if (!email_info->token) {
+        count = -1;
+        break;
+      }
+      emails = tm_provider_tempgo_email_get_emails(email_info->token,
+                                                   email_info->email, &count);
+      break;
+    case CHANNEL_RESTMAIL_NET:
+      emails = tm_provider_restmail_net_get_emails(email_info->email, &count);
+      break;
     case CHANNEL_B_SMELLY_CC:
       emails = tm_provider_b_smelly_cc_get_emails(email_info->email, &count);
       break;
@@ -2727,6 +2790,10 @@ tm_get_emails_result_t *tm_get_emails(const tm_email_info_t *email_info,
       break;
     case CHANNEL_NOTFOND_404_MN:
       emails = tm_provider_notfond_404_mn_get_emails(email_info->email, &count);
+      break;
+    case CHANNEL_TEMPGMAILER:   /* 暂未实现 */
+    case CHANNEL_TEMP_MAIL_ORG: /* 暂未实现 */
+      count = -1;
       break;
     default:
       break;

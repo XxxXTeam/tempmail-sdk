@@ -134,13 +134,17 @@ pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
     block_on(async {
         let data = call_api(&format!("{API_BASE_URL}/inbox"), &[("email", em)], "inbox").await?;
 
-        let mails = match data.get("mails").and_then(|v| v.as_array()) {
+        let messages = match data
+            .get("data")
+            .and_then(|d| d.get("messages"))
+            .and_then(|v| v.as_array())
+        {
             Some(arr) if !arr.is_empty() => arr.clone(),
             _ => return Ok(vec![]),
         };
 
-        let mut result = Vec::with_capacity(mails.len());
-        for m in &mails {
+        let mut result = Vec::with_capacity(messages.len());
+        for m in &messages {
             let mid = m.get("mid").and_then(|v| v.as_str()).unwrap_or("").trim();
 
             let mut flat = json!({

@@ -121,20 +121,11 @@ fn fetch_ws_ticket(client: &wreq::Client, ua: &str, jwt: &str) -> Result<String,
     })
 }
 
+#[derive(Default)]
 struct Vip215Box {
     emails: Vec<Email>,
     seen: HashMap<String, ()>,
     started: bool,
-}
-
-impl Default for Vip215Box {
-    fn default() -> Self {
-        Self {
-            emails: Vec::new(),
-            seen: HashMap::new(),
-            started: false,
-        }
-    }
 }
 
 fn registry() -> &'static Mutex<HashMap<String, Arc<Mutex<Vip215Box>>>> {
@@ -151,8 +142,7 @@ fn get_box(token: &str) -> Arc<Mutex<Vip215Box>> {
 
 fn vip215_sanitize_slice(s: &str) -> String {
     s.replace("\r\n", " ")
-        .replace('\r', " ")
-        .replace('\n', " ")
+        .replace(['\r', '\n'], " ")
         .trim()
         .to_string()
 }
@@ -247,7 +237,7 @@ fn vip215_synthetic_bodies(recipient: &str, data: &Value) -> (String, String) {
 fn ws_loop(jwt: String, recipient: String, arc: Arc<Mutex<Vip215Box>>) {
     let ua = get_current_ua();
     let client = http_client_no_cookie_jar();
-    let ws_ticket = match fetch_ws_ticket(&client, &ua, &jwt) {
+    let ws_ticket = match fetch_ws_ticket(&client, ua, &jwt) {
         Ok(t) => t,
         Err(e) => {
             log::warn!("vip-215 ws-ticket failed: {}", e);
@@ -388,7 +378,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         if !home.status().is_success() {
             return Err(format!("vip-215 homepage HTTP {}", home.status()));
         }
-        let mut cookie_hdr = merge_set_cookies("", home.headers());
+        let cookie_hdr = merge_set_cookies("", home.headers());
         if !cookie_hdr.contains("yyds_homepage_bridge=")
             || !cookie_hdr.contains("yyds_homepage_device=")
         {
@@ -396,7 +386,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         }
 
         let mut req = client.post(format!("{HTTP_BASE}/api/temp-inbox"));
-        req = apply_vip215_api_headers(req, &ua, Some(&cookie_hdr));
+        req = apply_vip215_api_headers(req, ua, Some(&cookie_hdr));
         let resp = req
             .send()
             .await
@@ -407,7 +397,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             let t = resp.text().await.unwrap_or_default();
             return Err(format!("vip-215 create inbox HTTP {} {}", status, t));
         }
-        cookie_hdr = merge_set_cookies(&cookie_hdr, resp.headers());
+        let _cookie_hdr = merge_set_cookies(&cookie_hdr, resp.headers());
 
         let body: Value = resp.json().await.map_err(|e| e.to_string())?;
         if body.get("success").and_then(|v| v.as_bool()) != Some(true) {

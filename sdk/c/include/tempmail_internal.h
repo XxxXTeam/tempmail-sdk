@@ -715,6 +715,18 @@ tm_email_info_t *tm_provider_sbook_pics_generate(void);
 tm_email_t *tm_provider_sbook_pics_get_emails(const char *email, int *count);
 tm_email_info_t *tm_provider_xue32_buzz_generate(void);
 tm_email_t *tm_provider_xue32_buzz_get_emails(const char *email, int *count);
+tm_email_info_t *tm_provider_xkx_me_generate(void);
+tm_email_t *tm_provider_xkx_me_get_emails(const char *token, const char *email,
+                                           int *count);
+
+/* gonebox.email — 无需认证 */
+tm_email_info_t *tm_provider_gonebox_email_generate(void);
+tm_email_t *tm_provider_gonebox_email_get_emails(const char *email, int *count);
+
+/* mailcat.ai — 需要 Bearer token */
+tm_email_info_t *tm_provider_mailcat_ai_generate(void);
+tm_email_t *tm_provider_mailcat_ai_get_emails(const char *token,
+                                              const char *email, int *count);
 
 /* mailinator 姊妹域名（复用 mailinator 读信） */
 tm_email_info_t *tm_provider_b_smelly_cc_generate(void);
@@ -737,5 +749,25 @@ tm_email_t *tm_provider_mailinatorzz_mooo_com_get_emails(const char *email,
 tm_email_info_t *tm_provider_notfond_404_mn_generate(void);
 tm_email_t *tm_provider_notfond_404_mn_get_emails(const char *email,
                                                   int *count);
+
+/* tempgo-email（https://tempgo.email，POST 创建/GET 读信，token 为 mailbox_id） */
+tm_email_info_t *tm_provider_tempgo_email_generate(void);
+tm_email_t *tm_provider_tempgo_email_get_emails(const char *token,
+                                                const char *email, int *count);
+
+/* restmail-net（https://restmail.net，ad-hoc 模式，无需 token） */
+tm_email_info_t *tm_provider_restmail_net_generate(void);
+tm_email_t *tm_provider_restmail_net_get_emails(const char *email, int *count);
+
+/* dropmail-me（https://dropmail.me，GraphQL 创建会话，token 为 JSON） */
+tm_email_info_t *tm_provider_dropmail_me_generate(void);
+tm_email_t *tm_provider_dropmail_me_get_emails(const char *token,
+                                               const char *email, int *count);
+
+/* ten-minute-mail-net（https://10minutemail.net，Cookie 会话模式） */
+tm_email_info_t *tm_provider_ten_minute_mail_net_generate(void);
+tm_email_t *tm_provider_ten_minute_mail_net_get_emails(const char *token,
+                                                       const char *email,
+                                                       int *count);
 
 #endif /* TEMPMAIL_INTERNAL_H */

@@ -198,28 +198,38 @@ export async function getEmails(
     const id = item.id;
     if (!id) continue;
 
-    const detailUrl = `${BASE_URL}/email/id/${id}`;
-    const rd = await fetchWithTimeout(detailUrl, {
+    /* POST /index/email 获取邮件详情 */
+    const rd = await fetchWithTimeout(`${BASE_URL}/index/email`, {
+      method: "POST",
       headers: {
         ...COMMON_HEADERS,
         Cookie: cookie,
         "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
+      body: `id=${encodeURIComponent(id)}`,
     });
     if (!rd.ok) continue;
 
-    const htmlBody = await rd.text();
+    const detail = (await rd.json()) as {
+      predmet?: string;
+      od?: string;
+      id?: string;
+      enc?: string;
+      telo?: string;
+      komu?: string;
+    };
 
     /*
      * 构建标准化数据对象
-     * 捷克语字段映射: predmet=subject, od=from, kdy=when, precteno=read status
+     * 捷克语字段映射: predmet=subject, od=from, telo=body, komu=to
      */
     const mailData: Record<string, unknown> = {
-      id: String(id),
-      from: item.od || "",
-      to: email,
-      subject: item.predmet || "",
-      html: htmlBody || "",
+      id: String(detail.id || id),
+      from: detail.od || item.od || "",
+      to: detail.komu || email,
+      subject: detail.predmet || item.predmet || "",
+      html: detail.telo || "",
       date: item.kdy || "",
       isRead: item.precteno === "precteno",
     };

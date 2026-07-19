@@ -7,11 +7,11 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-五端 SDK（**Go、npm、Rust、Python、C**）共同公开 **268** 个 `channel` 标识，按独立服务商合并为约 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。下表为五端共同顺序（与 Go `allChannels` 对齐）。C 语言中 `tm_list_channels()` 返回顺序亦与下表一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+五端 SDK（**Go、npm、Rust、Python、C**）共同公开 **279** 个 `channel` 标识，按独立服务商合并为约 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。下表为五端共同顺序（与 Go `allChannels` 对齐）。C 语言中 `tm_list_channels()` 返回顺序亦与下表一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 **五端共同公开 268 个 `channel` 标识，合并为约 100 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
+- 🌐 **五端共同公开 279 个 `channel` 标识，合并为约 109 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C 五种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -297,6 +297,17 @@
 | `spam-janlugt-nl` | [spam-janlugt-nl](https://) | ✅ | spam-janlugt-nl |
 | `min-burningfish-net` | [min-burningfish-net](https://) | ✅ | min-burningfish-net |
 | `sink-fblay-com` | [sink-fblay-com](https://) | ✅ | sink-fblay-com |
+| `tempmail-fish` | [tempmail.fish](https://tempmail.fish) | - | neighbours.sh 同类服务，API 路径相同 |
+| `neighbours-sh` | [neighbours.sh](https://neighbours.sh) | - | neighbours.sh 子渠道，使用 `neighbours-sh` 标识 |
+| `tempgmailer` | [tempgmailer.com](https://tempgmailer.com) | - | REST API 生成 Gmail 别名风格临时邮箱 |
+| `temp-mail-org` | [temp-mail.org](https://temp-mail.org) | ✅ | REST API + XSRF；`POST /en/option/change` 建址，`POST /en/option/refresh` 拉信 |
+| `xkx-me` | [xkx.me](https://xkx.me) | ✅ | Socket.IO 协议，connect → create → email 事件 |
+| `gonebox-email` | [gonebox.email](https://gonebox.email) | ✅ | `POST /api/inbox` 建址；`GET /api/inbox/{id}/messages` 拉信 |
+| `mailcat-ai` | [mailcat.ai](https://mailcat.ai) | ✅ | `POST /mailboxes` 建址；`GET /inbox` + Bearer Token 拉信 |
+| `tempgo-email` | [tempgo.email](https://tempgo.email) | ✅ | `POST /api/generate` 建址；`GET /api/inbox?email=&mailbox_id=` 拉信 |
+| `restmail-net` | [restmail.net](https://restmail.net) | - | Mozilla 开源项目，ad-hoc 模式，`GET /mail/{username}` 拉信 |
+| `dropmail-me` | [dropmail.me](https://dropmail.me) | ✅ | GraphQL API，FNV-1a token 认证，`introduceSession` 建址 |
+| `ten-minute-mail-net` | [10minutemail.net](https://10minutemail.net) | ✅ | PHP Session 驱动，`GET /address.api.php` 建址/收信 |
 
 > **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels()` 的**返回顺序**与上表一致；若按 `tm_channel_t` **枚举常量**编程，其数值顺序与上表不同，以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
 

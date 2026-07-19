@@ -4,6 +4,7 @@ SDK 主入口
 """
 
 import random
+import time
 from typing import Optional, List
 from .types import (
     EmailInfo,
@@ -16,6 +17,13 @@ from .types import (
 from .retry import with_retry, with_retry_with_attempts
 from .telemetry import report_telemetry
 from .logger import get_logger
+from .backend_groups import (
+    get_backend,
+    is_backend_open,
+    record_backend_failure,
+    record_backend_success,
+)
+from .channel_domains import filter_channels_by_domain
 from .providers import (
     tempmail,
     tempmail_cn,
@@ -202,6 +210,15 @@ from .providers import (
     mn_curppa_com,
     mailinatorzz_mooo_com,
     notfond_404_mn,
+    tempgmailer,
+    temp_mail_org,
+    xkx_me,
+    gonebox_email,
+    mailcat_ai,
+    tempgo_email,
+    restmail_net,
+    dropmail_me,
+    ten_minute_mail_net,
 )
 
 # 所有支持的公共渠道列表；随机尝试顺序会基于该列表在本端独立洗牌，不要求跨 SDK 一致
@@ -230,10 +247,10 @@ ALL_CHANNELS = [
     "mailforspam-tempmail-io",
     "mailforspam-disposable",
     "tempmailc",
-    "tempmail-fish",
-    "neighbours-sh",
     "mailnesia",
     "throwawaymail",
+    "tempmail-fish",
+    "neighbours-sh",
     "shitty-email",
     "tempmailpro",
     "devmail-uk",
@@ -476,6 +493,15 @@ ALL_CHANNELS = [
     "spam-janlugt-nl",
     "min-burningfish-net",
     "sink-fblay-com",
+    "tempgmailer",
+    "temp-mail-org",
+    "xkx-me",
+    "gonebox-email",
+    "mailcat-ai",
+    "tempgo-email",
+    "restmail-net",
+    "dropmail-me",
+    "ten-minute-mail-net",
 ]
 
 # 渠道信息映射表
@@ -822,6 +848,9 @@ CHANNEL_INFO_MAP = {
     ),
     "tempgbox": ChannelInfo(
         channel="tempgbox", name="TempGBox", website="tempgbox.net"
+    ),
+    "tempgmailer": ChannelInfo(
+        channel="tempgmailer", name="TempGmailer", website="tempgmailer.com"
     ),
     "emailnator": ChannelInfo(
         channel="emailnator", name="Emailnator", website="emailnator.com"
@@ -1370,6 +1399,30 @@ CHANNEL_INFO_MAP = {
     "xue32-buzz": ChannelInfo(
         channel="xue32-buzz", name="Mailmomy (xue32.buzz)", website="mailmomy.com"
     ),
+    "temp-mail-org": ChannelInfo(
+        channel="temp-mail-org", name="Temp-Mail.org", website="temp-mail.org"
+    ),
+    "xkx-me": ChannelInfo(
+        channel="xkx-me", name="XKX.me", website="xkx.me"
+    ),
+    "gonebox-email": ChannelInfo(
+        channel="gonebox-email", name="GoneBox.email", website="gonebox.email"
+    ),
+    "mailcat-ai": ChannelInfo(
+        channel="mailcat-ai", name="Mailcat.ai", website="mailcat.ai"
+    ),
+    "tempgo-email": ChannelInfo(
+        channel="tempgo-email", name="TempGo Email", website="tempgo.email"
+    ),
+    "restmail-net": ChannelInfo(
+        channel="restmail-net", name="Restmail.net", website="restmail.net"
+    ),
+    "dropmail-me": ChannelInfo(
+        channel="dropmail-me", name="Dropmail.me", website="dropmail.me"
+    ),
+    "ten-minute-mail-net": ChannelInfo(
+        channel="ten-minute-mail-net", name="10MinuteMail.net", website="10minutemail.net"
+    ),
 }
 
 
@@ -1421,12 +1474,44 @@ def generate_email(
 
     logger = get_logger()
 
-    # 构建尝试顺序：指定渠道优先尝试，失败后随机尝试其他渠道；未指定则打乱全部逐个尝试
     try_order = _build_channel_order(options.channel)
+
+    # 解析域名筛选条件
+    target_domains = []
+    if options.suffix:
+        s = options.suffix.lstrip("@")
+        target_domains.append(s)
+    if options.domains:
+        target_domains.extend(options.domains)
+    # 按域名筛选渠道
+    if target_domains:
+        try_order = filter_channels_by_domain(try_order, target_domains)
+
+    max_channels = getattr(options, "max_channels_tried", 0) or 20
+    total_timeout = getattr(options, "total_timeout", 0) or 60.0
+    start_time = time.time()
+    failed_backends: set = set()
 
     channels_tried = 0
     last_err = ""
     for ch in try_order:
+        if channels_tried >= max_channels:
+            logger.warning(f"已尝试最大渠道数 ({max_channels})，停止")
+            break
+        if time.time() - start_time >= total_timeout:
+            logger.warning("整体超时，停止尝试")
+            break
+
+        backend = get_backend(ch)
+
+        if backend:
+            if backend in failed_backends:
+                logger.debug(f"跳过渠道 {ch}，同后端 {backend} 已失败")
+                continue
+            if not is_backend_open(backend):
+                logger.debug(f"跳过渠道 {ch}，后端 {backend} 熔断中")
+                continue
+
         channels_tried += 1
         logger.info(f"创建临时邮箱, 渠道: {ch}")
         r = with_retry_with_attempts(
@@ -1438,10 +1523,15 @@ def generate_email(
             assert result is not None
             logger.info(f"邮箱创建成功: {result.email} (渠道: {ch})")
             report_telemetry("generate_email", ch, True, r.attempts, channels_tried, "")
+            if backend:
+                record_backend_success(backend)
             return result
         err = r.error
         last_err = str(err) if err else "unknown"
         logger.warning(f"渠道 {ch} 不可用: {last_err}，尝试下一个渠道")
+        if backend:
+            failed_backends.add(backend)
+            record_backend_failure(backend)
 
     logger.error("所有渠道均不可用，创建邮箱失败")
     report_telemetry("generate_email", "", False, 0, channels_tried, last_err)
@@ -1687,6 +1777,7 @@ _GENERATE_DISPATCH = {
     ),
     "tempmail-lol-v2": lambda o: tempmail_lol_v2.generate_email(),
     "tempgbox": lambda o: tempgbox.generate_email(),
+    "tempgmailer": lambda o: tempgmailer.generate_email(),
     "emailnator": lambda o: emailnator.generate_email(),
     "temporam": lambda o: temporam.generate_email(o.domain),
     "neighbours": lambda o: neighbours.generate_email(o.domain),
@@ -1832,6 +1923,14 @@ _GENERATE_DISPATCH = {
     "mn-curppa-com": lambda o: mn_curppa_com.generate_email(),
     "mailinatorzz-mooo-com": lambda o: mailinatorzz_mooo_com.generate_email(),
     "notfond-404-mn": lambda o: notfond_404_mn.generate_email(),
+    "temp-mail-org": lambda o: temp_mail_org.generate_email(),
+    "xkx-me": lambda o: xkx_me.generate_email(),
+    "gonebox-email": lambda o: gonebox_email.generate_email(),
+    "mailcat-ai": lambda o: mailcat_ai.generate_email(),
+    "tempgo-email": lambda o: tempgo_email.generate_email(),
+    "restmail-net": lambda o: restmail_net.generate_email(),
+    "dropmail-me": lambda o: dropmail_me.generate_email(),
+    "ten-minute-mail-net": lambda o: ten_minute_mail_net.generate_email(),
 }
 
 
@@ -2116,6 +2215,9 @@ _GET_EMAILS_DISPATCH = {
         _require_token(t, "tempmail-lol-v2"), e
     ),
     "tempgbox": lambda e, t: tempgbox.get_emails(_require_token(t, "tempgbox"), e),
+    "tempgmailer": lambda e, t: tempgmailer.get_emails(
+        _require_token(t, "tempgmailer"), e
+    ),
     "emailnator": lambda e, t: emailnator.get_emails(
         _require_token(t, "emailnator"), e
     ),
@@ -2335,6 +2437,26 @@ _GET_EMAILS_DISPATCH = {
     "mn-curppa-com": lambda e, t: mn_curppa_com.get_emails(t or "", e),
     "mailinatorzz-mooo-com": lambda e, t: mailinatorzz_mooo_com.get_emails(t or "", e),
     "notfond-404-mn": lambda e, t: notfond_404_mn.get_emails(t or "", e),
+    "temp-mail-org": lambda e, t: temp_mail_org.get_emails(
+        _require_token(t, "temp-mail-org"), e
+    ),
+    "xkx-me": lambda e, t: xkx_me.get_emails(
+        _require_token(t, "xkx-me"), e
+    ),
+    "gonebox-email": lambda e, t: gonebox_email.get_emails(t or "", e),
+    "mailcat-ai": lambda e, t: mailcat_ai.get_emails(
+        _require_token(t, "mailcat-ai"), e
+    ),
+    "tempgo-email": lambda e, t: tempgo_email.get_emails(
+        _require_token(t, "tempgo-email"), e
+    ),
+    "restmail-net": lambda e, t: restmail_net.get_emails(e),
+    "dropmail-me": lambda e, t: dropmail_me.get_emails(
+        _require_token(t, "dropmail-me"), e
+    ),
+    "ten-minute-mail-net": lambda e, t: ten_minute_mail_net.get_emails(
+        _require_token(t, "ten-minute-mail-net"), e
+    ),
 }
 
 

@@ -89,7 +89,7 @@ async fn refresh_access_token(refresh_token: &str) -> Result<String, String> {
         None,
     )
     .await?;
-    if status < 200 || status >= 300 {
+    if !(200..300).contains(&status) {
         return Err(format!("ockito grefresh http {}", status));
     }
     let access_token = any_string(&data["access_token"]);
@@ -122,7 +122,7 @@ async fn fetch_bearer_json(
         .await?;
         return Ok(retry);
     }
-    if status < 200 || status >= 300 {
+    if !(200..300).contains(&status) {
         return Err(format!("ockito http {}", status));
     }
     Ok(data)
@@ -180,7 +180,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     block_on(async {
         let (status, login) =
             request_json("POST", "/gtoken", None, Some(serde_json::json!({}))).await?;
-        if status < 200 || status >= 300 {
+        if !(200..300).contains(&status) {
             return Err(format!("ockito gtoken http {}", status));
         }
         let access_token = any_string(&login["access_token"]);
@@ -196,7 +196,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
             None,
         )
         .await?;
-        if status < 200 || status >= 300 {
+        if !(200..300).contains(&status) {
             return Err(format!("ockito email http {}", status));
         }
         let email_value = &email_json["email"];

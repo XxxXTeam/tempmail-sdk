@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Python），公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致，并与 Go / npm / Rust / C 对齐。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+临时邮箱 SDK（Python），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。顺序与 `client.py` 中 `ALL_CHANNELS` 一致，返回格式与根目录 README 描述一致，并与 Go / npm / Rust / C 对齐。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 ## 安装
 
@@ -286,6 +286,17 @@ pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/te
 | `spam-janlugt-nl` |  | ✅ | spam-janlugt-nl |
 | `min-burningfish-net` |  | ✅ | min-burningfish-net |
 | `sink-fblay-com` |  | ✅ | sink-fblay-com |
+| `tempmail-fish` |  | - | tempmail-fish |
+| `neighbours-sh` |  | - | neighbours-sh |
+| `tempgmailer` |  | - | tempgmailer |
+| `temp-mail-org` |  | ✅ | temp-mail-org |
+| `xkx-me` |  | ✅ | xkx-me |
+| `gonebox-email` |  | ✅ | gonebox-email |
+| `mailcat-ai` |  | ✅ | mailcat-ai |
+| `tempgo-email` |  | ✅ | tempgo-email |
+| `restmail-net` |  | - | restmail-net |
+| `dropmail-me` |  | ✅ | dropmail-me |
+| `ten-minute-mail-net` |  | ✅ | ten-minute-mail-net |
 
 ## 快速开始
 

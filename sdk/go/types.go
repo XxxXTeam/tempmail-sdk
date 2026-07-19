@@ -1,5 +1,7 @@
 package tempemail
 
+import "time"
+
 /*
  * Channel 支持的临时邮箱渠道标识
  * 每个渠道对应一个第三方临时邮箱服务商。
@@ -277,6 +279,15 @@ const (
 	ChannelMnCurppaCom             Channel = "mn-curppa-com"            // mailinator 姊妹 mn.curppa.com
 	ChannelMailinatorzzmoooCom     Channel = "mailinatorzz-mooo-com"    // mailinator 姊妹 mailinatorzz.mooo.com
 	ChannelNotfond404Mn            Channel = "notfond-404-mn"           // mailinator 姊妹 notfond.404.mn
+	ChannelTempgmailer             Channel = "tempgmailer"              // tempgmailer.com（Gmail dot trick）
+	ChannelTempMailOrg             Channel = "temp-mail-org"            // temp-mail.org（web2.temp-mail.org 后端，动态域名）
+	ChannelXkxMe                   Channel = "xkx-me"                   // xkx.me
+	ChannelGoneboxEmail            Channel = "gonebox-email"            // gonebox.email
+	ChannelMailcatAi               Channel = "mailcat-ai"              // mailcat.ai
+	ChannelTempgoEmail             Channel = "tempgo-email"             // tempgo.email
+	ChannelRestmailNet             Channel = "restmail-net"             // restmail.net
+	ChannelDropmailMe              Channel = "dropmail-me"              // dropmail.me（GraphQL 临时邮箱）
+	ChannelTenMinuteMailNet        Channel = "ten-minute-mail-net"      // 10minutemail.net（PHP session 临时邮箱）
 )
 
 /*
@@ -369,6 +380,14 @@ type GenerateEmailOptions struct {
 	Domain *string
 	/* 重试配置，nil 则使用默认值（最多重试 2 次） */
 	Retry *RetryOptions
+	/* 最大尝试渠道数，默认 20 */
+	MaxChannelsTried int
+	/* 整体超时时间，默认 60 秒 */
+	TotalTimeout time.Duration
+	/* 邮箱后缀筛选（如 "@gmail.com" 或 "gmail.com"），仅尝试支持该域名的渠道 */
+	Suffix string
+	/* 多个目标域名筛选（如 ["outlook.com", "hotmail.com"]），仅尝试支持这些域名的渠道 */
+	Domains []string
 }
 
 /*

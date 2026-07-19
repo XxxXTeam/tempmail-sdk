@@ -20,20 +20,24 @@ use crate::types::{Channel, Email, EmailInfo};
 const DEFAULT_HOST: &str = "tempmail.cn";
 const SOCKET_IO_VERSIONS: &[u8] = &[4, 3];
 
+#[allow(dead_code)]
 type WsSocket = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>;
 
 #[derive(Default)]
+#[allow(dead_code)]
 struct TempmailCnBox {
     emails: Vec<Email>,
     seen: HashMap<String, ()>,
     started: bool,
 }
 
+#[allow(dead_code)]
 fn registry() -> &'static Mutex<HashMap<String, Arc<Mutex<TempmailCnBox>>>> {
     static REG: OnceLock<Mutex<HashMap<String, Arc<Mutex<TempmailCnBox>>>>> = OnceLock::new();
     REG.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+#[allow(dead_code)]
 fn get_box(email: &str) -> Arc<Mutex<TempmailCnBox>> {
     let key = email.trim().to_lowercase();
     let mut g = registry().lock().unwrap();
@@ -152,7 +156,7 @@ fn connect_socket(host: &str) -> Result<WsSocket, String> {
 fn send_event(socket: &mut WsSocket, event: &str, payload: Value) -> Result<(), String> {
     let packet = format!("42{}", json!([event, payload]));
     socket
-        .send(Message::Text(packet.into()))
+        .send(Message::Text(packet))
         .map_err(|e| e.to_string())
 }
 
@@ -177,6 +181,7 @@ fn value_string(v: Option<&Value>) -> String {
     }
 }
 
+#[allow(dead_code)]
 fn stable_message_id(raw: &Value, headers: &Value, recipient: &str) -> String {
     let candidates = [
         raw.get("id"),
@@ -199,6 +204,7 @@ fn stable_message_id(raw: &Value, headers: &Value, recipient: &str) -> String {
     )
 }
 
+#[allow(dead_code)]
 fn flatten_mail(raw: &Value, recipient: &str) -> Value {
     let headers = raw.get("headers").unwrap_or(&Value::Null);
     json!({
@@ -245,6 +251,7 @@ fn request_shortid(host: &str) -> Result<String, String> {
     }
 }
 
+#[allow(dead_code)]
 fn ws_loop(email: String, local: String, host: String, arc: Arc<Mutex<TempmailCnBox>>) {
     let result = (|| -> Result<(), String> {
         let mut socket = connect_socket(&host)?;
@@ -294,6 +301,7 @@ fn ws_loop(email: String, local: String, host: String, arc: Arc<Mutex<TempmailCn
     }
 }
 
+#[allow(dead_code)]
 fn ensure_ws(email: &str) -> Result<(), String> {
     let (local, host) = split_email(email)?;
     let arc = get_box(email);

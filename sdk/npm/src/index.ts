@@ -50,6 +50,7 @@ import * as tempmailPlus from "./providers/tempmail-plus";
 import * as tempmailLolV2 from "./providers/tempmail-lol-v2";
 import * as tempgbox from "./providers/tempgbox";
 import * as emailnator from "./providers/emailnator";
+import * as tempgmailer from "./providers/tempgmailer";
 import * as temporam from "./providers/temporam";
 import * as neighbours from "./providers/neighbours";
 import * as fmail from "./providers/fmail";
@@ -142,6 +143,7 @@ import * as notfond404Mn from "./providers/notfond-404-mn";
 import * as mtmdevCom from "./providers/mtmdev-com";
 import * as etgdevDe from "./providers/etgdev-de";
 import * as sinkFblayCom from "./providers/sink-fblay-com";
+import * as tempMailOrg from "./providers/temp-mail-org";
 
 import * as tempmail365 from "./providers/tempmail365";
 import * as tempinbox from "./providers/tempinbox";
@@ -183,6 +185,13 @@ import * as twentyfourmailChacuo from "./providers/24mail-chacuo";
 import * as nimail from "./providers/nimail";
 import * as freecustom from "./providers/freecustom";
 import * as apihz from "./providers/apihz";
+import * as xkxMe from "./providers/xkx-me";
+import * as goneboxEmail from "./providers/gonebox-email";
+import * as mailcatAi from "./providers/mailcat-ai";
+import * as tempgoEmail from "./providers/tempgo-email";
+import * as restmailNet from "./providers/restmail-net";
+import * as dropmailMe from "./providers/dropmail-me";
+import * as tenMinuteMailNet from "./providers/ten-minute-mail-net";
 import {
   sharklasers,
   sharklasersCom,
@@ -209,6 +218,13 @@ import { withRetry, withRetryWithAttempts } from "./retry";
 import { reportTelemetry } from "./telemetry";
 import { logger } from "./logger";
 import { setConfig, getConfig } from "./config";
+import { channelToBackend } from "./backend-groups";
+import {
+  isBackendOpen,
+  recordBackendFailure,
+  recordBackendSuccess,
+} from "./circuit-breaker";
+import { filterChannelsByDomains } from "./channel-domains";
 
 export {
   Channel,
@@ -228,6 +244,7 @@ export {
  */
 const tokenStore = new WeakMap<EmailInfo, string>();
 export { normalizeEmail } from "./normalize";
+export { CHANNEL_DOMAINS, DYNAMIC_DOMAIN_CHANNELS } from "./channel-domains";
 export {
   withRetry,
   withRetryWithAttempts,
@@ -518,6 +535,13 @@ const allChannels: Channel[] = [
   "spam-janlugt-nl",
   "min-burningfish-net",
   "sink-fblay-com",
+  "tempgmailer",
+  "temp-mail-org",
+  "xkx-me",
+  "gonebox-email",
+  "mailcat-ai",
+  "tempgo-email",
+  "restmail-net",
 ];
 
 /**
@@ -1043,6 +1067,11 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
     channel: "emailnator",
     name: "Emailnator",
     website: "emailnator.com",
+  },
+  tempgmailer: {
+    channel: "tempgmailer",
+    name: "TempGmailer",
+    website: "tempgmailer.com",
   },
   temporam: { channel: "temporam", name: "Temporam", website: "temporam.com" },
   neighbours: {
@@ -1688,6 +1717,46 @@ const channelInfoMap: Record<Channel, ChannelInfo> = {
     website: "mailinator.com",
   },
   apihz: { channel: "apihz", name: "ApiHz TempMail", website: "apihz.cn" },
+  "temp-mail-org": {
+    channel: "temp-mail-org",
+    name: "Temp-Mail.org",
+    website: "temp-mail.org",
+  },
+  "xkx-me": {
+    channel: "xkx-me",
+    name: "XKX.me",
+    website: "xkx.me",
+  },
+  "gonebox-email": {
+    channel: "gonebox-email",
+    name: "GoneBox Email",
+    website: "gonebox.email",
+  },
+  "mailcat-ai": {
+    channel: "mailcat-ai",
+    name: "MailCat AI",
+    website: "mailcat.ai",
+  },
+  "tempgo-email": {
+    channel: "tempgo-email",
+    name: "TempGo Email",
+    website: "tempgo.email",
+  },
+  "restmail-net": {
+    channel: "restmail-net",
+    name: "Restmail.net",
+    website: "restmail.net",
+  },
+  "dropmail-me": {
+    channel: "dropmail-me",
+    name: "DropMail.me",
+    website: "dropmail.me",
+  },
+  "ten-minute-mail-net": {
+    channel: "ten-minute-mail-net",
+    name: "10 Minute Mail.net",
+    website: "10minutemail.net",
+  },
 };
 
 /**
@@ -1742,11 +1811,38 @@ export async function generateEmail(
    * - 未指定 → 打乱全部渠道逐个尝试
    */
   const allowFallback = options.channelFallback !== false;
-  const tryOrder = buildChannelOrder(options.channel, allowFallback);
+  const targetDomains = extractTargetDomains(options);
+  const tryOrder = buildChannelOrder(options.channel, allowFallback, targetDomains);
+  const maxChannels = options.maxChannelsTried ?? 20;
+  const totalTimeout = options.totalTimeout ?? 60_000;
+  const startTime = Date.now();
+  const failedBackends = new Set<string>();
 
   let channelsTried = 0;
   let lastErr = "";
   for (const ch of tryOrder) {
+    if (channelsTried >= maxChannels) {
+      logger.warn(`已尝试 ${maxChannels} 个渠道，停止尝试`);
+      break;
+    }
+    if (Date.now() - startTime >= totalTimeout) {
+      logger.warn(`整体超时 ${totalTimeout}ms，停止尝试`);
+      break;
+    }
+
+    const backend = channelToBackend.get(ch);
+
+    if (backend) {
+      if (failedBackends.has(backend)) {
+        logger.debug(`跳过渠道 ${ch}，同后端 ${backend} 已失败`);
+        continue;
+      }
+      if (!isBackendOpen(backend)) {
+        logger.debug(`跳过渠道 ${ch}，后端 ${backend} 处于熔断状态`);
+        continue;
+      }
+    }
+
     channelsTried += 1;
     logger.info(`创建临时邮箱, 渠道: ${ch}`);
     const r = await withRetryWithAttempts(
@@ -1764,6 +1860,9 @@ export async function generateEmail(
         channelsTried,
         "",
       );
+      if (backend) {
+        recordBackendSuccess(backend);
+      }
 
       /* 将 token 存入内部存储，不暴露给用户 */
       const publicInfo: EmailInfo = {
@@ -1780,6 +1879,11 @@ export async function generateEmail(
     const msg = (r.error as any)?.message || String(r.error);
     lastErr = msg;
     logger.warn(`渠道 ${ch} 不可用: ${msg}，尝试下一个渠道`);
+
+    if (backend) {
+      failedBackends.add(backend);
+      recordBackendFailure(backend);
+    }
   }
 
   logger.error("所有渠道均不可用，创建邮箱失败");
@@ -1800,16 +1904,54 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 /**
+ * 从 suffix 和 domains 选项中提取目标域名列表
+ * suffix 如 "@gmail.com" 会提取出 "gmail.com"
+ */
+function extractTargetDomains(options: GenerateEmailOptions): string[] {
+  const targets: string[] = [];
+
+  if (options.suffix) {
+    /* 去掉前导 @ 符号 */
+    const domain = options.suffix.startsWith("@")
+      ? options.suffix.slice(1)
+      : options.suffix;
+    if (domain) {
+      targets.push(domain);
+    }
+  }
+
+  if (options.domains && options.domains.length > 0) {
+    for (const d of options.domains) {
+      const domain = d.startsWith("@") ? d.slice(1) : d;
+      if (domain && !targets.includes(domain)) {
+        targets.push(domain);
+      }
+    }
+  }
+
+  return targets;
+}
+
+/**
  * 构建渠道尝试顺序
  * 指定渠道时优先尝试该渠道，其余渠道打乱追加
  * 未指定时打乱全部渠道
+ * 支持按目标域名筛选渠道
  * 本函数返回的是本端运行时随机顺序，不作为跨 SDK 一致性约束
  */
 function buildChannelOrder(
   preferred?: Channel,
   allowFallback = true,
+  targetDomains: string[] = [],
 ): Channel[] {
-  const shuffled = shuffleArray(allChannels);
+  let candidates = allChannels as Channel[];
+
+  /* 按域名筛选渠道 */
+  if (targetDomains.length > 0) {
+    candidates = filterChannelsByDomains(candidates, targetDomains);
+  }
+
+  const shuffled = shuffleArray(candidates);
   if (!preferred) {
     return shuffled;
   }
@@ -2178,6 +2320,8 @@ async function generateEmailOnce(
       return tempgbox.generateEmail();
     case "emailnator":
       return emailnator.generateEmail();
+    case "tempgmailer":
+      return tempgmailer.generateEmail();
     case "temporam":
       return temporam.generateEmail(options.domain ?? null);
     case "neighbours":
@@ -2466,6 +2610,22 @@ async function generateEmailOnce(
       return tZibetNet.generateEmail();
     case "apihz":
       return apihz.generateEmail();
+    case "temp-mail-org":
+      return tempMailOrg.generateEmail();
+    case "xkx-me":
+      return xkxMe.generateEmail();
+    case "gonebox-email":
+      return goneboxEmail.generateEmail();
+    case "mailcat-ai":
+      return mailcatAi.generateEmail();
+    case "tempgo-email":
+      return tempgoEmail.generateEmail();
+    case "restmail-net":
+      return restmailNet.generateEmail();
+    case "dropmail-me":
+      return dropmailMe.generateEmail();
+    case "ten-minute-mail-net":
+      return tenMinuteMailNet.generateEmail();
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }
@@ -2784,6 +2944,10 @@ async function getEmailsOnce(
       if (!token)
         throw new Error("internal error: token missing for emailnator");
       return emailnator.getEmails(token, email);
+    case "tempgmailer":
+      if (!token)
+        throw new Error("internal error: token missing for tempgmailer");
+      return tempgmailer.getEmails(token, email);
     case "temporam":
       return temporam.getEmails(email);
     case "mailinator":
@@ -3155,6 +3319,34 @@ async function getEmailsOnce(
       return torchYiOrg.getEmails(token || "", email);
     case "t-zibet-net":
       return tZibetNet.getEmails(token || "", email);
+    case "temp-mail-org":
+      if (!token)
+        throw new Error("internal error: token missing for temp-mail-org");
+      return tempMailOrg.getEmails(token, email);
+    case "xkx-me":
+      if (!token)
+        throw new Error("internal error: token missing for xkx-me");
+      return xkxMe.getEmails(token, email);
+    case "gonebox-email":
+      return goneboxEmail.getEmails("", email);
+    case "mailcat-ai":
+      if (!token)
+        throw new Error("internal error: token missing for mailcat-ai");
+      return mailcatAi.getEmails(token, email);
+    case "tempgo-email":
+      if (!token)
+        throw new Error("internal error: token missing for tempgo-email");
+      return tempgoEmail.getEmails(token, email);
+    case "restmail-net":
+      return restmailNet.getEmails("", email);
+    case "dropmail-me":
+      if (!token)
+        throw new Error("internal error: token missing for dropmail-me");
+      return dropmailMe.getEmails(token, email);
+    case "ten-minute-mail-net":
+      if (!token)
+        throw new Error("internal error: token missing for ten-minute-mail-net");
+      return tenMinuteMailNet.getEmails(token, email);
     default:
       throw new Error(`Unknown channel: ${channel}`);
   }

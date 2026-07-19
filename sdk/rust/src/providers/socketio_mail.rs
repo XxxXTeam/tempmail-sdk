@@ -15,6 +15,7 @@ use tungstenite::{connect, Message};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 
+#[allow(dead_code)]
 const CONNECT_TIMEOUT_MS: u64 = 15000;
 const HANDSHAKE_WAIT_MS: u64 = 1000;
 const INITIAL_SYNC_WAIT_MS: u64 = 80;
@@ -166,7 +167,6 @@ impl SocketIoMailProvider {
 
             match connect(request) {
                 Ok((mut ws, _)) => {
-                    let mut sent_connect = false;
                     for _ in 0..10 {
                         match ws.read() {
                             Ok(Message::Text(packet)) => {
@@ -174,23 +174,17 @@ impl SocketIoMailProvider {
                                     let _ = ws.send(Message::Text("3".into()));
                                     continue;
                                 }
-                                if !sent_connect {
-                                    if !packet.starts_with('0') {
-                                        last_err = Some(format!(
-                                            "{}: unexpected open packet for EIO={}",
-                                            self.channel_str, version
-                                        ));
-                                        let _ = ws.close(None);
-                                        break;
-                                    }
-                                    sent_connect = true;
-                                    let _ = ws.send(Message::Text("40".into()));
-                                    thread::sleep(Duration::from_millis(HANDSHAKE_WAIT_MS));
-                                    return Ok(ws);
+                                if !packet.starts_with('0') {
+                                    last_err = Some(format!(
+                                        "{}: unexpected open packet for EIO={}",
+                                        self.channel_str, version
+                                    ));
+                                    let _ = ws.close(None);
+                                    break;
                                 }
-                                if packet.starts_with("40") {
-                                    return Ok(ws);
-                                }
+                                let _ = ws.send(Message::Text("40".into()));
+                                thread::sleep(Duration::from_millis(HANDSHAKE_WAIT_MS));
+                                return Ok(ws);
                             }
                             Ok(_) => continue,
                             Err(e) => {

@@ -12,20 +12,10 @@ const BASE = "https://www.mohmal.com";
 
 /** 从 HTML 中提取 data-email 属性的邮箱地址 */
 const DATA_EMAIL_RE = /data-email="([^"]+)"/i;
-/** 匹配收件箱表格中的邮件行 */
-const TR_RE = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
-/** 提取邮件详情链接中的 ID */
-const MSG_HREF_RE = /href="\/en\/message\/([^"]+)"/i;
-/** 提取发件人单元格内容 */
-const TD_FROM_RE = /<td[^>]*class="[^"]*sender[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
-/** 提取主题单元格内容 */
-const TD_SUBJECT_RE =
-  /<td[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
-/** 提取时间单元格内容 */
-const TD_TIME_RE = /<td[^>]*class="[^"]*time[^"]*"[^>]*>([\s\S]*?)<\/td>/i;
-/** 从邮件详情页提取邮件正文内容 */
-const MAIL_BODY_RE =
-  /<div[^>]*class="[^"]*mail-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
+/** 匹配带 data-msg-id 的邮件行 */
+const TR_RE = /<tr[^>]*data-msg-id="([^"]*)"[^>]*>([\s\S]*?)<\/tr>/gi;
+/** 提取 <td> 单元格内容（按位置顺序：发件人、主题、时间） */
+const TD_RE = /<td[^>]*>([\s\S]*?)<\/td>/gi;
 /** 去除 HTML 标签 */
 const TAG_RE = /<[^>]+>/g;
 
@@ -207,6 +197,7 @@ function extractEmail(html: string): string {
 
 /**
  * 从收件箱 HTML 表格行中解析邮件摘要信息
+ * 结构: <tr data-msg-id="xxx"><td>sender</td><td>subject</td><td>time</td></tr>
  */
 function parseInboxRows(
   html: string,
@@ -220,22 +211,20 @@ function parseInboxRows(
   TR_RE.lastIndex = 0;
   let trMatch: RegExpExecArray | null;
   while ((trMatch = TR_RE.exec(html)) !== null) {
-    const tr = trMatch[0];
-    const hrefMatch = MSG_HREF_RE.exec(tr);
-    if (!hrefMatch?.[1]) continue;
-    const id = hrefMatch[1].trim();
+    const id = (trMatch[1] || "").trim();
+    if (!id) continue;
+    const trContent = trMatch[2] || "";
 
-    let from = "";
-    const fromMatch = TD_FROM_RE.exec(tr);
-    if (fromMatch?.[1]) from = htmlUnescape(stripTags(fromMatch[1]));
-
-    let subject = "";
-    const subjectMatch = TD_SUBJECT_RE.exec(tr);
-    if (subjectMatch?.[1]) subject = htmlUnescape(stripTags(subjectMatch[1]));
-
-    let time = "";
-    const timeMatch = TD_TIME_RE.exec(tr);
-    if (timeMatch?.[1]) time = htmlUnescape(stripTags(timeMatch[1]));
+    /* 按位置提取 td 单元格: 发件人、主题、时间 */
+    const cells: string[] = [];
+    TD_RE.lastIndex = 0;
+    let tdMatch: RegExpExecArray | null;
+    while ((tdMatch = TD_RE.exec(trContent)) !== null) {
+      cells.push(htmlUnescape(stripTags(tdMatch[1] || "")));
+    }
+    const from = cells[0] || "";
+    const subject = cells[1] || "";
+    const time = cells[2] || "";
 
     rows.push({ id, from, subject, time });
   }
@@ -247,7 +236,7 @@ function parseInboxRows(
  *
  * 流程:
  * 1. GET /en/inbox 获取收件箱 HTML，解析邮件行
- * 2. 对每封邮件 GET /en/message/{id} 获取详情
+ * 2. 对每封邮件 GET /en/message/{id} 获取正文（直接返回纯文本或 HTML 片段）
  */
 export async function getEmails(
   email: string,
@@ -267,18 +256,13 @@ export async function getEmails(
   const rows = parseInboxRows(inboxHtml);
   const out: Email[] = [];
   for (const row of rows) {
-    /* 获取邮件详情页 */
+    /* 获取邮件详情页，响应直接返回邮件正文（纯文本或 HTML 片段） */
     const detailUrl = `${BASE}/en/message/${row.id}`;
     const rd = await fetchWithTimeout(detailUrl, {
       headers: { ...PAGE_HEADERS, Cookie: cookieHdr, Referer: inboxUrl },
     });
     if (!rd.ok) continue;
-    const detailHtml = await rd.text();
-
-    /* 提取邮件正文 */
-    let htmlBody = "";
-    const bodyMatch = MAIL_BODY_RE.exec(detailHtml);
-    if (bodyMatch?.[1]) htmlBody = bodyMatch[1].trim();
+    const body = await rd.text();
 
     const raw: Record<string, unknown> = {
       id: row.id,
@@ -286,7 +270,7 @@ export async function getEmails(
       to: email,
       subject: row.subject,
       date: row.time,
-      html: htmlBody,
+      html: body,
     };
     out.push(normalizeEmail(raw, email));
   }

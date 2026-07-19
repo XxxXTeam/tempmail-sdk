@@ -193,6 +193,11 @@ add_library(tempmail_sdk STATIC
     src/providers/proid_cloud_ip_cc.c
     src/providers/sbook_pics.c
     src/providers/xue32_buzz.c
+    src/providers/xkx_me.c
+    src/providers/gonebox_email.c
+    src/providers/mailcat_ai.c
+    src/providers/tempgo_email.c
+    src/providers/restmail_net.c
     src/providers/b_smelly_cc.c
     src/providers/dea_soon_it.c
     src/providers/disposable_al_sudani_com.c
@@ -201,6 +206,8 @@ add_library(tempmail_sdk STATIC
     src/providers/mn_curppa_com.c
     src/providers/mailinatorzz_mooo_com.c
     src/providers/notfond_404_mn.c
+    src/providers/dropmail_me.c
+    src/providers/ten_minute_mail_net.c
     vendor/cJSON.c
 )
 

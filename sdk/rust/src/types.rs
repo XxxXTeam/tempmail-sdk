@@ -177,6 +177,8 @@ pub enum Channel {
     WebLibraryNet,
     #[serde(rename = "dropmail")]
     Dropmail,
+    #[serde(rename = "dropmail-me")]
+    DropmailMe,
     #[serde(rename = "guerrillamail")]
     GuerrillaMail,
     #[serde(rename = "guerrillamail-com")]
@@ -602,6 +604,29 @@ pub enum Channel {
     SbookPics,
     #[serde(rename = "xue32-buzz")]
     Xue32Buzz,
+    #[serde(rename = "tempgmailer")]
+    Tempgmailer,
+    /// temp-mail.org 临时邮箱
+    #[serde(rename = "temp-mail-org")]
+    TempMailOrg,
+    /// xkx.me 临时邮箱
+    #[serde(rename = "xkx-me")]
+    XkxMe,
+    /// gonebox.email 临时邮箱
+    #[serde(rename = "gonebox-email")]
+    GoneboxEmail,
+    /// mailcat.ai 临时邮箱
+    #[serde(rename = "mailcat-ai")]
+    MailcatAi,
+    /// tempgo.email 临时邮箱
+    #[serde(rename = "tempgo-email")]
+    TempgoEmail,
+    /// restmail.net ad-hoc 临时邮箱
+    #[serde(rename = "restmail-net")]
+    RestmailNet,
+    /// 10minutemail.net PHP session 临时邮箱
+    #[serde(rename = "ten-minute-mail-net")]
+    TenMinuteMailNet,
 }
 
 impl std::fmt::Display for Channel {
@@ -692,6 +717,7 @@ impl std::fmt::Display for Channel {
             Channel::MailTm => write!(f, "mail-tm"),
             Channel::WebLibraryNet => write!(f, "web-library-net"),
             Channel::Dropmail => write!(f, "dropmail"),
+            Channel::DropmailMe => write!(f, "dropmail-me"),
             Channel::GuerrillaMail => write!(f, "guerrillamail"),
             Channel::GuerrillamailCom => write!(f, "guerrillamail-com"),
             Channel::Maildrop => write!(f, "maildrop"),
@@ -877,6 +903,14 @@ impl std::fmt::Display for Channel {
             Channel::ProidCloudIpCc => write!(f, "proid-cloud-ip-cc"),
             Channel::SbookPics => write!(f, "sbook-pics"),
             Channel::Xue32Buzz => write!(f, "xue32-buzz"),
+            Channel::Tempgmailer => write!(f, "tempgmailer"),
+            Channel::TempMailOrg => write!(f, "temp-mail-org"),
+            Channel::XkxMe => write!(f, "xkx-me"),
+            Channel::GoneboxEmail => write!(f, "gonebox-email"),
+            Channel::MailcatAi => write!(f, "mailcat-ai"),
+            Channel::TempgoEmail => write!(f, "tempgo-email"),
+            Channel::RestmailNet => write!(f, "restmail-net"),
+            Channel::TenMinuteMailNet => write!(f, "ten-minute-mail-net"),
         }
     }
 }
@@ -982,6 +1016,14 @@ pub struct GenerateEmailOptions {
     pub domain: Option<String>,
     /// 重试配置
     pub retry: Option<RetryConfig>,
+    /// 最大尝试渠道数，默认 20
+    pub max_channels_tried: Option<u32>,
+    /// 整体超时时间（秒），默认 60
+    pub total_timeout: Option<f64>,
+    /// 精确匹配邮箱后缀（如 "@gmail.com" 或 "gmail.com"），只尝试支持该域名的渠道
+    pub suffix: Option<String>,
+    /// 支持多个域名匹配（如 vec!["outlook.com", "hotmail.com"]），只尝试支持这些域名的渠道
+    pub domains: Option<Vec<String>>,
 }
 
 /// 获取邮件的选项

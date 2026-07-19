@@ -165,23 +165,25 @@ func SmailproGetEmails(email, token string) ([]NormEmail, error) {
 	}
 
 	var inboxResp struct {
-		Mails []struct {
-			Mid      string `json:"mid"`
-			From     string `json:"from"`
-			Subject  string `json:"subject"`
-			Datetime string `json:"datetime"`
-		} `json:"mails"`
+		Data struct {
+			Messages []struct {
+				Mid      string `json:"mid"`
+				From     string `json:"from"`
+				Subject  string `json:"subject"`
+				Datetime string `json:"datetime"`
+			} `json:"messages"`
+		} `json:"data"`
 	}
 	if err := json.Unmarshal(body, &inboxResp); err != nil {
 		return nil, fmt.Errorf("smailpro: 解析邮件列表失败: %w", err)
 	}
 
-	if len(inboxResp.Mails) == 0 {
+	if len(inboxResp.Data.Messages) == 0 {
 		return []NormEmail{}, nil
 	}
 
-	emails := make([]NormEmail, 0, len(inboxResp.Mails))
-	for _, m := range inboxResp.Mails {
+	emails := make([]NormEmail, 0, len(inboxResp.Data.Messages))
+	for _, m := range inboxResp.Data.Messages {
 		mid := strings.TrimSpace(m.Mid)
 
 		flat := map[string]interface{}{

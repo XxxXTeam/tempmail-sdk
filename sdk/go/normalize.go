@@ -130,9 +130,9 @@ func normalizeID(raw map[string]interface{}) string {
 	return getStr(raw, "id", "eid", "_id", "mailboxId", "messageId", "mail_id")
 }
 
-/* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender, mail_sender（ta-easy） */
+/* normalizeFrom 提取发件人地址，候选字段: from_address, address_from, from_email, from, messageFrom, sender, sender_email, mail_sender（ta-easy） */
 func normalizeFrom(raw map[string]interface{}) string {
-	return getStr(raw, "from_addr", "from_address", "fromAddress", "fromEmail", "mail_sender", "sender", "address_from", "from_email", "from", "messageFrom")
+	return getStr(raw, "from_addr", "from_address", "fromAddress", "fromEmail", "sender_email", "mail_sender", "sender", "address_from", "from_email", "from", "messageFrom")
 }
 
 /* normalizeTo 提取收件人地址，无匹配字段时回退为 recipientEmail */
@@ -154,9 +154,9 @@ func normalizeText(raw map[string]interface{}) string {
 	return getStr(raw, "text", "text_body", "preview_text", "mail_body_text", "body", "content", "body_text", "text_content", "description")
 }
 
-/* normalizeHTML 提取 HTML 内容，候选字段: html, html_content, body_html, mail_body_html（ta-easy） */
+/* normalizeHTML 提取 HTML 内容，候选字段: html, content, html_content, body_html, mail_body_html（ta-easy） */
 func normalizeHTML(raw map[string]interface{}) string {
-	return getStr(raw, "html", "html_body", "html_content", "body_html", "mail_body_html")
+	return getStr(raw, "html", "content", "html_body", "html_content", "body_html", "mail_body_html")
 }
 
 /*

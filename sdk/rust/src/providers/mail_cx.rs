@@ -112,15 +112,13 @@ fn pick_domain(config: &Value, preferred_domain: Option<&str>) -> Result<String,
 }
 
 fn first_non_empty(values: &[Option<&Value>]) -> String {
-    for value in values {
-        if let Some(v) = value {
-            if let Some(s) = v.as_str() {
-                if !s.trim().is_empty() {
-                    return s.trim().to_string();
-                }
-            } else if !v.is_null() {
-                return v.to_string();
+    for v in values.iter().flatten() {
+        if let Some(s) = v.as_str() {
+            if !s.trim().is_empty() {
+                return s.trim().to_string();
             }
+        } else if !v.is_null() {
+            return v.to_string();
         }
     }
     String::new()

@@ -132,6 +132,7 @@ Channel = Literal[
     "merepost-com",
     "tempmail-lol-v2",
     "tempgbox",
+    "tempgmailer",
     "emailnator",
     "temporam",
     "sharklasers",
@@ -277,6 +278,12 @@ Channel = Literal[
     "proid-cloud-ip-cc",
     "sbook-pics",
     "xue32-buzz",
+    "temp-mail-org",
+    "xkx-me",
+    "gonebox-email",
+    "mailcat-ai",
+    "tempgo-email",
+    "restmail-net",
 ]
 
 
@@ -360,6 +367,10 @@ class GenerateEmailOptions:
         None  # tempmail-cn 接入域名，或 tempmail-lol / maildrop / fake-legal / mail-cx 指定域名
     )
     retry: Optional[RetryConfig] = None  # 重试配置
+    max_channels_tried: int = 20  # 最大尝试渠道数
+    total_timeout: float = 60.0  # 整体超时时间（秒）
+    suffix: Optional[str] = None  # 邮箱后缀筛选（如 "@gmail.com" 或 "gmail.com"）
+    domains: Optional[List[str]] = None  # 多个目标域名（如 ["outlook.com", "hotmail.com"]）
 
 
 @dataclass

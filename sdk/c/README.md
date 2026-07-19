@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），公开 **268** 个 `channel` 标识，按独立服务商合并为 **100** 个 provider；其中 `mjj-cm` 与 `linshi-co` 在 C 端保留公开标识但当前不支持生成/收信。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（C），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider；其中 `mjj-cm` 与 `linshi-co` 在 C 端保留公开标识但当前不支持生成/收信。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
 
 - **`tm_list_channels()`** 返回顺序与 `client.c` 中 `g_channel_infos` / `g_channel_try_order` 一致，并与 **Go `allChannels` / 其他 SDK 的 `listChannels`** 对齐。
 - **`tm_channel_t` 枚举常量**的数值顺序为历史兼容布局，与上表行序**不一致**；`tm_channel_name()` 按枚举值映射字符串。新增渠道时以 `tempmail_sdk.h` 为准。
@@ -315,6 +315,17 @@ cmake --build build
 | spam-janlugt-nl | `CHANNEL_SPAM_JANLUGT_NL` |  | ✅ | spam-janlugt-nl |
 | min-burningfish-net | `CHANNEL_MIN_BURNINGFISH_NET` |  | ✅ | min-burningfish-net |
 | sink-fblay-com | `CHANNEL_SINK_FBLAY_COM` |  | ✅ | sink-fblay-com |
+| tempmail-fish | `CHANNEL_TEMPMAIL_FISH` |  | - | tempmail-fish |
+| neighbours-sh | `CHANNEL_NEIGHBOURS_SH` |  | - | neighbours-sh |
+| tempgmailer | `CHANNEL_TEMPGMAILER` |  | - | tempgmailer |
+| temp-mail-org | `CHANNEL_TEMP_MAIL_ORG` |  | ✅ | temp-mail-org |
+| xkx-me | `CHANNEL_XKX_ME` |  | ✅ | xkx-me |
+| gonebox-email | `CHANNEL_GONEBOX_EMAIL` |  | ✅ | gonebox-email |
+| mailcat-ai | `CHANNEL_MAILCAT_AI` |  | ✅ | mailcat-ai |
+| tempgo-email | `CHANNEL_TEMPGO_EMAIL` |  | ✅ | tempgo-email |
+| restmail-net | `CHANNEL_RESTMAIL_NET` |  | - | restmail-net |
+| dropmail-me | `CHANNEL_DROPMAIL_ME` |  | ✅ | dropmail-me |
+| ten-minute-mail-net | `CHANNEL_TEN_MINUTE_MAIL_NET` |  | ✅ | ten-minute-mail-net |
 
 ## 快速开始
 

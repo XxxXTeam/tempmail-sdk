@@ -146,7 +146,7 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
                 .unwrap_or_default();
             let description = extract_tag(item, "description").unwrap_or("");
             let pub_date = extract_tag(item, "pubDate")
-                .map(|s| decode_xml_entities(s))
+                .map(decode_xml_entities)
                 .unwrap_or_default();
 
             let (from, subject, date, body) = parse_description(description);

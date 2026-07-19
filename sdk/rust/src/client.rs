@@ -34,10 +34,10 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::MailforspamTempmailIo,
     Channel::MailforspamDisposable,
     Channel::Tempmailc,
-    Channel::TempmailFish,
-    Channel::NeighboursSh,
     Channel::Mailnesia,
     Channel::Throwawaymail,
+    Channel::TempmailFish,
+    Channel::NeighboursSh,
     Channel::ShittyEmail,
     Channel::Tempmailpro,
     Channel::DevmailUk,
@@ -280,6 +280,15 @@ pub const ALL_CHANNELS: &[Channel] = &[
     Channel::SpamJanlugtNl,
     Channel::MinBurningfishNet,
     Channel::SinkFblayCom,
+    Channel::Tempgmailer,
+    Channel::TempMailOrg,
+    Channel::XkxMe,
+    Channel::GoneboxEmail,
+    Channel::MailcatAi,
+    Channel::TempgoEmail,
+    Channel::RestmailNet,
+    Channel::DropmailMe,
+    Channel::TenMinuteMailNet,
 ];
 
 /// 获取所有支持的渠道信息列表
@@ -716,6 +725,11 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
         Channel::Dropmail => ChannelInfo {
             channel: Channel::Dropmail,
             name: "DropMail",
+            website: "dropmail.me",
+        },
+        Channel::DropmailMe => ChannelInfo {
+            channel: Channel::DropmailMe,
+            name: "DropMail.me",
             website: "dropmail.me",
         },
         Channel::GuerrillaMail => ChannelInfo {
@@ -1643,6 +1657,46 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
             name: "Mailmomy (xue32.buzz)",
             website: "mailmomy.com",
         },
+        Channel::Tempgmailer => ChannelInfo {
+            channel: Channel::Tempgmailer,
+            name: "TempGmailer",
+            website: "tempgmailer.com",
+        },
+        Channel::TempMailOrg => ChannelInfo {
+            channel: Channel::TempMailOrg,
+            name: "Temp-Mail.org",
+            website: "temp-mail.org",
+        },
+        Channel::XkxMe => ChannelInfo {
+            channel: Channel::XkxMe,
+            name: "XKX.me",
+            website: "xkx.me",
+        },
+        Channel::GoneboxEmail => ChannelInfo {
+            channel: Channel::GoneboxEmail,
+            name: "Gonebox Email",
+            website: "gonebox.email",
+        },
+        Channel::MailcatAi => ChannelInfo {
+            channel: Channel::MailcatAi,
+            name: "Mailcat AI",
+            website: "mailcat.ai",
+        },
+        Channel::TempgoEmail => ChannelInfo {
+            channel: Channel::TempgoEmail,
+            name: "TempGo Email",
+            website: "tempgo.email",
+        },
+        Channel::RestmailNet => ChannelInfo {
+            channel: Channel::RestmailNet,
+            name: "Restmail.net",
+            website: "restmail.net",
+        },
+        Channel::TenMinuteMailNet => ChannelInfo {
+            channel: Channel::TenMinuteMailNet,
+            name: "10MinuteMail.net",
+            website: "10minutemail.net",
+        },
     })
 }
 
@@ -1653,13 +1707,59 @@ pub fn get_channel_info(channel: &Channel) -> Option<ChannelInfo> {
 /// - 未指定渠道时，打乱全部渠道逐个尝试，直到成功
 /// - 所有渠道均不可用时返回 None（不返回 Err）
 pub fn generate_email(options: &GenerateEmailOptions) -> Option<EmailInfo> {
+    use std::collections::HashSet;
+    use std::time::Instant;
+    use crate::backend_groups::{get_backend, is_backend_open, record_backend_failure, record_backend_success};
+    use crate::channel_domains::filter_channels_by_domain;
+
     let try_order = build_channel_order(options.channel.as_ref());
+
+    // 解析域名筛选条件
+    let mut target_domains: Vec<String> = Vec::new();
+    if let Some(ref suffix) = options.suffix {
+        let s = suffix.strip_prefix('@').unwrap_or(suffix);
+        target_domains.push(s.to_string());
+    }
+    if let Some(ref domains) = options.domains {
+        target_domains.extend(domains.clone());
+    }
+    let try_order = if target_domains.is_empty() {
+        try_order
+    } else {
+        filter_channels_by_domain(&try_order, &target_domains)
+    };
+
     let dur = options.duration.unwrap_or(30);
     let dom = options.domain.clone();
+    let max_channels = options.max_channels_tried.unwrap_or(20);
+    let total_timeout_secs = options.total_timeout.unwrap_or(60.0);
+    let start = Instant::now();
 
     let mut channels_tried: u32 = 0;
     let mut last_err = String::new();
+    let mut failed_backends: HashSet<&'static str> = HashSet::new();
+
     for ch in &try_order {
+        if channels_tried >= max_channels {
+            log::warn!("已达最大尝试渠道数 {}，停止尝试", max_channels);
+            break;
+        }
+        if start.elapsed().as_secs_f64() >= total_timeout_secs {
+            log::warn!("已超过整体超时 {:.0}s，停止尝试", total_timeout_secs);
+            break;
+        }
+
+        if let Some(backend) = get_backend(ch) {
+            if failed_backends.contains(backend) {
+                log::debug!("跳过渠道 {}（同组后端 {} 本次已失败）", ch, backend);
+                continue;
+            }
+            if !is_backend_open(backend) {
+                log::debug!("跳过渠道 {}（后端 {} 处于熔断冷却中）", ch, backend);
+                continue;
+            }
+        }
+
         channels_tried += 1;
         log::info!("创建临时邮箱, 渠道: {}", ch);
         let c = ch.clone();
@@ -1670,6 +1770,9 @@ pub fn generate_email(options: &GenerateEmailOptions) -> Option<EmailInfo> {
         ) {
             Ok((result, attempts)) => {
                 log::info!("邮箱创建成功: {} (渠道: {})", result.email, ch);
+                if let Some(backend) = get_backend(ch) {
+                    record_backend_success(backend);
+                }
                 report_telemetry(
                     "generate_email",
                     &ch.to_string(),
@@ -1683,6 +1786,10 @@ pub fn generate_email(options: &GenerateEmailOptions) -> Option<EmailInfo> {
             Err((e, _)) => {
                 last_err = e.clone();
                 log::warn!("渠道 {} 不可用: {}，尝试下一个渠道", ch, e);
+                if let Some(backend) = get_backend(ch) {
+                    failed_backends.insert(backend);
+                    record_backend_failure(backend);
+                }
             }
         }
     }
@@ -1887,6 +1994,7 @@ fn generate_email_once(
         Channel::WebLibraryNet => providers::mail_tm::generate_email()
             .map(|info| with_channel(info, Channel::WebLibraryNet)),
         Channel::Dropmail => providers::dropmail::generate_email(),
+        Channel::DropmailMe => providers::dropmail_me::generate_email(duration, domain),
         Channel::GuerrillaMail => providers::guerrillamail::generate_email(),
         Channel::GuerrillamailCom => {
             providers::guerrillamail_mirrors::guerrillamail_com::generate_email()
@@ -2126,6 +2234,14 @@ fn generate_email_once(
         Channel::ProidCloudIpCc => providers::proid_cloud_ip_cc::generate_email(),
         Channel::SbookPics => providers::sbook_pics::generate_email(),
         Channel::Xue32Buzz => providers::xue32_buzz::generate_email(),
+        Channel::Tempgmailer => providers::tempgmailer::generate_email(),
+        Channel::TempMailOrg => providers::temp_mail_org::generate_email(duration, domain),
+        Channel::XkxMe => providers::xkx_me::generate_email(),
+        Channel::GoneboxEmail => providers::gonebox_email::generate_email(),
+        Channel::MailcatAi => providers::mailcat_ai::generate_email(),
+        Channel::TempgoEmail => providers::tempgo_email::generate_email(),
+        Channel::RestmailNet => providers::restmail_net::generate_email(),
+        Channel::TenMinuteMailNet => providers::ten_minute_mail_net::generate_email(),
     }
 }
 
@@ -2343,6 +2459,10 @@ fn get_emails_once(
         Channel::Dropmail => {
             let t = token.ok_or("token is required for dropmail")?;
             providers::dropmail::get_emails(t, email)
+        }
+        Channel::DropmailMe => {
+            let t = token.ok_or("token is required for dropmail-me")?;
+            providers::dropmail_me::get_emails(t, email)
         }
         Channel::GuerrillaMail => {
             let t = token.ok_or("token is required for guerrillamail")?;
@@ -2686,10 +2806,37 @@ fn get_emails_once(
             let t = token.ok_or("token is required for dropmail-click")?;
             providers::dropmail_click::get_emails(t, email)
         }
+        Channel::Tempgmailer => {
+            let t = token.ok_or("token is required for tempgmailer")?;
+            providers::tempgmailer::get_emails(t, email)
+        }
+        Channel::TempMailOrg => {
+            let t = token.ok_or("token is required for temp-mail-org")?;
+            providers::temp_mail_org::get_emails(t, email)
+        }
+        Channel::XkxMe => {
+            let t = token.ok_or("token is required for xkx-me")?;
+            providers::xkx_me::get_emails(t, email)
+        }
+        Channel::GoneboxEmail => providers::gonebox_email::get_emails(email),
+        Channel::MailcatAi => {
+            let t = token.ok_or("token is required for mailcat-ai")?;
+            providers::mailcat_ai::get_emails(t, email)
+        }
+        Channel::TempgoEmail => {
+            let t = token.ok_or("token is required for tempgo-email")?;
+            providers::tempgo_email::get_emails(t, email)
+        }
+        Channel::RestmailNet => providers::restmail_net::get_emails(email),
+        Channel::TenMinuteMailNet => {
+            let t = token.ok_or("token is required for ten-minute-mail-net")?;
+            providers::ten_minute_mail_net::get_emails(t, email)
+        }
     }
 }
 
 /// 临时邮箱客户端
+#[derive(Default)]
 pub struct TempEmailClient {
     email_info: Option<EmailInfo>,
 }

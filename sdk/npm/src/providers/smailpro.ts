@@ -36,7 +36,10 @@ interface SmailproInboxItem {
 }
 
 interface SmailproInboxResponse {
-  mails?: SmailproInboxItem[];
+  status?: boolean;
+  data?: {
+    messages?: SmailproInboxItem[];
+  };
 }
 
 interface SmailproMessageResponse {
@@ -145,7 +148,7 @@ export async function getEmails(
     throw new Error("smailpro: 解析邮件列表失败");
   }
 
-  const mails = inboxResp.mails ?? [];
+  const mails = inboxResp.data?.messages ?? [];
   if (mails.length === 0) {
     return [];
   }

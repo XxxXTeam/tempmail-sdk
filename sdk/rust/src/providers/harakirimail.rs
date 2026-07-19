@@ -53,7 +53,7 @@ fn fetch_body(id: &str) -> (String, String) {
         return (String::new(), String::new());
     }
     let url = format!("{}/api/v1/email/{}", BASE, id);
-    match block_on(async {
+    block_on(async {
         let resp = http_client()
             .get(&url)
             .header("Accept", "application/json, text/plain, */*")
@@ -79,10 +79,8 @@ fn fetch_body(id: &str) -> (String, String) {
             .unwrap_or("")
             .to_string();
         Ok((html, text))
-    }) {
-        Ok(pair) => pair,
-        Err(_) => (String::new(), String::new()),
-    }
+    })
+    .unwrap_or_default()
 }
 
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {

@@ -67,6 +67,7 @@ fn random_local() -> String {
 /// 创建临时邮箱
 /// 1. GET / 获取 session cookie
 /// 2. POST /applymail 申请邮箱地址
+///
 /// token 格式: "cookies\n{time}"，time 用于后续增量获取邮件
 pub fn generate_email() -> Result<EmailInfo, String> {
     let local = random_local();

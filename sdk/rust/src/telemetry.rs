@@ -104,7 +104,7 @@ fn flush_telemetry_queue() {
 
     let ua = format!("tempmail-sdk-rust/{}", ver);
     thread::spawn(move || {
-        let _ = crate::block_on(async move {
+        crate::block_on(async move {
             let client = match wreq::Client::builder()
                 .timeout(Duration::from_secs(8))
                 .build()

@@ -268,6 +268,9 @@ static const char *channel_names[] = {
     "proid-cloud-ip-cc",
     "sbook-pics",
     "xue32-buzz",
+    "xkx-me",
+    "gonebox-email",
+    "mailcat-ai",
     "b-smelly-cc",
     "dea-soon-it",
     "disposable-al-sudani-com",
@@ -276,6 +279,12 @@ static const char *channel_names[] = {
     "mn-curppa-com",
     "mailinatorzz-mooo-com",
     "notfond-404-mn",
+    "tempgo-email",
+    "tempgmailer",
+    "temp-mail-org",
+    "restmail-net",
+    "dropmail-me",
+    "ten-minute-mail-net",
 };
 
 const char *tm_channel_name(tm_channel_t channel) {

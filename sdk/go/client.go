@@ -3,6 +3,8 @@ package tempemail
 import (
 	"fmt"
 	"math/rand"
+	"strings"
+	"time"
 
 	prov "github.com/XxxXTeam/tempmail-sdk/sdk/go/provider"
 )
@@ -279,6 +281,15 @@ var allChannels = []Channel{
 	ChannelSpamJanlugtNl,
 	ChannelMinBurningfishNet,
 	ChannelSinkFblayCom,
+	ChannelTempgmailer,
+	ChannelTempMailOrg,
+	ChannelXkxMe,
+	ChannelGoneboxEmail,
+	ChannelMailcatAi,
+	ChannelTempgoEmail,
+	ChannelRestmailNet,
+	ChannelDropmailMe,
+	ChannelTenMinuteMailNet,
 }
 
 /*
@@ -453,6 +464,8 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelTempmailLolV2:           {Channel: ChannelTempmailLolV2, Name: "TempMail LOL V2", Website: "tempmail.lol"},
 	ChannelTempgbox:                {Channel: ChannelTempgbox, Name: "TempGBox", Website: "tempgbox.net"},
 	ChannelEmailnator:              {Channel: ChannelEmailnator, Name: "Emailnator", Website: "emailnator.com"},
+	ChannelTempgmailer:             {Channel: ChannelTempgmailer, Name: "TempGmailer", Website: "tempgmailer.com"},
+	ChannelTempMailOrg:             {Channel: ChannelTempMailOrg, Name: "Temp-Mail.org", Website: "temp-mail.org"},
 	ChannelTemporam:                {Channel: ChannelTemporam, Name: "Temporam", Website: "temporam.com"},
 	ChannelNeighbours:              {Channel: ChannelNeighbours, Name: "Neighbours", Website: "neighbours.sh"},
 	ChannelSharklasers:             {Channel: ChannelSharklasers, Name: "SharkLasers", Website: "sharklasers.com"},
@@ -597,6 +610,13 @@ var channelInfoMap = map[Channel]ChannelInfo{
 	ChannelSpamJanlugtNl:           {Channel: ChannelSpamJanlugtNl, Name: "Mailinator (spam.janlugt.nl)", Website: "mailinator.com"},
 	ChannelMinBurningfishNet:       {Channel: ChannelMinBurningfishNet, Name: "Mailinator (min.burningfish.net)", Website: "mailinator.com"},
 	ChannelSinkFblayCom:            {Channel: ChannelSinkFblayCom, Name: "Mailinator (sink.fblay.com)", Website: "mailinator.com"},
+	ChannelXkxMe:                   {Channel: ChannelXkxMe, Name: "XKX.me", Website: "xkx.me"},
+	ChannelGoneboxEmail:            {Channel: ChannelGoneboxEmail, Name: "Gonebox Email", Website: "gonebox.email"},
+	ChannelMailcatAi:               {Channel: ChannelMailcatAi, Name: "Mailcat AI", Website: "mailcat.ai"},
+	ChannelTempgoEmail:             {Channel: ChannelTempgoEmail, Name: "TempGo Email", Website: "tempgo.email"},
+	ChannelRestmailNet:             {Channel: ChannelRestmailNet, Name: "Restmail.net", Website: "restmail.net"},
+	ChannelDropmailMe:              {Channel: ChannelDropmailMe, Name: "DropMail.me", Website: "dropmail.me"},
+	ChannelTenMinuteMailNet:        {Channel: ChannelTenMinuteMailNet, Name: "10MinuteMail.net", Website: "10minutemail.net"},
 }
 
 /*
@@ -637,16 +657,59 @@ func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 		opts = &GenerateEmailOptions{}
 	}
 
-	/*
-	 * 构建尝试顺序：
-	 * - 指定渠道 → 优先尝试该渠道，失败后随机尝试其他渠道
-	 * - 未指定 → 打乱全部渠道逐个尝试
-	 */
 	tryOrder := buildChannelOrder(opts.Channel)
+
+	// 解析域名筛选条件
+	var targetDomains []string
+	if opts.Suffix != "" {
+		s := opts.Suffix
+		if strings.HasPrefix(s, "@") {
+			s = s[1:]
+		}
+		targetDomains = append(targetDomains, s)
+	}
+	targetDomains = append(targetDomains, opts.Domains...)
+	// 按域名筛选渠道
+	if len(targetDomains) > 0 {
+		tryOrder = filterChannelsByDomain(tryOrder, targetDomains)
+	}
+
+	maxChannels := opts.MaxChannelsTried
+	if maxChannels <= 0 {
+		maxChannels = 20
+	}
+	totalTimeout := opts.TotalTimeout
+	if totalTimeout <= 0 {
+		totalTimeout = 60 * time.Second
+	}
+	startTime := time.Now()
+	failedBackends := make(map[string]bool)
 
 	channelsTried := 0
 	var lastErrMsg string
 	for _, ch := range tryOrder {
+		if channelsTried >= maxChannels {
+			sdkLogger.Warn("已尝试最大渠道数，停止", "max", maxChannels)
+			break
+		}
+		if time.Since(startTime) >= totalTimeout {
+			sdkLogger.Warn("整体超时，停止尝试")
+			break
+		}
+
+		backend := channelToBackend[ch]
+
+		if backend != "" {
+			if failedBackends[backend] {
+				sdkLogger.Debug("跳过渠道，同后端已失败", "channel", string(ch), "backend", backend)
+				continue
+			}
+			if !isBackendOpen(backend) {
+				sdkLogger.Debug("跳过渠道，后端熔断中", "channel", string(ch), "backend", backend)
+				continue
+			}
+		}
+
 		channelsTried++
 		sdkLogger.Info("创建临时邮箱", "channel", string(ch))
 		result, attempts, err := withRetryAndAttempts(func() (*EmailInfo, error) {
@@ -655,6 +718,9 @@ func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 		if err == nil && result != nil {
 			sdkLogger.Info("邮箱创建成功", "channel", string(ch), "email", result.Email)
 			reportTelemetry("generate_email", string(ch), true, attempts, channelsTried, "")
+			if backend != "" {
+				recordBackendSuccess(backend)
+			}
 			return result, nil
 		}
 		errMsg := "unknown error"
@@ -663,6 +729,10 @@ func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 			lastErrMsg = errMsg
 		}
 		sdkLogger.Warn("渠道不可用，尝试下一个", "channel", string(ch), "error", errMsg)
+		if backend != "" {
+			failedBackends[backend] = true
+			recordBackendFailure(backend)
+		}
 	}
 
 	sdkLogger.Error("所有渠道均不可用，创建邮箱失败")
@@ -1266,6 +1336,8 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		return fromMailbox(prov.DuckmailGenerate())
 	case ChannelEmailnator:
 		return fromMailbox(prov.EmailnatorGenerate())
+	case ChannelTempgmailer:
+		return fromMailbox(prov.TempgmailerGenerate())
 	case ChannelEmailtempOrg:
 		return fromMailbox(prov.EmailtempOrgGenerate())
 	case ChannelExpressinboxhub:
@@ -1297,7 +1369,7 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 	case ChannelMailtempCc:
 		return fromMailbox(prov.MailtempCcGenerate())
 	case ChannelMinuteinbox:
-		return fromMailbox(prov.MinuteinboxGenerate())
+		return fromMailbox(prov.MinuteinboxGenerate(opts.Duration, ""))
 	case ChannelMohmal:
 		return fromMailbox(prov.MohmalGenerate())
 	case ChannelOckito:
@@ -1332,6 +1404,37 @@ func generateEmailOnce(channel Channel, opts *GenerateEmailOptions) (*EmailInfo,
 		return fromMailbox(prov.TenminutemailNetGenerate())
 	case ChannelWebmailtemp:
 		return fromMailbox(prov.WebmailtempGenerate())
+	case ChannelTempMailOrg:
+		return fromMailbox(prov.TempMailOrgGenerate(opts.Duration, ""))
+
+	case ChannelXkxMe:
+		return fromMailbox(prov.XkxMeGenerate())
+
+	case ChannelGoneboxEmail:
+		return fromMailbox(prov.GoneboxEmailGenerate())
+
+	case ChannelMailcatAi:
+		return fromMailbox(prov.MailcatAiGenerate())
+
+	case ChannelTempgoEmail:
+		return fromMailbox(prov.TempgoEmailGenerate())
+
+	case ChannelRestmailNet:
+		return fromMailbox(prov.RestmailNetGenerate())
+
+	case ChannelDropmailMe:
+		domain := ""
+		if opts.Domain != nil {
+			domain = *opts.Domain
+		}
+		return fromMailbox(prov.DropmailMeGenerate(opts.Duration, domain))
+
+	case ChannelTenMinuteMailNet:
+		domain := ""
+		if opts.Domain != nil {
+			domain = *opts.Domain
+		}
+		return fromMailbox(prov.TenMinuteMailNetGenerate(opts.Duration, domain))
 
 	default:
 		return nil, fmt.Errorf("unknown channel: %s", channel)
@@ -1982,6 +2085,11 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 			return nil, fmt.Errorf("internal error: token missing for emailnator channel")
 		}
 		return normEmailsResult(prov.EmailnatorGetEmails(token, email))
+	case ChannelTempgmailer:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempgmailer channel")
+		}
+		return normEmailsResult(prov.TempgmailerGetEmails(token, email))
 	case ChannelEmailtempOrg:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for emailtemp-org channel")
@@ -2026,7 +2134,7 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for minuteinbox channel")
 		}
-		return normEmailsResult(prov.MinuteinboxGetEmails(email, token))
+		return normEmailsResult(prov.MinuteinboxGetEmails(token, email))
 	case ChannelMohmal:
 		if token == "" {
 			return nil, fmt.Errorf("internal error: token missing for mohmal channel")
@@ -2140,6 +2248,47 @@ func getEmailsOnce(channel Channel, email string, token string) ([]Email, error)
 		return normEmailsResult(prov.TempyEmailGetEmails(email))
 	case ChannelTemporam:
 		return normEmailsResult(prov.TemporamGetEmails(token, email))
+	case ChannelTempMailOrg:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for temp-mail-org channel")
+		}
+		return normEmailsResult(prov.TempMailOrgGetEmails(token, email))
+
+	case ChannelXkxMe:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for xkx-me channel")
+		}
+		return normEmailsResult(prov.XkxMeGetEmails(token, email))
+
+	case ChannelGoneboxEmail:
+		return normEmailsResult(prov.GoneboxEmailGetEmails(email))
+
+	case ChannelMailcatAi:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for mailcat-ai channel")
+		}
+		return normEmailsResult(prov.MailcatAiGetEmails(token, email))
+
+	case ChannelTempgoEmail:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for tempgo-email channel")
+		}
+		return normEmailsResult(prov.TempgoEmailGetEmails(token, email))
+
+	case ChannelRestmailNet:
+		return normEmailsResult(prov.RestmailNetGetEmails(token, email))
+
+	case ChannelDropmailMe:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for dropmail-me channel")
+		}
+		return normEmailsResult(prov.DropmailMeGetEmails(token, email))
+
+	case ChannelTenMinuteMailNet:
+		if token == "" {
+			return nil, fmt.Errorf("internal error: token missing for ten-minute-mail-net channel")
+		}
+		return normEmailsResult(prov.TenMinuteMailNetGetEmails(token, email))
 
 	default:
 		return nil, fmt.Errorf("unsupported channel: %s", channel)

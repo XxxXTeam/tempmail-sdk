@@ -36,8 +36,7 @@ fn init_session() -> Result<(String, String), String> {
             let cookie_str = value.to_str().unwrap_or("");
             if let Some(name_value) = cookie_str.split(';').next() {
                 cookie_parts.push(name_value.to_string());
-                if name_value.starts_with("XSRF-TOKEN=") {
-                    let raw = &name_value["XSRF-TOKEN=".len()..];
+                if let Some(raw) = name_value.strip_prefix("XSRF-TOKEN=") {
                     xsrf_token = urlencoding::decode(raw).unwrap_or_default().to_string();
                 }
             }

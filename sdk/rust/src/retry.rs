@@ -52,6 +52,7 @@ fn should_retry(err: &str) -> bool {
 /// - 自动重试可恢复的错误（网络错误、超时、HTTP 4xx/5xx 等）
 /// - 指数退避策略避免短时间内过度请求
 /// - 不可恢复的错误（SDK 内部参数校验错误等）直接返回
+///
 /// 与 `with_retry` 相同；失败时返回 `(错误信息, 尝试次数)`
 pub(crate) fn with_retry_with_attempts<T, F>(
     f: F,
@@ -64,7 +65,7 @@ where
     let mut last_err = String::new();
 
     for attempt in 0..=cfg.max_retries {
-        let attempts = attempt as u32 + 1;
+        let attempts = attempt + 1;
         match f() {
             Ok(result) => {
                 if attempt > 0 {
@@ -97,7 +98,7 @@ where
         }
     }
 
-    Err((last_err, cfg.max_retries as u32 + 1))
+    Err((last_err, cfg.max_retries + 1))
 }
 
 pub fn with_retry<T, F>(f: F, config: Option<&RetryConfig>) -> Result<T, String>

@@ -122,7 +122,7 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
         }
         let data: Value = resp.json().await.map_err(|e| e.to_string())?;
         if data.get("success").and_then(|x| x.as_bool()) != Some(true) {
-            return Err(format!("tempmail365: 创建邮箱失败: {}", data.to_string()));
+            return Err(format!("tempmail365: 创建邮箱失败: {}", data));
         }
         Ok(EmailInfo {
             channel: Channel::Tempmail365,

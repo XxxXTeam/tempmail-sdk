@@ -109,12 +109,17 @@ def get_emails(email: str, token: str = "") -> List[Email]:
     if not isinstance(data, dict):
         raise RuntimeError("smailpro: 邮件列表响应格式异常")
 
-    mails = data.get("mails")
-    if not isinstance(mails, list) or not mails:
+    # API 响应结构: {"status": true, "data": {"messages": [...]}}
+    inner = data.get("data")
+    if isinstance(inner, dict):
+        messages = inner.get("messages")
+    else:
+        messages = data.get("messages")
+    if not isinstance(messages, list) or not messages:
         return []
 
     out: List[Email] = []
-    for m in mails:
+    for m in messages:
         if not isinstance(m, dict):
             continue
         mid = str(m.get("mid") or "").strip()
