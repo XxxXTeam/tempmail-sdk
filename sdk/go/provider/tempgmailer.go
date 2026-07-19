@@ -198,7 +198,7 @@ func TempgmailerGetEmails(token string, email string) ([]NormEmail, error) {
 	}
 
 	raw, err := tempgmailerPost(session, "/get-inbox", map[string]interface{}{
-		"email":  email,
+		"email":   email,
 		"adblock": 0,
 	})
 	if err != nil {

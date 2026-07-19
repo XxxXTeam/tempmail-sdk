@@ -28,9 +28,9 @@ type tempgoEmailCreateResponse struct {
 
 /* tempgoEmailInboxResponse 获取邮件列表接口响应 */
 type tempgoEmailInboxResponse struct {
-	Email     string                `json:"email"`
-	ExpiresIn int                   `json:"expires_in"`
-	Messages  []json.RawMessage     `json:"messages"`
+	Email     string            `json:"email"`
+	ExpiresIn int               `json:"expires_in"`
+	Messages  []json.RawMessage `json:"messages"`
 }
 
 /* TempgoEmailGenerate 创建 tempgo.email 临时邮箱

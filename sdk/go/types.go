@@ -283,7 +283,7 @@ const (
 	ChannelTempMailOrg             Channel = "temp-mail-org"            // temp-mail.org（web2.temp-mail.org 后端，动态域名）
 	ChannelXkxMe                   Channel = "xkx-me"                   // xkx.me
 	ChannelGoneboxEmail            Channel = "gonebox-email"            // gonebox.email
-	ChannelMailcatAi               Channel = "mailcat-ai"              // mailcat.ai
+	ChannelMailcatAi               Channel = "mailcat-ai"               // mailcat.ai
 	ChannelTempgoEmail             Channel = "tempgo-email"             // tempgo.email
 	ChannelRestmailNet             Channel = "restmail-net"             // restmail.net
 	ChannelDropmailMe              Channel = "dropmail-me"              // dropmail.me（GraphQL 临时邮箱）

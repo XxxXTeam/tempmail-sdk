@@ -25,7 +25,7 @@ type tenMinuteMailNetToken struct {
 
 /* tenMinuteMailNetAddressResponse 创建/刷新邮箱接口响应 */
 type tenMinuteMailNetAddressResponse struct {
-	MailGetMail string                       `json:"mail_get_mail"`
+	MailGetMail string                         `json:"mail_get_mail"`
 	MailList    []tenMinuteMailNetMailListItem `json:"mail_list"`
 }
 
@@ -45,12 +45,12 @@ type tenMinuteMailNetDetailBody struct {
 
 /* tenMinuteMailNetDetailResponse 邮件详情接口响应 */
 type tenMinuteMailNetDetailResponse struct {
-	From      string                       `json:"from"`
-	To        string                       `json:"to"`
-	Subject   string                       `json:"subject"`
-	Datetime  string                       `json:"datetime"`
-	Body      []tenMinuteMailNetDetailBody  `json:"body"`
-	Plain     []string                     `json:"plain"`
+	From     string                       `json:"from"`
+	To       string                       `json:"to"`
+	Subject  string                       `json:"subject"`
+	Datetime string                       `json:"datetime"`
+	Body     []tenMinuteMailNetDetailBody `json:"body"`
+	Plain    []string                     `json:"plain"`
 }
 
 /* TenMinuteMailNetGenerate 创建 10minutemail.net 临时邮箱
