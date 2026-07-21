@@ -107,6 +107,7 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     channel: CHANNEL,
     email: address,
     token: JSON.stringify({ session_id: session.id, auth_token: authToken }),
+    expiresAt: session.expiresAt,
   };
 }
 

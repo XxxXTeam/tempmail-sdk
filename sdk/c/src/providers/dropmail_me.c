@@ -116,6 +116,36 @@ static void dropmail_me_random_part(char *buf, size_t cap) {
   buf[off + 16] = '\0';
 }
 
+/* 解析 ISO 8601 日期字符串为毫秒时间戳 */
+static long long dropmail_me_parse_iso8601(const char *iso) {
+  if (!iso || !iso[0])
+    return 0;
+  int year, month, day, hour, minute, second, ms = 0;
+  if (sscanf(iso, "%d-%d-%dT%d:%d:%d.%dZ", &year, &month, &day, &hour,
+             &minute, &second, &ms) >= 6) {
+    struct tm t = {.tm_year = year - 1900,
+                   .tm_mon = month - 1,
+                   .tm_mday = day,
+                   .tm_hour = hour,
+                   .tm_min = minute,
+                   .tm_sec = second};
+    time_t sec = timegm(&t);
+    return (long long)sec * 1000 + (long long)ms;
+  }
+  if (sscanf(iso, "%d-%d-%dT%d:%d:%dZ", &year, &month, &day, &hour, &minute,
+             &second) == 6) {
+    struct tm t = {.tm_year = year - 1900,
+                   .tm_mon = month - 1,
+                   .tm_mday = day,
+                   .tm_hour = hour,
+                   .tm_min = minute,
+                   .tm_sec = second};
+    time_t sec = timegm(&t);
+    return (long long)sec * 1000;
+  }
+  return 0;
+}
+
 /**
  * 创建 dropmail.me 临时邮箱
  */
@@ -231,7 +261,7 @@ tm_email_info_t *tm_provider_dropmail_me_generate(void) {
 
   info->email = tm_strdup(email_addr);
   info->token = tm_strdup(token_str);
-  info->expires_at = 0;
+  info->expires_at = dropmail_me_parse_iso8601(expires_at);
   free(token_str);
   cJSON_Delete(root);
   return info;
