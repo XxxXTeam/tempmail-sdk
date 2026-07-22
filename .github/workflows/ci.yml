@@ -237,7 +237,10 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: 语法检查
-        run: find src -name "*.php" -exec php -l {} \; | grep -v "No syntax errors"
+        run: |
+          # 任一文件语法错误则 php -l 返回非零；全部通过时不因 grep 空匹配误判失败
+          set -e
+          find src -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: 自动加载验证
         run: composer dump-autoload --strict
@@ -289,7 +292,10 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: 语法检查
-        run: find lib -name "*.rb" -exec ruby -c {} \; | grep -v "Syntax OK"
+        run: |
+          # 任一文件语法错误则 ruby -c 返回非零；全部通过时不因 grep 空匹配误判失败
+          set -e
+          find lib -name "*.rb" -print0 | xargs -0 -n1 ruby -c
 
       - name: 加载验证
         run: ruby -e "require_relative 'lib/tempmail_sdk'; puts TempmailSdk::Registry::REGISTRY.size.to_s + ' channels'"
@@ -354,7 +360,9 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-
 
       - name: 构建
-        run: ./gradlew build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build
 
       - name: 打包 JAR
         run: ./gradlew jar
