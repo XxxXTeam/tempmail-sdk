@@ -246,7 +246,7 @@ jobs:
         run: composer dump-autoload --optimize --strict-psr
 
       - name: 渠道加载验证
-        run: php -r "require 'vendor/autoload.php'; echo count(\ChanhanzhanX\TempMail\Registry::listChannels()) . ' channels\n';"
+        run: php -r "require 'vendor/autoload.php'; echo count(\ChanhanzhanX\TempMail\Registry::channelNames()) . ' channels\n';"
   csharp-build:
     name: C# SDK (.NET ${{ matrix.dotnet-version }})
     runs-on: ubuntu-latest

@@ -107,7 +107,12 @@ static void dropmail_me_random_part(char *buf, size_t cap) {
   static const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
   time_t now = time(NULL);
   struct tm t;
+#ifdef _WIN32
+  if (gmtime_s(&t, &now) != 0)
+    memset(&t, 0, sizeof(t));
+#else
   gmtime_r(&now, &t);
+#endif
   int off = snprintf(buf, cap, "%04d%02d%02d", t.tm_year + 1900, t.tm_mon + 1,
                      t.tm_mday);
   for (int i = 0; i < 16 && (size_t)(off + i + 1) < cap; i++) {
