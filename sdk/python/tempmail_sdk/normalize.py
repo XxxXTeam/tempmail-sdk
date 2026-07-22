@@ -51,12 +51,13 @@ def _is_html_content(content: str) -> bool:
         or prefix.startswith("<body")
     ):
         return True
-    trimmed = content.strip().lower()
+    # 仅对整封正文做一次 lower，避免多次隐式重复拷贝
+    trimmed = content.lower()
     if "<div" in trimmed and "</div>" in trimmed:
         return True
     if "<table" in trimmed and "</table>" in trimmed:
         return True
-    if "<p" in trimmed and "</p>" in trimmed and "<" in trimmed:
+    if "<p" in trimmed and "</p>" in trimmed:
         return True
     return False
 

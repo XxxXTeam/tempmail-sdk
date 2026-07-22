@@ -1,0 +1,275 @@
+namespace XxxXTeam.TempMail;
+
+/// <summary>
+/// WebUI 前端页面常量（构建期由 scripts/gen_webui_html.py 从 webui/ 模板生成）。
+/// index.html 占位处已内联 app.js.html，请勿手工编辑本文件。
+/// </summary>
+internal static class WebUIHtml
+{
+    /// <summary>完整前端 HTML 页面</summary>
+    internal const string Page = @"<!DOCTYPE html>
+<html lang=""zh-CN"">
+<head>
+<meta charset=""UTF-8"">
+<meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+<title>TempMail SDK - WebUI</title>
+<script src=""https://cdn.tailwindcss.com""></script>
+<script src=""https://unpkg.com/vue@3/dist/vue.global.prod.js""></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 900:'#312e81' },
+        surface: { 50:'#f8fafc', 100:'#f1f5f9', 700:'#1e293b', 800:'#0f172a', 900:'#020617', 950:'#010313' }
+      }
+    }
+  }
+}
+</script>
+<style>
+[v-cloak]{display:none}
+/* PLACEHOLDER_STYLES */
+</style>
+</head>
+<body class=""bg-surface-950 text-gray-100 min-h-screen antialiased"">
+<div id=""app"" v-cloak>
+  <!-- 顶部导航 -->
+  <header class=""sticky top-0 z-50 backdrop-blur-xl bg-surface-900/80 border-b border-white/5"">
+    <div class=""max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"">
+      <div class=""flex items-center justify-between h-16"">
+        <div class=""flex items-center gap-4"">
+          <div class=""flex items-center gap-2"">
+            <div class=""w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center"">
+              <svg class=""w-4 h-4 text-white"" fill=""none"" stroke=""currentColor"" viewBox=""0 0 24 24""><path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z""/></svg>
+            </div>
+            <h1 class=""text-lg font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"">TempMail SDK</h1>
+          </div>
+          <div class=""hidden sm:flex items-center gap-2 text-sm"">
+            <span class=""px-2 py-0.5 rounded-md bg-brand-500/10 text-brand-400 font-mono text-xs"">{{ sdkInfo.language }}</span>
+            <span class=""text-gray-500"">v{{ sdkInfo.version }}</span>
+          </div>
+        </div>
+        <div class=""flex items-center gap-4"">
+          <div class=""flex items-center gap-2 text-sm"">
+            <span class=""relative flex h-2 w-2"">
+              <span class=""animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"" :class=""connected ? 'bg-emerald-400' : 'bg-red-400'""></span>
+              <span class=""relative inline-flex rounded-full h-2 w-2"" :class=""connected ? 'bg-emerald-500' : 'bg-red-500'""></span>
+            </span>
+            <span class=""text-xs"" :class=""connected ? 'text-emerald-400' : 'text-red-400'"">{{ connected ? 'SSE' : '断开' }}</span>
+          </div>
+          <span class=""text-xs text-gray-500 font-mono"">{{ sdkInfo.host || '127.0.0.1' }}:{{ sdkInfo.port }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 标签导航 -->
+  <nav class=""border-b border-white/5 bg-surface-900/40"">
+    <div class=""max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"">
+      <div class=""flex gap-1 -mb-px"">
+        <button v-for=""tab in tabs"" :key=""tab.id"" @click=""activeTab=tab.id""
+          class=""px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200""
+          :class=""activeTab===tab.id ? 'border-brand-500 text-brand-400' : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'"">
+          {{ tab.label }}
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主体内容 -->
+  <main class=""max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"">
+    <!-- 概览 -->
+    <section v-show=""activeTab==='overview'"">
+      <div class=""grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"">
+        <div class=""group relative overflow-hidden rounded-xl bg-gradient-to-br from-surface-800 to-surface-900 border border-white/5 p-5 hover:border-brand-500/30 transition-colors"">
+          <div class=""absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity""></div>
+          <div class=""relative"">
+            <div class=""text-xs uppercase tracking-wider text-gray-500 mb-1"">渠道总数</div>
+            <div class=""text-3xl font-bold bg-gradient-to-r from-brand-400 to-brand-200 bg-clip-text text-transparent"">{{ channels.length }}</div>
+          </div>
+        </div>
+        <div class=""group relative overflow-hidden rounded-xl bg-gradient-to-br from-surface-800 to-surface-900 border border-white/5 p-5 hover:border-emerald-500/30 transition-colors"">
+          <div class=""absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity""></div>
+          <div class=""relative"">
+            <div class=""text-xs uppercase tracking-wider text-gray-500 mb-1"">监听地址</div>
+            <div class=""text-lg font-mono text-emerald-400 truncate"">{{ sdkInfo.host || '127.0.0.1' }}:{{ sdkInfo.port }}</div>
+          </div>
+        </div>
+        <div class=""group relative overflow-hidden rounded-xl bg-gradient-to-br from-surface-800 to-surface-900 border border-white/5 p-5 hover:border-amber-500/30 transition-colors"">
+          <div class=""absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity""></div>
+          <div class=""relative"">
+            <div class=""text-xs uppercase tracking-wider text-gray-500 mb-1"">代理</div>
+            <div class=""text-sm font-mono text-amber-400 truncate"">{{ sdkInfo.proxy || '直连' }}</div>
+          </div>
+        </div>
+        <div class=""group relative overflow-hidden rounded-xl bg-gradient-to-br from-surface-800 to-surface-900 border border-white/5 p-5 hover:border-cyan-500/30 transition-colors"">
+          <div class=""absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity""></div>
+          <div class=""relative"">
+            <div class=""text-xs uppercase tracking-wider text-gray-500 mb-1"">超时</div>
+            <div class=""text-2xl font-bold text-cyan-400"">{{ sdkInfo.timeout }}<span class=""text-sm text-gray-500 ml-1"">秒</span></div>
+          </div>
+        </div>
+      </div>
+      <div class=""rounded-xl bg-gradient-to-br from-surface-800 to-surface-900 border border-white/5 p-6"">
+        <h3 class=""text-sm font-medium text-gray-400 mb-3 flex items-center gap-2"">
+          <svg class=""w-4 h-4"" fill=""none"" stroke=""currentColor"" viewBox=""0 0 24 24""><path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z""/><path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M15 12a3 3 0 11-6 0 3 3 0 016 0z""/></svg>
+          运行时配置
+        </h3>
+        <pre class=""text-xs font-mono text-gray-300 whitespace-pre-wrap bg-surface-950/50 rounded-lg p-4 border border-white/5"">{{ JSON.stringify(sdkInfo.config, null, 2) }}</pre>
+      </div>
+    </section>
+
+    <!-- 渠道 -->
+    <section v-show=""activeTab==='channels'"">
+      <div class=""flex items-center justify-between mb-4"">
+        <div class=""relative"">
+          <svg class=""absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"" fill=""none"" stroke=""currentColor"" viewBox=""0 0 24 24""><path stroke-linecap=""round"" stroke-linejoin=""round"" stroke-width=""2"" d=""M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z""/></svg>
+          <input v-model=""channelSearch"" type=""text"" placeholder=""搜索渠道...""
+            class=""pl-10 pr-4 py-2 bg-surface-800 border border-white/10 rounded-lg text-sm w-72 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 placeholder-gray-600 transition-all"">
+        </div>
+        <span class=""text-xs text-gray-500"">共 {{ filteredChannels.length }} / {{ channels.length }} 个渠道</span>
+      </div>
+      <div class=""rounded-xl bg-surface-800/50 border border-white/5 overflow-hidden"">
+        <div class=""overflow-x-auto"">
+          <table class=""w-full text-sm"">
+            <thead>
+              <tr class=""bg-surface-900/80 border-b border-white/5"">
+                <th class=""px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"">#</th>
+                <th class=""px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"">渠道标识</th>
+                <th class=""px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"">名称</th>
+                <th class=""px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"">网站</th>
+              </tr>
+            </thead>
+            <tbody class=""divide-y divide-white/5"">
+              <tr v-for=""(ch, i) in filteredChannels"" :key=""ch.channel"" class=""hover:bg-white/[0.02] transition-colors"">
+                <td class=""px-4 py-2.5 text-gray-600 text-xs"">{{ i + 1 }}</td>
+                <td class=""px-4 py-2.5 font-mono text-brand-400 text-xs"">{{ ch.channel }}</td>
+                <td class=""px-4 py-2.5 text-gray-300"">{{ ch.name }}</td>
+                <td class=""px-4 py-2.5""><a :href=""'https://'+ch.website"" target=""_blank"" rel=""noopener"" class=""text-cyan-400/80 hover:text-cyan-300 hover:underline underline-offset-2 transition-colors"">{{ ch.website }}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日志 -->
+    <section v-show=""activeTab==='logs'"">
+      <div class=""flex flex-wrap items-center gap-3 mb-4"">
+        <select v-model=""logLevel"" class=""bg-surface-800 border border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"">
+          <option value=""all"">全部级别</option>
+          <option value=""debug"">Debug</option>
+          <option value=""info"">Info</option>
+          <option value=""warn"">Warn</option>
+          <option value=""error"">Error</option>
+        </select>
+        <button @click=""logs=[]"" class=""px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-surface-800 border border-white/10 rounded-lg hover:border-red-500/30 transition-colors"">清空</button>
+        <label class=""text-sm text-gray-500 flex items-center gap-2 select-none cursor-pointer"">
+          <input type=""checkbox"" v-model=""autoScroll"" class=""rounded border-gray-600 bg-surface-800 text-brand-500 focus:ring-brand-500/40""> 自动滚动
+        </label>
+        <span class=""text-xs text-gray-600 ml-auto font-mono"">{{ filteredLogs.length }} / {{ logs.length }}</span>
+      </div>
+      <div id=""log-container"" ref=""logContainer"" class=""bg-surface-950 rounded-xl border border-white/5 p-4 font-mono text-xs max-h-[65vh] overflow-y-auto scroll-smooth"">
+        <div v-for=""(log, i) in filteredLogs"" :key=""i"" class=""py-0.5 flex gap-2 hover:bg-white/[0.02] px-2 -mx-2 rounded"">
+          <span class=""text-gray-700 shrink-0 w-20"">{{ log.time }}</span>
+          <span class=""shrink-0 w-14 text-center rounded px-1""
+            :class=""{'text-gray-500 bg-gray-500/10': log.level==='debug', 'text-blue-400 bg-blue-500/10': log.level==='info', 'text-amber-400 bg-amber-500/10': log.level==='warn', 'text-red-400 bg-red-500/10': log.level==='error'}"">
+            {{ log.level.toUpperCase() }}
+          </span>
+          <span v-if=""log.channel"" class=""text-purple-400/70 shrink-0"">[{{ log.channel }}]</span>
+          <span class=""text-gray-300"">{{ log.msg }}</span>
+        </div>
+        <div v-if=""filteredLogs.length===0"" class=""text-gray-700 text-center py-8"">暂无日志</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部 -->
+  <footer class=""border-t border-white/5 mt-12"">
+    <div class=""max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4"">
+      <p class=""text-xs text-gray-700 text-center"">TempMail SDK WebUI · {{ sdkInfo.language }} · GPL-3.0</p>
+    </div>
+  </footer>
+</div>
+<script>
+const {createApp, ref, computed, onMounted, onUnmounted, nextTick} = Vue
+createApp({
+  setup() {
+    const tabs = [{id:'overview',label:'概览'},{id:'channels',label:'渠道'},{id:'logs',label:'日志'}]
+    const activeTab = ref('overview')
+    const connected = ref(false)
+    const sdkInfo = ref({language:'',version:'',port:'',host:'127.0.0.1',proxy:'',timeout:30,config:{}})
+    const channels = ref([])
+    const logs = ref([])
+    const channelSearch = ref('')
+    const logLevel = ref('all')
+    const autoScroll = ref(true)
+    const logContainer = ref(null)
+    let evtSource = null
+
+    const filteredChannels = computed(() => {
+      if (!channelSearch.value) return channels.value
+      const q = channelSearch.value.toLowerCase()
+      return channels.value.filter(c =>
+        c.channel.includes(q) || c.name.toLowerCase().includes(q) || c.website.includes(q))
+    })
+    const filteredLogs = computed(() => {
+      if (logLevel.value === 'all') return logs.value
+      return logs.value.filter(l => l.level === logLevel.value)
+    })
+
+    async function fetchInfo() {
+      try {
+        const r = await fetch('/api/info')
+        if (r.ok) sdkInfo.value = await r.json()
+      } catch(e) {}
+    }
+    async function fetchChannels() {
+      try {
+        const r = await fetch('/api/channels')
+        if (r.ok) channels.value = await r.json()
+      } catch(e) {}
+    }
+    function connectSSE() {
+      if (evtSource) { evtSource.close(); evtSource = null }
+      evtSource = new EventSource('/api/logs/stream')
+      evtSource.onopen = () => { connected.value = true }
+      evtSource.onmessage = (e) => {
+        try {
+          const entry = JSON.parse(e.data)
+          logs.value.push(entry)
+          if (logs.value.length > 5000) logs.value.splice(0, 500)
+          if (autoScroll.value) {
+            nextTick(() => {
+              const el = logContainer.value
+              if (el) el.scrollTop = el.scrollHeight
+            })
+          }
+        } catch(err) {}
+      }
+      evtSource.onerror = () => {
+        connected.value = false
+        evtSource.close()
+        evtSource = null
+        setTimeout(connectSSE, 3000)
+      }
+    }
+
+    onMounted(() => {
+      fetchInfo()
+      fetchChannels()
+      connectSSE()
+    })
+    onUnmounted(() => { if (evtSource) evtSource.close() })
+
+    return {tabs, activeTab, connected, sdkInfo, channels, logs, channelSearch,
+            logLevel, autoScroll, logContainer, filteredChannels, filteredLogs}
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>
+";
+}

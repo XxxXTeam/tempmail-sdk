@@ -105,12 +105,9 @@ fn flush_telemetry_queue() {
     let ua = format!("tempmail-sdk-rust/{}", ver);
     thread::spawn(move || {
         crate::block_on(async move {
-            let client = match wreq::Client::builder()
-                .timeout(Duration::from_secs(8))
-                .build()
-            {
-                Ok(c) => c,
-                Err(_) => return,
+            let client = match telemetry_client() {
+                Some(c) => c,
+                None => return,
             };
             let _ = client
                 .post(&url)
@@ -121,6 +118,19 @@ fn flush_telemetry_queue() {
                 .await;
         });
     });
+}
+
+/// 缓存并复用上报专用 HTTP 客户端，避免每次 flush 重建导致 TLS 握手与连接池丢失
+fn telemetry_client() -> Option<wreq::Client> {
+    static CLIENT: OnceLock<Option<wreq::Client>> = OnceLock::new();
+    CLIENT
+        .get_or_init(|| {
+            wreq::Client::builder()
+                .timeout(Duration::from_secs(8))
+                .build()
+                .ok()
+        })
+        .clone()
 }
 
 /// 入队，与进程内其它事件合并后统一 POST

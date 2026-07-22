@@ -41,6 +41,12 @@ target/
 Cargo.lock
 !sdk/rust/Cargo.lock
 
+# Java / Kotlin
+*.class
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
 # Python
 *.egg-info/
 *.egg
@@ -76,3 +82,13 @@ build/compile_commands.json
 build/cmake_install.cmake
 build/CMakeCache.txt
 build/Makefile
+sdk/php/composer.phar
+sdk/csharp/src/obj/
+sdk/csharp/src/bin/
+sdk/csharp/tests/obj/
+sdk/csharp/tests/bin/
+.migration_shards.json
+.migration_index.json
+.fake
+sdk/kotlin/.gradle/
+sdk/kotlin/build/

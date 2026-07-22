@@ -2,6 +2,7 @@
 #define TEMPMAIL_INTERNAL_H
 
 #include "cJSON.h"
+#include "tempmail_registry.h"
 #include "tempmail_sdk.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -13,6 +14,10 @@
 /* ========== 内部日志宏 ========== */
 
 void tm_log(tm_log_level_t level, const char *fmt, ...);
+
+/* 返回当前日志处理器 / 级别（WebUI 内部使用） */
+tm_log_handler_t tm_get_log_handler(void);
+tm_log_level_t tm_get_log_level(void);
 
 #define TM_LOG_ERR(...) tm_log(TM_LOG_ERROR, __VA_ARGS__)
 #define TM_LOG_WARN(...) tm_log(TM_LOG_WARN, __VA_ARGS__)
@@ -76,6 +81,9 @@ char *tm_json_get_str(const cJSON *obj, const char **keys, int key_count);
 
 tm_email_info_t *tm_email_info_new(void);
 tm_email_t *tm_emails_new(int count);
+
+/* 设置 EmailInfo 的渠道标识并原样返回（供镜像/别名渠道 thunk 使用） */
+tm_email_info_t *tm_with_channel(tm_email_info_t *info, tm_channel_t channel);
 
 /* ========== normalize ========== */
 

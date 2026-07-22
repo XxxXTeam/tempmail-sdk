@@ -16,6 +16,7 @@ add_library(tempmail_sdk STATIC
     src/retry.c
     src/normalize.c
     src/client.c
+    src/registry.c
     src/http.c
     src/telemetry.c
     src/providers/tempmail.c
@@ -208,6 +209,7 @@ add_library(tempmail_sdk STATIC
     src/providers/notfond_404_mn.c
     src/providers/dropmail_me.c
     src/providers/ten_minute_mail_net.c
+    src/webui.c
     vendor/cJSON.c
 )
 

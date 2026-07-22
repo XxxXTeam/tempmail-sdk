@@ -1,0 +1,1397 @@
+[
+  {
+    "Channel": "tempmail",
+    "Name": "TempMail",
+    "Website": "tempmail.ing"
+  },
+  {
+    "Channel": "tempmail-cn",
+    "Name": "TempMail CN",
+    "Website": "tempmail.cn"
+  },
+  {
+    "Channel": "ta-easy",
+    "Name": "TA Easy",
+    "Website": "ta-easy.com"
+  },
+  {
+    "Channel": "10minute-one",
+    "Name": "10 Minute Email",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "xghff-com",
+    "Name": "xghff.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "oqqaj-com",
+    "Name": "oqqaj.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "psovv-com",
+    "Name": "psovv.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "dbwot-com",
+    "Name": "dbwot.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "ygwpr-com",
+    "Name": "ygwpr.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "imxwe-com",
+    "Name": "imxwe.com",
+    "Website": "10minutemail.one"
+  },
+  {
+    "Channel": "linshiyou",
+    "Name": "临时邮",
+    "Website": "linshiyou.com"
+  },
+  {
+    "Channel": "mffac",
+    "Name": "MFFAC",
+    "Website": "mffac.com"
+  },
+  {
+    "Channel": "tempmail-lol",
+    "Name": "TempMail LOL",
+    "Website": "tempmail.lol"
+  },
+  {
+    "Channel": "chatgpt-org-uk",
+    "Name": "ChatGPT Mail",
+    "Website": "mail.chatgpt.org.uk"
+  },
+  {
+    "Channel": "temp-mail-io",
+    "Name": "Temp-Mail.io",
+    "Website": "temp-mail.io"
+  },
+  {
+    "Channel": "mail-cx",
+    "Name": "Mail.cx",
+    "Website": "mail.cx"
+  },
+  {
+    "Channel": "ddker-com",
+    "Name": "ddker.com",
+    "Website": "mail.cx"
+  },
+  {
+    "Channel": "catchmail",
+    "Name": "Catchmail",
+    "Website": "catchmail.io"
+  },
+  {
+    "Channel": "catchmail-mailistry",
+    "Name": "Catchmail Mailistry",
+    "Website": "mailistry.com"
+  },
+  {
+    "Channel": "catchmail-zeppost",
+    "Name": "Catchmail Zeppost",
+    "Website": "zeppost.com"
+  },
+  {
+    "Channel": "mailforspam",
+    "Name": "MailForSpam",
+    "Website": "mailforspam.com"
+  },
+  {
+    "Channel": "mailforspam-tempmail-io",
+    "Name": "MailForSpam TempMail.io",
+    "Website": "tempmail.io"
+  },
+  {
+    "Channel": "mailforspam-disposable",
+    "Name": "MailForSpam Disposable",
+    "Website": "disposable.email"
+  },
+  {
+    "Channel": "tempmailc",
+    "Name": "TempMailC",
+    "Website": "tempmailc.com"
+  },
+  {
+    "Channel": "mailnesia",
+    "Name": "Mailnesia",
+    "Website": "mailnesia.com"
+  },
+  {
+    "Channel": "throwawaymail",
+    "Name": "ThrowawayMail",
+    "Website": "throwawaymail.app"
+  },
+  {
+    "Channel": "tempmail-fish",
+    "Name": "TempMail Fish",
+    "Website": "tempmail.fish"
+  },
+  {
+    "Channel": "neighbours-sh",
+    "Name": "Neighbours",
+    "Website": "neighbours.sh"
+  },
+  {
+    "Channel": "shitty-email",
+    "Name": "shitty.email",
+    "Website": "shitty.email"
+  },
+  {
+    "Channel": "tempmailpro",
+    "Name": "TempMail Pro",
+    "Website": "tempmailpro.us"
+  },
+  {
+    "Channel": "devmail-uk",
+    "Name": "DevMail UK",
+    "Website": "devmail.uk"
+  },
+  {
+    "Channel": "inboxkitten",
+    "Name": "InboxKitten",
+    "Website": "inboxkitten.com"
+  },
+  {
+    "Channel": "cleantempmail",
+    "Name": "CleanTempMail",
+    "Website": "cleantempmail.com"
+  },
+  {
+    "Channel": "getnada",
+    "Name": "GetNada",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "1vpn-net",
+    "Name": "1vpn.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "abematv-com",
+    "Name": "abematv.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "abematv-net",
+    "Name": "abematv.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "abematv-org",
+    "Name": "abematv.org",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "aceh-cc",
+    "Name": "aceh.cc",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "bangkabelitung-net",
+    "Name": "bangkabelitung.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "cctruyen-com",
+    "Name": "cctruyen.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "getnada-com",
+    "Name": "getnada.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "getnada-email",
+    "Name": "getnada.email",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "getnada-net",
+    "Name": "getnada.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "jawatengah-net",
+    "Name": "jawatengah.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "jawatimur-net",
+    "Name": "jawatimur.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kalimantanbarat-net",
+    "Name": "kalimantanbarat.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kalimantanselatan-net",
+    "Name": "kalimantanselatan.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kalimantantengah-net",
+    "Name": "kalimantantengah.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kalimantantimur-net",
+    "Name": "kalimantantimur.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kalimantanutara-net",
+    "Name": "kalimantanutara.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "kepulauanriau-net",
+    "Name": "kepulauanriau.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "luxury345-com",
+    "Name": "luxury345.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "malukuutara-net",
+    "Name": "malukuutara.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "nusatenggarabarat-net",
+    "Name": "nusatenggarabarat.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "nusatenggaratimur-net",
+    "Name": "nusatenggaratimur.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "papuabarat-net",
+    "Name": "papuabarat.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "papuabaratdaya-net",
+    "Name": "papuabaratdaya.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "papuaselatan-net",
+    "Name": "papuaselatan.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "pehol-com",
+    "Name": "pehol.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "ptruyen-com",
+    "Name": "ptruyen.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "pulaubali-net",
+    "Name": "pulaubali.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "riau-net",
+    "Name": "riau.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "seokey-org",
+    "Name": "seokey.org",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sulawesibarat-net",
+    "Name": "sulawesibarat.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sulawesiselatan-net",
+    "Name": "sulawesiselatan.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sulawesitengah-net",
+    "Name": "sulawesitengah.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sulawesitenggara-net",
+    "Name": "sulawesitenggara.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sumaterabarat-net",
+    "Name": "sumaterabarat.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sumateraselatan-net",
+    "Name": "sumateraselatan.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "sumaterautara-net",
+    "Name": "sumaterautara.net",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "villatogel-com",
+    "Name": "villatogel.com",
+    "Website": "getnada.net"
+  },
+  {
+    "Channel": "mail123",
+    "Name": "Mail123",
+    "Website": "mail123.fr"
+  },
+  {
+    "Channel": "mail10s",
+    "Name": "Mail10s",
+    "Website": "mail10s.com"
+  },
+  {
+    "Channel": "webmailtemp",
+    "Name": "WebMailTemp",
+    "Website": "webmailtemp.com"
+  },
+  {
+    "Channel": "tempfastmail",
+    "Name": "TempFastMail",
+    "Website": "tempfastmail.com"
+  },
+  {
+    "Channel": "1sec-mail",
+    "Name": "1SecMail",
+    "Website": "1sec-mail.com"
+  },
+  {
+    "Channel": "fakemail",
+    "Name": "FakeMail",
+    "Website": "fakemail.net"
+  },
+  {
+    "Channel": "openinbox",
+    "Name": "OpenInbox",
+    "Website": "openinbox.io"
+  },
+  {
+    "Channel": "inboxes",
+    "Name": "Inboxes",
+    "Website": "inboxes.com"
+  },
+  {
+    "Channel": "uncorreotemporal",
+    "Name": "UnCorreoTemporal",
+    "Website": "uncorreotemporal.com"
+  },
+  {
+    "Channel": "awamail",
+    "Name": "AwaMail",
+    "Website": "awamail.com"
+  },
+  {
+    "Channel": "mail-tm",
+    "Name": "Mail.tm",
+    "Website": "mail.tm"
+  },
+  {
+    "Channel": "web-library-net",
+    "Name": "web-library.net",
+    "Website": "mail.tm"
+  },
+  {
+    "Channel": "dropmail",
+    "Name": "DropMail",
+    "Website": "dropmail.me"
+  },
+  {
+    "Channel": "guerrillamail",
+    "Name": "Guerrilla Mail",
+    "Website": "guerrillamail.com"
+  },
+  {
+    "Channel": "guerrillamail-com",
+    "Name": "GuerrillaMail Root",
+    "Website": "guerrillamail.com"
+  },
+  {
+    "Channel": "maildrop",
+    "Name": "Maildrop",
+    "Website": "maildrop.cx"
+  },
+  {
+    "Channel": "smail-pw",
+    "Name": "Smail.pw",
+    "Website": "smail.pw"
+  },
+  {
+    "Channel": "vip-215",
+    "Name": "VIP 215",
+    "Website": "vip.215.im"
+  },
+  {
+    "Channel": "fake-legal",
+    "Name": "Fake Legal",
+    "Website": "fake.legal"
+  },
+  {
+    "Channel": "imgui-de",
+    "Name": "imgui.de",
+    "Website": "fake.legal"
+  },
+  {
+    "Channel": "pulsewebmenu-de",
+    "Name": "pulsewebmenu.de",
+    "Website": "fake.legal"
+  },
+  {
+    "Channel": "moakt",
+    "Name": "Moakt",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "drmail-in",
+    "Name": "drmail.in",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "teml-net",
+    "Name": "teml.net",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmpeml-com",
+    "Name": "tmpeml.com",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmpbox-net",
+    "Name": "tmpbox.net",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "moakt-cc",
+    "Name": "moakt.cc",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "disbox-net",
+    "Name": "disbox.net",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmpmail-org",
+    "Name": "tmpmail.org",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmpmail-net",
+    "Name": "tmpmail.net",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmails-net",
+    "Name": "tmails.net",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "disbox-org",
+    "Name": "disbox.org",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "moakt-co",
+    "Name": "moakt.co",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "moakt-ws",
+    "Name": "moakt.ws",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "tmail-ws",
+    "Name": "tmail.ws",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "bareed-ws",
+    "Name": "bareed.ws",
+    "Website": "moakt.com"
+  },
+  {
+    "Channel": "email10min",
+    "Name": "Email10Min",
+    "Website": "email10min.com"
+  },
+  {
+    "Channel": "mjj-cm",
+    "Name": "MJJ Mail",
+    "Website": "mjj.cm"
+  },
+  {
+    "Channel": "linshi-co",
+    "Name": "临时Co",
+    "Website": "linshi.co"
+  },
+  {
+    "Channel": "harakirimail",
+    "Name": "HarakiriMail",
+    "Website": "harakirimail.com"
+  },
+  {
+    "Channel": "jqkjqk-xyz",
+    "Name": "jqkjqk.xyz",
+    "Website": "mail.zhujump.com"
+  },
+  {
+    "Channel": "lyhlevi-com",
+    "Name": "LyhLevi MoeMail",
+    "Website": "lyhlevi.com"
+  },
+  {
+    "Channel": "tempmail-plus",
+    "Name": "TempMail Plus",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "fexpost-com",
+    "Name": "fexpost.com",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "fexbox-org",
+    "Name": "fexbox.org",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "mailbox-in-ua",
+    "Name": "mailbox.in.ua",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "rover-info",
+    "Name": "rover.info",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "chitthi-in",
+    "Name": "chitthi.in",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "fextemp-com",
+    "Name": "fextemp.com",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "any-pink",
+    "Name": "any.pink",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "merepost-com",
+    "Name": "merepost.com",
+    "Website": "tempmail.plus"
+  },
+  {
+    "Channel": "tempmail-lol-v2",
+    "Name": "TempMail LOL V2",
+    "Website": "tempmail.lol"
+  },
+  {
+    "Channel": "tempgbox",
+    "Name": "TempGBox",
+    "Website": "tempgbox.net"
+  },
+  {
+    "Channel": "emailnator",
+    "Name": "Emailnator",
+    "Website": "emailnator.com"
+  },
+  {
+    "Channel": "temporam",
+    "Name": "Temporam",
+    "Website": "temporam.com"
+  },
+  {
+    "Channel": "neighbours",
+    "Name": "Neighbours",
+    "Website": "neighbours.sh"
+  },
+  {
+    "Channel": "sharklasers",
+    "Name": "SharkLasers",
+    "Website": "sharklasers.com"
+  },
+  {
+    "Channel": "sharklasers-com",
+    "Name": "SharkLasers Root",
+    "Website": "sharklasers.com"
+  },
+  {
+    "Channel": "grr-la",
+    "Name": "Grr.la",
+    "Website": "grr.la"
+  },
+  {
+    "Channel": "grr-la-com",
+    "Name": "Grr.la Root",
+    "Website": "grr.la"
+  },
+  {
+    "Channel": "guerrillamail-info",
+    "Name": "GuerrillaMail Info",
+    "Website": "guerrillamail.info"
+  },
+  {
+    "Channel": "spam4me",
+    "Name": "Spam4.me",
+    "Website": "spam4.me"
+  },
+  {
+    "Channel": "guerrillamail-net",
+    "Name": "GuerrillaMail Net",
+    "Website": "guerrillamail.net"
+  },
+  {
+    "Channel": "guerrillamail-org",
+    "Name": "GuerrillaMail Org",
+    "Website": "guerrillamail.org"
+  },
+  {
+    "Channel": "guerrillamailblock",
+    "Name": "GuerrillaMailBlock",
+    "Website": "guerrillamailblock.com"
+  },
+  {
+    "Channel": "guerrillamail-com-www",
+    "Name": "GuerrillaMail WWW",
+    "Website": "guerrillamail.com"
+  },
+  {
+    "Channel": "m2u",
+    "Name": "MailToYou",
+    "Website": "m2u.io"
+  },
+  {
+    "Channel": "tempy-email",
+    "Name": "Tempy Email",
+    "Website": "tempy.email"
+  },
+  {
+    "Channel": "fmail",
+    "Name": "FMail",
+    "Website": "fmail.men"
+  },
+  {
+    "Channel": "ockito",
+    "Name": "Ockito",
+    "Website": "ockito.com"
+  },
+  {
+    "Channel": "anonbox",
+    "Name": "Anonbox",
+    "Website": "anonbox.net"
+  },
+  {
+    "Channel": "duckmail",
+    "Name": "DuckMail",
+    "Website": "duckmail.sbs"
+  },
+  {
+    "Channel": "mailinator",
+    "Name": "Mailinator",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "tempmail365",
+    "Name": "Tempmail365",
+    "Website": "https://tempmail365.cn"
+  },
+  {
+    "Channel": "tempinbox",
+    "Name": "TempInbox",
+    "Website": "https://www.tempinbox.xyz"
+  },
+  {
+    "Channel": "byom",
+    "Name": "Byom",
+    "Website": "byom.de"
+  },
+  {
+    "Channel": "anonymmail",
+    "Name": "AnonymMail",
+    "Website": "anonymmail.net"
+  },
+  {
+    "Channel": "eyepaste",
+    "Name": "EyePaste",
+    "Website": "eyepaste.com"
+  },
+  {
+    "Channel": "mail-sunls",
+    "Name": "Mail Sunls",
+    "Website": "mail.sunls.de"
+  },
+  {
+    "Channel": "expressinboxhub",
+    "Name": "ExpressInboxHub",
+    "Website": "expressinboxhub.com"
+  },
+  {
+    "Channel": "lroid",
+    "Name": "Lroid",
+    "Website": "lroid.com"
+  },
+  {
+    "Channel": "haribu",
+    "Name": "Haribu",
+    "Website": "haribu.net"
+  },
+  {
+    "Channel": "rootsh",
+    "Name": "Rootsh(BccTo)",
+    "Website": "rootsh.com"
+  },
+  {
+    "Channel": "fake-email-site",
+    "Name": "FakeEmailSite",
+    "Website": "fake-email.site"
+  },
+  {
+    "Channel": "mohmal",
+    "Name": "Mohmal",
+    "Website": "mohmal.com"
+  },
+  {
+    "Channel": "mailgolem",
+    "Name": "MailGolem",
+    "Website": "mailgolem.com"
+  },
+  {
+    "Channel": "best-temp-mail",
+    "Name": "BestTempMail",
+    "Website": "best-temp-mail.com"
+  },
+  {
+    "Channel": "disposablemail-app",
+    "Name": "DisposableMail",
+    "Website": "disposablemail.app"
+  },
+  {
+    "Channel": "mailtemp-cc",
+    "Name": "MailTemp.cc",
+    "Website": "mailtemp.cc"
+  },
+  {
+    "Channel": "minuteinbox",
+    "Name": "MinuteInbox",
+    "Website": "minuteinbox.com"
+  },
+  {
+    "Channel": "mailcatch",
+    "Name": "MailCatch",
+    "Website": "mailcatch.com"
+  },
+  {
+    "Channel": "tempemail-co",
+    "Name": "TempEmail.co",
+    "Website": "tempemail.co"
+  },
+  {
+    "Channel": "tempemails-net",
+    "Name": "TempEmails.net",
+    "Website": "tempemails.net"
+  },
+  {
+    "Channel": "altmails",
+    "Name": "AltMails",
+    "Website": "tempmail.altmails.com"
+  },
+  {
+    "Channel": "tempemail-info",
+    "Name": "TempEmailInfo",
+    "Website": "tempemail.info"
+  },
+  {
+    "Channel": "smailpro",
+    "Name": "SmailPro",
+    "Website": "smailpro.com"
+  },
+  {
+    "Channel": "tempmailten",
+    "Name": "TempMailTen",
+    "Website": "tempmailten.com"
+  },
+  {
+    "Channel": "maildrop-cc",
+    "Name": "MailDrop.cc",
+    "Website": "maildrop.cc"
+  },
+  {
+    "Channel": "10minutemail-net",
+    "Name": "10MinuteMail.net",
+    "Website": "10minutemail.net"
+  },
+  {
+    "Channel": "linshiyouxiang-net",
+    "Name": "临时邮箱(linshiyouxiang)",
+    "Website": "linshiyouxiang.net"
+  },
+  {
+    "Channel": "tempmail-fyi",
+    "Name": "Temp-Mail.fyi",
+    "Website": "temp-mail.fyi"
+  },
+  {
+    "Channel": "disposablemail-com",
+    "Name": "DisposableMail.com",
+    "Website": "disposablemail.com"
+  },
+  {
+    "Channel": "tempp-mails",
+    "Name": "TemppMails",
+    "Website": "tempp-mails.com"
+  },
+  {
+    "Channel": "emailtemp-org",
+    "Name": "EmailTemp",
+    "Website": "emailtemp.org"
+  },
+  {
+    "Channel": "mytempmail-cc",
+    "Name": "MyTempMail.cc",
+    "Website": "mytempmail.cc"
+  },
+  {
+    "Channel": "temp-mail-now",
+    "Name": "TempMailNow",
+    "Website": "temp-mail.now"
+  },
+  {
+    "Channel": "mail-td",
+    "Name": "Mail.td",
+    "Website": "mail.td"
+  },
+  {
+    "Channel": "mailhole-de",
+    "Name": "Mailhole.de",
+    "Website": "mailhole.de"
+  },
+  {
+    "Channel": "tmail-link",
+    "Name": "TMail.link",
+    "Website": "tmail.link"
+  },
+  {
+    "Channel": "24mail-chacuo",
+    "Name": "24Mail Chacuo",
+    "Website": "24mail.chacuo.net"
+  },
+  {
+    "Channel": "nimail",
+    "Name": "NiMail",
+    "Website": "nimail.cn"
+  },
+  {
+    "Channel": "freecustom",
+    "Name": "FreeCustom.Email",
+    "Website": "freecustom.email"
+  },
+  {
+    "Channel": "16888888-cyou",
+    "Name": "Mailmomy (16888888.cyou)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "17666688-shop",
+    "Name": "Mailmomy (17666688.shop)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "282mail-com",
+    "Name": "Mailmomy (282mail.com)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "blackhole-djurby-se",
+    "Name": "Mailinator (blackhole.djurby.se)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "block-bdea-cc",
+    "Name": "Mailinator (block.bdea.cc)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "bsdu32-buzz",
+    "Name": "Mailmomy (bsdu32.buzz)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "b-smelly-cc",
+    "Name": "Mailinator (b.smelly.cc)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "carlton183-changeip-net",
+    "Name": "Mailinator (183carlton.changeip.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "dea-soon-it",
+    "Name": "Mailinator (dea.soon.it)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "disposable-al-sudani-com",
+    "Name": "Mailinator (disposable.al-sudani.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "disposable-nogonad-nl",
+    "Name": "Mailinator (disposable.nogonad.nl)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "doxu243-buzz",
+    "Name": "Mailmomy (doxu243.buzz)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "easyme-pro",
+    "Name": "Mailmomy (easyme.pro)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "ebs-com-ar",
+    "Name": "Mailinator (ebs.com.ar)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "etgdev-de",
+    "Name": "Mailinator (etgdev.de)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "evergreenco-shop",
+    "Name": "Mailmomy (evergreenco.shop)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "fwd2m-eszett-es",
+    "Name": "Mailinator (fwd2m.eszett.es)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "jama-trenet-eu",
+    "Name": "Mailinator (jama.trenet.eu)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "j-fairuse-org",
+    "Name": "Mailinator (j.fairuse.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "layueming-pics",
+    "Name": "Mailmomy (layueming.pics)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "m-887-at",
+    "Name": "Mailinator (m.887.at)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "m8r-davidfuhr-de",
+    "Name": "Mailinator (m8r.davidfuhr.de)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "m8r-mcasal-com",
+    "Name": "Mailinator (m8r.mcasal.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mail-bentrask-com",
+    "Name": "Mailinator (mail.bentrask.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mail-fsmash-org",
+    "Name": "Mailinator (mail.fsmash.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mailinatorzz-mooo-com",
+    "Name": "Mailinator (mailinatorzz.mooo.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mi-meon-be",
+    "Name": "Mailinator (mi.meon.be)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mingyuekeji-online",
+    "Name": "Mailmomy (mingyuekeji.online)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "mingyueming-click",
+    "Name": "Mailmomy (mingyueming.click)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "mingyueming-shop",
+    "Name": "Mailmomy (mingyueming.shop)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "mingyukeji-lol",
+    "Name": "Mailmomy (mingyukeji.lol)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "mn-curppa-com",
+    "Name": "Mailinator (mn.curppa.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "m-nik-me",
+    "Name": "Mailinator (m.nik.me)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mtmdev-com",
+    "Name": "Mailinator (mtmdev.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "nospam-thurstons-us",
+    "Name": "Mailinator (nospam.thurstons.us)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "notfond-404-mn",
+    "Name": "Mailinator (notfond.404.mn)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "null-k3vin-net",
+    "Name": "Mailinator (null.k3vin.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "nuxh62-space",
+    "Name": "Mailmomy (nuxh62.space)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "proid-cloud-ip-cc",
+    "Name": "Mailmomy (proid.cloud-ip.cc)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "ramjane-mooo-com",
+    "Name": "Mailinator (ramjane.mooo.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "rauxa-seny-cat",
+    "Name": "Mailinator (rauxa.seny.cat)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "really-istrash-com",
+    "Name": "Mailinator (really.istrash.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "sbook-pics",
+    "Name": "Mailmomy (sbook.pics)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "spam-hortuk-ovh",
+    "Name": "Mailinator (spam.hortuk.ovh)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "sp-woot-at",
+    "Name": "Mailinator (sp.woot.at)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "test-unergie-com",
+    "Name": "Mailinator (test.unergie.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "torch-yi-org",
+    "Name": "Mailinator (torch.yi.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "t-zibet-net",
+    "Name": "Mailinator (t.zibet.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "xue32-buzz",
+    "Name": "Mailmomy (xue32.buzz)",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "apihz",
+    "Name": "ApiHz TempMail",
+    "Website": "apihz.cn"
+  },
+  {
+    "Channel": "sogetthis-com",
+    "Name": "Mailinator (sogetthis.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "bobmail-info",
+    "Name": "Mailinator (bobmail.info)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "suremail-info",
+    "Name": "Mailinator (suremail.info)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "binkmail-com",
+    "Name": "Mailinator (binkmail.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "veryrealemail-com",
+    "Name": "Mailinator (veryrealemail.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "mailmomy",
+    "Name": "Mailmomy",
+    "Website": "mailmomy.com"
+  },
+  {
+    "Channel": "chammy-info",
+    "Name": "Mailinator (chammy.info)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "thisisnotmyrealemail-com",
+    "Name": "Mailinator (thisisnotmyrealemail.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "notmailinator-com",
+    "Name": "Mailinator (notmailinator.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spamhereplease-com",
+    "Name": "Mailinator (spamhereplease.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "sendspamhere-com",
+    "Name": "Mailinator (sendspamhere.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "sendfree-org",
+    "Name": "Mailinator (sendfree.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "junk-beats-org",
+    "Name": "Mailinator (junk.beats.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "junk-ihmehl-com",
+    "Name": "Mailinator (junk.ihmehl.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "junk-noplay-org",
+    "Name": "Mailinator (junk.noplay.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "junk-vanillasystem-com",
+    "Name": "Mailinator (junk.vanillasystem.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-jasonpearce-com",
+    "Name": "Mailinator (spam.jasonpearce.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "fish-skytale-net",
+    "Name": "Mailinator (fish.skytale.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-mccrew-com",
+    "Name": "Mailinator (spam.mccrew.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "dropmail-click",
+    "Name": "DropMail.click",
+    "Website": "dropmail.click"
+  },
+  {
+    "Channel": "spam-coroiu-com",
+    "Name": "Mailinator (spam.coroiu.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-deluser-net",
+    "Name": "Mailinator (spam.deluser.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-dhsf-net",
+    "Name": "Mailinator (spam.dhsf.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-lucatnt-com",
+    "Name": "Mailinator (spam.lucatnt.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-lyceum-life-com-ru",
+    "Name": "Mailinator (spam.lyceum-life.com.ru)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-netpirates-net",
+    "Name": "Mailinator (spam.netpirates.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-no-ip-net",
+    "Name": "Mailinator (spam.no-ip.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-ozh-org",
+    "Name": "Mailinator (spam.ozh.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-pyphus-org",
+    "Name": "Mailinator (spam.pyphus.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-shep-pw",
+    "Name": "Mailinator (spam.shep.pw)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-wtf-at",
+    "Name": "Mailinator (spam.wtf.at)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-wulczer-org",
+    "Name": "Mailinator (spam.wulczer.org)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "crap-kakadua-net",
+    "Name": "Mailinator (crap.kakadua.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "spam-janlugt-nl",
+    "Name": "Mailinator (spam.janlugt.nl)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "min-burningfish-net",
+    "Name": "Mailinator (min.burningfish.net)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "sink-fblay-com",
+    "Name": "Mailinator (sink.fblay.com)",
+    "Website": "mailinator.com"
+  },
+  {
+    "Channel": "tempgmailer",
+    "Name": "TempGmailer",
+    "Website": "tempgmailer.com"
+  },
+  {
+    "Channel": "temp-mail-org",
+    "Name": "Temp-Mail.org",
+    "Website": "temp-mail.org"
+  },
+  {
+    "Channel": "xkx-me",
+    "Name": "XKX.me",
+    "Website": "xkx.me"
+  },
+  {
+    "Channel": "gonebox-email",
+    "Name": "Gonebox Email",
+    "Website": "gonebox.email"
+  },
+  {
+    "Channel": "mailcat-ai",
+    "Name": "Mailcat AI",
+    "Website": "mailcat.ai"
+  },
+  {
+    "Channel": "tempgo-email",
+    "Name": "TempGo Email",
+    "Website": "tempgo.email"
+  },
+  {
+    "Channel": "restmail-net",
+    "Name": "Restmail.net",
+    "Website": "restmail.net"
+  },
+  {
+    "Channel": "dropmail-me",
+    "Name": "DropMail.me",
+    "Website": "dropmail.me"
+  },
+  {
+    "Channel": "ten-minute-mail-net",
+    "Name": "10MinuteMail.net",
+    "Website": "10minutemail.net"
+  }
+]

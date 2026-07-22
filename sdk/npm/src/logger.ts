@@ -87,6 +87,14 @@ export function setLogger(handler: LogHandler): void {
 }
 
 /**
+ * 获取当前生效的日志处理器
+ * 供 WebUI 等场景包裹（wrap）现有处理器时使用
+ */
+export function getLogger(): LogHandler {
+  return currentHandler;
+}
+
+/**
  * SDK 内部日志工具
  * 根据当前日志级别过滤输出
  */

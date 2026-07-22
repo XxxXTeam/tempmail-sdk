@@ -1,0 +1,29 @@
+{
+    "name": "chanhanzhan/tempmail-sdk",
+    "description": "临时邮箱 SDK（PHP 端），聚合 279 个第三方临时邮箱渠道，提供统一标准化邮件格式",
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "keywords": ["tempmail", "temporary-email", "disposable-email", "sdk"],
+    "require": {
+        "php": ">=8.1",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ChanhanzhanX\\TempMail\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ChanhanzhanX\\TempMail\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}

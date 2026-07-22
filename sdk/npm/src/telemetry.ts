@@ -56,9 +56,11 @@ function getFetchForTelemetry(): { fetchFn: typeof fetch } {
 function startPeriodicFlush(): void {
   if (periodicStarted) return;
   periodicStarted = true;
-  setInterval(() => {
+  const timer = setInterval(() => {
     void flushQueue();
   }, FLUSH_MS);
+  /* Node 下解除对事件循环的引用，避免仅因遥测定时器阻止进程退出 */
+  (timer as { unref?: () => void }).unref?.();
 }
 
 function scheduleDebouncedFlush(): void {

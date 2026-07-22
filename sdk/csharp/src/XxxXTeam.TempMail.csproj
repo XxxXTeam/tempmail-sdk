@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 目标框架 net8.0，与五端保持同源约束 -->
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>XxxXTeam.TempMail</RootNamespace>
+    <AssemblyName>XxxXTeam.TempMail</AssemblyName>
+
+    <!-- NuGet 打包元数据 -->
+    <PackageId>XxxXTeam.TempMail</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>XxxXTeam</Authors>
+    <Description>聚合 279 个第三方临时邮箱服务商的统一 .NET SDK，提供标准化邮件格式、渠道 fallback、代理/超时/TLS 配置与匿名遥测。</Description>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/XxxXTeam/tempmail-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/XxxXTeam/tempmail-sdk</RepositoryUrl>
+    <PackageTags>tempmail;temporary-email;disposable-email;email</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!-- ModuleInitializer 用于类库自动注册渠道，属预期用法，抑制 CA2255 提示 -->
+    <NoWarn>$(NoWarn);CA2255</NoWarn>
+  </PropertyGroup>
+
+</Project>

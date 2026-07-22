@@ -25,6 +25,20 @@ class RetryAttemptsResult(Generic[T]):
     error: Optional[BaseException] = None
 
 
+# 触发重试的网络级错误关键字，模块级常量避免每次判断重建列表
+_NETWORK_KEYWORDS = (
+    "connection",
+    "timeout",
+    "timed out",
+    "dns",
+    "eof",
+    "broken pipe",
+    "network is unreachable",
+    "refused",
+    "reset",
+)
+
+
 def _should_retry(error: Exception) -> bool:
     """
     判断错误是否应该重试
@@ -37,18 +51,7 @@ def _should_retry(error: Exception) -> bool:
     msg = str(error).lower()
 
     # 网络级别错误
-    network_keywords = [
-        "connection",
-        "timeout",
-        "timed out",
-        "dns",
-        "eof",
-        "broken pipe",
-        "network is unreachable",
-        "refused",
-        "reset",
-    ]
-    for kw in network_keywords:
+    for kw in _NETWORK_KEYWORDS:
         if kw in msg:
             return True
 

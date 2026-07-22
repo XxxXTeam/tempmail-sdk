@@ -3,6 +3,7 @@
  */
 
 #include "tempmail_internal.h"
+#include "webui.h"
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +11,74 @@
 
 #ifdef _WIN32
 #define strncasecmp _strnicmp
+#include <windows.h>
 #else
+#include <pthread.h>
 #include <strings.h>
 #endif
 
 /* 伪造来源 IP 随机种子初始化标志 */
 static int g_srand_init = 0;
+
+/* ========== 连接复用：跨请求共享 DNS 缓存与 TLS 会话（CURLSH） ==========
+ * SDK 常对同一 provider 主机连打多个请求，共享 DNS 与 TLS 会话可省去重复解析
+ * 与完整握手。仅共享 DNS 与 SSL 会话（不共享连接池），避免多线程连接争用。
+ */
+static CURLSH *g_curl_share = NULL;
+#ifdef _WIN32
+static CRITICAL_SECTION g_share_cs;
+#else
+static pthread_mutex_t g_share_mu = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+static void tm_share_lock_cb(CURL *h, curl_lock_data d, curl_lock_access a,
+                             void *u) {
+  (void)h;
+  (void)d;
+  (void)a;
+  (void)u;
+#ifdef _WIN32
+  EnterCriticalSection(&g_share_cs);
+#else
+  pthread_mutex_lock(&g_share_mu);
+#endif
+}
+
+static void tm_share_unlock_cb(CURL *h, curl_lock_data d, void *u) {
+  (void)h;
+  (void)d;
+  (void)u;
+#ifdef _WIN32
+  LeaveCriticalSection(&g_share_cs);
+#else
+  pthread_mutex_unlock(&g_share_mu);
+#endif
+}
+
+static void tm_http_share_init(void) {
+#ifdef _WIN32
+  InitializeCriticalSection(&g_share_cs);
+#endif
+  g_curl_share = curl_share_init();
+  if (g_curl_share) {
+    curl_share_setopt(g_curl_share, CURLSHOPT_LOCKFUNC, tm_share_lock_cb);
+    curl_share_setopt(g_curl_share, CURLSHOPT_UNLOCKFUNC, tm_share_unlock_cb);
+    curl_share_setopt(g_curl_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+    curl_share_setopt(g_curl_share, CURLSHOPT_SHARE,
+                      CURL_LOCK_DATA_SSL_SESSION);
+  }
+}
+
+static void tm_http_share_cleanup(void) {
+  if (g_curl_share) {
+    curl_share_cleanup(g_curl_share);
+    g_curl_share = NULL;
+  }
+#ifdef _WIN32
+  DeleteCriticalSection(&g_share_cs);
+#endif
+}
+
 
 /* ========== 全局配置 ========== */
 
@@ -181,6 +244,13 @@ tm_http_perform(tm_http_method_t method, const char *url, const char **headers,
           : (g_config.timeout_secs > 0 ? g_config.timeout_secs : 15);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)effective_timeout);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+  /* 复用共享的 DNS 缓存与 TLS 会话，减少重复解析与握手 */
+  if (g_curl_share) {
+    curl_easy_setopt(curl, CURLOPT_SHARE, g_curl_share);
+  }
+  /* 启用 TCP 保活与透明压缩（自动解压 gzip/deflate，减少传输与 realloc） */
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+  curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
   if (force_ipv4) {
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
   }
@@ -318,14 +388,18 @@ static void load_env_config(void) {
 
 void tm_init(void) {
   curl_global_init(CURL_GLOBAL_ALL);
+  tm_http_share_init();
   load_env_config();
   tm_vip215_module_init();
   tm_tempmail_cn_module_init();
+  tm_webui_maybe_start_from_env();
 }
 
 void tm_cleanup(void) {
+  tm_webui_stop();
   tm_telemetry_flush_batch();
   tm_vip215_module_cleanup();
   tm_tempmail_cn_module_cleanup();
+  tm_http_share_cleanup();
   curl_global_cleanup();
 }

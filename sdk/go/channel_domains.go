@@ -121,7 +121,7 @@ func filterChannelsByDomain(channels []Channel, targetDomains []string) []Channe
 		return channels
 	}
 
-	var filtered []Channel
+	filtered := make([]Channel, 0, len(channels))
 	for _, ch := range channels {
 		// 动态域名渠道默认保留
 		if dynamicDomainChannels[ch] {

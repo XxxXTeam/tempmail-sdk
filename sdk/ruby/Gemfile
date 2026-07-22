@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# 依赖声明来自 gemspec（仅标准库，无运行时第三方依赖）
+gemspec
+
+group :development do
+  gem "rake", ">= 13.0"
+end

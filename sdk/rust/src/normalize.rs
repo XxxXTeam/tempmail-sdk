@@ -126,16 +126,17 @@ fn html_to_text(src: &str) -> String {
     let mut i = 0;
     while i < src.len() {
         let rest = &src[i..];
-        let lower = rest.to_ascii_lowercase();
-        if lower.starts_with("<script") {
-            in_script = true;
-            in_tag = true;
-        }
-        if in_script && lower.starts_with("</script") {
-            in_script = false;
-        }
         let ch = rest.chars().next().unwrap_or(' ');
+        /* 仅在标签起始字符处做定长切片比较，避免每次迭代对剩余全文 lowercase（原 O(n²)） */
         if ch == '<' {
+            if rest.len() >= 7 && rest.as_bytes()[..7].eq_ignore_ascii_case(b"<script") {
+                in_script = true;
+            } else if in_script
+                && rest.len() >= 8
+                && rest.as_bytes()[..8].eq_ignore_ascii_case(b"</script")
+            {
+                in_script = false;
+            }
             in_tag = true;
             out.push(' ');
         } else if ch == '>' {

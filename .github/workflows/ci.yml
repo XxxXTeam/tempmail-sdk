@@ -16,7 +16,6 @@ permissions:
   contents: read
 
 jobs:
-  # Go SDK 构建检查
   go-build:
     name: Go SDK (Go ${{ matrix.go-version }})
     runs-on: ubuntu-latest
@@ -53,8 +52,6 @@ jobs:
       - name: 构建 example
         working-directory: sdk/go/example
         run: go build -o /dev/null .
-
-  # Node.js SDK 构建检查
   npm-build:
     name: Node.js SDK (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -94,8 +91,6 @@ jobs:
           fi
           echo "构建产物验证通过"
           ls -la dist/
-
-  # Rust SDK 构建检查
   rust-build:
     name: Rust SDK (Rust ${{ matrix.rust-version }})
     runs-on: ubuntu-latest
@@ -136,8 +131,6 @@ jobs:
       - name: 运行测试
         run: cargo test
         continue-on-error: true
-
-  # Python SDK 构建检查
   python-build:
     name: Python SDK (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
@@ -169,8 +162,6 @@ jobs:
         run: |
           ls -la dist/
           echo "构建产物验证通过"
-
-  # C SDK 构建检查
   c-build:
     name: C SDK (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -223,8 +214,224 @@ jobs:
           $toolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT 'scripts/buildsystems/vcpkg.cmake'
           cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$toolchain" -A x64
           cmake --build build --config Release
+  php-build:
+    name: PHP SDK (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+    defaults:
+      run:
+        working-directory: sdk/php
 
-  # 手动触发：打 npm tgz / Python wheel 等测试版产物（不上传 registry）
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 PHP 环境
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+
+      - name: 安装依赖
+        run: composer install --no-interaction --prefer-dist
+
+      - name: 语法检查
+        run: find src -name "*.php" -exec php -l {} \; | grep -v "No syntax errors"
+
+      - name: 自动加载验证
+        run: composer dump-autoload --strict
+
+      - name: 渠道加载验证
+        run: php -r "require 'vendor/autoload.php'; echo count(\ChanhanzhanX\TempMail\Registry::listChannels()) . ' channels\n';"
+  csharp-build:
+    name: C# SDK (.NET ${{ matrix.dotnet-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['8.0']
+    defaults:
+      run:
+        working-directory: sdk/csharp/src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 .NET 环境
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 还原依赖
+        run: dotnet restore
+
+      - name: 构建
+        run: dotnet build --no-restore -c Release
+
+      - name: 打包验证
+        run: dotnet pack --no-build -c Release
+  ruby-build:
+    name: Ruby SDK (Ruby ${{ matrix.ruby-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['3.0', '3.2', '3.3']
+    defaults:
+      run:
+        working-directory: sdk/ruby
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Ruby 环境
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: 语法检查
+        run: find lib -name "*.rb" -exec ruby -c {} \; | grep -v "Syntax OK"
+
+      - name: 加载验证
+        run: ruby -e "require_relative 'lib/tempmail_sdk'; puts TempmailSdk::Registry::REGISTRY.size.to_s + ' channels'"
+
+      - name: 构建 gem
+        run: gem build tempmail_sdk.gemspec
+  java-build:
+    name: Java SDK (Java ${{ matrix.java-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ['17', '21']
+    defaults:
+      run:
+        working-directory: sdk/java
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Java 环境
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: 编译
+        run: mvn compile -B -q
+
+      - name: 运行测试
+        run: mvn test -B
+        continue-on-error: true
+
+      - name: 打包 JAR
+        run: mvn package -B -q -DskipTests
+  kotlin-build:
+    name: Kotlin SDK (Java ${{ matrix.java-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ['17', '21']
+    defaults:
+      run:
+        working-directory: sdk/kotlin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Java 环境
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+
+      - name: 缓存 Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sdk/kotlin/gradle/wrapper/gradle-wrapper.properties', 'sdk/kotlin/build.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: 构建
+        run: ./gradlew build
+
+      - name: 打包 JAR
+        run: ./gradlew jar
+  channel-alignment:
+    name: 十端渠道对齐校验
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 校验各端渠道数量与顺序
+        run: |
+          BASELINE=".baseline_channels.txt"
+          EXPECTED=$(wc -l < "$BASELINE" | tr -d ' ')
+          echo "基线渠道数: $EXPECTED"
+          FAIL=0
+
+          # npm
+          awk '/registerChannel\(\{/{flag=1} flag && /channel:/{match($0, /channel:[[:space:]]*"([^"]+)"/, m); if(m[1]!="") print m[1]; flag=0}' sdk/npm/src/registry_channels.ts > /tmp/npm_ch.txt
+          if ! diff -q "$BASELINE" /tmp/npm_ch.txt >/dev/null 2>&1; then
+            echo "::error::npm 渠道不一致"; FAIL=1
+          else
+            echo "✓ npm $(wc -l < /tmp/npm_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # python
+          grep -oP 'channel="([^"]+)"' sdk/python/tempmail_sdk/registry.py | sed 's/channel="//;s/"//' > /tmp/python_ch.txt
+          if ! diff -q "$BASELINE" /tmp/python_ch.txt >/dev/null 2>&1; then
+            echo "::error::python 渠道不一致"; FAIL=1
+          else
+            echo "✓ python $(wc -l < /tmp/python_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # csharp
+          grep -oP 'Channel\s*=\s*"([^"]+)"' sdk/csharp/src/RegistryChannels.cs | sed 's/Channel *= *"//;s/"//' > /tmp/csharp_ch.txt
+          if ! diff -q "$BASELINE" /tmp/csharp_ch.txt >/dev/null 2>&1; then
+            echo "::error::csharp 渠道不一致"; FAIL=1
+          else
+            echo "✓ csharp $(wc -l < /tmp/csharp_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # ruby
+          grep -oP '=\s*"([^"]+)"' sdk/ruby/lib/tempmail_sdk/channels.rb | sed 's/= *"//;s/"//' > /tmp/ruby_ch.txt
+          if ! diff -q "$BASELINE" /tmp/ruby_ch.txt >/dev/null 2>&1; then
+            echo "::error::ruby 渠道不一致"; FAIL=1
+          else
+            echo "✓ ruby $(wc -l < /tmp/ruby_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # php
+          grep -oP '^\s*\["([^"]+)"' sdk/php/src/ChannelData.php | sed 's/.*\["//;s/"//' > /tmp/php_ch.txt
+          if ! diff -q "$BASELINE" /tmp/php_ch.txt >/dev/null 2>&1; then
+            echo "::error::php 渠道不一致"; FAIL=1
+          else
+            echo "✓ php $(wc -l < /tmp/php_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # kotlin
+          grep -oP 'ChannelSpec\("([^"]+)"' sdk/kotlin/src/main/kotlin/com/xxxxteam/tempmail/RegistryChannels.kt | sed 's/ChannelSpec("//;s/"//' > /tmp/kotlin_ch.txt
+          if ! diff -q "$BASELINE" /tmp/kotlin_ch.txt >/dev/null 2>&1; then
+            echo "::error::kotlin 渠道不一致"; FAIL=1
+          else
+            echo "✓ kotlin $(wc -l < /tmp/kotlin_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          # java
+          awk '/Registry\.register\(new ChannelSpec\(/{flag=1;next} flag{match($0,/"([^"]+)"/,m); if(m[1]!="") print m[1]; flag=0}' sdk/java/src/main/java/com/xxxxteam/tempmail/RegistryChannels.java > /tmp/java_ch.txt
+          if ! diff -q "$BASELINE" /tmp/java_ch.txt >/dev/null 2>&1; then
+            echo "::error::java 渠道不一致"; FAIL=1
+          else
+            echo "✓ java $(wc -l < /tmp/java_ch.txt | tr -d ' ')/$EXPECTED"
+          fi
+
+          if [ $FAIL -ne 0 ]; then
+            echo "::error::渠道对齐校验失败"
+            exit 1
+          fi
+          echo "十端渠道对齐校验全部通过 ($EXPECTED channels)"
   prerelease-artifacts:
     name: 测试版包产物（workflow_dispatch）
     if: github.event_name == 'workflow_dispatch'
@@ -242,6 +449,29 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: 设置 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: 设置 Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: 设置 .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: 设置 Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
       - name: 构建 npm 包（tgz）
         working-directory: sdk/npm
         run: |
@@ -252,11 +482,6 @@ jobs:
           mkdir -p ../_artifact_npm
           mv *.tgz ../_artifact_npm/
 
-      - name: 打包 npm dist 目录（便于本地链式引用）
-        working-directory: sdk/npm
-        run: |
-          zip -r ../_artifact_npm/npm-dist.zip dist package.json README.md 2>/dev/null || zip -r ../_artifact_npm/npm-dist.zip dist package.json
-
       - name: 构建 Python wheel / sdist
         working-directory: sdk/python
         run: |
@@ -266,6 +491,42 @@ jobs:
           python -m build
           mkdir -p ../_artifact_python
           cp dist/* ../_artifact_python/
+
+      - name: 构建 PHP 包（composer archive）
+        working-directory: sdk/php
+        run: |
+          composer install --no-interaction --prefer-dist
+          composer archive --format=zip --file=tempmail-sdk-php
+          mkdir -p ../_artifact_php
+          mv tempmail-sdk-php.zip ../_artifact_php/
+
+      - name: 构建 Ruby gem
+        working-directory: sdk/ruby
+        run: |
+          gem build tempmail_sdk.gemspec
+          mkdir -p ../_artifact_ruby
+          mv *.gem ../_artifact_ruby/
+
+      - name: 构建 C# NuGet 包
+        working-directory: sdk/csharp/src
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+          dotnet pack --no-build -c Release -o ../_artifact_csharp
+
+      - name: 构建 Java JAR
+        working-directory: sdk/java
+        run: |
+          mvn package -B -q -DskipTests
+          mkdir -p ../_artifact_java
+          cp target/*.jar ../_artifact_java/
+
+      - name: 构建 Kotlin JAR
+        working-directory: sdk/kotlin
+        run: |
+          ./gradlew jar
+          mkdir -p ../_artifact_kotlin
+          cp build/libs/*.jar ../_artifact_kotlin/
 
       - name: 上传 npm 测试版产物
         uses: actions/upload-artifact@v4
@@ -278,3 +539,33 @@ jobs:
         with:
           name: prerelease-python-${{ github.run_number }}
           path: sdk/_artifact_python/*
+
+      - name: 上传 PHP 测试版产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerelease-php-${{ github.run_number }}
+          path: sdk/_artifact_php/*
+
+      - name: 上传 Ruby 测试版产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerelease-ruby-${{ github.run_number }}
+          path: sdk/_artifact_ruby/*
+
+      - name: 上传 C# 测试版产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerelease-csharp-${{ github.run_number }}
+          path: sdk/csharp/_artifact_csharp/*
+
+      - name: 上传 Java 测试版产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerelease-java-${{ github.run_number }}
+          path: sdk/_artifact_java/*
+
+      - name: 上传 Kotlin 测试版产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerelease-kotlin-${{ github.run_number }}
+          path: sdk/_artifact_kotlin/*

@@ -1,360 +1,80 @@
-# 临时邮箱 SDK
+# TempMail SDK
+
+[English](README.md) | [中文](README.zh-CN.md)
 
 [![CI](https://github.com/XxxXTeam/tempmail-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/XxxXTeam/tempmail-sdk/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![Go Reference](https://pkg.go.dev/badge/github.com/XxxXTeam/tempmail-sdk/sdk/go.svg)](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go)
 [![PyPI version](https://badge.fury.io/py/tempemail-sdk.svg)](https://pypi.org/project/tempemail-sdk/)
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
+[![NuGet](https://img.shields.io/nuget/v/XxxXTeam.TempMail.svg)](https://www.nuget.org/packages/XxxXTeam.TempMail/)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.xxxxteam/tempmail-sdk.svg)](https://central.sonatype.com/artifact/io.github.xxxxteam/tempmail-sdk)
+[![Gem Version](https://badge.fury.io/rb/tempmail_sdk.svg)](https://rubygems.org/gems/tempmail_sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-五端 SDK（**Go、npm、Rust、Python、C**）共同公开 **279** 个 `channel` 标识，按独立服务商合并为约 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。下表为五端共同顺序（与 Go `allChannels` 对齐）。C 语言中 `tm_list_channels()` 返回顺序亦与下表一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+A ten-language temporary-email SDK (**Go, npm, Rust, Python, C, Java, C#, Ruby, PHP, Kotlin**) that exposes **279** `channel` identifiers, consolidated into roughly **110** independent providers. Fixed domains, bare domains, mirror domains and multiple domains of the same API all count as a single provider. Every SDK shares the same channel identifier strings, count and order (aligned with `.baseline_channels.txt`). All channels return a **unified, normalized email format**, so you never have to deal with the differences between individual upstream APIs.
 
-## ✨ 特性
+## ✨ Features
 
-- 🌐 **五端共同公开 279 个 `channel` 标识，合并为约 109 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
-- 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
-- 📦 提供 Go、npm、Rust、Python、C 五种 SDK
-- 🔄 支持邮箱生成和邮件轮询
-- 📝 完整的类型定义（TypeScript / Rust / Go）
-- 🚀 简单易用的 API，开箱即用
-- 🔌 Token/Session 自动管理（使用 Client 类）
-- 🔁 创建邮箱 / 拉取邮件支持可配置 **HTTP 重试**（退避与最大次数等，各语言字段见子目录 README）
-- 📊 **匿名遥测**默认开启：批量上报操作成败与重试元数据（不含邮件内容，错误串中的邮箱会脱敏），可用环境变量或全局配置关闭或改端点
-- 🏗️ 多平台预编译二进制（Go / Rust / C）
-- 📡 所有包均可通过 GitHub 托管安装，无需第三方注册表
+- 🌐 **279 `channel` identifiers shared across all ten SDKs, consolidated into ~110 independent providers** — identifier strings, count and list order are identical on every platform (aligned with `.baseline_channels.txt`)
+- 📐 **Unified normalized response format** — the email data structure is identical regardless of channel
+- 📦 Ten SDKs: Go, npm (TypeScript), Rust, Python, C, Java, C#, Ruby, PHP, Kotlin
+- 🔄 Email generation and inbox polling
+- 📝 Full type definitions (TypeScript / Rust / Go / Java / C# / Kotlin)
+- 🚀 Simple, ready-to-use API
+- 🔌 Automatic token/session management (via the Client class)
+- 🔁 Configurable **HTTP retry** for both email creation and inbox polling (backoff, max attempts, etc.; see each SDK's README for field names)
+- 📊 **Anonymous telemetry** enabled by default: batches operation outcomes and retry metadata (no email content; email addresses in error strings are redacted); can be disabled or repointed via environment variable or global config
+- 🏗️ Multi-platform prebuilt binaries (Go / Rust / C)
+- 📡 All packages installable from public registries and GitHub
 
-## 📋 支持的渠道
+## 📋 Supported Channels
 
-下列顺序为 Go、Rust、Python、C 与 npm 的公共列表顺序。只要求五端公共渠道集合、数量与 `listChannels` / `ListChannels` / `list_channels` / `tm_list_channels()` 返回顺序一致；随机生成邮箱时，各 SDK 会在本端独立打乱尝试顺序，不需要、也不承诺跨 SDK 随机顺序一致。渠道统计以独立服务商为准，同一 provider 的固定域名、裸域、镜像域名和同 API 多域名不重复计入服务商数量。若上游按设备标识限制连续生成，且真实验证确认同一设备连续生成后返回 429，对应 provider 可以在每次生成邮箱时创建新的设备 ID，并把该邮箱对应的设备 ID 存入内部 Token/Session，后续收件继续使用同一个设备 ID。
+All SDKs share the same public channel set, count and list order (returned by `listChannels` / `ListChannels` / `list_channels` / `tm_list_channels()` and their equivalents). When generating a random email, each SDK independently shuffles its own attempt order — cross-SDK random order is neither required nor promised. Channel counts are measured by independent provider: fixed domains, bare domains, mirror domains and multiple domains of the same API are not counted separately.
 
-| 渠道 | 服务商 | 认证方式 | 说明 |
-|------|--------|----------|------|
-| `tempmail` | [tempmail.ing](https://tempmail.ing) | 邮箱地址 | 支持自定义有效期 |
-| `tempmail-cn` | [tempmail.cn](https://tempmail.cn) | 邮箱地址 | Socket.IO 事件协议：`request shortid` / `set shortid` / `mail`；`domain` 可指定 `tempmail.cn` 或已解析到该服务的自定义域名 |
-| `ta-easy` | [ta-easy.com](https://www.ta-easy.com) | Token（会话 UUID） | `POST https://api-endpoint.ta-easy.com/temp-email/address/new` 建址；`POST .../temp-email/inbox/list` 拉信；`expiresAt` 为毫秒时间戳；上游字段如 `mail_sender` / `mail_title` / `mail_body_*` 由 SDK 归一化到统一 `Email` |
-| `10minute-one` | [10minutemail.one](https://10minutemail.one) | Token | 站点 SSR / JWT + Web API 建邮与收信；`domain` 可选接入参数（见各 SDK 说明） |
-| `xghff-com` | [xghff.com](https://xghff.com) | Token | 10minutemail.one API 固定域名 `xghff.com`；生成和收信接口与 `10minute-one` 相同 |
-| `oqqaj-com` | [oqqaj.com](https://oqqaj.com) | Token | 10minutemail.one API 固定域名 `oqqaj.com`；生成和收信接口与 `10minute-one` 相同 |
-| `psovv-com` | [psovv.com](https://psovv.com) | Token | 10minutemail.one API 固定域名 `psovv.com`；生成和收信接口与 `10minute-one` 相同 |
-| `dbwot-com` | [dbwot.com](https://dbwot.com) | Token | 10minutemail.one API 固定域名 `dbwot.com`；生成和收信接口与 `10minute-one` 相同 |
-| `ygwpr-com` | [ygwpr.com](https://ygwpr.com) | Token | 10minutemail.one API 固定域名 `ygwpr.com`；生成和收信接口与 `10minute-one` 相同 |
-| `imxwe-com` | [imxwe.com](https://imxwe.com) | Token | 10minutemail.one API 固定域名 `imxwe.com`；生成和收信接口与 `10minute-one` 相同 |
-| `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token（`NEXUS_TOKEN`） | 创建邮箱时 Set-Cookie 下发 `NEXUS_TOKEN`；收信需携带该 Token 与 `tmail-emails` 等 Cookie；列表与正文由 HTML 分段 / iframe 解析 |
-| `mffac` | [mffac.com](https://www.mffac.com) | Token（mailbox `id`） | REST：`POST /api/mailboxes` 创建，`GET /api/mailboxes/{local}/emails` 列表，`GET /api/emails/{id}` 详情；详情 `textContent` / `htmlContent` 映射为统一正文；默认 24h |
-| `tempmail-lol` | [tempmail.lol](https://tempmail.lol) | Token | 支持指定域名 |
-| `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | Inbox Token | 官网在 HTML 注入 `__BROWSER_AUTH`；npm 已随首页一并解析并用于创建邮箱 |
-| `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3`；生成接口返回的 token 由 SDK 内部维护 |
-| `mail-cx` | [mail.cx](https://mail.cx) | Client ID | 匿名 Web API：`GET /v1/config` 获取系统域名，隐式邮箱地址 `{local}@{domain}`；`GET /v1/inbox/{email}` 长轮询收信，详情通过 `/v1/email/{id}` 拉取 |
-| `ddker-com` | [ddker.com](https://ddker.com) | Client ID | mail.cx API 固定域名 `ddker.com`；生成和收信接口与 `mail-cx` 相同 |
-| `catchmail` | [catchmail.io](https://catchmail.io) | - | 公开 REST：`GET api.catchmail.io/api/v1/mailbox?address=` 列表，`GET /message/{id}?mailbox=` 详情；详情 `body.text` / `body.html` 映射为统一 `text` / `html` |
-| `catchmail-mailistry` | [mailistry.com](https://mailistry.com) | - | Catchmail API 固定域名 `mailistry.com`；收信接口与 `catchmail` 相同 |
-| `catchmail-zeppost` | [zeppost.com](https://zeppost.com) | - | Catchmail API 固定域名 `zeppost.com`；收信接口与 `catchmail` 相同 |
-| `mailforspam` | [mailforspam.com](https://mailforspam.com) | - | 公开 REST：`GET api.mailforspam.com/api/mailboxes/{email}/emails` 列表，`GET /api/mailboxes/{email}/emails/{id}` 详情；详情 `body_text` / `body_html` 映射为统一 `text` / `html` |
-| `mailforspam-tempmail-io` | [tempmail.io](https://tempmail.io) | - | MailForSpam API 固定域名 `tempmail.io`；收信接口与 `mailforspam` 相同 |
-| `mailforspam-disposable` | [disposable.email](https://disposable.email) | - | MailForSpam API 固定域名 `disposable.email`；收信接口与 `mailforspam` 相同 |
-| `tempmailc` | [tempmailc.com](https://tempmailc.com) | - | Public API：`GET /api/v1/new` 建址，`GET /api/v1/inbox` 拉列表，`GET /api/v1/message` 读取 `text` / `html` 正文 |
-| `mailnesia` | [mailnesia.com](https://mailnesia.com) | - | 任意 `{local}@mailnesia.com` 建址；`GET /mailbox/{local}` 解析 `tr.emailheader` 列表，`GET /mailbox/{local}/{id}` 读取 `text_plain_{id}` / `text_html_{id}` 正文 |
-| `throwawaymail` | [throwawaymail.app](https://throwawaymail.app) | Token | Web API 建址并轮询收信；Token 由 SDK 内部维护 |
-| `shitty-email` | [shitty.email](https://shitty.email) | Token | `POST /api/inbox` 建址；`X-Session-Token` + `GET /api/inbox` 拉列表，`GET /api/email/{id}` 读取 `text` / `html` 正文 |
-| `tempmailpro` | [tempmailpro.us](https://tempmailpro.us) | Token | `POST /api/v1/mailbox/create` 建箱；`GET /api/v1/mailbox/{token}/emails` 拉列表，详情字段 `body_text` / `body_html` 映射统一正文 |
-| `devmail-uk` | [devmail.uk](https://devmail.uk) | 邮箱地址 | `GET /api/new` 建址；`GET /api/inbox/{mailbox}?detail=true` 拉列表；生成接口返回的 `email` / `mailbox` 字段均兼容解析 |
-| `inboxkitten` | [inboxkitten.com](https://inboxkitten.com) | - | 公开 API 拉取收件箱列表与详情 |
-| `cleantempmail` | [cleantempmail.com](https://cleantempmail.com) | 邮箱地址 | `GET /api/generate-email` 建址；`GET /api/emails?email=` 拉列表；公开 API 通过 `X-API-Key` 头访问 |
-| `getnada` | [getnada.net](https://getnada.net) | Token | `POST /api/inbox/open` 建箱；`GET /api/inbox/messages` 列表；`GET /api/inbox/message` 详情含 `text_plain` / `html_sanitized` |
-| `1vpn-net` | [1vpn.net](https://1vpn.net) | Token | GetNada 固定域名 `1vpn.net`；收信接口与 `getnada` 相同 |
-| `abematv-com` | [abematv.com](https://abematv.com) | Token | GetNada 固定域名 `abematv.com`；收信接口与 `getnada` 相同 |
-| `abematv-net` | [abematv.net](https://abematv.net) | Token | GetNada 固定域名 `abematv.net`；收信接口与 `getnada` 相同 |
-| `abematv-org` | [abematv.org](https://abematv.org) | Token | GetNada 固定域名 `abematv.org`；收信接口与 `getnada` 相同 |
-| `aceh-cc` | [aceh.cc](https://aceh.cc) | Token | GetNada 固定域名 `aceh.cc`；收信接口与 `getnada` 相同 |
-| `bangkabelitung-net` | [bangkabelitung.net](https://bangkabelitung.net) | Token | GetNada 固定域名 `bangkabelitung.net`；收信接口与 `getnada` 相同 |
-| `cctruyen-com` | [cctruyen.com](https://cctruyen.com) | Token | GetNada 固定域名 `cctruyen.com`；收信接口与 `getnada` 相同 |
-| `getnada-com` | [getnada.com](https://getnada.com) | Token | GetNada 固定域名 `getnada.com`；收信接口与 `getnada` 相同 |
-| `getnada-email` | [getnada.email](https://getnada.email) | Token | GetNada 固定域名 `getnada.email`；收信接口与 `getnada` 相同 |
-| `getnada-net` | [getnada.net](https://getnada.net) | Token | GetNada 固定域名 `getnada.net`；收信接口与 `getnada` 相同 |
-| `jawatengah-net` | [jawatengah.net](https://jawatengah.net) | Token | GetNada 固定域名 `jawatengah.net`；收信接口与 `getnada` 相同 |
-| `jawatimur-net` | [jawatimur.net](https://jawatimur.net) | Token | GetNada 固定域名 `jawatimur.net`；收信接口与 `getnada` 相同 |
-| `kalimantanbarat-net` | [kalimantanbarat.net](https://kalimantanbarat.net) | Token | GetNada 固定域名 `kalimantanbarat.net`；收信接口与 `getnada` 相同 |
-| `kalimantanselatan-net` | [kalimantanselatan.net](https://kalimantanselatan.net) | Token | GetNada 固定域名 `kalimantanselatan.net`；收信接口与 `getnada` 相同 |
-| `kalimantantengah-net` | [kalimantantengah.net](https://kalimantantengah.net) | Token | GetNada 固定域名 `kalimantantengah.net`；收信接口与 `getnada` 相同 |
-| `kalimantantimur-net` | [kalimantantimur.net](https://kalimantantimur.net) | Token | GetNada 固定域名 `kalimantantimur.net`；收信接口与 `getnada` 相同 |
-| `kalimantanutara-net` | [kalimantanutara.net](https://kalimantanutara.net) | Token | GetNada 固定域名 `kalimantanutara.net`；收信接口与 `getnada` 相同 |
-| `kepulauanriau-net` | [kepulauanriau.net](https://kepulauanriau.net) | Token | GetNada 固定域名 `kepulauanriau.net`；收信接口与 `getnada` 相同 |
-| `luxury345-com` | [luxury345.com](https://luxury345.com) | Token | GetNada 固定域名 `luxury345.com`；收信接口与 `getnada` 相同 |
-| `malukuutara-net` | [malukuutara.net](https://malukuutara.net) | Token | GetNada 固定域名 `malukuutara.net`；收信接口与 `getnada` 相同 |
-| `nusatenggarabarat-net` | [nusatenggarabarat.net](https://nusatenggarabarat.net) | Token | GetNada 固定域名 `nusatenggarabarat.net`；收信接口与 `getnada` 相同 |
-| `nusatenggaratimur-net` | [nusatenggaratimur.net](https://nusatenggaratimur.net) | Token | GetNada 固定域名 `nusatenggaratimur.net`；收信接口与 `getnada` 相同 |
-| `papuabarat-net` | [papuabarat.net](https://papuabarat.net) | Token | GetNada 固定域名 `papuabarat.net`；收信接口与 `getnada` 相同 |
-| `papuabaratdaya-net` | [papuabaratdaya.net](https://papuabaratdaya.net) | Token | GetNada 固定域名 `papuabaratdaya.net`；收信接口与 `getnada` 相同 |
-| `papuaselatan-net` | [papuaselatan.net](https://papuaselatan.net) | Token | GetNada 固定域名 `papuaselatan.net`；收信接口与 `getnada` 相同 |
-| `pehol-com` | [pehol.com](https://pehol.com) | Token | GetNada 固定域名 `pehol.com`；收信接口与 `getnada` 相同 |
-| `ptruyen-com` | [ptruyen.com](https://ptruyen.com) | Token | GetNada 固定域名 `ptruyen.com`；收信接口与 `getnada` 相同 |
-| `pulaubali-net` | [pulaubali.net](https://pulaubali.net) | Token | GetNada 固定域名 `pulaubali.net`；收信接口与 `getnada` 相同 |
-| `riau-net` | [riau.net](https://riau.net) | Token | GetNada 固定域名 `riau.net`；收信接口与 `getnada` 相同 |
-| `seokey-org` | [seokey.org](https://seokey.org) | Token | GetNada 固定域名 `seokey.org`；收信接口与 `getnada` 相同 |
-| `sulawesibarat-net` | [sulawesibarat.net](https://sulawesibarat.net) | Token | GetNada 固定域名 `sulawesibarat.net`；收信接口与 `getnada` 相同 |
-| `sulawesiselatan-net` | [sulawesiselatan.net](https://sulawesiselatan.net) | Token | GetNada 固定域名 `sulawesiselatan.net`；收信接口与 `getnada` 相同 |
-| `sulawesitengah-net` | [sulawesitengah.net](https://sulawesitengah.net) | Token | GetNada 固定域名 `sulawesitengah.net`；收信接口与 `getnada` 相同 |
-| `sulawesitenggara-net` | [sulawesitenggara.net](https://sulawesitenggara.net) | Token | GetNada 固定域名 `sulawesitenggara.net`；收信接口与 `getnada` 相同 |
-| `sumaterabarat-net` | [sumaterabarat.net](https://sumaterabarat.net) | Token | GetNada 固定域名 `sumaterabarat.net`；收信接口与 `getnada` 相同 |
-| `sumateraselatan-net` | [sumateraselatan.net](https://sumateraselatan.net) | Token | GetNada 固定域名 `sumateraselatan.net`；收信接口与 `getnada` 相同 |
-| `sumaterautara-net` | [sumaterautara.net](https://sumaterautara.net) | Token | GetNada 固定域名 `sumaterautara.net`；收信接口与 `getnada` 相同 |
-| `villatogel-com` | [villatogel.com](https://villatogel.com) | Token | GetNada 固定域名 `villatogel.com`；收信接口与 `getnada` 相同 |
-| `mail123` | [mail123.fr](https://mail123.fr) | - | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
-| `mail10s` | [mail10s.com](https://mail10s.com) | - | 任意随机地址；`GET /api/emails/{email}/inbox` 公开 inbox API；`body_text` / `body_html` 映射统一正文 |
-| `webmailtemp` | [webmailtemp.com](https://webmailtemp.com) | Token（会话 Cookie + username） | `GET /api/create` 建箱；`GET /api/check/{username}` 收信；30 分钟 TTL |
-| `tempfastmail` | [tempfastmail.com](https://tempfastmail.com) | Token（邮箱 UUID） | `POST /api/email-box` 建箱；`GET /api/email-box/{uuid}/emails` 列表；详情 `html` 由 normalize 派生 `text` |
-| `1sec-mail` | [tmaily.com](https://tmaily.com) | Token | `GET /generate` 取地址；从 `Set-Cookie` 提取 `TMaily_sid`；`GET /emails?address=` 拉列表，详情由 `body_text` / `html` 映射，缺失正文由 normalize 反向生成 |
-| `fakemail` | [fakemail.net](https://fakemail.net) | Token | `/index/index` 建址，`/index/refresh` 拉列表，`/index/email` 详情；`telo` HTML 正文映射为统一 `html` |
-| `openinbox` | [openinbox.io](https://openinbox.io) | Token | `POST /api/inbox` 建箱；`GET /emails/inbox/{id}` 列表；`GET /emails/{emailId}` 详情含 `textBody` / `htmlBody` |
-| `inboxes` | [inboxes.com](https://inboxes.com) | - | 公开 v2：`GET /api/v2/domain` 域名，`GET /api/v2/inbox/{email}` 列表，`GET /api/v2/message/{uid}` 详情含 `text` / `html` |
-| `uncorreotemporal` | [uncorreotemporal.com](https://uncorreotemporal.com) | Token（`X-Session-Token`） | `POST /api/v1/mailboxes` 建箱；`GET /api/v1/mailboxes/{address}/messages` 列表；详情含 `body_text` / `body_html` |
-| `awamail` | [awamail.com](https://awamail.com) | Session Cookie | 自动提取 Cookie |
-| `mail-tm` | [mail.tm](https://mail.tm) / [api.mail.tm](https://api.mail.tm) | Bearer Token | REST API，自动注册账号；npm 实现与 **Internxt** 等前端一致（如 `GET /domains?page=1`、常见浏览器请求头） |
-| `web-library-net` | [web-library.net](https://web-library.net) | Bearer Token | mail.tm API 固定域名 `web-library.net`；账号、登录、收信接口与 `mail-tm` 相同 |
+Below are 30 representative channels. The complete list of all 279 identifiers is in [`.baseline_channels.txt`](.baseline_channels.txt).
+
+<details>
+<summary>Show 30 representative channels</summary>
+
+| Channel | Provider | Auth | Notes |
+|---------|----------|------|-------|
+| `tempmail` | [tempmail.ing](https://tempmail.ing) | Email address | Supports custom expiry |
+| `tempmail-cn` | [tempmail.cn](https://tempmail.cn) | Email address | Socket.IO event protocol; `domain` may be `tempmail.cn` or a custom domain resolving to the service |
+| `ta-easy` | [ta-easy.com](https://www.ta-easy.com) | Token (session UUID) | REST create/list; upstream fields such as `mail_sender` / `mail_title` / `mail_body_*` are normalized into the unified `Email` |
+| `10minute-one` | [10minutemail.one](https://10minutemail.one) | Token | SSR/JWT + Web API create and receive; `domain` is an optional parameter |
+| `linshiyou` | [linshiyou.com](https://linshiyou.com) | Token (`NEXUS_TOKEN`) | `NEXUS_TOKEN` issued via Set-Cookie on creation; inbox and body parsed from HTML segments / iframe |
+| `mffac` | [mffac.com](https://www.mffac.com) | Token (mailbox `id`) | REST create/list/detail; `textContent` / `htmlContent` mapped to unified body; 24h default |
+| `tempmail-lol` | [tempmail.lol](https://tempmail.lol) | Token | Supports specifying a domain |
+| `chatgpt-org-uk` | [mail.chatgpt.org.uk](https://mail.chatgpt.org.uk) | Inbox token | Site injects `__BROWSER_AUTH` into the HTML, parsed and used to create the mailbox |
+| `temp-mail-io` | [temp-mail.io](https://temp-mail.io) | Token | REST via `api.internal.temp-mail.io/api/v3`; token maintained internally by the SDK |
+| `mail-cx` | [mail.cx](https://mail.cx) | Client ID | Anonymous Web API; implicit address `{local}@{domain}`, long-poll inbox |
+| `catchmail` | [catchmail.io](https://catchmail.io) | - | Public REST; `body.text` / `body.html` mapped to unified `text` / `html` |
+| `mailforspam` | [mailforspam.com](https://mailforspam.com) | - | Public REST; `body_text` / `body_html` mapped to unified `text` / `html` |
+| `tempmailc` | [tempmailc.com](https://tempmailc.com) | - | Public API `GET /api/v1/new` create, `.../inbox` list, `.../message` body |
+| `mailnesia` | [mailnesia.com](https://mailnesia.com) | - | Any `{local}@mailnesia.com`; inbox and body parsed from HTML |
+| `throwawaymail` | [throwawaymail.app](https://throwawaymail.app) | Token | Web API create and poll; token maintained internally |
+| `mail-tm` | [mail.tm](https://mail.tm) | Bearer token | REST API with automatic account registration |
 | `dropmail` | [dropmail.me](https://dropmail.me) | Session ID | GraphQL API |
-| `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | 公开 JSON API |
-| `guerrillamail-com` | [guerrillamail.com](https://guerrillamail.com) | Session | GuerrillaMail 裸域 JSON API 入口 |
-| `maildrop` | [maildrop.cx](https://maildrop.cx) | Token（完整邮箱） | REST：`GET /api/suffixes.php` 获取后缀，**排除** `transformer.edu.kg`，再随机生成本地部分；可选 `domain` 指定后缀（须仍在列表中）；`GET /api/emails.php?addr=` 拉列表；列表字段 `description` 映射为统一结构中的 `text`，无单封 MIME/HTML 全文 |
-| `smail-pw` | [smail.pw](https://smail.pw) | `__session` Cookie | React Router `_root.data`（RSC/Flight）；列表侧为元数据，**npm / Python** 已解析 D1 行对象与引用下标 |
-| `vip-215` | [vip.215.im](https://vip.215.im) | WebSocket Token | `POST` 建箱 + `wss` 收 `message.new`；推送无正文时各 SDK 使用 **synthetic-v1** 统一生成 `text` / `html`（C 收信依赖 libcurl WebSocket，版本过低会降级） |
-| `fake-legal` | [fake.legal](https://fake.legal) | - | `GET /api/domains` + `GET /api/inbox/new?domain=` 建址；`GET /api/inbox/{encodeURIComponent(邮箱)}` 拉信；可选 `domain` |
-| `imgui-de` | [imgui.de](https://imgui.de) | - | fake.legal API 固定域名 `imgui.de`；收信接口与 `fake-legal` 相同 |
-| `pulsewebmenu-de` | [pulsewebmenu.de](https://pulsewebmenu.de) | - | fake.legal API 固定域名 `pulsewebmenu.de`；收信接口与 `fake-legal` 相同 |
-| `moakt` | [moakt.com](https://www.moakt.com) | Token（`mok1:` + Base64 JSON：`locale` + 合并 Cookie，须含 `tm_session`） | HTML：`GET /{locale}` → `POST /{locale}/inbox` 创建邮箱 → `GET /{locale}/inbox` 解析 `#email-address`；收信解析 `href` 中 `/email/{uuid}` 并逐封 `GET .../html`；`domain` 可选语言路径（如 `zh`）；各 SDK 以独立会话或显式 `Cookie` 头维护，避免与全局 Cookie 混用 |
-| `drmail-in` | [drmail.in](https://drmail.in) | Token（`mok1:` + Cookie） | Moakt 固定域名 `drmail.in`；创建和收信接口与 `moakt` 相同 |
-| `teml-net` | [teml.net](https://teml.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `teml.net`；创建和收信接口与 `moakt` 相同 |
-| `tmpeml-com` | [tmpeml.com](https://tmpeml.com) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpeml.com`；创建和收信接口与 `moakt` 相同 |
-| `tmpbox-net` | [tmpbox.net](https://tmpbox.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpbox.net`；创建和收信接口与 `moakt` 相同 |
-| `moakt-cc` | [moakt.cc](https://moakt.cc) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.cc`；创建和收信接口与 `moakt` 相同 |
-| `disbox-net` | [disbox.net](https://disbox.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `disbox.net`；创建和收信接口与 `moakt` 相同 |
-| `tmpmail-org` | [tmpmail.org](https://tmpmail.org) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpmail.org`；创建和收信接口与 `moakt` 相同 |
-| `tmpmail-net` | [tmpmail.net](https://tmpmail.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmpmail.net`；创建和收信接口与 `moakt` 相同 |
-| `tmails-net` | [tmails.net](https://tmails.net) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmails.net`；创建和收信接口与 `moakt` 相同 |
-| `disbox-org` | [disbox.org](https://disbox.org) | Token（`mok1:` + Cookie） | Moakt 固定域名 `disbox.org`；创建和收信接口与 `moakt` 相同 |
-| `moakt-co` | [moakt.co](https://moakt.co) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.co`；创建和收信接口与 `moakt` 相同 |
-| `moakt-ws` | [moakt.ws](https://moakt.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `moakt.ws`；创建和收信接口与 `moakt` 相同 |
-| `tmail-ws` | [tmail.ws](https://tmail.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `tmail.ws`；创建和收信接口与 `moakt` 相同 |
-| `bareed-ws` | [bareed.ws](https://bareed.ws) | Token（`mok1:` + Cookie） | Moakt 固定域名 `bareed.ws`；创建和收信接口与 `moakt` 相同 |
-| `email10min` | [email10min.com](https://email10min.com) | Cookie + CSRF | `GET /zh` 取 CSRF，`POST /messages` 取邮箱/邮件；站点域名偶有跳转，稳定性一般 |
-| `mjj-cm` | [mjj.cm](https://mjj.cm) | Session | Socket.IO：`request shortid` / `set shortid` / `mail` |
-| `linshi-co` | [linshi.co](https://linshi.co) | Session | Socket.IO 克隆站，协议同 `mjj-cm` |
-| `harakirimail` | [harakirimail.com](https://harakirimail.com) | - | 公开 REST：`GET /api/v1/inbox/{name}`，逐封 `GET /api/v1/email/{id}` 获取正文 |
-| `jqkjqk-xyz` | [jqkjqk.xyz](https://jqkjqk.xyz) | Token（mail.zhujump.com 会话） | mail.zhujump.com 固定域名 `jqkjqk.xyz`；收信接口与 zhujump provider 相同 |
-| `lyhlevi-com` | [lyhlevi.com](https://lyhlevi.com) | Token（MoeMail 会话） | lyhlevi.com MoeMail 部署实例；账号注册登录后创建邮箱，列表和详情接口映射统一正文 |
-| `tempmail-plus` | [tempmail.plus](https://tempmail.plus) | - | 公开 REST：`GET /api/mails/?email=` 列表，`GET /api/mails/{id}?email=` 详情；`mailto.plus` 域名 |
-| `fexpost-com` | [fexpost.com](https://fexpost.com) | - | TempMail Plus 固定域名 `fexpost.com`；列表和详情接口与 `tempmail-plus` 相同 |
-| `fexbox-org` | [fexbox.org](https://fexbox.org) | - | TempMail Plus 固定域名 `fexbox.org`；列表和详情接口与 `tempmail-plus` 相同 |
-| `mailbox-in-ua` | [mailbox.in.ua](https://mailbox.in.ua) | - | TempMail Plus 固定域名 `mailbox.in.ua`；列表和详情接口与 `tempmail-plus` 相同 |
-| `rover-info` | [rover.info](https://rover.info) | - | TempMail Plus 固定域名 `rover.info`；列表和详情接口与 `tempmail-plus` 相同 |
-| `chitthi-in` | [chitthi.in](https://chitthi.in) | - | TempMail Plus 固定域名 `chitthi.in`；列表和详情接口与 `tempmail-plus` 相同 |
-| `fextemp-com` | [fextemp.com](https://fextemp.com) | - | TempMail Plus 固定域名 `fextemp.com`；列表和详情接口与 `tempmail-plus` 相同 |
-| `any-pink` | [any.pink](https://any.pink) | - | TempMail Plus 固定域名 `any.pink`；列表和详情接口与 `tempmail-plus` 相同 |
-| `merepost-com` | [merepost.com](https://merepost.com) | - | TempMail Plus 固定域名 `merepost.com`；列表和详情接口与 `tempmail-plus` 相同 |
-| `tempmail-lol-v2` | [api.tempmail.lol](https://api.tempmail.lol) | Token | `GET /generate` 返回 address+token，`GET /auth/{token}` 拉取收件箱 |
-| `tempgbox` | [tempgbox.net](https://tempgbox.net) | Device ID | `POST /api/proxy?route=generate` 使用 `variant=googlemail` 生成 Gmail/Googlemail alias；每次生成随机 `X-Device-ID`，并随请求带随机来源 IP 头 |
-| `emailnator` | [emailnator.com](https://www.emailnator.com) | XSRF + Cookie | `POST /generate-email` 使用 Gmail/GoogleMail alias 选项生成地址；`POST /message-list` 拉取列表并用 `messageID` 读取 HTML 正文 |
-| `temporam` | [temporam.com](https://temporam.com) | 邮箱地址 | 公开 REST：`GET /api/domains` 获取域名，`GET /api/emails?email=` 拉列表，`GET /api/emails/{id}` 读取正文 |
-| `neighbours` | [neighbours.sh](https://neighbours.sh) | - | `GET /config/domains` 获取域名；`GET /inbox/{address}` / `GET /inbox/{address}/{uid}` 拉信；`404` 视为空收件箱 |
-| `sharklasers` | [sharklasers.com](https://www.sharklasers.com) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `sharklasers-com` | [sharklasers.com](https://sharklasers.com) | Session | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
-| `grr-la` | [grr.la](https://www.grr.la) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `grr-la-com` | [grr.la](https://grr.la) | Session | GuerrillaMail 裸域镜像，API 与 `guerrillamail` 相同 |
-| `guerrillamail-info` | [guerrillamail.info](https://www.guerrillamail.info) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `spam4me` | [spam4.me](https://www.spam4.me) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `guerrillamail-net` | [guerrillamail.net](https://www.guerrillamail.net) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `guerrillamail-org` | [guerrillamail.org](https://www.guerrillamail.org) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `guerrillamailblock` | [guerrillamailblock.com](https://www.guerrillamailblock.com) | Session | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
-| `guerrillamail-com-www` | [guerrillamail.com](https://www.guerrillamail.com) | Session | GuerrillaMail `www` JSON API 入口 |
-| `m2u` | [MailToYou](https://m2u.io) | Token | `POST /v1/mailboxes/auto` 创建邮箱；`token` + `viewToken` 组成内部令牌；`GET /v1/mailboxes/{token}/messages?view={viewToken}` 列表，`GET /v1/mailboxes/{token}/messages/{id}?view={viewToken}` 详情 |
-| `tempy-email` | [Tempy Email](https://tempy.email) | - | `POST /api/v1/mailbox` 创建邮箱（请求体可为空 JSON；可选 `domain`）；`GET /api/v1/mailbox/{email}/messages` 拉列表 |
-| `fmail` | [fmail.men](https://fmail.men) | - | `GET /v1/random` 建址；`GET /v1/inbox/{local}?domain={domain}&limit=50` 拉列表；`GET /v1/email/{token}` 读取单封详情 |
-| `ockito` | [ockito.com](https://ockito.com) | Token（access_token + refresh_token） | `POST /gtoken` 换取会话令牌；`GET /email` 建址；`GET /retrieve/{email}/emails` 拉列表，`GET /retrieve/{email}/{uid}` 详情 |
-| `anonbox` | [anonbox.net](https://anonbox.net) | Token（`inbox/secret`） | `GET /en/` 解析页面建箱；`GET /{token}/` 拉信，token 形如 `inbox/secret`，mbox 明文解析 |
-| `duckmail` | [duckmail.sbs](https://duckmail.sbs) | Bearer Token | `GET /domains?page=1` 取域名；`POST /accounts` 创建账号；`POST /token` 获取 Bearer Token；`GET /messages` 拉列表 |
-| `mailinator` | [mailinator.com](https://mailinator.com) | - | 公开 REST：`GET /api/v2/domains/public/inboxes/{inbox}` 拉列表；`GET /api/v2/domains/public/messages/{id}/{text|texthtml|attachments}` 详情 |
-| `tempmail365` | [tempmail365](https://) | ✅ | tempmail365 |
-| `tempinbox` | [tempinbox](https://) | ✅ | tempinbox |
-| `byom` | [byom](https://) | ✅ | byom |
-| `anonymmail` | [anonymmail](https://) | ✅ | anonymmail |
-| `eyepaste` | [eyepaste](https://) | ✅ | eyepaste |
-| `mail-sunls` | [mail-sunls](https://) | ✅ | mail-sunls |
-| `expressinboxhub` | [expressinboxhub](https://) | ✅ | expressinboxhub |
-| `lroid` | [lroid](https://) | ✅ | lroid |
-| `haribu` | [haribu](https://) | ✅ | haribu |
-| `rootsh` | [rootsh](https://) | ✅ | rootsh |
-| `fake-email-site` | [fake-email-site](https://) | ✅ | fake-email-site |
-| `mohmal` | [mohmal](https://) | ✅ | mohmal |
-| `mailgolem` | [mailgolem](https://) | ✅ | mailgolem |
-| `best-temp-mail` | [best-temp-mail](https://) | ✅ | best-temp-mail |
-| `disposablemail-app` | [disposablemail-app](https://) | ✅ | disposablemail-app |
-| `mailtemp-cc` | [mailtemp-cc](https://) | ✅ | mailtemp-cc |
-| `minuteinbox` | [minuteinbox](https://) | ✅ | minuteinbox |
-| `mailcatch` | [mailcatch](https://) | ✅ | mailcatch |
-| `tempemail-co` | [tempemail-co](https://) | ✅ | tempemail-co |
-| `tempemails-net` | [tempemails-net](https://) | ✅ | tempemails-net |
-| `altmails` | [altmails](https://) | ✅ | altmails |
-| `tempemail-info` | [tempemail-info](https://) | ✅ | tempemail-info |
-| `smailpro` | [smailpro](https://) | ✅ | smailpro |
-| `tempmailten` | [tempmailten](https://) | ✅ | tempmailten |
-| `maildrop-cc` | [maildrop-cc](https://) | ✅ | maildrop-cc |
-| `10minutemail-net` | [10minutemail-net](https://) | ✅ | 10minutemail-net |
-| `linshiyouxiang-net` | [linshiyouxiang-net](https://) | ✅ | linshiyouxiang-net |
-| `tempmail-fyi` | [tempmail-fyi](https://) | ✅ | tempmail-fyi |
-| `disposablemail-com` | [disposablemail-com](https://) | ✅ | disposablemail-com |
-| `tempp-mails` | [tempp-mails](https://) | ✅ | tempp-mails |
-| `emailtemp-org` | [emailtemp-org](https://) | ✅ | emailtemp-org |
-| `mytempmail-cc` | [mytempmail-cc](https://) | ✅ | mytempmail-cc |
-| `temp-mail-now` | [temp-mail-now](https://) | ✅ | temp-mail-now |
-| `mail-td` | [mail-td](https://) | ✅ | mail-td |
-| `mailhole-de` | [mailhole-de](https://) | ✅ | mailhole-de |
-| `tmail-link` | [tmail-link](https://) | ✅ | tmail-link |
-| `24mail-chacuo` | [24mail-chacuo](https://) | ✅ | 24mail-chacuo |
-| `nimail` | [nimail](https://) | ✅ | nimail |
-| `freecustom` | [freecustom](https://) | ✅ | freecustom |
-| `16888888-cyou` | [16888888-cyou](https://) | ✅ | 16888888-cyou |
-| `17666688-shop` | [17666688-shop](https://) | ✅ | 17666688-shop |
-| `282mail-com` | [282mail-com](https://) | ✅ | 282mail-com |
-| `blackhole-djurby-se` | [blackhole-djurby-se](https://) | ✅ | blackhole-djurby-se |
-| `block-bdea-cc` | [block-bdea-cc](https://) | ✅ | block-bdea-cc |
-| `bsdu32-buzz` | [bsdu32-buzz](https://) | ✅ | bsdu32-buzz |
-| `b-smelly-cc` | [b-smelly-cc](https://) | ✅ | b-smelly-cc |
-| `carlton183-changeip-net` | [carlton183-changeip-net](https://) | ✅ | carlton183-changeip-net |
-| `dea-soon-it` | [dea-soon-it](https://) | ✅ | dea-soon-it |
-| `disposable-al-sudani-com` | [disposable-al-sudani-com](https://) | ✅ | disposable-al-sudani-com |
-| `disposable-nogonad-nl` | [disposable-nogonad-nl](https://) | ✅ | disposable-nogonad-nl |
-| `doxu243-buzz` | [doxu243-buzz](https://) | ✅ | doxu243-buzz |
-| `easyme-pro` | [easyme-pro](https://) | ✅ | easyme-pro |
-| `ebs-com-ar` | [ebs-com-ar](https://) | ✅ | ebs-com-ar |
-| `etgdev-de` | [etgdev-de](https://) | ✅ | etgdev-de |
-| `evergreenco-shop` | [evergreenco-shop](https://) | ✅ | evergreenco-shop |
-| `fwd2m-eszett-es` | [fwd2m-eszett-es](https://) | ✅ | fwd2m-eszett-es |
-| `jama-trenet-eu` | [jama-trenet-eu](https://) | ✅ | jama-trenet-eu |
-| `j-fairuse-org` | [j-fairuse-org](https://) | ✅ | j-fairuse-org |
-| `layueming-pics` | [layueming-pics](https://) | ✅ | layueming-pics |
-| `m-887-at` | [m-887-at](https://) | ✅ | m-887-at |
-| `m8r-davidfuhr-de` | [m8r-davidfuhr-de](https://) | ✅ | m8r-davidfuhr-de |
-| `m8r-mcasal-com` | [m8r-mcasal-com](https://) | ✅ | m8r-mcasal-com |
-| `mail-bentrask-com` | [mail-bentrask-com](https://) | ✅ | mail-bentrask-com |
-| `mail-fsmash-org` | [mail-fsmash-org](https://) | ✅ | mail-fsmash-org |
-| `mailinatorzz-mooo-com` | [mailinatorzz-mooo-com](https://) | ✅ | mailinatorzz-mooo-com |
-| `mi-meon-be` | [mi-meon-be](https://) | ✅ | mi-meon-be |
-| `mingyuekeji-online` | [mingyuekeji-online](https://) | ✅ | mingyuekeji-online |
-| `mingyueming-click` | [mingyueming-click](https://) | ✅ | mingyueming-click |
-| `mingyueming-shop` | [mingyueming-shop](https://) | ✅ | mingyueming-shop |
-| `mingyukeji-lol` | [mingyukeji-lol](https://) | ✅ | mingyukeji-lol |
-| `mn-curppa-com` | [mn-curppa-com](https://) | ✅ | mn-curppa-com |
-| `m-nik-me` | [m-nik-me](https://) | ✅ | m-nik-me |
-| `mtmdev-com` | [mtmdev-com](https://) | ✅ | mtmdev-com |
-| `nospam-thurstons-us` | [nospam-thurstons-us](https://) | ✅ | nospam-thurstons-us |
-| `notfond-404-mn` | [notfond-404-mn](https://) | ✅ | notfond-404-mn |
-| `null-k3vin-net` | [null-k3vin-net](https://) | ✅ | null-k3vin-net |
-| `nuxh62-space` | [nuxh62-space](https://) | ✅ | nuxh62-space |
-| `proid-cloud-ip-cc` | [proid-cloud-ip-cc](https://) | ✅ | proid-cloud-ip-cc |
-| `ramjane-mooo-com` | [ramjane-mooo-com](https://) | ✅ | ramjane-mooo-com |
-| `rauxa-seny-cat` | [rauxa-seny-cat](https://) | ✅ | rauxa-seny-cat |
-| `really-istrash-com` | [really-istrash-com](https://) | ✅ | really-istrash-com |
-| `sbook-pics` | [sbook-pics](https://) | ✅ | sbook-pics |
-| `spam-hortuk-ovh` | [spam-hortuk-ovh](https://) | ✅ | spam-hortuk-ovh |
-| `sp-woot-at` | [sp-woot-at](https://) | ✅ | sp-woot-at |
-| `test-unergie-com` | [test-unergie-com](https://) | ✅ | test-unergie-com |
-| `torch-yi-org` | [torch-yi-org](https://) | ✅ | torch-yi-org |
-| `t-zibet-net` | [t-zibet-net](https://) | ✅ | t-zibet-net |
-| `xue32-buzz` | [xue32-buzz](https://) | ✅ | xue32-buzz |
-| `apihz` | [apihz](https://) | ✅ | apihz |
-| `sogetthis-com` | [sogetthis-com](https://) | ✅ | sogetthis-com |
-| `bobmail-info` | [bobmail-info](https://) | ✅ | bobmail-info |
-| `suremail-info` | [suremail-info](https://) | ✅ | suremail-info |
-| `binkmail-com` | [binkmail-com](https://) | ✅ | binkmail-com |
-| `veryrealemail-com` | [veryrealemail-com](https://) | ✅ | veryrealemail-com |
-| `mailmomy` | [mailmomy](https://) | ✅ | mailmomy |
-| `chammy-info` | [chammy-info](https://) | ✅ | chammy-info |
-| `thisisnotmyrealemail-com` | [thisisnotmyrealemail-com](https://) | ✅ | thisisnotmyrealemail-com |
-| `notmailinator-com` | [notmailinator-com](https://) | ✅ | notmailinator-com |
-| `spamhereplease-com` | [spamhereplease-com](https://) | ✅ | spamhereplease-com |
-| `sendspamhere-com` | [sendspamhere-com](https://) | ✅ | sendspamhere-com |
-| `sendfree-org` | [sendfree-org](https://) | ✅ | sendfree-org |
-| `junk-beats-org` | [junk-beats-org](https://) | ✅ | junk-beats-org |
-| `junk-ihmehl-com` | [junk-ihmehl-com](https://) | ✅ | junk-ihmehl-com |
-| `junk-noplay-org` | [junk-noplay-org](https://) | ✅ | junk-noplay-org |
-| `junk-vanillasystem-com` | [junk-vanillasystem-com](https://) | ✅ | junk-vanillasystem-com |
-| `spam-jasonpearce-com` | [spam-jasonpearce-com](https://) | ✅ | spam-jasonpearce-com |
-| `fish-skytale-net` | [fish-skytale-net](https://) | ✅ | fish-skytale-net |
-| `spam-mccrew-com` | [spam-mccrew-com](https://) | ✅ | spam-mccrew-com |
-| `dropmail-click` | [dropmail-click](https://) | ✅ | dropmail-click |
-| `spam-coroiu-com` | [spam-coroiu-com](https://) | ✅ | spam-coroiu-com |
-| `spam-deluser-net` | [spam-deluser-net](https://) | ✅ | spam-deluser-net |
-| `spam-dhsf-net` | [spam-dhsf-net](https://) | ✅ | spam-dhsf-net |
-| `spam-lucatnt-com` | [spam-lucatnt-com](https://) | ✅ | spam-lucatnt-com |
-| `spam-lyceum-life-com-ru` | [spam-lyceum-life-com-ru](https://) | ✅ | spam-lyceum-life-com-ru |
-| `spam-netpirates-net` | [spam-netpirates-net](https://) | ✅ | spam-netpirates-net |
-| `spam-no-ip-net` | [spam-no-ip-net](https://) | ✅ | spam-no-ip-net |
-| `spam-ozh-org` | [spam-ozh-org](https://) | ✅ | spam-ozh-org |
-| `spam-pyphus-org` | [spam-pyphus-org](https://) | ✅ | spam-pyphus-org |
-| `spam-shep-pw` | [spam-shep-pw](https://) | ✅ | spam-shep-pw |
-| `spam-wtf-at` | [spam-wtf-at](https://) | ✅ | spam-wtf-at |
-| `spam-wulczer-org` | [spam-wulczer-org](https://) | ✅ | spam-wulczer-org |
-| `crap-kakadua-net` | [crap-kakadua-net](https://) | ✅ | crap-kakadua-net |
-| `spam-janlugt-nl` | [spam-janlugt-nl](https://) | ✅ | spam-janlugt-nl |
-| `min-burningfish-net` | [min-burningfish-net](https://) | ✅ | min-burningfish-net |
-| `sink-fblay-com` | [sink-fblay-com](https://) | ✅ | sink-fblay-com |
-| `tempmail-fish` | [tempmail.fish](https://tempmail.fish) | - | neighbours.sh 同类服务，API 路径相同 |
-| `neighbours-sh` | [neighbours.sh](https://neighbours.sh) | - | neighbours.sh 子渠道，使用 `neighbours-sh` 标识 |
-| `tempgmailer` | [tempgmailer.com](https://tempgmailer.com) | - | REST API 生成 Gmail 别名风格临时邮箱 |
-| `temp-mail-org` | [temp-mail.org](https://temp-mail.org) | ✅ | REST API + XSRF；`POST /en/option/change` 建址，`POST /en/option/refresh` 拉信 |
-| `xkx-me` | [xkx.me](https://xkx.me) | ✅ | Socket.IO 协议，connect → create → email 事件 |
-| `gonebox-email` | [gonebox.email](https://gonebox.email) | ✅ | `POST /api/inbox` 建址；`GET /api/inbox/{id}/messages` 拉信 |
-| `mailcat-ai` | [mailcat.ai](https://mailcat.ai) | ✅ | `POST /mailboxes` 建址；`GET /inbox` + Bearer Token 拉信 |
-| `tempgo-email` | [tempgo.email](https://tempgo.email) | ✅ | `POST /api/generate` 建址；`GET /api/inbox?email=&mailbox_id=` 拉信 |
-| `restmail-net` | [restmail.net](https://restmail.net) | - | Mozilla 开源项目，ad-hoc 模式，`GET /mail/{username}` 拉信 |
-| `dropmail-me` | [dropmail.me](https://dropmail.me) | ✅ | GraphQL API，FNV-1a token 认证，`introduceSession` 建址 |
-| `ten-minute-mail-net` | [10minutemail.net](https://10minutemail.net) | ✅ | PHP Session 驱动，`GET /address.api.php` 建址/收信 |
+| `guerrillamail` | [guerrillamail.com](https://guerrillamail.com) | Session | Public JSON API |
+| `maildrop` | [maildrop.cx](https://maildrop.cx) | Token (full address) | REST; suffix list via `/api/suffixes.php`, optional `domain`; list-only, no per-message MIME |
+| `moakt` | [moakt.com](https://www.moakt.com) | Token (`mok1:` + Base64 JSON) | HTML flow: create mailbox then parse messages per `/email/{uuid}` |
+| `tempmail-plus` | [tempmail.plus](https://tempmail.plus) | - | Public REST; `mailto.plus` domain |
+| `emailnator` | [emailnator.com](https://www.emailnator.com) | XSRF + Cookie | Generates Gmail/GoogleMail alias addresses; reads HTML body via `messageID` |
+| `mailinator` | [mailinator.com](https://mailinator.com) | - | Public REST public inboxes and messages |
+| `harakirimail` | [harakirimail.com](https://harakirimail.com) | - | Public REST; per-message body via `/api/v1/email/{id}` |
+| `inboxes` | [inboxes.com](https://inboxes.com) | - | Public v2 API; `text` / `html` in message detail |
+| `getnada` | [getnada.net](https://getnada.net) | Token | `POST /api/inbox/open`; detail includes `text_plain` / `html_sanitized` |
+| `fakemail` | [fakemail.net](https://fakemail.net) | Token | `/index/index` create, `/index/refresh` list, `/index/email` detail |
+| `temp-mail-org` | [temp-mail.org](https://temp-mail.org) | Token | REST + XSRF; `POST /en/option/change` create, `.../refresh` receive |
+| `m2u` | [m2u.io](https://m2u.io) | Token | `POST /v1/mailboxes/auto`; `token` + `viewToken` form the internal token |
+| `duckmail` | [duckmail.sbs](https://duckmail.sbs) | Bearer token | `GET /domains` + `POST /accounts` + `POST /token`; `GET /messages` list |
 
-> **提示：** 使用 Client 类时，Token/Session 由 SDK 自动管理，无需手动处理。C SDK 中 `tm_list_channels()` 的**返回顺序**与上表一致；若按 `tm_channel_t` **枚举常量**编程，其数值顺序与上表不同，以 `tempmail_sdk.h` 与 `sdk/c/README.md` 为准。
+</details>
 
-## 📐 统一邮件格式
+> **Tip:** When using the Client class, tokens/sessions are managed automatically. In the C SDK, the return order of `tm_list_channels()` matches the shared list, but the numeric order of the `tm_channel_t` enum constants differs — see `sdk/c/README.md`.
 
-无论使用哪个渠道，返回的邮件数据结构完全一致：
-
-```typescript
-interface Email {
-  id: string;            // 邮件唯一标识
-  from: string;          // 发件人邮箱地址
-  to: string;            // 收件人邮箱地址
-  subject: string;       // 邮件主题
-  text: string;          // 纯文本内容
-  html: string;          // HTML 内容
-  date: string;          // ISO 8601 格式日期
-  isRead: boolean;       // 是否已读
-  attachments: {         // 附件列表
-    filename: string;
-    size?: number;
-    contentType?: string;
-    url?: string;
-  }[];
-}
-```
-
-> **说明：** 个别渠道的上游接口只提供列表或摘要（例如 `maildrop` 的 `description`），此时 `text` 可能仅为预览片段。各语言 `normalize` 模块会将常见别名字段映射到上述结构（例如 ta-easy 的 `mail_sender`→`from`、`mail_title`→`subject`、`mail_body_text` / `mail_body_html`→`text` / `html`，数字型 `received_at`→ISO 日期）。如果上游详情只返回 `html` 或只返回 `text`，SDK 会从已有正文反向生成缺失字段：`html` 会去标签生成 `text`，纯文本会转义并包进基础 HTML。
-
-## 📦 包获取渠道
-
-每个 SDK 均有多种获取方式，下表汇总所有可用渠道：
-
-| SDK | 渠道 | 安装方式 | 认证 |
-|-----|------|---------|:----:|
-| **Go** | GitHub (git tag) | `go get github.com/XxxXTeam/tempmail-sdk/sdk/go` | - |
-| **npm** | [npmjs.org](https://www.npmjs.com/package/tempmail-sdk) | `npm install tempmail-sdk` | - |
-| **npm** | [GitHub Packages](https://github.com/XxxXTeam/tempmail-sdk/pkgs/npm/tempmail-sdk) | `npm install @XxxXTeam/tempmail-sdk` | 🔑 |
-| **Rust** | [crates.io](https://crates.io/crates/tempmail-sdk) | `tempmail-sdk = "1.1.0"` | - |
-| **Rust** | GitHub (git) | `tempmail-sdk = { git = "...", subdirectory = "sdk/rust" }` | - |
-| **Python** | [PyPI](https://pypi.org/project/tempemail-sdk/) | `pip install tempemail-sdk` | - |
-| **Python** | [GitHub Release](https://github.com/XxxXTeam/tempmail-sdk/releases) | `pip install <wheel URL>` | - |
-| **C** | [GitHub Release](https://github.com/XxxXTeam/tempmail-sdk/releases) | 下载预编译 zip 包 | - |
-| **C** | 源码编译 | CMake 构建 | - |
-
-> 🔑 = 需要认证。GitHub Packages (npm) 需要配置 GitHub PAT，详见下方说明。
-
-## 📦 安装
+## 📦 Installation
 
 ### Go
 
@@ -365,59 +85,33 @@ go get github.com/XxxXTeam/tempmail-sdk/sdk/go
 ### npm / TypeScript
 
 ```bash
-# 从 npmjs.org（推荐，无需认证）
 npm install tempmail-sdk
 ```
-
-<details>
-<summary>从 GitHub Packages 安装（需认证）</summary>
-
-GitHub Packages 的 npm 包即使是公开仓库也需要认证：
-
-```bash
-# 1. 创建 GitHub PAT: Settings → Developer settings → Personal access tokens → 勾选 read:packages
-# 2. 配置 .npmrc
-echo "@XxxXTeam:registry=https://npm.pkg.github.com" >> ~/.npmrc
-echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc
-# 3. 安装
-npm install @XxxXTeam/tempmail-sdk
-```
-
-</details>
 
 ### Rust
 
 ```toml
-# 从 crates.io（推荐）
 [dependencies]
-tempmail-sdk = "1.1.0"
-
-# 从 GitHub（始终获取最新代码）
-[dependencies]
-tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory = "sdk/rust" }
+tempmail-sdk = "1.0.3"
 ```
 
 ### Python
 
 ```bash
-# 从 PyPI（推荐）
 pip install tempemail-sdk
-
-# 从 GitHub Release（wheel 直链）
-pip install https://github.com/XxxXTeam/tempmail-sdk/releases/latest/download/tempemail_sdk-1.1.0-py3-none-any.whl
 ```
 
 ### C
 
-从 [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases) 下载预编译包：
+Download a prebuilt package from [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases):
 
-| 包名 | 平台 |
-|------|------|
+| Package | Platform |
+|---------|----------|
 | `c-sdk-linux-amd64.zip` | Linux x64 |
 | `c-sdk-darwin-arm64.zip` | macOS ARM64 |
 | `c-sdk-windows-amd64.zip` | Windows x64 |
 
-或源码编译：
+Or build from source:
 
 ```bash
 cd sdk/c
@@ -426,63 +120,98 @@ curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/mas
 cmake -B build -S . && cmake --build build
 ```
 
-## 🚀 快速开始
+### Java (Maven)
 
-### npm — 使用 TempEmailClient（推荐）
+```xml
+<dependency>
+  <groupId>io.github.xxxxteam</groupId>
+  <artifactId>tempmail-sdk</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
 
-Token/Session 自动管理，适用于所有渠道：
+### C# (.NET)
+
+```bash
+dotnet add package XxxXTeam.TempMail
+```
+
+### Ruby
+
+```bash
+gem install tempmail_sdk
+```
+
+### PHP
+
+The PHP SDK is not published to Composer / Packagist (the SDK lives in the `sdk/php/` subdirectory of this monorepo, and Composer can only resolve a package whose `composer.json` sits at the repository root). Use one of the following instead:
+
+```bash
+# Option 1: download the packaged zip from GitHub Releases and require its autoloader
+#   (see the tempmail-sdk-php-*.zip asset on the release page)
+unzip tempmail-sdk-php-*.zip -d tempmail-sdk-php
+# then in your code:
+#   require 'tempmail-sdk-php/vendor/autoload.php';
+
+# Option 2: clone the repo and load sdk/php directly
+git clone https://github.com/XxxXTeam/tempmail-sdk.git
+composer install -d tempmail-sdk/sdk/php
+# then require 'tempmail-sdk/sdk/php/vendor/autoload.php';
+```
+
+### Kotlin (Gradle)
+
+```kotlin
+implementation("io.github.xxxxteam:tempmail-sdk:0.1.0")
+```
+
+## 🚀 Quick Start
+
+### npm — using TempEmailClient (recommended)
+
+Tokens/sessions are managed automatically and work for every channel:
 
 ```typescript
 import { TempEmailClient } from 'tempmail-sdk';
 
 const client = new TempEmailClient();
 
-// 1. 获取临时邮箱（可指定渠道，不指定则随机）
+// 1. Get a temporary mailbox (specify a channel, or omit for random)
 const emailInfo = await client.generate({ channel: 'tempmail' });
-console.log('邮箱:', emailInfo.email);
+console.log('Email:', emailInfo.email);
 
-// 2. 轮询获取邮件
+// 2. Poll for messages
 const result = await client.getEmails();
 for (const email of result.emails) {
-  console.log(`发件人: ${email.from}`);
-  console.log(`主题: ${email.subject}`);
-  console.log(`内容: ${email.text}`);
-  console.log(`时间: ${email.date}`);
+  console.log(`From: ${email.from}`);
+  console.log(`Subject: ${email.subject}`);
+  console.log(`Body: ${email.text}`);
+  console.log(`Date: ${email.date}`);
 }
 ```
 
-### npm — 使用函数式 API
+### npm — functional API
 
 ```typescript
 import { generateEmail, getEmails } from 'tempmail-sdk';
 
-// 1. 获取临时邮箱
+// 1. Get a temporary mailbox
 const emailInfo = await generateEmail({ channel: 'mail-tm' });
 if (!emailInfo) {
-  // 未指定 channel 时可能多渠道路径全部失败
-  throw new Error('创建失败');
+  // When no channel is specified, all fallback paths may fail
+  throw new Error('Creation failed');
 }
-console.log('邮箱:', emailInfo.email);
+console.log('Email:', emailInfo.email);
 
-// 2. 获取邮件（Token 由 SDK 内部与 EmailInfo 绑定，勿自行传 token）
+// 2. Get messages (the token is bound to EmailInfo internally; do not pass it yourself)
 const result = await getEmails(emailInfo);
-console.log(`收到 ${result.emails.length} 封邮件`, result.success);
+console.log(`Received ${result.emails.length} messages`, result.success);
 
-// 仅探测某一渠道、失败时不 Fallback 到其他渠道：
+// Probe a single channel only, without falling back to others:
 const only = await generateEmail({ channel: 'smail-pw', channelFallback: false });
 ```
 
-### npm — 仓库内示例脚本
-
-在 `sdk/npm` 目录下（需先 `npm install`，部分 demo 另需 `nodemailer`）：
-
-| 脚本 | 说明 |
-|------|------|
-| `demo/poll-emails.ts` | 交互或 **SMTP 自动探针**（设置 `SMTP_HOST` 等）；可用 `POLL_CHANNELS=smail-pw` 限定渠道 |
-
-常用环境变量：`TEMPMAIL_PROXY`、`TEMPMAIL_TIMEOUT`、`TEMPMAIL_INSECURE`；DropMail 见各 SDK 文档中的 `DROPMAIL_*` 说明。
-
-### Go — 使用 Client
+### Go — using Client
 
 ```go
 package main
@@ -495,182 +224,159 @@ import (
 func main() {
     client := tempemail.NewClient()
 
-    // 1. 获取临时邮箱
+    // 1. Get a temporary mailbox
     emailInfo, err := client.Generate(&tempemail.GenerateEmailOptions{
         Channel: tempemail.ChannelTempmail,
     })
     if err != nil {
         panic(err)
     }
-    fmt.Println("邮箱:", emailInfo.Email)
+    fmt.Println("Email:", emailInfo.Email)
 
-    // 2. 获取邮件
+    // 2. Get messages
     result, err := client.GetEmails()
     if err != nil {
         panic(err)
     }
     for _, email := range result.Emails {
-        fmt.Printf("发件人: %s\n", email.From)
-        fmt.Printf("主题: %s\n", email.Subject)
-        fmt.Printf("内容: %s\n", email.Text)
-        fmt.Printf("时间: %s\n", email.Date)
+        fmt.Printf("From: %s\n", email.From)
+        fmt.Printf("Subject: %s\n", email.Subject)
+        fmt.Printf("Body: %s\n", email.Text)
+        fmt.Printf("Date: %s\n", email.Date)
     }
 }
 ```
 
-## 匿名遥测与 HTTP 重试
+## 📐 Unified Email Format
 
-### 匿名遥测（可关闭）
+No matter which channel you use, the returned email data structure is identical:
 
-五语言 SDK **默认开启**匿名用量统计：在进程内将事件入队，定时或满批后合并为一次 **`POST`**，JSON 体为 **`schema_version: 2`**，包含 `sdk_language`、`sdk_version`、`os`、`arch` 以及 `events[]`（如 `operation`、`channel`、`success`、`attempt_count`、`channels_tried`、脱敏后的 `error`、`ts_ms` 等）。**不包含**邮件正文或 Token；错误文案里形似邮箱的片段会替换为 `[redacted]`。
+```typescript
+interface Email {
+  id: string;            // Unique message ID
+  from: string;          // Sender address
+  to: string;            // Recipient address
+  subject: string;       // Subject
+  text: string;          // Plain-text body
+  html: string;          // HTML body
+  date: string;          // ISO 8601 date
+  isRead: boolean;       // Read flag
+  attachments: {         // Attachments
+    filename: string;
+    size?: number;
+    contentType?: string;
+    url?: string;
+  }[];
+}
+```
 
-| 环境变量 | 说明 |
-|---------|------|
-| `TEMPMAIL_TELEMETRY_ENABLED` | `true` / `1` / `yes` 开启（默认），`false` / `0` / `no` 关闭 |
-| `TEMPMAIL_TELEMETRY_URL` | 覆盖默认上报 URL（内置默认一般为 `https://sdk-1.openel.top/v1/event`，以各 SDK 源码为准） |
+> **Note:** Some upstream APIs only expose a list or a summary (e.g. `maildrop`'s `description`), in which case `text` may only be a preview fragment. Each SDK's `normalize` module maps common alias fields into the structure above (e.g. ta-easy's `mail_sender`→`from`, `mail_title`→`subject`, `mail_body_text` / `mail_body_html`→`text` / `html`, numeric `received_at`→ISO date). If detail returns only `html` or only `text`, the SDK back-fills the missing field: `html` is stripped to produce `text`, and plain text is escaped and wrapped into basic HTML.
 
-也可在代码里通过全局配置关闭或指定 URL：**Go** `SDKConfig.TelemetryEnabled` / `TelemetryEndpoint`；**npm** `telemetryEnabled` / `telemetryUrl`；**Rust** `telemetry_enabled` / `telemetry_url`；**Python** `SDKConfig.telemetry_enabled` / `telemetry_url`；**C** `tm_config_t.telemetry_enabled` / `telemetry_url`。
+## 🔧 Environment Variables
 
-本仓库下的 **`telemetry-server/`** 为可选的收集服务示例（`POST /v1/event` 写入 SQLite 等）；**SDK 上报不需要令牌**，与自建服务的管理端鉴权无关。
+| Variable | Description |
+|----------|-------------|
+| `TEMPMAIL_PROXY` | HTTP / SOCKS5 proxy URL |
+| `TEMPMAIL_TIMEOUT` | Timeout in seconds |
+| `TEMPMAIL_INSECURE` | `1` / `true` skips TLS verification |
+| `TEMPMAIL_TELEMETRY_ENABLED` | `false` / `0` / `no` disables telemetry |
+| `TEMPMAIL_TELEMETRY_URL` | Custom telemetry endpoint |
+| `DROPMAIL_AUTH_TOKEN` | DropMail GraphQL `af_` token |
+| `APIHZ_ID` | apihz channel credential id (defaults to the public account `88888888`) |
+| `APIHZ_KEY` | apihz channel credential key (defaults to the public account `88888888`) |
 
-### HTTP 重试
+### Anonymous Telemetry (can be disabled)
 
-各语言在「生成邮箱」「拉取邮件」上均支持 **Retry**（如最大次数、超时、退避），具体字段名见对应 SDK 的 `README.md` 与类型定义（如 npm 的 `retry`、`Go` 的 `RetryOptions` 等）。
+All SDKs enable anonymous usage statistics **by default**: events are queued in-process and periodically (or once a batch is full) merged into a single **`POST`** with a JSON body of `schema_version: 2` containing `sdk_language`, `sdk_version`, `os`, `arch` and `events[]` (`operation`, `channel`, `success`, `attempt_count`, `channels_tried`, redacted `error`, `ts_ms`, etc.). It contains **no** email content or tokens; anything that looks like an email address in error text is replaced with `[redacted]`.
 
-## 📖 API 文档
+Telemetry can also be disabled or repointed in code via global config: **Go** `SDKConfig.TelemetryEnabled` / `TelemetryEndpoint`; **npm** `telemetryEnabled` / `telemetryUrl`; **Rust** `telemetry_enabled` / `telemetry_url`; **Python** `SDKConfig.telemetry_enabled` / `telemetry_url`; **C** `tm_config_t.telemetry_enabled` / `telemetry_url` (and the equivalents on the other SDKs).
 
-详细 API 文档请参阅各 SDK 目录：
+The optional **`server/`** in this repo is a sample collector (`POST /v1/event` writes to SQLite, etc.); **SDK reporting requires no token** and is unrelated to the collector's admin authentication.
 
-| SDK | 文档 | 注册表 |
-|-----|------|--------|
+## 📖 API Documentation
+
+See each SDK directory for detailed docs:
+
+| SDK | Docs | Registry |
+|-----|------|----------|
 | Go | [sdk/go/README.md](./sdk/go/README.md) | [pkg.go.dev](https://pkg.go.dev/github.com/XxxXTeam/tempmail-sdk/sdk/go) |
 | npm | [sdk/npm/README.md](./sdk/npm/README.md) | [npmjs.org](https://www.npmjs.com/package/tempmail-sdk) |
 | Rust | [sdk/rust/README.md](./sdk/rust/README.md) | [crates.io](https://crates.io/crates/tempmail-sdk) |
 | Python | [sdk/python/README.md](./sdk/python/README.md) | [PyPI](https://pypi.org/project/tempemail-sdk/) |
 | C | [sdk/c/README.md](./sdk/c/README.md) | [GitHub Releases](https://github.com/XxxXTeam/tempmail-sdk/releases) |
+| Java | [sdk/java/README.md](./sdk/java/README.md) | [Maven Central](https://central.sonatype.com/artifact/io.github.xxxxteam/tempmail-sdk) |
+| C# | [sdk/csharp/README.md](./sdk/csharp/README.md) | [NuGet](https://www.nuget.org/packages/XxxXTeam.TempMail/) |
+| Ruby | [sdk/ruby/README.md](./sdk/ruby/README.md) | [RubyGems](https://rubygems.org/gems/tempmail_sdk) |
+| PHP | [sdk/php/README.md](./sdk/php/README.md) | GitHub Releases (zip) |
+| Kotlin | [sdk/kotlin/README.md](./sdk/kotlin/README.md) | Maven (Gradle) |
 
-## 🔧 项目结构
+## 🔧 Project Structure
 
 ```
 tempmail-sdk/
 ├── sdk/
-│   ├── go/                     # Go SDK
-│   │   ├── client.go           # 入口文件
-│   │   ├── types.go            # 类型定义
-│   │   ├── normalize.go        # 标准化转换
-│   │   └── provider/*.go       # 各渠道实现（如 ta_easy.go、catchmail.go、mailforspam.go）
-│   ├── npm/                    # npm SDK (TypeScript)
-│   │   ├── src/
-│   │   │   ├── index.ts        # 入口文件
-│   │   │   ├── types.ts        # 类型定义
-│   │   │   └── providers/      # 各渠道实现
-│   │   ├── demo/               # 示例与探针脚本
-│   │   └── test/               # 测试代码
-│   ├── rust/                   # Rust SDK
-│   │   ├── src/
-│   │   │   ├── lib.rs          # 库入口
-│   │   │   ├── client.rs       # Client 实现
-│   │   │   └── providers/      # 各渠道实现
-│   │   └── examples/           # 示例代码
-│   ├── python/                 # Python SDK
-│   │   ├── tempmail_sdk/
-│   │   │   ├── __init__.py     # 入口
-│   │   │   ├── client.py       # Client 实现
-│   │   │   └── providers/      # 各渠道实现
-│   │   └── pyproject.toml      # 包配置
-│   └── c/                      # C SDK
-│       ├── include/            # 公共头文件
-│       ├── src/                # 源码
-│       │   └── providers/      # 各渠道实现
-│       └── CMakeLists.txt      # 构建配置
-├── telemetry-server/           # 可选：遥测收集服务（Gin + SQLite 等，见目录内实现）
+│   ├── go/          # Go SDK
+│   ├── npm/         # npm SDK (TypeScript)
+│   ├── rust/        # Rust SDK
+│   ├── python/      # Python SDK
+│   ├── c/           # C SDK
+│   ├── java/        # Java SDK (Maven)
+│   ├── csharp/      # C# SDK (.NET)
+│   ├── ruby/        # Ruby SDK (gem)
+│   ├── php/         # PHP SDK (Composer)
+│   └── kotlin/      # Kotlin SDK (Gradle)
+├── server/          # Optional telemetry collector (Gin + SQLite)
+├── webui/           # Web UI
+├── scripts/         # Build / maintenance scripts
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml              # CI 工作流
-│       └── release.yml         # 发布工作流
+│       ├── ci.yml       # CI workflow
+│       └── release.yml  # Release workflow
+├── .baseline_channels.txt  # Canonical channel list (source of truth for all SDKs)
 ├── LICENSE
 └── README.md
 ```
 
-## 🚢 发布
+Each SDK follows the same layered structure: a **Client** (state management), stateless **entry functions** (`GenerateEmail` / `GetEmails`) with channel fallback, one file per **provider**, a **normalize** module, a **config** module, a **retry** module and a **telemetry** module.
 
-### 自动发布
+## 🚢 Release
 
-推送 tag 触发自动发布：
+Pushing a tag triggers an automated release:
 
 ```bash
 git tag v1.1.0
 git push origin v1.1.0
 ```
 
-这将自动：
-1. 验证全部 5 种 SDK 构建
-2. 发布 npm 包到 npmjs.org 和 GitHub Packages
-3. 发布 Rust crate 到 crates.io
-4. 发布 Python wheel 到 PyPI
-5. 构建 Go / Rust / C 多平台二进制
-6. 创建 GitHub Release（附带全部构建产物 + 变更日志）
+This automatically:
 
-### 配置 Secrets
+1. Verifies the build of all ten SDKs
+2. Publishes the npm package to npmjs.org and GitHub Packages
+3. Publishes the Rust crate to crates.io
+4. Publishes the Python wheel to PyPI
+5. Publishes the C# package to NuGet
+6. Publishes the Java artifact to Maven Central
+7. Publishes the Ruby gem to RubyGems
+8. Packages the PHP SDK as a zip attached to the GitHub Release (not published to Packagist)
+9. Publishes the Kotlin artifact
+10. Builds multi-platform Go / Rust / C binaries
+11. Creates a GitHub Release (with all build artifacts and a changelog)
 
-在 GitHub 仓库 Settings → Secrets and variables → Actions 中添加：
+### Configuring Secrets
 
-| Secret | 说明 |
-|--------|------|
-| `NPM_TOKEN` | npm 访问令牌 |
-| `CARGO_REGISTRY_TOKEN` | crates.io API Token |
-| `PYPI_TOKEN` | PyPI API Token |
+Add the following under GitHub repo Settings → Secrets and variables → Actions:
 
-> `GITHUB_TOKEN` 由 GitHub Actions 自动提供，无需手动配置。
+| Secret | Description |
+|--------|-------------|
+| `NPM_TOKEN` | npm access token |
+| `CARGO_REGISTRY_TOKEN` | crates.io API token |
+| `PYPI_TOKEN` | PyPI API token |
+| `NUGET_API_KEY` | NuGet API key |
+| `RUBYGEMS_API_KEY` | RubyGems API key |
 
-## 🛠️ 开发
+> `GITHUB_TOKEN` is provided automatically by GitHub Actions and needs no manual configuration.
 
-### Go SDK
-
-```bash
-cd sdk/go
-go build ./...
-gofmt -d .
-```
-
-### npm SDK
-
-```bash
-cd sdk/npm
-npm install
-npm run build
-npx tsc --noEmit
-npm test
-```
-
-### Rust SDK
-
-```bash
-cd sdk/rust
-cargo build
-cargo test
-cargo clippy
-```
-
-### Python SDK
-
-```bash
-cd sdk/python
-pip install -e ".[dev]"
-pytest
-```
-
-### C SDK
-
-```bash
-cd sdk/c
-# 下载 cJSON 依赖
-curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
-curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
-cmake -B build -S . && cmake --build build
-```
-
-## ⭐ Star 历史
+## ⭐ Star History
 
 <a href="https://star-history.com/#XxxXTeam/tempmail-sdk&Date">
  <picture>
@@ -680,31 +386,32 @@ cmake -B build -S . && cmake --build build
  </picture>
 </a>
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！请阅读 [贡献指南](CONTRIBUTING.md) 了解详情。
+Issues and Pull Requests are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) for details.
 
-### 快速开始
+### Getting started
 
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feat/your-feature`
-3. 提交代码并推送
-4. 创建 Pull Request
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Commit and push your changes
+4. Open a Pull Request
 
-### 添加新的渠道提供商
+### Adding a new channel provider
 
-1. 在各 SDK 的 `providers/` 目录下新建提供商文件
-2. 实现 `generateEmail()` 和 `getEmails()` 两个核心函数
-3. 在各 SDK 的 Channel 类型/枚举中注册新渠道
-4. 使用 `normalizeEmail()` 标准化返回数据
-5. 所有 HTTP 请求使用全局共享客户端（支持代理/TLS 配置）
-6. 更新 README 文档
+1. Add a provider file under each SDK's `providers/` directory
+2. Implement the two core functions `generateEmail()` and `getEmails()`
+3. Register the new channel in each SDK's Channel type/enum
+4. Normalize returned data with `normalizeEmail()`
+5. Use the shared global HTTP client for all requests (proxy/TLS aware)
+6. Keep the channel identifier and count in sync across all ten SDKs (aligned with `.baseline_channels.txt`)
+7. Update the README
 
-详见 [CONTRIBUTING.md](CONTRIBUTING.md) 中的完整指南和代码示例。
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide and code examples.
 
-## 📄 许可证
+## 📄 License
 
-本项目基于 [GPL-3.0](LICENSE) 许可证开源。
+This project is open source under the [GPL-3.0](LICENSE) license.
 
 ```
 Copyright (C) 2026 XxxXTeam

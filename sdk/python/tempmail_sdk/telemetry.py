@@ -78,15 +78,6 @@ def _cancel_flush_timer_locked() -> None:
     _flush_timer = None
 
 
-def _arm_flush_timer() -> None:
-    global _flush_timer
-    with _lock:
-        _cancel_flush_timer_locked()
-        _flush_timer = threading.Timer(_FLUSH_SEC, _flush_batch)
-        _flush_timer.daemon = True
-        _flush_timer.start()
-
-
 def _ensure_periodic() -> None:
     global _periodic_started
     with _periodic_lock:
@@ -163,10 +154,9 @@ def report_telemetry(
         _queue.append(ev)
         n = len(_queue)
 
+    # 满批立即刷新；未满则由常驻周期线程（_ensure_periodic）兜底，避免额外的定时器对象反复创建/取消
     if n >= _MAX_BATCH:
         _flush_batch()
-    else:
-        _arm_flush_timer()
 
 
 def get_sdk_version() -> str:

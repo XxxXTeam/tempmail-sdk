@@ -58,13 +58,11 @@ function isHtmlContent(content: string): boolean {
   ) {
     return true;
   }
-  const trimmed = content.trim().toLowerCase();
+  /* 用不区分大小写的正则检测标签对，避免对整封正文做 toLowerCase 全拷贝 */
   return (
-    (trimmed.includes("<div") && trimmed.includes("</div>")) ||
-    (trimmed.includes("<table") && trimmed.includes("</table>")) ||
-    (trimmed.includes("<p") &&
-      trimmed.includes("</p>") &&
-      trimmed.includes("<"))
+    (/<div/i.test(content) && /<\/div>/i.test(content)) ||
+    (/<table/i.test(content) && /<\/table>/i.test(content)) ||
+    (/<p/i.test(content) && /<\/p>/i.test(content))
   );
 }
 

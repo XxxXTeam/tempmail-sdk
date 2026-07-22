@@ -100,6 +100,9 @@ export function matchDomain(domain: string, target: string): boolean {
   return d === t || d.endsWith("." + t);
 }
 
+/* 动态域名渠道集合，模块级预建复用，避免每次筛选重复构造 */
+const DYNAMIC_DOMAIN_SET = new Set<string>(DYNAMIC_DOMAIN_CHANNELS);
+
 /**
  * 根据目标域名列表筛选渠道
  * 返回支持目标域名的渠道列表
@@ -116,11 +119,9 @@ export function filterChannelsByDomains(
     return channels;
   }
 
-  const dynamicSet = new Set<string>(DYNAMIC_DOMAIN_CHANNELS);
-
   const filtered = channels.filter((ch) => {
     /* 动态域名渠道默认保留 */
-    if (dynamicSet.has(ch)) {
+    if (DYNAMIC_DOMAIN_SET.has(ch)) {
       return true;
     }
 

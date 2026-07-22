@@ -1,0 +1,76 @@
+<script>
+const {createApp, ref, computed, onMounted, onUnmounted, nextTick} = Vue
+createApp({
+  setup() {
+    const tabs = [{id:'overview',label:'概览'},{id:'channels',label:'渠道'},{id:'logs',label:'日志'}]
+    const activeTab = ref('overview')
+    const connected = ref(false)
+    const sdkInfo = ref({language:'',version:'',port:'',host:'127.0.0.1',proxy:'',timeout:30,config:{}})
+    const channels = ref([])
+    const logs = ref([])
+    const channelSearch = ref('')
+    const logLevel = ref('all')
+    const autoScroll = ref(true)
+    const logContainer = ref(null)
+    let evtSource = null
+
+    const filteredChannels = computed(() => {
+      if (!channelSearch.value) return channels.value
+      const q = channelSearch.value.toLowerCase()
+      return channels.value.filter(c =>
+        c.channel.includes(q) || c.name.toLowerCase().includes(q) || c.website.includes(q))
+    })
+    const filteredLogs = computed(() => {
+      if (logLevel.value === 'all') return logs.value
+      return logs.value.filter(l => l.level === logLevel.value)
+    })
+
+    async function fetchInfo() {
+      try {
+        const r = await fetch('/api/info')
+        if (r.ok) sdkInfo.value = await r.json()
+      } catch(e) {}
+    }
+    async function fetchChannels() {
+      try {
+        const r = await fetch('/api/channels')
+        if (r.ok) channels.value = await r.json()
+      } catch(e) {}
+    }
+    function connectSSE() {
+      if (evtSource) { evtSource.close(); evtSource = null }
+      evtSource = new EventSource('/api/logs/stream')
+      evtSource.onopen = () => { connected.value = true }
+      evtSource.onmessage = (e) => {
+        try {
+          const entry = JSON.parse(e.data)
+          logs.value.push(entry)
+          if (logs.value.length > 5000) logs.value.splice(0, 500)
+          if (autoScroll.value) {
+            nextTick(() => {
+              const el = logContainer.value
+              if (el) el.scrollTop = el.scrollHeight
+            })
+          }
+        } catch(err) {}
+      }
+      evtSource.onerror = () => {
+        connected.value = false
+        evtSource.close()
+        evtSource = null
+        setTimeout(connectSSE, 3000)
+      }
+    }
+
+    onMounted(() => {
+      fetchInfo()
+      fetchChannels()
+      connectSSE()
+    })
+    onUnmounted(() => { if (evtSource) evtSource.close() })
+
+    return {tabs, activeTab, connected, sdkInfo, channels, logs, channelSearch,
+            logLevel, autoScroll, logContainer, filteredChannels, filteredLogs}
+  }
+}).mount('#app')
+</script>

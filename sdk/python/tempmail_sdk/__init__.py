@@ -35,6 +35,7 @@ from .retry import with_retry, with_retry_with_attempts, RetryAttemptsResult
 from .normalize import normalize_email
 from .config import SDKConfig, set_config, get_config
 from .telemetry import get_sdk_version
+from .webui import start_webui, stop_webui, _auto_start_from_env
 
 __all__ = [
     "Channel",
@@ -67,4 +68,9 @@ __all__ = [
     "set_config",
     "get_config",
     "get_sdk_version",
+    "start_webui",
+    "stop_webui",
 ]
+
+# 模块加载时按环境变量 TEMPMAIL_WEBUI 自动启动 WebUI（默认不启动）
+_auto_start_from_env()

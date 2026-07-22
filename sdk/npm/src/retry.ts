@@ -173,6 +173,9 @@ let _cachedFetchConfig: {
   version: number;
 } | null = null;
 
+/* 缓存的「跳过 TLS 校验」fetch，复用同一 undici dispatcher 以保持连接池 */
+let _cachedTlsSkipFetch: typeof fetch | null = null;
+
 /**
  * 获取缓存的 fetch 配置
  */
@@ -209,6 +212,10 @@ function resolveFetchForTls(
   if (typeof process === "undefined" || !process.versions?.node) {
     return baseFetch;
   }
+  /* 缓存命中：复用同一 dispatcher（含连接池/keepAlive），避免每次请求新建 Agent 与重复 require */
+  if (_cachedTlsSkipFetch) {
+    return _cachedTlsSkipFetch;
+  }
   try {
     // Node 18+ 内置 undici，用于 per-request 关闭证书校验（不修改全局 NODE_TLS_REJECT_UNAUTHORIZED）
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -224,11 +231,12 @@ function resolveFetchForTls(
     const dispatcher = new undici.Agent({
       connect: { rejectUnauthorized: false },
     });
-    return ((u: string, i?: RequestInit) =>
+    _cachedTlsSkipFetch = ((u: string, i?: RequestInit) =>
       undici.fetch(u, {
         ...(i as Record<string, unknown>),
         dispatcher,
       })) as typeof fetch;
+    return _cachedTlsSkipFetch;
   } catch {
     return baseFetch;
   }

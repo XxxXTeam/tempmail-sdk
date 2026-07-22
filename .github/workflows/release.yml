@@ -9,7 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  # 从 tag 解析版本与是否为 semver 预发布（如 v1.0.0-beta.1 → 测试版）
   release-meta:
     name: 解析发布元数据
     runs-on: ubuntu-latest
@@ -27,10 +26,6 @@ jobs:
           else
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-
-  # 创建 Go 子目录模块标签
-  # Go modules 要求子目录模块使用 sdk/go/vX.X.X 格式的标签
-  # 否则 go get / go mod tidy 无法正确解析版本
   create-go-module-tag:
     name: 创建 Go 模块标签
     runs-on: ubuntu-latest
@@ -52,8 +47,6 @@ jobs:
           echo "创建 Go 模块标签: ${GO_TAG}"
           git tag "${GO_TAG}" || true
           git push origin "${GO_TAG}" || true
-
-  # 各 SDK 并行构建验证
   verify-go:
     name: 验证 Go SDK
     runs-on: ubuntu-latest
@@ -132,7 +125,88 @@ jobs:
           cmake -B build -S .
           cmake --build build
 
-  # 发布 npm 包
+  verify-php:
+    name: 验证 PHP SDK
+    runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+      - name: PHP 构建验证
+        working-directory: sdk/php
+        run: |
+          composer install --no-interaction --prefer-dist
+          find src -name "*.php" -exec php -l {} \;
+          composer dump-autoload --strict
+
+  verify-csharp:
+    name: 验证 C# SDK
+    runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: C# 构建验证
+        working-directory: sdk/csharp/src
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+
+  verify-ruby:
+    name: 验证 Ruby SDK
+    runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: Ruby 构建验证
+        working-directory: sdk/ruby
+        run: |
+          find lib -name "*.rb" -exec ruby -c {} \;
+          gem build tempmail_sdk.gemspec
+
+  verify-java:
+    name: 验证 Java SDK
+    runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Java 构建验证
+        working-directory: sdk/java
+        run: mvn compile -B -q
+  verify-kotlin:
+    name: 验证 Kotlin SDK
+    runs-on: ubuntu-latest
+    needs: [create-go-module-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: 缓存 Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sdk/kotlin/gradle/wrapper/gradle-wrapper.properties', 'sdk/kotlin/build.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle-
+      - name: Kotlin 构建验证
+        working-directory: sdk/kotlin
+        run: ./gradlew build
   publish-npm:
     name: 发布 npm 包
     runs-on: ubuntu-latest
@@ -173,8 +247,6 @@ jobs:
         continue-on-error: true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # 发布 npm 包到 GitHub Packages
   publish-github-packages:
     name: 发布到 GitHub Packages
     runs-on: ubuntu-latest
@@ -252,8 +324,6 @@ jobs:
         continue-on-error: true
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-  # 发布 Python 包到 PyPI
   publish-pypi:
     name: 发布到 PyPI
     runs-on: ubuntu-latest
@@ -296,7 +366,210 @@ jobs:
           name: python-wheel
           path: sdk/python/dist/*.whl
 
-  # Go SDK 多平台二进制构建（矩阵并行）
+  publish-nuget:
+    name: 发布到 NuGet
+    runs-on: ubuntu-latest
+    needs: [verify-csharp, release-meta]
+    defaults:
+      run:
+        working-directory: sdk/csharp/src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 .NET 环境
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 更新版本号
+        run: sed -i "s/<Version>.*<\/Version>/<Version>${{ steps.version.outputs.VERSION }}<\/Version>/" XxxXTeam.TempMail.csproj
+
+      - name: 构建与打包
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+          dotnet pack --no-build -c Release -o ./nupkg
+
+      - name: 发布到 NuGet
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        continue-on-error: true
+
+      - name: 上传 NuGet 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: sdk/csharp/src/nupkg/*.nupkg
+  publish-rubygems:
+    name: 发布到 RubyGems
+    runs-on: ubuntu-latest
+    needs: [verify-ruby, release-meta]
+    defaults:
+      run:
+        working-directory: sdk/ruby
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Ruby 环境
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 更新版本号
+        run: |
+          sed -i "s/VERSION = .*/VERSION = \"${{ steps.version.outputs.VERSION }}\"/" lib/tempmail_sdk/version.rb
+
+      - name: 构建 gem
+        run: gem build tempmail_sdk.gemspec
+
+      - name: 发布到 RubyGems
+        run: |
+          mkdir -p ~/.gem
+          echo "---" > ~/.gem/credentials
+          echo ":rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}" >> ~/.gem/credentials
+          chmod 0600 ~/.gem/credentials
+          gem push *.gem
+        continue-on-error: true
+
+      - name: 上传 gem 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-gem
+          path: sdk/ruby/*.gem
+  publish-packagist:
+    name: 打包 PHP SDK
+    runs-on: ubuntu-latest
+    needs: [verify-php, release-meta]
+    defaults:
+      run:
+        working-directory: sdk/php
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 PHP 环境
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: 安装依赖
+        run: composer install --no-interaction --prefer-dist
+
+      - name: 验证 composer.json
+        run: composer validate --strict
+
+      - name: 构建 archive
+        run: |
+          composer archive --format=zip --file=tempmail-sdk-php-${{ needs.release-meta.outputs.version }}
+          mkdir -p dist
+          mv *.zip dist/
+
+      - name: 上传 PHP 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-package
+          path: sdk/php/dist/*.zip
+  publish-maven:
+    name: 发布到 Maven Central
+    runs-on: ubuntu-latest
+    needs: [verify-java, release-meta]
+    defaults:
+      run:
+        working-directory: sdk/java
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Java 环境
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 导入 GPG 私钥
+        run: echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+
+      - name: 更新 pom.xml 版本
+        run: mvn versions:set -DnewVersion=${{ steps.version.outputs.VERSION }} -B -q
+
+      - name: 发布到 Maven Central（Central Portal）
+        run: mvn deploy -Prelease -B -DskipTests -Dgpg.passphrase="$GPG_PASSPHRASE"
+        continue-on-error: true
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: 上传 JAR 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-jar
+          path: sdk/java/target/*.jar
+  publish-kotlin:
+    name: 发布 Kotlin SDK
+    runs-on: ubuntu-latest
+    needs: [verify-kotlin, release-meta]
+    defaults:
+      run:
+        working-directory: sdk/kotlin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Java 环境
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 缓存 Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sdk/kotlin/gradle/wrapper/gradle-wrapper.properties', 'sdk/kotlin/build.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: 获取版本号
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 更新版本号
+        run: sed -i "s/^version = .*/version = \"${{ steps.version.outputs.VERSION }}\"/" build.gradle.kts
+
+      - name: 构建与发布到 Maven Central（Central Portal）
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
+        continue-on-error: true
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_TOKEN }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: 上传 Kotlin JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-jar
+          path: sdk/kotlin/build/libs/*.jar
   build-go-binaries:
     name: 构建 Go 二进制 (${{ matrix.goos }}/${{ matrix.goarch }})
     runs-on: ubuntu-latest
@@ -359,8 +632,6 @@ jobs:
         with:
           name: go-binary-${{ matrix.goos }}-${{ matrix.goarch }}
           path: sdk/go/example/dist/*.zip
-
-  # Rust SDK 多平台二进制构建
   build-rust-binaries:
     name: 构建 Rust 二进制 (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
@@ -433,8 +704,6 @@ jobs:
         with:
           name: rust-${{ matrix.artifact }}
           path: sdk/rust/dist/${{ matrix.artifact }}.zip
-
-  # C SDK 多平台构建（静态库 + 示例二进制）
   build-c-sdk:
     name: 构建 C SDK (${{ matrix.artifact }})
     runs-on: ${{ matrix.os }}
@@ -481,8 +750,6 @@ jobs:
         run: |
           curl -fsSL -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
           curl -fsSL -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
-
-      # macOS：Homebrew 的 curl 为 keg-only，需 CMAKE_PREFIX_PATH 才能让 FindCURL 找到
       - name: CMake 配置与构建 (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -551,12 +818,10 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: sdk/c/${{ matrix.artifact }}.zip
-
-  # 创建 GitHub Release
   create-release:
     name: 创建 GitHub Release
     runs-on: ubuntu-latest
-    needs: [release-meta, publish-npm, publish-github-packages, publish-crates, publish-pypi, build-go-binaries, build-rust-binaries, build-c-sdk]
+    needs: [release-meta, publish-npm, publish-github-packages, publish-crates, publish-pypi, publish-nuget, publish-rubygems, publish-packagist, publish-maven, publish-kotlin, build-go-binaries, build-rust-binaries, build-c-sdk]
     permissions:
       contents: write
     
@@ -640,6 +905,38 @@ jobs:
             pip install https://github.com/XxxXTeam/tempmail-sdk/releases/download/${{ steps.version.outputs.VERSION }}/tempemail_sdk-${GITHUB_REF#refs/tags/v}-py3-none-any.whl
             ```
 
+            #### PHP
+            ```bash
+            # 未发布到 Packagist（SDK 位于 monorepo 子目录 sdk/php）。
+            # 从下方 Assets 下载 tempmail-sdk-php-*.zip，解压后引入 vendor/autoload.php
+            ```
+
+            #### C# (.NET)
+            ```bash
+            dotnet add package XxxXTeam.TempMail
+            ```
+
+            #### Ruby
+            ```bash
+            gem install tempmail_sdk
+            ```
+
+            #### Java (Maven)
+            ```xml
+            <dependency>
+              <groupId>io.github.xxxxteam</groupId>
+              <artifactId>tempmail-sdk</artifactId>
+              <version>${{ needs.release-meta.outputs.version }}</version>
+            </dependency>
+            ```
+
+            #### Kotlin (Gradle)
+            ```kotlin
+            dependencies {
+                implementation("io.github.xxxxteam:tempmail-sdk:${{ needs.release-meta.outputs.version }}")
+            }
+            ```
+
             #### C SDK
             从下方 Assets 下载对应平台的 zip 包，解压即可使用。
 
@@ -648,6 +945,10 @@ jobs:
             | 包名 | 说明 |
             |------|------|
             | `tempemail_sdk-*-py3-none-any.whl` | Python wheel 包 |
+            | `XxxXTeam.TempMail.*.nupkg` | C# NuGet 包 |
+            | `tempmail_sdk-*.gem` | Ruby gem 包 |
+            | `tempmail-sdk-*.jar` | Java/Kotlin JAR 包 |
+            | `tempmail-sdk-php-*.zip` | PHP Composer 包 |
             | `tempmail-example-linux-amd64.zip` | Go 示例 - Linux x64 |
             | `tempmail-example-linux-arm64.zip` | Go 示例 - Linux ARM64 |
             | `tempmail-example-darwin-amd64.zip` | Go 示例 - macOS x64 |
@@ -656,10 +957,10 @@ jobs:
             | `tempmail-example-windows-arm64.zip` | Go 示例 - Windows ARM64 |
             | `rust-tempmail-example-*.zip` | Rust 示例 - 各平台 |
             | `c-sdk-*.zip` | C SDK 静态库 + 示例二进制 - 各平台 |
-            
+
             ### 支持的渠道
-            
-            共 **268** 个公开 `channel` 标识，五种 SDK 一致；按独立服务商合并为 **100** 个 provider。详见仓库根目录 `README.md`。
+
+            共 **279** 个公开 `channel` 标识，十种 SDK（Go/npm/Rust/Python/C/PHP/C#/Ruby/Java/Kotlin）一致；按独立服务商合并为 **110** 个 provider。详见仓库根目录 `README.md`。
             
             | 渠道 | 服务商 |
             |------|--------|

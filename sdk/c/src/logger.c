@@ -12,6 +12,12 @@ void tm_set_log_level(tm_log_level_t level) { g_log_level = level; }
 
 void tm_set_log_handler(tm_log_handler_t handler) { g_log_handler = handler; }
 
+/* 返回当前日志处理器（供 WebUI 链式包装原处理器使用），无则返回 NULL */
+tm_log_handler_t tm_get_log_handler(void) { return g_log_handler; }
+
+/* 返回当前日志级别（供 WebUI 判断是否需要生成日志） */
+tm_log_level_t tm_get_log_level(void) { return g_log_level; }
+
 static const char *level_str(tm_log_level_t level) {
   switch (level) {
   case TM_LOG_ERROR:
