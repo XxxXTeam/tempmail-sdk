@@ -243,7 +243,7 @@ jobs:
           find src -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: 自动加载验证
-        run: composer dump-autoload --strict
+        run: composer dump-autoload --strict-psr
 
       - name: 渠道加载验证
         run: php -r "require 'vendor/autoload.php'; echo count(\ChanhanzhanX\TempMail\Registry::listChannels()) . ' channels\n';"
