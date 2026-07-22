@@ -439,7 +439,7 @@ jobs:
           echo "---" > ~/.gem/credentials
           echo ":rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}" >> ~/.gem/credentials
           chmod 0600 ~/.gem/credentials
-          gem push *.gem
+          gem push "tempmail_sdk-${{ steps.version.outputs.VERSION }}.gem"
         continue-on-error: true
 
       - name: 上传 gem 包

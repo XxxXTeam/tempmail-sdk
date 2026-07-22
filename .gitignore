@@ -47,6 +47,9 @@ Cargo.lock
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# Ruby
+*.gem
+
 # Python
 *.egg-info/
 *.egg
