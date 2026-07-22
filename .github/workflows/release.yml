@@ -140,7 +140,7 @@ jobs:
         run: |
           composer install --no-interaction --prefer-dist
           find src -name "*.php" -exec php -l {} \;
-          composer dump-autoload --strict-psr
+          composer dump-autoload --optimize --strict-psr
 
   verify-csharp:
     name: 验证 C# SDK

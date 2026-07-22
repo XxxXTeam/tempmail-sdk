@@ -243,7 +243,7 @@ jobs:
           find src -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: 自动加载验证
-        run: composer dump-autoload --strict-psr
+        run: composer dump-autoload --optimize --strict-psr
 
       - name: 渠道加载验证
         run: php -r "require 'vendor/autoload.php'; echo count(\ChanhanzhanX\TempMail\Registry::listChannels()) . ' channels\n';"
@@ -298,7 +298,7 @@ jobs:
           find lib -name "*.rb" -print0 | xargs -0 -n1 ruby -c
 
       - name: 加载验证
-        run: ruby -e "require_relative 'lib/tempmail_sdk'; puts TempmailSdk::Registry::REGISTRY.size.to_s + ' channels'"
+        run: ruby -I lib -e "require 'tempmail_sdk'; puts TempmailSdk::Registry::REGISTRY.size.to_s + ' channels'"
 
       - name: 构建 gem
         run: gem build tempmail_sdk.gemspec

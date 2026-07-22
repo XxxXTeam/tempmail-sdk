@@ -209,9 +209,14 @@ add_library(tempmail_sdk STATIC
     src/providers/notfond_404_mn.c
     src/providers/dropmail_me.c
     src/providers/ten_minute_mail_net.c
-    src/webui.c
     vendor/cJSON.c
 )
+
+# webui 基于 POSIX socket + pthread，仅在非 Windows 平台编译；
+# Windows 下由 webui.h 的内联桩提供 no-op 实现。
+if(NOT WIN32)
+    target_sources(tempmail_sdk PRIVATE src/webui.c)
+endif()
 
 target_include_directories(tempmail_sdk PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

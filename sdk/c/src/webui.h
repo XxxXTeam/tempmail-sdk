@@ -15,6 +15,22 @@
 extern "C" {
 #endif
 
+#ifdef _WIN32
+
+/*
+ * Windows 平台：webui 基于 POSIX socket + pthread，暂不支持。
+ * 提供内联 no-op 桩，使 tm_init()/tm_cleanup() 等调用方无需条件编译。
+ */
+static inline int tm_webui_start(const char *host, int port) {
+  (void)host;
+  (void)port;
+  return 0;
+}
+static inline void tm_webui_stop(void) {}
+static inline int tm_webui_maybe_start_from_env(void) { return 0; }
+
+#else
+
 /**
  * 启动 WebUI HTTP 服务器（在独立 pthread 中运行，不阻塞调用线程）。
  *
@@ -52,6 +68,8 @@ void tm_webui_stop(void);
  * @return 已启动时返回监听端口，否则返回 0
  */
 int tm_webui_maybe_start_from_env(void);
+
+#endif /* _WIN32 */
 
 #ifdef __cplusplus
 }
