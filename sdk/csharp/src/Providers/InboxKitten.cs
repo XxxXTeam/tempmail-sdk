@@ -26,7 +26,8 @@ public static class InboxKitten
 
     public static List<Email> GetEmails(string email)
     {
-        var local = (email ?? "").Trim().Split('@')[0];
+        email = (email ?? "").Trim();
+        var local = email.Split('@')[0];
         if (string.IsNullOrEmpty(local)) throw new Exception("inboxkitten: empty email");
 
         var resp = Http.Get($"{ApiBase}/list?recipient={WebUtility.UrlEncode(local)}", HeadersJson);

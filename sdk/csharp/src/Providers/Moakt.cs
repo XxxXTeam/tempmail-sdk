@@ -135,7 +135,7 @@ public static class Moakt
             obj = Json.Parse(Encoding.UTF8.GetString(data)) as JsonObject
                   ?? throw new Exception("moakt: invalid session token");
         }
-        catch (Exception) when (true)
+        catch (Exception)
         {
             throw new Exception("moakt: invalid session token");
         }

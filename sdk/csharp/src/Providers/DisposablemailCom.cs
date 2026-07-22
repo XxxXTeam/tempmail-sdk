@@ -107,7 +107,7 @@ public static class DisposablemailCom
         var result = new List<Email>();
         if (trimmed is "0" or "" or "[]") return result;
 
-        if (Json.Parse(resp.Body) is not JsonArray list || list.Count == 0) return result;
+        if (Json.Parse(trimmed) is not JsonArray list || list.Count == 0) return result;
 
         foreach (var node in list)
         {
