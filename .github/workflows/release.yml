@@ -120,8 +120,8 @@ jobs:
         working-directory: sdk/c
         run: |
           sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-          curl -L -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
-          curl -L -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
           cmake -B build -S .
           cmake --build build
 
@@ -752,8 +752,8 @@ jobs:
       - name: 下载 cJSON
         shell: bash
         run: |
-          curl -fsSL -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
-          curl -fsSL -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o vendor/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o vendor/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
       - name: CMake 配置与构建 (Linux)
         if: runner.os == 'Linux'
         run: |
