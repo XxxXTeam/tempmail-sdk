@@ -19,13 +19,13 @@ import (
  */
 type kindResult struct {
 	Kind       payloadKind `json:"kind"`
-	Sent       bool        `json:"sent"`      // 是否成功发信
+	Sent       bool        `json:"sent"` // 是否成功发信
 	SendErr    string      `json:"sendErr,omitempty"`
-	Received   bool        `json:"received"`  // 是否按 token 收到该封
-	HasText    bool        `json:"hasText"`   // 归一化后 text 非空
-	HasHTML    bool        `json:"hasHTML"`   // 归一化后 html 非空
-	HasCode    bool        `json:"hasCode"`   // text 或 html 中包含验证码
-	HTMLLen    int         `json:"htmlLen"`   // 收到的 html 长度
+	Received   bool        `json:"received"` // 是否按 token 收到该封
+	HasText    bool        `json:"hasText"`  // 归一化后 text 非空
+	HasHTML    bool        `json:"hasHTML"`  // 归一化后 html 非空
+	HasCode    bool        `json:"hasCode"`  // text 或 html 中包含验证码
+	HTMLLen    int         `json:"htmlLen"`  // 收到的 html 长度
 	SentHTML   int         `json:"sentHTMLLen"`
 	SentinelOK bool        `json:"sentinelOK"` // 大 HTML 末尾哨兵是否存在（未截断）
 	HasAttach  bool        `json:"hasAttach"`  // 附件是否被归一化出
@@ -36,28 +36,28 @@ type kindResult struct {
  * channelResult 单个渠道的完整验证结果
  */
 type channelResult struct {
-	Channel   string       `json:"channel"`
-	Website   string       `json:"website"`
-	GenOK     bool         `json:"genOK"`     // 邮箱创建成功且渠道一致
-	Email     string       `json:"email"`
-	GenErr    string       `json:"genErr,omitempty"`
-	MXHost    string       `json:"mxHost,omitempty"`
-	Kinds     []kindResult `json:"kinds"`
-	Verdict   string       `json:"verdict"` // ok / no-body / truncated / partial / no-receive / gen-failed / skipped
-	Elapsed   string       `json:"elapsed"`
+	Channel string       `json:"channel"`
+	Website string       `json:"website"`
+	GenOK   bool         `json:"genOK"` // 邮箱创建成功且渠道一致
+	Email   string       `json:"email"`
+	GenErr  string       `json:"genErr,omitempty"`
+	MXHost  string       `json:"mxHost,omitempty"`
+	Kinds   []kindResult `json:"kinds"`
+	Verdict string       `json:"verdict"` // ok / no-body / truncated / partial / no-receive / gen-failed / skipped
+	Elapsed string       `json:"elapsed"`
 }
 
 func main() {
 	var (
-		only        = flag.String("channels", "", "仅测试逗号分隔的指定渠道（调试用）")
-		concurrency = flag.Int("c", 4, "并发渠道数")
-		pollTimeout = flag.Duration("poll", 100*time.Second, "每渠道收信轮询上限")
+		only         = flag.String("channels", "", "仅测试逗号分隔的指定渠道（调试用）")
+		concurrency  = flag.Int("c", 4, "并发渠道数")
+		pollTimeout  = flag.Duration("poll", 100*time.Second, "每渠道收信轮询上限")
 		pollInterval = flag.Duration("interval", 5*time.Second, "轮询间隔")
-		outJSON     = flag.String("json", "verify_result.json", "JSON 结果输出路径")
-		outMD       = flag.String("md", "verify_report.md", "Markdown 报告输出路径")
-		limit       = flag.Int("limit", 0, "只测前 N 个渠道（0=全部）")
-		kindsFlag   = flag.String("kinds", "text,html,attach", "测试的载荷类型")
-		htmlRowsF   = flag.Int("htmlrows", 400, "大HTML表格行数(控制体积,400≈112KB,80≈25KB)")
+		outJSON      = flag.String("json", "verify_result.json", "JSON 结果输出路径")
+		outMD        = flag.String("md", "verify_report.md", "Markdown 报告输出路径")
+		limit        = flag.Int("limit", 0, "只测前 N 个渠道（0=全部）")
+		kindsFlag    = flag.String("kinds", "text,html,attach", "测试的载荷类型")
+		htmlRowsF    = flag.Int("htmlrows", 400, "大HTML表格行数(控制体积,400≈112KB,80≈25KB)")
 	)
 	flag.Parse()
 	htmlRows = *htmlRowsF
@@ -366,13 +366,13 @@ func writeMarkdown(path string, results []channelResult, kinds []payloadKind) {
 	b.WriteString("## 结论分布\n\n")
 	order := []string{"ok", "partial", "truncated", "no-body", "no-receive", "send-failed", "gen-failed"}
 	labels := map[string]string{
-		"ok": "✅ 正常（收信+正文+验证码+附件均完整）",
-		"partial": "⚠️ 部分（收到但验证码/附件/部分类型缺失）",
-		"truncated": "✂️ 正文截断（大HTML被截断/哨兵丢失）",
-		"no-body": "📭 有标题无正文",
-		"no-receive": "❌ 未收到测试邮件",
+		"ok":          "✅ 正常（收信+正文+验证码+附件均完整）",
+		"partial":     "⚠️ 部分（收到但验证码/附件/部分类型缺失）",
+		"truncated":   "✂️ 正文截断（大HTML被截断/哨兵丢失）",
+		"no-body":     "📭 有标题无正文",
+		"no-receive":  "❌ 未收到测试邮件",
 		"send-failed": "🚫 发信失败",
-		"gen-failed": "🔌 邮箱创建失败/fallback",
+		"gen-failed":  "🔌 邮箱创建失败/fallback",
 	}
 	for _, v := range order {
 		list := byVerdict[v]

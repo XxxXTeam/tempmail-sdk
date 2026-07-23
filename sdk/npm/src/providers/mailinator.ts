@@ -46,7 +46,7 @@ function toIsoTime(value: unknown): string {
 
 function textFromPayload(
   data: unknown,
-  key: "text/plain" | "text" | "text/html",
+  key: "text/plain" | "text" | "text/html" | "html",
 ): string {
   if (!data || typeof data !== "object") return "";
   const value = (data as Record<string, unknown>)[key];
