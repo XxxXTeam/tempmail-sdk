@@ -100,6 +100,84 @@ export async function generateEmail(
   };
 }
 
+/**
+ * 详情接口响应结构（从前端代码确认）：
+ * - content: 完整 HTML 正文
+ * - subject / from_addr / date: 邮件元数据
+ * - attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+ */
+interface EmailContentResponse {
+  content?: string;
+  subject?: string;
+  from_addr?: string;
+  date?: string;
+  attachment?: string;
+}
+
+/**
+ * 附件条目结构（详情接口 attachment 字段解析后）
+ */
+interface AttachmentItem {
+  filename?: string;
+  path?: string;
+  size?: number;
+}
+
+/**
+ * 通过详情接口获取单封邮件完整内容
+ * GET /api/email_content.php?id={id}
+ * 失败时返回 null，调用方回退到列表 description
+ */
+async function fetchEmailDetail(
+  id: string,
+): Promise<EmailContentResponse | null> {
+  const trimmedId = String(id || "").trim();
+  if (!trimmedId) return null;
+  const qs = new URLSearchParams({ id: trimmedId });
+  try {
+    const res = await fetchWithTimeout(
+      `${BASE}/api/email_content.php?${qs}`,
+      {
+        method: "GET",
+        headers: DEFAULT_HEADERS,
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as EmailContentResponse;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 解析详情接口的 attachment 字段（JSON 字符串）
+ * 返回归一化附件列表
+ */
+function parseAttachments(
+  raw: string | undefined,
+): Array<{ filename: string; size?: number }> {
+  if (!raw || typeof raw !== "string" || !raw.trim()) return [];
+  try {
+    const items = JSON.parse(raw) as AttachmentItem[];
+    if (!Array.isArray(items)) return [];
+    return items
+      .filter((it) => it && typeof it.filename === "string" && it.filename.trim())
+      .map((it) => ({
+        filename: String(it.filename).trim(),
+        size: typeof it.size === "number" ? it.size : undefined,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 获取邮件列表并补拉详情
+ * 流程:
+ *   1. GET /api/emails.php?addr={email} 拉取列表（仅含 description 摘要）
+ *   2. 对每封邮件 GET /api/email_content.php?id={id} 拉取详情（含 content 完整 HTML）
+ *   3. 详情失败时保留列表 description 作为回退
+ */
 export async function getEmails(
   _token: string,
   email: string,
@@ -118,19 +196,51 @@ export async function getEmails(
   }
   const data = (await response.json()) as EmailsApiResponse;
   const rows = Array.isArray(data.emails) ? data.emails : [];
-  return rows.map((item) => {
+
+  const out: Email[] = [];
+  for (const item of rows) {
+    const id = String(item.id ?? "");
     const desc = item.description?.trim() ?? "";
     const isRead = item.isRead === true || item.isRead === 1;
-    return {
-      id: String(item.id ?? ""),
-      from: item.from_addr?.trim() ?? "",
+
+    /* 默认使用列表字段构造 */
+    let from = item.from_addr?.trim() ?? "";
+    let subject = item.subject?.trim() ?? "";
+    let date = cxDateToIso(item.date ?? "");
+    let html = "";
+    let attachments: Array<{ filename: string; size?: number }> = [];
+
+    /* 拉取详情覆盖 html/attachments/元数据 */
+    if (id) {
+      const detail = await fetchEmailDetail(id);
+      if (detail) {
+        if (typeof detail.content === "string" && detail.content.trim()) {
+          html = detail.content;
+        }
+        if (typeof detail.from_addr === "string" && detail.from_addr.trim()) {
+          from = detail.from_addr.trim();
+        }
+        if (typeof detail.subject === "string" && detail.subject.trim()) {
+          subject = detail.subject.trim();
+        }
+        if (typeof detail.date === "string" && detail.date.trim()) {
+          date = cxDateToIso(detail.date);
+        }
+        attachments = parseAttachments(detail.attachment);
+      }
+    }
+
+    out.push({
+      id,
+      from,
       to: addr,
-      subject: item.subject?.trim() ?? "",
+      subject,
       text: desc,
-      html: "",
-      date: cxDateToIso(item.date ?? ""),
+      html,
+      date,
       isRead,
-      attachments: [],
-    };
-  });
+      attachments,
+    });
+  }
+  return out;
 }

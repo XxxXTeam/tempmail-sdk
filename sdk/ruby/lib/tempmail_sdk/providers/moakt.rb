@@ -42,7 +42,7 @@ module TempmailSdk
       TITLE_RE = /<li\s+class="title"\s*>([^<]*)<\/li>/im
       DATE_RE = /<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)<\/span>/im
       SENDER_RE = /<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>\s*<\/li>/im
-      BODY_RE = /<div\s+class="email-body"\s*>([\s\S]*?)<\/div>/im
+      BODY_OPEN_RE = /<div\s+class="email-body"\s*>/im
       FROM_ADDR_RE = /<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/
       TAG_RE = /<[^>]+>/
 
@@ -161,6 +161,33 @@ module TempmailSdk
         addr
       end
 
+      # 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+      # 避免非贪婪正则在嵌套 div 时截断正文。
+      def extract_body_html(page)
+        m = page.match(BODY_OPEN_RE)
+        return "" unless m
+
+        start = m.end(0)
+        pos = start
+        depth = 1
+        while pos < page.length && depth > 0
+          next_open = page.index("<div", pos)
+          next_close = page.index("</div>", pos)
+          break unless next_close
+
+          if next_open && next_open < next_close
+            depth += 1
+            pos = next_open + 4
+          else
+            depth -= 1
+            return page[start...next_close].strip if depth.zero?
+
+            pos = next_close + 6
+          end
+        end
+        ""
+      end
+
       # 去除 HTML 标签，压缩为文本
       def strip_tags(s)
         s.gsub(TAG_RE, " ").strip
@@ -200,8 +227,7 @@ module TempmailSdk
         date_s = ""
         date_s = CGI.unescapeHTML(page.match(DATE_RE)[1].strip) if page.match?(DATE_RE)
 
-        body = ""
-        body = page.match(BODY_RE)[1].strip if page.match?(BODY_RE)
+        body = extract_body_html(page)
 
         {
           "id" => mid,

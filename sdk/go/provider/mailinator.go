@@ -154,13 +154,23 @@ func mailinatorFlattenMessage(summary map[string]any, recipient string, textPayl
 	if date == "" {
 		date = mailinatorIsoTime(summary["date"])
 	}
+	// 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+	textContent := mailinatorToString(textPayload["text"])
+	if textContent == "" {
+		textContent = mailinatorToString(textPayload["text/plain"])
+	}
+	// 优先读 "html" 键，回退兜底 "text/html"
+	htmlContent := mailinatorToString(htmlPayload["html"])
+	if htmlContent == "" {
+		htmlContent = mailinatorToString(htmlPayload["text/html"])
+	}
 	return map[string]any{
 		"id":          summary["id"],
 		"from":        from,
 		"to":          mailinatorToString(summary["to"]),
 		"subject":     subject,
-		"text":        mailinatorToString(textPayload["text/plain"]),
-		"html":        mailinatorToString(htmlPayload["text/html"]),
+		"text":        textContent,
+		"html":        htmlContent,
 		"date":        date,
 		"isRead":      false,
 		"attachments": attachments,

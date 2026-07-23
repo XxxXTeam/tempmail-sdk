@@ -230,13 +230,24 @@ final class Mailinator
             }
         }
 
+        // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+        $textContent = self::textFromPayload($textPayload, 'text');
+        if ($textContent === '') {
+            $textContent = self::textFromPayload($textPayload, 'text/plain');
+        }
+        // 优先读 "html" 键，回退兜底 "text/html"
+        $htmlContent = self::textFromPayload($htmlPayload, 'html');
+        if ($htmlContent === '') {
+            $htmlContent = self::textFromPayload($htmlPayload, 'text/html');
+        }
+
         return [
             'id' => $summary['id'] ?? $summary['messageId'] ?? '',
             'from' => $summary['from'] ?? $summary['origfrom'] ?? '',
             'to' => $summary['to'] ?? $recipient,
             'subject' => $summary['subject'] ?? '',
-            'text' => self::textFromPayload($textPayload, 'text/plain'),
-            'html' => self::textFromPayload($htmlPayload, 'text/html'),
+            'text' => $textContent,
+            'html' => $htmlContent,
             'date' => $summary['time'] ?? $summary['date'] ?? '',
             'seen' => false,
             'attachments' => $attachments,

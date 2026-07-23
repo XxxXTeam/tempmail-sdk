@@ -148,16 +148,42 @@ final class Haribu
                 return '';
             }
             $html = (string) $resp->getBody();
-            if (
-                preg_match(
-                    '/<div\s+(?:id|class)\s*=\s*["\'](?:mail_icerik|icerik|mail-content|message-body)["\'][^>]*>([\s\S]*?)<\/div>/i',
-                    $html,
-                    $m,
-                ) === 1
-            ) {
-                return trim($m[1]);
+            $body = self::extractBodyHtml($html);
+            if ($body !== '') {
+                return $body;
             }
         } catch (\Throwable) {
+        }
+        return '';
+    }
+
+    /**
+     * 使用栈式深度匹配提取正文 div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private static function extractBodyHtml(string $page): string
+    {
+        if (preg_match('/<div\s+(?:id|class)\s*=\s*["\'](?:mail_icerik|icerik|mail-content|message-body)["\'][^>]*>/i', $page, $m, PREG_OFFSET_CAPTURE) !== 1) {
+            return '';
+        }
+        $start = $m[0][1] + strlen($m[0][0]);
+        $pos = $start;
+        $depth = 1;
+        $len = strlen($page);
+        while ($pos < $len && $depth > 0) {
+            $nextOpen = strpos($page, '<div', $pos);
+            $nextClose = strpos($page, '</div>', $pos);
+            if ($nextClose === false) break;
+            if ($nextOpen !== false && $nextOpen < $nextClose) {
+                $depth++;
+                $pos = $nextOpen + 4;
+            } else {
+                $depth--;
+                if ($depth === 0) {
+                    return trim(substr($page, $start, $nextClose - $start));
+                }
+                $pos = $nextClose + 6;
+            }
         }
         return '';
     }

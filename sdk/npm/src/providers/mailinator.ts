@@ -125,13 +125,18 @@ function flattenMessage(
       }))
     : [];
 
+  // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+  const textContent = textFromPayload(textPayload, "text") || textFromPayload(textPayload, "text/plain");
+  // 优先读 "html" 键，回退兜底 "text/html"
+  const htmlContent = textFromPayload(htmlPayload, "html") || textFromPayload(htmlPayload, "text/html");
+
   return {
     id: summary?.id || "",
     from: summary?.from || summary?.origfrom || "",
     to: summary?.to || recipientEmail,
     subject: summary?.subject || "",
-    text: textFromPayload(textPayload, "text/plain"),
-    html: textFromPayload(htmlPayload, "text/html"),
+    text: textContent,
+    html: htmlContent,
     date: toIsoTime(summary?.time),
     seen: false,
     attachments,

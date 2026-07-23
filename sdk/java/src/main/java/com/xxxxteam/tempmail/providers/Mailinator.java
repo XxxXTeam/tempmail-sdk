@@ -112,13 +112,24 @@ public final class Mailinator {
                     attachments.add(attMap);
                 }
             }
+            // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+            String textContent = textPayload == null ? "" : Json.str(textPayload, "text");
+            if (textContent.isEmpty() && textPayload != null) {
+                textContent = Json.str(textPayload, "text/plain");
+            }
+            // 优先读 "html" 键，回退兜底 "text/html"
+            String htmlContent = htmlPayload == null ? "" : Json.str(htmlPayload, "html");
+            if (htmlContent.isEmpty() && htmlPayload != null) {
+                htmlContent = Json.str(htmlPayload, "text/html");
+            }
+
             Map<String, Object> raw = new LinkedHashMap<>();
             raw.put("id", id);
             raw.put("from", ProviderUtil.firstNonEmpty(Json.str(msg, "from"), Json.str(msg, "origfrom")));
             raw.put("to", Json.str(msg, "to").isEmpty() ? email : Json.str(msg, "to"));
             raw.put("subject", Json.str(msg, "subject"));
-            raw.put("text", textPayload == null ? "" : Json.str(textPayload, "text/plain"));
-            raw.put("html", htmlPayload == null ? "" : Json.str(htmlPayload, "text/html"));
+            raw.put("text", textContent);
+            raw.put("html", htmlContent);
             raw.put("date", ProviderUtil.firstNonEmpty(Json.str(msg, "time"), Json.str(msg, "date")));
             raw.put("attachments", attachments);
             result.add(Normalizer.normalizeEmail(raw, email));

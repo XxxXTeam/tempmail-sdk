@@ -49,9 +49,37 @@ public final class Moakt {
     private static final Pattern SENDER_RE = Pattern.compile(
             "<li\\s+class=\"sender\"[^>]*>[\\s\\S]*?<span[^>]*>([\\s\\S]*?)</span>\\s*</li>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern BODY_RE = Pattern.compile(
-            "<div\\s+class=\"email-body\"\\s*>([\\s\\S]*?)</div>",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern BODY_OPEN_RE = Pattern.compile(
+            "<div\\s+class=\"email-body\"\\s*>",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private static String extractBodyHtml(String page) {
+        Matcher m = BODY_OPEN_RE.matcher(page);
+        if (!m.find()) return "";
+        int start = m.end();
+        int pos = start;
+        int depth = 1;
+        while (pos < page.length() && depth > 0) {
+            int nextOpen = page.indexOf("<div", pos);
+            int nextClose = page.indexOf("</div>", pos);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++;
+                pos = nextOpen + 4;
+            } else {
+                depth--;
+                if (depth == 0) {
+                    return page.substring(start, nextClose).strip();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
     private static final Pattern FROM_ADDR_RE = Pattern.compile(
             "<([a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,})>");
     private static final Pattern TAG_RE = Pattern.compile("<[^>]+>");
@@ -242,11 +270,7 @@ public final class Moakt {
         if (dm.find()) {
             dateS = unescapeHtml(dm.group(1).strip());
         }
-        String body = "";
-        Matcher bm = BODY_RE.matcher(page);
-        if (bm.find()) {
-            body = bm.group(1).strip();
-        }
+        String body = extractBodyHtml(page);
         Map<String, Object> raw = new LinkedHashMap<>();
         raw.put("id", mid);
         raw.put("to", recipient);

@@ -162,10 +162,12 @@ static cJSON *mailinator_flatten_message(const cJSON *summary,
   subject = mailinator_json_to_string(
       cJSON_GetObjectItemCaseSensitive((cJSON *)summary, "subject"));
 
+  // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"、"body"（防御性编程）
   text = mailinator_first_text(
-      text_payload, (const char *[]){"text/plain", "text", "body"}, 3);
+      text_payload, (const char *[]){"text", "text/plain", "body"}, 3);
+  // 优先读 "html" 键，回退兜底 "text/html"、"body"
   html = mailinator_first_text(
-      html_payload, (const char *[]){"text/html", "html", "body"}, 3);
+      html_payload, (const char *[]){"html", "text/html", "body"}, 3);
 
   created_at = cJSON_Duplicate(
       cJSON_GetObjectItemCaseSensitive((cJSON *)summary, "time"), 1);

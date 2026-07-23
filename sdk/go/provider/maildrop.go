@@ -167,7 +167,86 @@ func maildropParseIsRead(raw json.RawMessage) bool {
 }
 
 /*
- * MaildropGetEmails 列表仅含 description 摘要
+ * maildropFetchDetail 通过详情接口获取单封邮件完整内容
+ * GET https://maildrop.cx/api/email_content.php?id={id}
+ * 详情响应字段（从前端代码确认）:
+ *   - content: 完整 HTML 正文
+ *   - subject / from_addr / date: 邮件元数据
+ *   - attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+ * 失败时返回 nil，调用方回退到列表 description
+ */
+func maildropFetchDetail(id string) map[string]interface{} {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil
+	}
+	q := url.Values{}
+	q.Set("id", id)
+	full := maildropBase + "/api/email_content.php?" + q.Encode()
+
+	req, err := http.NewRequest("GET", full, nil)
+	if err != nil {
+		return nil
+	}
+	maildropDefaultHeaders(req)
+
+	client := HTTPClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+	var detail map[string]interface{}
+	if err := json.Unmarshal(body, &detail); err != nil {
+		return nil
+	}
+	return detail
+}
+
+/*
+ * maildropParseAttachments 将详情接口的 attachment 字段（JSON 字符串）
+ * 解析为归一化附件列表
+ */
+func maildropParseAttachments(raw interface{}) []NormAttachment {
+	if raw == nil {
+		return []NormAttachment{}
+	}
+	s, ok := raw.(string)
+	if !ok || strings.TrimSpace(s) == "" {
+		return []NormAttachment{}
+	}
+	var items []map[string]interface{}
+	if err := json.Unmarshal([]byte(s), &items); err != nil {
+		return []NormAttachment{}
+	}
+	out := make([]NormAttachment, 0, len(items))
+	for _, it := range items {
+		filename, _ := it["filename"].(string)
+		if strings.TrimSpace(filename) == "" {
+			continue
+		}
+		att := NormAttachment{Filename: filename}
+		if sz, ok := it["size"].(float64); ok {
+			att.Size = int64(sz)
+		}
+		out = append(out, att)
+	}
+	return out
+}
+
+/*
+ * MaildropGetEmails 获取邮件列表并对每封邮件补拉详情
+ * 流程:
+ *   1. GET /api/emails.php?addr={email} 拉取列表（仅含 description 摘要）
+ *   2. 对每封邮件 GET /api/email_content.php?id={id} 拉取详情（含 content 完整 HTML）
+ *   3. 详情失败时保留列表 description 作为回退
  */
 func MaildropGetEmails(token string, email string) ([]NormEmail, error) {
 	addr := strings.TrimSpace(email)
@@ -210,9 +289,12 @@ func MaildropGetEmails(token string, email string) ([]NormEmail, error) {
 
 	out := make([]NormEmail, 0, len(data.Emails))
 	for _, row := range data.Emails {
+		id := maildropRawToString(row.ID)
 		desc := strings.TrimSpace(row.Description)
-		out = append(out, NormEmail{
-			ID:          maildropRawToString(row.ID),
+
+		/* 默认使用列表字段构造 */
+		item := NormEmail{
+			ID:          id,
 			From:        strings.TrimSpace(row.FromAddr),
 			To:          addr,
 			Subject:     strings.TrimSpace(row.Subject),
@@ -221,7 +303,33 @@ func MaildropGetEmails(token string, email string) ([]NormEmail, error) {
 			Date:        maildropCxDateToRFC3339(row.Date),
 			IsRead:      maildropParseIsRead(row.IsRead),
 			Attachments: []NormAttachment{},
-		})
+		}
+
+		/* 拉取详情覆盖 text/html/attachments */
+		if id != "" {
+			if detail := maildropFetchDetail(id); detail != nil {
+				if content, ok := detail["content"].(string); ok && strings.TrimSpace(content) != "" {
+					item.HTML = content
+					/* text 字段维持列表 description（作为纯文本摘要） */
+				}
+				/* 详情返回的 from_addr / subject / date 优先级更高 */
+				if fromAddr, ok := detail["from_addr"].(string); ok && strings.TrimSpace(fromAddr) != "" {
+					item.From = strings.TrimSpace(fromAddr)
+				}
+				if subj, ok := detail["subject"].(string); ok && strings.TrimSpace(subj) != "" {
+					item.Subject = strings.TrimSpace(subj)
+				}
+				if dateStr, ok := detail["date"].(string); ok && strings.TrimSpace(dateStr) != "" {
+					item.Date = maildropCxDateToRFC3339(dateStr)
+				}
+				/* 解析附件 */
+				if atts := maildropParseAttachments(detail["attachment"]); len(atts) > 0 {
+					item.Attachments = atts
+				}
+			}
+		}
+
+		out = append(out, item)
 	}
 	return out, nil
 }

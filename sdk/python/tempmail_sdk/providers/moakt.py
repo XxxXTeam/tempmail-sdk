@@ -34,7 +34,33 @@ _DATE_RE = re.compile(r'(?is)<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)<
 _SENDER_RE = re.compile(
     r'(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>'
 )
-_BODY_RE = re.compile(r'(?is)<div\s+class="email-body"\s*>([\s\S]*?)</div>')
+_BODY_OPEN_RE = re.compile(r'(?is)<div\s+class="email-body"\s*>')
+
+
+def _extract_body_html(page: str) -> str:
+    """使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+    避免非贪婪正则在嵌套 div 时截断正文。
+    """
+    m = _BODY_OPEN_RE.search(page)
+    if not m:
+        return ""
+    start = m.end()
+    pos = start
+    depth = 1
+    while pos < len(page) and depth > 0:
+        next_open = page.find("<div", pos)
+        next_close = page.find("</div>", pos)
+        if next_close == -1:
+            break
+        if next_open != -1 and next_open < next_close:
+            depth += 1
+            pos = next_open + 4
+        else:
+            depth -= 1
+            if depth == 0:
+                return page[start:next_close].strip()
+            pos = next_close + 6
+    return ""
 _FROM_ADDR_RE = re.compile(r"<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>")
 _TAG_RE = re.compile(r"<[^>]+>")
 
@@ -179,10 +205,7 @@ def _parse_detail(page: str, mid: str, recipient: str) -> dict:
     dm = _DATE_RE.search(page)
     if dm:
         date_s = html.unescape(dm.group(1).strip())
-    body = ""
-    bm = _BODY_RE.search(page)
-    if bm:
-        body = bm.group(1).strip()
+    body = _extract_body_html(page)
     return {
         "id": mid,
         "to": recipient,

@@ -371,12 +371,164 @@ func vip215EnsureReader(token, email string) *vip215Box {
 	return box
 }
 
+/*
+ * vip215FetchMessagesViaHTTP 通过 HTTP 接口获取邮件列表
+ * GET https://vip.215.im/v1/messages
+ * 返回完整邮件列表（含 text/html 字段），供 HTTP 拉取模式使用
+ * 相比 WebSocket 推送的元数据 + 合成卡片，HTTP 接口能拿到完整正文
+ */
+func vip215FetchMessagesViaHTTP(jwt string) ([]map[string]interface{}, error) {
+	req, err := fhttp.NewRequest("GET", vip215HTTPBase+"/v1/messages", nil)
+	if err != nil {
+		return nil, err
+	}
+	vip215SetAPIHeaders(req.Header)
+	req.Header.Set("Authorization", "Bearer "+jwt)
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("vip-215 messages: %d %s", resp.StatusCode, string(body))
+	}
+
+	var parsed struct {
+		Success bool `json:"success"`
+		Data    struct {
+			Messages []map[string]interface{} `json:"messages"`
+			Total    int                      `json:"total"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, err
+	}
+	if !parsed.Success {
+		return nil, fmt.Errorf("vip-215: messages success=false")
+	}
+	return parsed.Data.Messages, nil
+}
+
+/*
+ * vip215FetchMessageDetail 通过 HTTP 详情接口获取单封邮件完整内容
+ * GET https://vip.215.im/v1/messages/{id}
+ * 用于列表接口只返回元数据时补拉正文
+ */
+func vip215FetchMessageDetail(jwt, id string) map[string]interface{} {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil
+	}
+	req, err := fhttp.NewRequest("GET", vip215HTTPBase+"/v1/messages/"+url.PathEscape(id), nil)
+	if err != nil {
+		return nil
+	}
+	vip215SetAPIHeaders(req.Header)
+	req.Header.Set("Authorization", "Bearer "+jwt)
+
+	resp, err := HTTPClient().Do(req)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+	var parsed struct {
+		Success bool                   `json:"success"`
+		Data    map[string]interface{} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil
+	}
+	if !parsed.Success || parsed.Data == nil {
+		return nil
+	}
+	return parsed.Data
+}
+
+/*
+ * vip215HasRealBody 判断邮件条目是否已包含真实正文
+ * 用于决定是否需要补拉详情接口
+ */
+func vip215HasRealBody(row map[string]interface{}) bool {
+	for _, key := range []string{"text", "body_text", "html", "body_html", "content", "body"} {
+		if v, ok := row[key]; ok && v != nil {
+			if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+/*
+ * vip215ExtractMessageID 从 HTTP 消息 map 中提取邮件 ID
+ */
+func vip215ExtractMessageID(row map[string]interface{}) string {
+	for _, key := range []string{"id", "messageId", "message_id"} {
+		if v, ok := row[key]; ok && v != nil {
+			switch val := v.(type) {
+			case string:
+				return strings.TrimSpace(val)
+			case float64:
+				return fmt.Sprintf("%.0f", val)
+			}
+		}
+	}
+	return ""
+}
+
+/*
+ * MailVip215GetEmails 获取 vip-215 邮件列表（HTTP 优先，WebSocket 回退）
+ * 流程:
+ *   1. 调用 HTTP GET /v1/messages 获取完整邮件列表（含真实正文）
+ *   2. 对缺正文的条目调用 GET /v1/messages/{id} 补详情
+ *   3. HTTP 失败时回退到 WebSocket 已缓存的合成卡片
+ * WebSocket 通道仍保留用于新邮件通知（去重合并）
+ */
 func MailVip215GetEmails(token, email string) ([]NormEmail, error) {
 	box := vip215EnsureReader(token, email)
 
+	/* 优先通过 HTTP 拉取完整邮件 */
+	messages, err := vip215FetchMessagesViaHTTP(token)
+	if err == nil {
+		out := make([]NormEmail, 0, len(messages))
+		for _, row := range messages {
+			id := vip215ExtractMessageID(row)
+			/* 若列表条目无真实正文，补拉详情 */
+			if !vip215HasRealBody(row) && id != "" {
+				if detail := vip215FetchMessageDetail(token, id); detail != nil {
+					for k, v := range detail {
+						if v != nil {
+							row[k] = v
+						}
+					}
+				}
+			}
+			/* 补齐 to 字段 */
+			if _, ok := row["to"]; !ok {
+				row["to"] = email
+			}
+			out = append(out, NormalizeMap(row, email))
+		}
+		return out, nil
+	}
+
+	/* HTTP 失败时回退到 WebSocket 缓存（可能含合成卡片） */
 	box.mu.Lock()
 	defer box.mu.Unlock()
-	out := make([]NormEmail, len(box.emails))
-	copy(out, box.emails)
-	return out, nil
+	fallback := make([]NormEmail, len(box.emails))
+	copy(fallback, box.emails)
+	return fallback, nil
 }

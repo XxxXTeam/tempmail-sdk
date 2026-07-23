@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	http "github.com/bogdanfinn/fhttp"
+	gohtml "golang.org/x/net/html"
 )
 
 /*
@@ -35,12 +36,6 @@ var (
 	/* 从邮件行中提取 <td> 内容 */
 	mohmalTdRe = regexp.MustCompile(`(?is)<td[^>]*>([\s\S]*?)</td>`)
 
-	/* 从邮件详情页中提取邮件正文 */
-	mohmalBodyRe = regexp.MustCompile(`(?is)<div[^>]+class=["'][^"']*mail-body[^"']*["'][^>]*>([\s\S]*?)</div>`)
-
-	/* 备用: 匹配 .message-body 或 #message-body */
-	mohmalBodyRe2 = regexp.MustCompile(`(?is)<div[^>]+(?:class|id)=["'][^"']*message[_-]?body[^"']*["'][^>]*>([\s\S]*?)</div>`)
-
 	/* 从邮件详情页中提取发件人 */
 	mohmalDetailFromRe = regexp.MustCompile(`(?is)<span[^>]+class=["'][^"']*from[^"']*["'][^>]*>([\s\S]*?)</span>`)
 
@@ -53,6 +48,41 @@ var (
 	/* 去除 HTML 标签 */
 	mohmalStripTagRe = regexp.MustCompile(`<[^>]+>`)
 )
+
+/*
+ * mohmalExtractBodyHTML 使用 HTML 解析器提取指定 class 的 div 完整内部 HTML，
+ * 避免非贪婪正则在嵌套 div 时截断正文。
+ */
+func mohmalExtractBodyHTML(page, className string) string {
+	doc, err := gohtml.Parse(strings.NewReader(page))
+	if err != nil {
+		return ""
+	}
+	var result string
+	var walk func(*gohtml.Node)
+	walk = func(n *gohtml.Node) {
+		if result != "" {
+			return
+		}
+		if n.Type == gohtml.ElementNode && n.Data == "div" {
+			for _, a := range n.Attr {
+				if a.Key == "class" && strings.Contains(a.Val, className) {
+					var sb strings.Builder
+					for c := n.FirstChild; c != nil; c = c.NextSibling {
+						gohtml.Render(&sb, c)
+					}
+					result = strings.TrimSpace(sb.String())
+					return
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+	return result
+}
 
 /* mohmalBrowserHeaders 设置浏览器模拟请求头 */
 func mohmalBrowserHeaders(req *http.Request, referer string) {
@@ -362,11 +392,13 @@ func mohmalFetchDetail(client interface {
 		raw["date"] = strings.TrimSpace(html.UnescapeString(mohmalStripTags(m[1])))
 	}
 
-	/* 提取邮件正文 HTML */
-	if m := mohmalBodyRe.FindStringSubmatch(page); len(m) > 1 {
-		raw["html"] = strings.TrimSpace(m[1])
-	} else if m := mohmalBodyRe2.FindStringSubmatch(page); len(m) > 1 {
-		raw["html"] = strings.TrimSpace(m[1])
+	/* 提取邮件正文 HTML：使用 HTML 解析器避免非贪婪正则截断嵌套 div */
+	if body := mohmalExtractBodyHTML(page, "mail-body"); body != "" {
+		raw["html"] = body
+	} else if body := mohmalExtractBodyHTML(page, "message-body"); body != "" {
+		raw["html"] = body
+	} else if body := mohmalExtractBodyHTML(page, "message_body"); body != "" {
+		raw["html"] = body
 	}
 
 	return raw

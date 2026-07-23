@@ -170,23 +170,15 @@ tm_email_t *tm_provider_mail_sunls_get_emails(const char *email, int *count) {
   for (int i = 0; i < n; i++) {
     cJSON *raw = cJSON_GetArrayItem(arr, i);
 
-    /* 尝试获取邮件 ID，用于拉取单封邮件详情 */
+    /* 提取邮件 ID，用于拉取单封邮件详情 */
     const char *id =
         TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(raw, "id"), "");
     if (!id[0]) {
       id = TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(raw, "_id"), "");
     }
 
-    /* 如果列表中没有正文内容，尝试通过单封邮件 API 获取 */
-    cJSON *html_item = cJSON_GetObjectItemCaseSensitive(raw, "html");
-    cJSON *text_item = cJSON_GetObjectItemCaseSensitive(raw, "text");
-    int has_body = (cJSON_IsString(html_item) && html_item->valuestring &&
-                    html_item->valuestring[0]) ||
-                   (cJSON_IsString(text_item) && text_item->valuestring &&
-                    text_item->valuestring[0]);
-
-    if (!has_body && id[0]) {
-      /* 拉取单封邮件详情 */
+    /* 无条件调用详情接口，用详情字段覆盖列表字段（确保正文完整） */
+    if (id[0]) {
       char detail_url[512];
       snprintf(detail_url, sizeof(detail_url), MS_BASE "/api/fetch/%s", id);
       tm_http_response_t *detail_resp =
@@ -195,15 +187,16 @@ tm_email_t *tm_provider_mail_sunls_get_emails(const char *email, int *count) {
           detail_resp->status < 300) {
         cJSON *detail = cJSON_Parse(detail_resp->body);
         if (detail && cJSON_IsObject(detail)) {
-          /* 将详情中的字段合并到列表项 */
-          const char *dhtml =
-              TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(detail, "html"), "");
-          const char *dtext =
-              TM_JSON_STR(cJSON_GetObjectItemCaseSensitive(detail, "text"), "");
-          if (dhtml[0])
-            cJSON_AddStringToObject(raw, "html", dhtml);
-          if (dtext[0])
-            cJSON_AddStringToObject(raw, "text", dtext);
+          /* 将详情所有字段合并到列表项（覆盖列表字段） */
+          cJSON *item = NULL;
+          cJSON_ArrayForEach(item, detail) {
+            if (!item->string) continue;
+            cJSON *dup = cJSON_Duplicate(item, 1);
+            if (!dup) continue;
+            /* 先移除同名字段再插入，避免重复 */
+            cJSON_DeleteItemFromObjectCaseSensitive(raw, item->string);
+            cJSON_AddItemToObject(raw, item->string, dup);
+          }
           cJSON_Delete(detail);
         }
       }

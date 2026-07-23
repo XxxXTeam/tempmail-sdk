@@ -46,9 +46,9 @@ static TD_RE: LazyLock<Regex> =
 /// 匹配 HTML 标签
 static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"<[^>]+>"#).expect("re"));
 
-/// 匹配邮件详情页内容区域
-static MSG_BODY_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?is)<div[^>]*class="[^"]*mail-content[^"]*"[^>]*>([\s\S]*?)</div>"#).expect("re")
+/// 匹配邮件详情页内容区域（开标签，用于栈式解析）
+static MSG_BODY_OPEN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?is)<div[^>]*class="[^"]*mail-content[^"]*"[^>]*>"#).expect("re")
 });
 
 /// 匹配邮件详情页的主题
@@ -69,6 +69,37 @@ static MSG_DATE_RE: LazyLock<Regex> = LazyLock::new(|| {
 /// 匹配 iframe src 中的 HTML 内容地址
 static IFRAME_SRC_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?is)<iframe[^>]*src="([^"]+)"[^>]*>"#).expect("re"));
+
+/// 使用栈式深度匹配提取 mail-content div 的完整内部 HTML，
+/// 避免非贪婪正则在嵌套 div 时截断正文。
+fn extract_mail_body(page: &str) -> String {
+    let Some(m) = MSG_BODY_OPEN_RE.find(page) else {
+        return String::new();
+    };
+    let start = m.end();
+    let mut pos = start;
+    let mut depth = 1usize;
+    while pos < page.len() && depth > 0 {
+        let rest = &page[pos..];
+        let next_open = rest.find("<div").map(|i| pos + i);
+        let next_close = rest.find("</div>").map(|i| pos + i);
+        match (next_open, next_close) {
+            (_, None) => break,
+            (Some(no), Some(nc)) if no < nc => {
+                depth += 1;
+                pos = no + 4;
+            }
+            (_, Some(nc)) => {
+                depth -= 1;
+                if depth == 0 {
+                    return page[start..nc].trim().to_string();
+                }
+                pos = nc + 6;
+            }
+        }
+    }
+    String::new()
+}
 
 /// 解析 Cookie 头为 key=value 映射
 fn parse_cookie_header(hdr: &str) -> BTreeMap<String, String> {
@@ -419,24 +450,18 @@ fn parse_detail_page(page: &str, entry: &InboxEntry, recipient: &str) -> Value {
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| entry.date.clone());
 
-    // 提取邮件正文 HTML：优先从 iframe src 获取，否则从 mail-content div 获取
-    let html_body = if let Some(iframe_cap) = IFRAME_SRC_RE.captures(page) {
-        // 存在 iframe，内容可能需要额外请求，先用页面内的 mail-content
-        MSG_BODY_RE
-            .captures(page)
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str().trim().to_string())
-            .unwrap_or_else(|| {
-                // 回退：使用 iframe src 作为引用
-                let src = iframe_cap.get(1).unwrap().as_str();
-                format!("<p>Content available at: {}</p>", src)
-            })
+    // 提取邮件正文 HTML：使用栈式解析避免嵌套 div 截断
+    let html_body = extract_mail_body(page);
+    let html_body = if html_body.is_empty() {
+        // 回退：检查是否有 iframe src
+        if let Some(iframe_cap) = IFRAME_SRC_RE.captures(page) {
+            let src = iframe_cap.get(1).unwrap().as_str();
+            format!("<p>Content available at: {}</p>", src)
+        } else {
+            String::new()
+        }
     } else {
-        MSG_BODY_RE
-            .captures(page)
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str().trim().to_string())
-            .unwrap_or_default()
+        html_body
     };
 
     json!({

@@ -47,13 +47,22 @@ class Mailinator(
                 htmlPayload = requestJson("$BASE_URL/api/v2/domains/$PUBLIC_DOMAIN/messages/$id/texthtml")
             }
             val to = str(msg, "to")
+            // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+            val textContent = textPayload?.let {
+                str(it, "text").ifEmpty { str(it, "text/plain") }
+            } ?: ""
+            // 优先读 "html" 键，回退兜底 "text/html"
+            val htmlContent = htmlPayload?.let {
+                str(it, "html").ifEmpty { str(it, "text/html") }
+            } ?: ""
+
             val flat = mapOf(
                 "id" to id,
                 "from" to firstNonEmpty(str(msg, "from"), str(msg, "origfrom")),
                 "to" to to.ifEmpty { info.email },
                 "subject" to str(msg, "subject"),
-                "text" to (textPayload?.let { str(it, "text/plain") } ?: ""),
-                "html" to (htmlPayload?.let { str(it, "text/html") } ?: ""),
+                "text" to textContent,
+                "html" to htmlContent,
                 "date" to firstNonEmpty(str(msg, "time"), str(msg, "date")),
             )
             result.add(Normalize.fromMap(flat, info.email))

@@ -75,8 +75,8 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 
 /**
  * 获取邮件列表
- * GET /api/fetch?to={email} → 邮件数组
- * 对于列表中正文为空的邮件，尝试通过 GET /api/fetch/{id} 获取完整内容
+ * GET /api/fetch?to={email} → 邮件数组（列表元数据）
+ * 对每封邮件 GET /api/fetch/{id} 补拉完整正文（详情失败时保留列表字段）
  */
 export async function getEmails(email: string): Promise<Email[]> {
   const addr = String(email || "").trim();
@@ -100,13 +100,10 @@ export async function getEmails(email: string): Promise<Email[]> {
   for (const item of data) {
     if (!item || typeof item !== "object") continue;
     const row = item as Record<string, any>;
-
-    let text = row.text || row.body || "";
-    let html = row.html || row.body_html || "";
-
-    /* 如果列表项没有正文，尝试获取单封邮件详情 */
     const mailId = row.id || row._id || "";
-    if (mailId && !text && !html) {
+
+    /* 无条件调用详情接口，用详情字段覆盖列表字段（确保正文完整） */
+    if (mailId) {
       try {
         const detailRes = await fetchWithTimeout(
           `${BASE_URL}/api/fetch/${encodeURIComponent(String(mailId))}`,
@@ -117,13 +114,19 @@ export async function getEmails(email: string): Promise<Email[]> {
         );
         if (detailRes.ok) {
           const detail = (await detailRes.json()) as Record<string, any>;
-          text = detail.text || detail.body || text;
-          html = detail.html || detail.body_html || html;
+          for (const [k, v] of Object.entries(detail)) {
+            if (v !== null && v !== undefined) {
+              row[k] = v;
+            }
+          }
         }
       } catch {
-        /* 详情获取失败不影响列表返回 */
+        /* 详情失败不阻断整体流程 */
       }
     }
+
+    const text = row.text || row.body || row.body_text || "";
+    const html = row.html || row.body_html || "";
 
     out.push(
       normalizeEmail(

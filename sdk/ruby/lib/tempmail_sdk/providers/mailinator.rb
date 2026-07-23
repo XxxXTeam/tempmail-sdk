@@ -136,13 +136,20 @@ module TempmailSdk
 
       # 将邮件摘要与正文/附件展平为 normalize 可识别的字段
       def flatten_message(summary, recipient_email, text_payload, html_payload, att_payload)
+        # 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+        text_content = text_from_payload(text_payload, "text")
+        text_content = text_from_payload(text_payload, "text/plain") if text_content.empty?
+        # 优先读 "html" 键，回退兜底 "text/html"
+        html_content = text_from_payload(html_payload, "html")
+        html_content = text_from_payload(html_payload, "text/html") if html_content.empty?
+
         {
           "id" => (summary["id"] || summary["messageId"] || "").to_s,
           "from" => first_non_empty(summary["from"], summary["origfrom"]),
           "to" => summary["to"] || recipient_email,
           "subject" => summary["subject"] || "",
-          "text" => text_from_payload(text_payload, "text/plain"),
-          "html" => text_from_payload(html_payload, "text/html"),
+          "text" => text_content,
+          "html" => html_content,
           "date" => to_iso_time(summary["time"] || summary["date"]),
           "seen" => false,
           "attachments" => build_attachments(att_payload)

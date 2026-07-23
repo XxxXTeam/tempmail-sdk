@@ -178,7 +178,10 @@ func GenerateEmail(opts *GenerateEmailOptions) (*EmailInfo, error) {
 
 	sdkLogger.Error("所有渠道均不可用，创建邮箱失败")
 	reportTelemetry("generate_email", "", false, 0, channelsTried, lastErrMsg)
-	return nil, nil
+	if lastErrMsg == "" {
+		lastErrMsg = "所有渠道均不可用"
+	}
+	return nil, fmt.Errorf("创建临时邮箱失败：已尝试 %d 个渠道，最后错误：%s", channelsTried, lastErrMsg)
 }
 
 /*

@@ -95,7 +95,98 @@ final class Vip215
     }
 
     /**
-     * WebSocket 阻塞式收信：连接后监听 message.new 事件。
+     * 通过 HTTP 接口获取邮件列表
+     * GET https://vip.215.im/v1/messages
+     * 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private static function fetchMessagesViaHttp(string $jwt): array
+    {
+        $resp = HttpClient::get(
+            self::BASE . '/v1/messages',
+            self::HEADERS + ['Authorization' => 'Bearer ' . $jwt],
+        );
+        $status = $resp->getStatusCode();
+        if ($status < 200 || $status >= 300) {
+            throw new \RuntimeException('vip-215: /v1/messages HTTP ' . $status);
+        }
+        $body = HttpClient::json($resp);
+        if (empty($body['success'])) {
+            throw new \RuntimeException('vip-215: /v1/messages success=false');
+        }
+        $messages = $body['data']['messages'] ?? [];
+        return is_array($messages) ? array_values(array_filter($messages, 'is_array')) : [];
+    }
+
+    /**
+     * 通过 HTTP 详情接口获取单封邮件完整内容
+     * GET https://vip.215.im/v1/messages/{id}
+     *
+     * @return array<string,mixed>|null
+     */
+    private static function fetchMessageDetail(string $jwt, string $id): ?array
+    {
+        $mid = trim($id);
+        if ($mid === '') {
+            return null;
+        }
+        try {
+            $resp = HttpClient::get(
+                self::BASE . '/v1/messages/' . rawurlencode($mid),
+                self::HEADERS + ['Authorization' => 'Bearer ' . $jwt],
+            );
+            $status = $resp->getStatusCode();
+            if ($status < 200 || $status >= 300) {
+                return null;
+            }
+            $body = HttpClient::json($resp);
+            if (empty($body['success'])) {
+                return null;
+            }
+            $data = $body['data'] ?? null;
+            return is_array($data) ? $data : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * 判断行是否包含真实正文（用于决定是否补拉详情）
+     */
+    private static function hasRealBody(array $row): bool
+    {
+        foreach (['text', 'body_text', 'html', 'body_html', 'content', 'body'] as $key) {
+            $v = $row[$key] ?? null;
+            if (is_string($v) && trim($v) !== '') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 提取邮件 ID
+     */
+    private static function extractMessageId(array $row): string
+    {
+        foreach (['id', 'messageId', 'message_id'] as $key) {
+            $v = $row[$key] ?? null;
+            if (is_string($v) && trim($v) !== '') {
+                return trim($v);
+            }
+            if (is_int($v) || is_float($v)) {
+                return (string) (int) $v;
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 获取邮件列表（HTTP 优先，WebSocket 回退）
+     * 1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+     * 2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+     * 3. HTTP 失败时回退到 WebSocket 阻塞收信（合成卡片）
      *
      * @return Email[]
      */
@@ -105,6 +196,38 @@ final class Vip215
             throw new \InvalidArgumentException('vip-215: token 不能为空');
         }
 
+        /* 优先通过 HTTP 拉取完整邮件 */
+        try {
+            $messages = self::fetchMessagesViaHttp($token);
+            $result = [];
+            foreach ($messages as $row) {
+                $id = self::extractMessageId($row);
+                /* 若无真实正文，补拉详情 */
+                if (!self::hasRealBody($row) && $id !== '') {
+                    $detail = self::fetchMessageDetail($token, $id);
+                    if ($detail !== null) {
+                        $row = array_merge($row, $detail);
+                    }
+                }
+                if (!isset($row['to'])) {
+                    $row['to'] = $email;
+                }
+                $result[] = Normalize::email($row, $email);
+            }
+            return $result;
+        } catch (\Throwable $httpErr) {
+            /* HTTP 失败时回退到 WebSocket 阻塞收信 */
+            return self::getEmailsViaWebSocket($email, $token);
+        }
+    }
+
+    /**
+     * WebSocket 阻塞式收信（回退路径）：连接后监听 message.new 事件。
+     *
+     * @return Email[]
+     */
+    private static function getEmailsViaWebSocket(string $email, string $token): array
+    {
         // 获取 WebSocket ticket
         $ticket = self::fetchWsTicket($token);
         $url = 'wss://vip.215.im/v1/ws?token=' . rawurlencode($ticket);

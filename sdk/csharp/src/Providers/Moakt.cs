@@ -42,8 +42,42 @@ public static class Moakt
         new(@"<li\s+class=""date""[^>]*>[\s\S]*?<span[^>]*>([^<]+)</span>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
     private static readonly Regex SenderRe =
         new(@"<li\s+class=""sender""[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-    private static readonly Regex BodyRe =
-        new(@"<div\s+class=""email-body""\s*>([\s\S]*?)</div>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+    private static readonly Regex BodyOpenRe =
+        new(@"<div\s+class=""email-body""\s*>", RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+    /// 避免非贪婪正则在嵌套 div 时截断正文。
+    /// </summary>
+    private static string ExtractBodyHtml(string page)
+    {
+        var m = BodyOpenRe.Match(page);
+        if (!m.Success) return "";
+        int start = m.Index + m.Length;
+        int pos = start;
+        int depth = 1;
+        while (pos < page.Length && depth > 0)
+        {
+            int nextOpen = page.IndexOf("<div", pos, StringComparison.OrdinalIgnoreCase);
+            int nextClose = page.IndexOf("</div>", pos, StringComparison.OrdinalIgnoreCase);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose)
+            {
+                depth++;
+                pos = nextOpen + 4;
+            }
+            else
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return page.Substring(start, nextClose - start).Trim();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
     private static readonly Regex FromAddrRe =
         new(@"<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>", RegexOptions.Compiled);
     private static readonly Regex TagRe = new("<[^>]+>", RegexOptions.Compiled);
@@ -191,9 +225,7 @@ public static class Moakt
         var date = "";
         var dm = DateRe.Match(page);
         if (dm.Success) date = WebUtility.HtmlDecode(dm.Groups[1].Value.Trim());
-        var body = "";
-        var bm = BodyRe.Match(page);
-        if (bm.Success) body = bm.Groups[1].Value.Trim();
+        var body = ExtractBodyHtml(page);
 
         return new Dictionary<string, object?>
         {

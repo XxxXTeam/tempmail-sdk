@@ -22,10 +22,35 @@ object Mohmal : Provider {
 
     private val DATA_EMAIL_RE = Regex("data-email=\"([^\"]+)\"")
     private val MESSAGE_LINK_RE = Regex("/en/message/(\\d+)")
-    private val MESSAGE_BODY_RE = Regex(
-        "<div[^>]*class=\"[^\"]*mail-content[^\"]*\"[^>]*>([\\s\\S]*?)</div>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-    private val MESSAGE_BODY_ALT_RE = Regex(
-        "<div[^>]*class=\"[^\"]*message-body[^\"]*\"[^>]*>([\\s\\S]*?)</div>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+    private val MESSAGE_BODY_OPEN_RE = Regex(
+        "<div[^>]*class=\"[^\"]*(?:mail-content|message-body)[^\"]*\"[^>]*>", setOf(RegexOption.IGNORE_CASE))
+
+    /**
+     * 使用栈式深度匹配提取 mail-content/message-body div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private fun extractBodyHtml(page: String): String {
+        val m = MESSAGE_BODY_OPEN_RE.find(page) ?: return ""
+        val start = m.range.last + 1
+        var pos = start
+        var depth = 1
+        while (pos < page.length && depth > 0) {
+            val nextOpen = page.indexOf("<div", pos, ignoreCase = true)
+            val nextClose = page.indexOf("</div>", pos, ignoreCase = true)
+            if (nextClose == -1) break
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++
+                pos = nextOpen + 4
+            } else {
+                depth--
+                if (depth == 0) {
+                    return page.substring(start, nextClose).trim()
+                }
+                pos = nextClose + 6
+            }
+        }
+        return ""
+    }
     private val DETAIL_FROM_RE = Regex(
         "<span[^>]*class=\"[^\"]*from[^\"]*\"[^>]*>([\\s\\S]*?)</span>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val DETAIL_SUBJECT_RE = Regex(
@@ -92,9 +117,8 @@ object Mohmal : Provider {
         }
         DETAIL_SUBJECT_RE.find(page)?.let { raw["subject"] = stripTags(it.groupValues[1]) }
         DETAIL_DATE_RE.find(page)?.let { raw["date"] = stripTags(it.groupValues[1]) }
-        (MESSAGE_BODY_RE.find(page) ?: MESSAGE_BODY_ALT_RE.find(page))?.let {
-            raw["html"] = it.groupValues[1].trim()
-        }
+        val body = extractBodyHtml(page)
+        if (body.isNotEmpty()) raw["html"] = body
         return raw
     }
 

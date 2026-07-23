@@ -147,6 +147,44 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 /**
+ * 使用栈式深度匹配提取指定 class/id 的 div 完整内部 HTML，
+ * 避免非贪婪正则在嵌套 div 时截断正文。
+ */
+function extractBodyHTML(html: string): string {
+  const targets = ["mail-body", "email-body", "mail-content", "icerik", "mail_icerik", "message-body"];
+  for (const target of targets) {
+    const openRe = new RegExp(
+      `<div\\s+(?:id|class)\\s*=\\s*["'][^"']*${target.replace(/[-_]/g, "[-_]")}[^"']*["'][^>]*>`,
+      "i",
+    );
+    const match = openRe.exec(html);
+    if (!match) continue;
+
+    let depth = 1;
+    let pos = match.index + match[0].length;
+    const start = pos;
+
+    while (pos < html.length && depth > 0) {
+      const nextOpen = html.indexOf("<div", pos);
+      const nextClose = html.indexOf("</div>", pos);
+
+      if (nextClose === -1) break;
+      if (nextOpen !== -1 && nextOpen < nextClose) {
+        depth++;
+        pos = nextOpen + 4;
+      } else {
+        depth--;
+        if (depth === 0) {
+          return html.slice(start, nextClose).trim();
+        }
+        pos = nextClose + 6;
+      }
+    }
+  }
+  return "";
+}
+
+/**
  * 获取 haribu 邮件列表
  * 使用 session cookie 访问首页，解析页面中的邮件列表
  * 每封邮件通过单独请求获取详细内容
@@ -222,21 +260,16 @@ export async function getEmails(
         });
         if (detailResp.ok) {
           const detailHtml = await detailResp.text();
-          /* 尝试从 iframe 或 body 区域提取邮件内容 */
-          const iframeMatch =
-            /<iframe[^>]+srcdoc\s*=\s*["']([\s\S]*?)["'][^>]*>/i.exec(
-              detailHtml,
-            );
-          if (iframeMatch) {
-            htmlBody = decodeEntities(iframeMatch[1]);
-          } else {
-            /* 尝试从邮件正文区域提取 */
-            const bodyMatch =
-              /<div\s+class\s*=\s*["'](?:mail-body|email-body|mail-content|icerik)["'][^>]*>([\s\S]*?)<\/div>/i.exec(
+          /* 使用栈式解析器提取完整正文（支持嵌套 div） */
+          htmlBody = extractBodyHTML(detailHtml);
+          /* 回退：尝试从 iframe srcdoc 提取 */
+          if (!htmlBody) {
+            const iframeMatch =
+              /<iframe[^>]+srcdoc\s*=\s*["']([\s\S]*?)["'][^>]*>/i.exec(
                 detailHtml,
               );
-            if (bodyMatch) {
-              htmlBody = bodyMatch[1].trim();
+            if (iframeMatch) {
+              htmlBody = decodeEntities(iframeMatch[1]);
             }
           }
         }

@@ -23,10 +23,42 @@ public static class Mohmal
 
     private static readonly Regex DataEmailRe = new("data-email=\"([^\"]+)\"", RegexOptions.Compiled);
     private static readonly Regex MessageLinkRe = new("/en/message/(\\d+)", RegexOptions.Compiled);
-    private static readonly Regex MessageBodyRe = new(
-        "<div[^>]*class=\"[^\"]*mail-content[^\"]*\"[^>]*>([\\s\\S]*?)</div>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-    private static readonly Regex MessageBodyAltRe = new(
-        "<div[^>]*class=\"[^\"]*message-body[^\"]*\"[^>]*>([\\s\\S]*?)</div>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    private static readonly Regex MessageBodyOpenRe = new(
+        "<div[^>]*class=\"[^\"]*(?:mail-content|message-body)[^\"]*\"[^>]*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// 使用栈式深度匹配提取 mail-content/message-body div 的完整内部 HTML，
+    /// 避免非贪婪正则在嵌套 div 时截断正文。
+    /// </summary>
+    private static string ExtractBodyHtml(string page)
+    {
+        var m = MessageBodyOpenRe.Match(page);
+        if (!m.Success) return "";
+        int start = m.Index + m.Length;
+        int pos = start;
+        int depth = 1;
+        while (pos < page.Length && depth > 0)
+        {
+            int nextOpen = page.IndexOf("<div", pos, StringComparison.OrdinalIgnoreCase);
+            int nextClose = page.IndexOf("</div>", pos, StringComparison.OrdinalIgnoreCase);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose)
+            {
+                depth++;
+                pos = nextOpen + 4;
+            }
+            else
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return page.Substring(start, nextClose - start).Trim();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
     private static readonly Regex DetailFromRe = new(
         "<span[^>]*class=\"[^\"]*from[^\"]*\"[^>]*>([\\s\\S]*?)</span>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex DetailSubjectRe = new(
@@ -154,10 +186,7 @@ public static class Mohmal
         var dm = DetailDateRe.Match(page);
         if (dm.Success) date = StripTags(dm.Groups[1].Value);
 
-        var bodyHtml = "";
-        var bm = MessageBodyRe.Match(page);
-        if (!bm.Success) bm = MessageBodyAltRe.Match(page);
-        if (bm.Success) bodyHtml = bm.Groups[1].Value.Trim();
+        var bodyHtml = ExtractBodyHtml(page);
 
         return new Dictionary<string, object?>
         {

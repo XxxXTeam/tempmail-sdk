@@ -92,7 +92,53 @@ public static class Maildrop
         return new EmailInfo("maildrop", email, email);
     }
 
-    /// <summary>获取 maildrop 邮件列表</summary>
+    /// <summary>
+    /// 通过详情接口获取单封邮件完整内容（GET /api/email_content.php?id={id}）。
+    /// 详情响应字段（从前端代码确认）:
+    ///   content: 完整 HTML 正文
+    ///   subject / from_addr / date: 邮件元数据
+    ///   attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+    /// </summary>
+    private static JsonObject? FetchDetail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        try
+        {
+            var resp = Http.Get($"{Base}/api/email_content.php?id={WebUtility.UrlEncode(id)}", Headers());
+            if (resp.StatusCode < 200 || resp.StatusCode >= 300) return null;
+            return Json.Parse(resp.Body) as JsonObject;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>解析详情接口的 attachment 字段（JSON 字符串）为附件列表。</summary>
+    private static List<EmailAttachment> ParseAttachments(string? raw)
+    {
+        var out_ = new List<EmailAttachment>();
+        if (string.IsNullOrWhiteSpace(raw)) return out_;
+        try
+        {
+            if (Json.Parse(raw) is not JsonArray arr) return out_;
+            foreach (var node in arr)
+            {
+                if (node is not JsonObject obj) continue;
+                var filename = Json.Str(obj, "filename").Trim();
+                if (filename.Length == 0) continue;
+                long? size = null;
+                if (obj["size"] is JsonValue sv && sv.TryGetValue<long>(out var sz)) size = sz;
+                out_.Add(new EmailAttachment { Filename = filename, Size = size ?? 0 });
+            }
+        }
+        catch { /* 解析失败返回空列表 */ }
+        return out_;
+    }
+
+    /// <summary>
+    /// 获取 maildrop 邮件列表并对每封邮件补拉详情。
+    /// 1. GET /api/emails.php 拉取列表（仅含 description 摘要）
+    /// 2. 对每封邮件 GET /api/email_content.php?id={id} 拉取详情（含 content 完整 HTML）
+    /// 3. 详情失败时保留列表 description 作为回退
+    /// </summary>
     public static List<Email> GetEmails(string? token, string email)
     {
         var addr = (email ?? "").Trim();
@@ -110,22 +156,47 @@ public static class Maildrop
         foreach (var node in rows)
         {
             if (node is not JsonObject row) continue;
+            var id = Json.Str(row, "id");
             var desc = Json.Str(row, "description").Trim();
             var ir = row["isRead"];
             var isRead = (ir is JsonValue b && b.TryGetValue<bool>(out var bv) && bv)
                 || (ir is JsonValue n && n.TryGetValue<int>(out var nv) && nv == 1);
 
+            var from = Json.Str(row, "from_addr").Trim();
+            var subject = Json.Str(row, "subject").Trim();
+            var date = CxDateToIso(Json.Str(row, "date"));
+            var html = "";
+            var attachments = new List<EmailAttachment>();
+
+            /* 拉取详情覆盖 html/from/subject/date/attachments */
+            if (!string.IsNullOrEmpty(id))
+            {
+                var detail = FetchDetail(id);
+                if (detail is not null)
+                {
+                    var dContent = Json.Str(detail, "content");
+                    if (!string.IsNullOrWhiteSpace(dContent)) html = dContent;
+                    var dFrom = Json.Str(detail, "from_addr").Trim();
+                    if (dFrom.Length > 0) from = dFrom;
+                    var dSubj = Json.Str(detail, "subject").Trim();
+                    if (dSubj.Length > 0) subject = dSubj;
+                    var dDate = Json.Str(detail, "date");
+                    if (!string.IsNullOrWhiteSpace(dDate)) date = CxDateToIso(dDate);
+                    attachments = ParseAttachments(Json.Str(detail, "attachment"));
+                }
+            }
+
             result.Add(new Email
             {
-                Id = Json.Str(row, "id"),
-                From = Json.Str(row, "from_addr").Trim(),
+                Id = id,
+                From = from,
                 To = addr,
-                Subject = Json.Str(row, "subject").Trim(),
+                Subject = subject,
                 Text = desc,
-                Html = "",
-                Date = CxDateToIso(Json.Str(row, "date")),
+                Html = html,
+                Date = date,
                 IsRead = isRead,
-                Attachments = new List<EmailAttachment>(),
+                Attachments = attachments,
             });
         }
         return result;

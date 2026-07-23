@@ -34,9 +34,6 @@ object Haribu : Provider {
         "<span\\s+class\\s*=\\s*[\"']mail_zaman[\"'][^>]*>([\\s\\S]*?)</span>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val MAIL_LINK_RE = Regex(
         "href\\s*=\\s*[\"']([^\"']*(?:mail|read|view)[^\"']*)[\"']", RegexOption.IGNORE_CASE)
-    private val BODY_RE = Regex(
-        "<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>([\\s\\S]*?)</div>",
-        setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val TAG_RE = Regex("<[^>]+>")
     private val LEADING_SLASH_RE = Regex("^/+")
 
@@ -107,12 +104,44 @@ object Haribu : Provider {
         return emails
     }
 
+    private val BODY_OPEN_RE = Regex(
+        "<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
+     * 使用栈式深度匹配提取正文 div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private fun extractBodyHtml(page: String): String {
+        val m = BODY_OPEN_RE.find(page) ?: return ""
+        val start = m.range.last + 1
+        var pos = start
+        var depth = 1
+        while (pos < page.length && depth > 0) {
+            val nextOpen = page.indexOf("<div", pos, ignoreCase = true)
+            val nextClose = page.indexOf("</div>", pos, ignoreCase = true)
+            if (nextClose == -1) break
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++
+                pos = nextOpen + 4
+            } else {
+                depth--
+                if (depth == 0) {
+                    return page.substring(start, nextClose).trim()
+                }
+                pos = nextClose + 6
+            }
+        }
+        return ""
+    }
+
     /** 拉取详情页正文，失败返回空串。 */
     private suspend fun fetchDetail(url: String, cookieHdr: String): String {
         return try {
             val resp = ProviderUtil.httpGet(url, DEFAULT_HEADERS + mapOf("Cookie" to cookieHdr, "Referer" to BASE))
             if (!resp.isOk) return ""
-            BODY_RE.find(resp.body)?.groupValues?.get(1)?.trim() ?: ""
+            extractBodyHtml(resp.body)
         } catch (_: Exception) {
             ""
         }

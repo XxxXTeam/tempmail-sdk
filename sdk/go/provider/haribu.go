@@ -12,6 +12,7 @@ import (
 
 	http "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
+	gohtml "golang.org/x/net/html"
 )
 
 /*
@@ -47,9 +48,47 @@ var (
 	haribuDateRe = regexp.MustCompile(`(?is)<span\s+class\s*=\s*["']mail_zaman["'][^>]*>([\s\S]*?)</span>`)
 	/* 匹配邮件详情链接 */
 	haribuMailLinkRe = regexp.MustCompile(`(?i)href\s*=\s*["']([^"']*(?:mail|read|view)[^"']*)["']`)
-	/* 匹配邮件正文容器 */
-	haribuBodyRe = regexp.MustCompile(`(?is)<div\s+(?:id|class)\s*=\s*["'](?:mail_icerik|icerik|mail-content|message-body)["'][^>]*>([\s\S]*?)</div>`)
 )
+
+/*
+ * haribuExtractBodyHTML 使用 HTML 解析器提取邮件正文 div 的完整内部 HTML，
+ * 避免非贪婪正则在嵌套 div 时截断正文。支持多种 class/id 名称。
+ */
+func haribuExtractBodyHTML(page string) string {
+	doc, err := gohtml.Parse(strings.NewReader(page))
+	if err != nil {
+		return ""
+	}
+	targets := []string{"mail_icerik", "icerik", "mail-content", "message-body"}
+	var result string
+	var walk func(*gohtml.Node)
+	walk = func(n *gohtml.Node) {
+		if result != "" {
+			return
+		}
+		if n.Type == gohtml.ElementNode && n.Data == "div" {
+			for _, a := range n.Attr {
+				if a.Key == "class" || a.Key == "id" {
+					for _, target := range targets {
+						if strings.Contains(a.Val, target) {
+							var sb strings.Builder
+							for c := n.FirstChild; c != nil; c = c.NextSibling {
+								gohtml.Render(&sb, c)
+							}
+							result = strings.TrimSpace(sb.String())
+							return
+						}
+					}
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+	return result
+}
 
 /* haribuHTTPClient 获取 haribu 专用 HTTP 客户端（无 cookie jar，手动管理 cookie） */
 func haribuHTTPClient() tls_client.HttpClient {
@@ -335,8 +374,9 @@ func haribuFetchDetail(client tls_client.HttpClient, detailURL, cookieHdr string
 		return ""
 	}
 
-	if m := haribuBodyRe.FindStringSubmatch(string(body)); len(m) >= 2 {
-		return strings.TrimSpace(m[1])
+	/* 使用 HTML 解析器提取完整正文 */
+	if htmlBody := haribuExtractBodyHTML(string(body)); htmlBody != "" {
+		return htmlBody
 	}
 	return ""
 }

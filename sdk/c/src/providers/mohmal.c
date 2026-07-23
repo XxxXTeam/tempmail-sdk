@@ -514,8 +514,28 @@ static char *mohmal_extract_message_body(const char *page) {
   if (!gt)
     return tm_strdup("");
   gt++;
-  /* 找到对应的结束标签（简单匹配第一个 </div>） */
-  const char *end = strstr(gt, "</div>");
+  /* 栈式深度匹配以支持嵌套 div，避免非贪婪截断 */
+  const char *pos = gt;
+  const char *page_end = page + strlen(page);
+  int depth = 1;
+  const char *end = NULL;
+  while (pos < page_end && depth > 0) {
+    const char *next_open = strstr(pos, "<div");
+    const char *next_close = strstr(pos, "</div>");
+    if (!next_close)
+      break;
+    if (next_open && next_open < next_close) {
+      depth++;
+      pos = next_open + 4;
+    } else {
+      depth--;
+      if (depth == 0) {
+        end = next_close;
+        break;
+      }
+      pos = next_close + 6;
+    }
+  }
   if (!end)
     end = strstr(gt, "</section>");
   if (!end)

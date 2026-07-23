@@ -14,9 +14,40 @@ const TITLE_RE = /<li\s+class="title"\s*>([^<]*)<\/li>/is;
 const DATE_RE = /<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)<\/span>/is;
 const SENDER_RE =
   /<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>\s*<\/li>/is;
-const BODY_RE = /<div\s+class="email-body"\s*>([\s\S]*?)<\/div>/is;
 const FROM_ADDR_RE = /<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/;
 const TAG_RE = /<[^>]+>/g;
+
+/**
+ * 使用 DOM 解析器提取 email-body div 的完整内部 HTML，
+ * 避免非贪婪正则在嵌套 div 时截断正文。
+ */
+function extractBodyHTML(page: string): string {
+  // 使用简单的栈式解析避免依赖 jsdom/cheerio
+  const match = /<div\s+class="email-body"\s*>/i.exec(page);
+  if (!match) return "";
+
+  let depth = 1;
+  let pos = match.index + match[0].length;
+  const start = pos;
+
+  while (pos < page.length && depth > 0) {
+    const nextOpen = page.indexOf("<div", pos);
+    const nextClose = page.indexOf("</div>", pos);
+
+    if (nextClose === -1) break;
+    if (nextOpen !== -1 && nextOpen < nextClose) {
+      depth++;
+      pos = nextOpen + 4;
+    } else {
+      depth--;
+      if (depth === 0) {
+        return page.slice(start, nextClose).trim();
+      }
+      pos = nextClose + 6;
+    }
+  }
+  return "";
+}
 
 function setCookieLines(headers: Headers): string[] {
   const h = headers as Headers & { getSetCookie?: () => string[] };
@@ -200,8 +231,8 @@ function parseDetail(
   const dm = DATE_RE.exec(page);
   if (dm?.[1]) date = lightUnescape(dm[1].trim());
   let htmlBody = "";
-  const bm = BODY_RE.exec(page);
-  if (bm?.[1]) htmlBody = bm[1].trim();
+  const bm = extractBodyHTML(page);
+  if (bm) htmlBody = bm;
   return {
     id,
     to: recipient,

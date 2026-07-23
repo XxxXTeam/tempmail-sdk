@@ -35,7 +35,7 @@ class Moakt(private val channel: String, private val domain: String) : Provider 
         val TITLE_RE = Regex("(?is)<li\\s+class=\"title\"\\s*>([^<]*)</li>")
         val DATE_RE = Regex("(?is)<li\\s+class=\"date\"[^>]*>.*?<span[^>]*>([^<]+)</span>")
         val SENDER_RE = Regex("(?is)<li\\s+class=\"sender\"[^>]*>.*?<span[^>]*>(.*?)</span>\\s*</li>")
-        val BODY_RE = Regex("(?is)<div\\s+class=\"email-body\"\\s*>(.*?)</div>")
+        val BODY_OPEN_RE = Regex("(?i)<div\\s+class=\"email-body\"\\s*>")
         val FROM_ADDR_RE = Regex("<([a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,})>")
         val TAG_RE = Regex("<[^>]+>")
         val MAIL_DOMAIN_RE = Regex(
@@ -114,6 +114,33 @@ class Moakt(private val channel: String, private val domain: String) : Provider 
 
     private fun stripTags(s: String): String = TAG_RE.replace(s, " ").trim()
 
+    /**
+     * 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private fun extractBodyHtml(page: String): String {
+        val m = BODY_OPEN_RE.find(page) ?: return ""
+        val start = m.range.last + 1
+        var pos = start
+        var depth = 1
+        while (pos < page.length && depth > 0) {
+            val nextOpen = page.indexOf("<div", pos, ignoreCase = true)
+            val nextClose = page.indexOf("</div>", pos, ignoreCase = true)
+            if (nextClose == -1) break
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++
+                pos = nextOpen + 4
+            } else {
+                depth--
+                if (depth == 0) {
+                    return page.substring(start, nextClose).trim()
+                }
+                pos = nextClose + 6
+            }
+        }
+        return ""
+    }
+
     private fun unescapeHtml(s: String): String = s
         .replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
         .replace("&quot;", "\"").replace("&#39;", "'").replace("&nbsp;", " ")
@@ -145,7 +172,7 @@ class Moakt(private val channel: String, private val domain: String) : Provider 
         }
         val subj = TITLE_RE.find(page)?.let { unescapeHtml(it.groupValues[1].trim()) } ?: ""
         val dateS = DATE_RE.find(page)?.let { unescapeHtml(it.groupValues[1].trim()) } ?: ""
-        val body = BODY_RE.find(page)?.groupValues?.get(1)?.trim() ?: ""
+        val body = extractBodyHtml(page)
         return mapOf(
             "id" to mid,
             "to" to recipient,

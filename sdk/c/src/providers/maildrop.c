@@ -132,6 +132,70 @@ tm_email_info_t *tm_provider_maildrop_generate(const char *domain) {
   return info;
 }
 
+/**
+ * 通过详情接口获取单封邮件完整内容
+ * GET /api/email_content.php?id={id}
+ * 详情响应字段（从前端代码确认）:
+ *   - content: 完整 HTML 正文
+ *   - subject / from_addr / date: 邮件元数据
+ *   - attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+ * 返回解析后的 cJSON 对象（调用方负责释放），失败返回 NULL
+ */
+static cJSON *md_fetch_detail(const char *id) {
+  if (!id || !id[0]) return NULL;
+  char *esc = md_curl_escape(id);
+  char url[800];
+  snprintf(url, sizeof(url), "%s/api/email_content.php?id=%s", MD_BASE, esc);
+  free(esc);
+  tm_http_response_t *resp =
+      tm_http_request(TM_HTTP_GET, url, md_headers, NULL, 15);
+  if (!resp || resp->status < 200 || resp->status >= 300) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+  cJSON *detail = cJSON_Parse(resp->body);
+  tm_http_response_free(resp);
+  if (!detail || !cJSON_IsObject(detail)) {
+    cJSON_Delete(detail);
+    return NULL;
+  }
+  return detail;
+}
+
+/**
+ * 将详情接口返回的 content 字段映射为 html 字段
+ * 详情的其他字段（subject/from_addr/date）优先级更高
+ */
+static void md_merge_detail_into_raw(cJSON *raw, cJSON *detail) {
+  if (!raw || !detail) return;
+  /* content -> html */
+  cJSON *content = cJSON_GetObjectItemCaseSensitive(detail, "content");
+  if (cJSON_IsString(content) && content->valuestring && content->valuestring[0]) {
+    cJSON_DeleteItemFromObjectCaseSensitive(raw, "html");
+    cJSON_AddStringToObject(raw, "html", content->valuestring);
+  }
+  /* from_addr / subject / date 使用详情覆盖 */
+  for (int i = 0; i < 3; i++) {
+    const char *keys[] = {"from_addr", "subject", "date"};
+    cJSON *item = cJSON_GetObjectItemCaseSensitive(detail, keys[i]);
+    if (cJSON_IsString(item) && item->valuestring && item->valuestring[0]) {
+      cJSON_DeleteItemFromObjectCaseSensitive(raw, keys[i]);
+      cJSON_AddStringToObject(raw, keys[i], item->valuestring);
+    }
+  }
+  /* attachment（JSON字符串）解析为附件数组 */
+  cJSON *att = cJSON_GetObjectItemCaseSensitive(detail, "attachment");
+  if (cJSON_IsString(att) && att->valuestring && att->valuestring[0]) {
+    cJSON *att_arr = cJSON_Parse(att->valuestring);
+    if (att_arr && cJSON_IsArray(att_arr)) {
+      cJSON_DeleteItemFromObjectCaseSensitive(raw, "attachments");
+      cJSON_AddItemToObject(raw, "attachments", att_arr);
+    } else {
+      cJSON_Delete(att_arr);
+    }
+  }
+}
+
 tm_email_t *tm_provider_maildrop_get_emails(const char *token,
                                             const char *email, int *count) {
   *count = -1;
@@ -174,6 +238,25 @@ tm_email_t *tm_provider_maildrop_get_emails(const char *token,
 
   for (int i = 0; i < n; i++) {
     cJSON *raw = cJSON_GetArrayItem(arr, i);
+
+    /* 提取邮件 ID 用于详情二拉 */
+    char id_buf[64] = {0};
+    cJSON *id_item = cJSON_GetObjectItemCaseSensitive(raw, "id");
+    if (cJSON_IsString(id_item) && id_item->valuestring) {
+      strncpy(id_buf, id_item->valuestring, sizeof(id_buf) - 1);
+    } else if (cJSON_IsNumber(id_item)) {
+      snprintf(id_buf, sizeof(id_buf), "%.0f", id_item->valuedouble);
+    }
+
+    /* 无条件调用详情接口，用 content/from_addr/subject/date/attachment 覆盖列表字段 */
+    if (id_buf[0]) {
+      cJSON *detail = md_fetch_detail(id_buf);
+      if (detail) {
+        md_merge_detail_into_raw(raw, detail);
+        cJSON_Delete(detail);
+      }
+    }
+
     emails[i] = tm_normalize_email(raw, addr);
   }
   cJSON_Delete(root);

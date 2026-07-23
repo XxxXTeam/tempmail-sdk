@@ -370,10 +370,7 @@ final class Moakt
             $date = trim(html_entity_decode($dm[1], ENT_QUOTES | ENT_HTML5));
         }
 
-        $body = '';
-        if (preg_match('/<div\s+class="email-body"\s*>([\s\S]*?)<\/div>/is', $page, $bm) === 1) {
-            $body = trim($bm[1]);
-        }
+        $body = self::extractBodyHtml($page);
 
         return [
             'id' => $mid,
@@ -383,5 +380,36 @@ final class Moakt
             'date' => $date,
             'html' => $body,
         ];
+    }
+
+    /**
+     * 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private static function extractBodyHtml(string $page): string
+    {
+        if (preg_match('/<div\s+class="email-body"\s*>/i', $page, $m, PREG_OFFSET_CAPTURE) !== 1) {
+            return '';
+        }
+        $start = $m[0][1] + strlen($m[0][0]);
+        $pos = $start;
+        $depth = 1;
+        $len = strlen($page);
+        while ($pos < $len && $depth > 0) {
+            $nextOpen = strpos($page, '<div', $pos);
+            $nextClose = strpos($page, '</div>', $pos);
+            if ($nextClose === false) break;
+            if ($nextOpen !== false && $nextOpen < $nextClose) {
+                $depth++;
+                $pos = $nextOpen + 4;
+            } else {
+                $depth--;
+                if ($depth === 0) {
+                    return trim(substr($page, $start, $nextClose - $start));
+                }
+                $pos = $nextClose + 6;
+            }
+        }
+        return '';
     }
 }

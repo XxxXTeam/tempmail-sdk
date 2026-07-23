@@ -261,8 +261,105 @@ def generate_email() -> EmailInfo:
     )
 
 
+def _fetch_messages_via_http(jwt: str) -> list:
+    """
+    通过 HTTP 接口获取邮件列表
+    GET https://vip.215.im/v1/messages
+    返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整
+    """
+    resp = tm_http.get(
+        f"{BASE}/v1/messages",
+        headers={**HEADERS, "Authorization": f"Bearer {jwt}"},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    body = resp.json()
+    if not body.get("success"):
+        raise RuntimeError("vip-215 messages: success=false")
+    data = body.get("data") or {}
+    messages = data.get("messages") or []
+    return messages if isinstance(messages, list) else []
+
+
+def _fetch_message_detail(jwt: str, mail_id: str) -> dict | None:
+    """
+    通过 HTTP 详情接口获取单封邮件完整内容
+    GET https://vip.215.im/v1/messages/{id}
+    用于列表条目缺正文时补拉，失败返回 None
+    """
+    mid = (mail_id or "").strip()
+    if not mid:
+        return None
+    try:
+        resp = tm_http.get(
+            f"{BASE}/v1/messages/{quote(mid, safe='')}",
+            headers={**HEADERS, "Authorization": f"Bearer {jwt}"},
+            timeout=15,
+        )
+        if resp.status_code < 200 or resp.status_code >= 300:
+            return None
+        body = resp.json()
+        if not body.get("success"):
+            return None
+        d = body.get("data")
+        return d if isinstance(d, dict) else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _has_real_body(row: dict) -> bool:
+    """判断邮件条目是否包含真实正文"""
+    for key in ("text", "body_text", "html", "body_html", "content", "body"):
+        v = row.get(key)
+        if isinstance(v, str) and v.strip():
+            return True
+    return False
+
+
+def _extract_message_id(row: dict) -> str:
+    """提取邮件 ID"""
+    for key in ("id", "messageId", "message_id"):
+        v = row.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return str(int(v))
+    return ""
+
+
 def get_emails(token: str, email: str) -> List[Email]:
-    _ensure_ws(token, email)
-    box = _get_box(token, email)
-    with _lock:
-        return list(box.emails)
+    """
+    获取邮件列表（HTTP 优先，WebSocket 缓存回退）
+    1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+    2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+    3. HTTP 失败时回退到 WebSocket 已缓存的合成卡片
+    """
+    # 确保 WebSocket 保持订阅（供实时通知）
+    try:
+        _ensure_ws(token, email)
+    except Exception:  # noqa: BLE001
+        pass
+
+    try:
+        messages = _fetch_messages_via_http(token)
+        out: List[Email] = []
+        for row in messages:
+            if not isinstance(row, dict):
+                continue
+            mid = _extract_message_id(row)
+            # 若列表条目无真实正文，补拉详情
+            if not _has_real_body(row) and mid:
+                detail = _fetch_message_detail(token, mid)
+                if detail:
+                    for k, v in detail.items():
+                        if v is not None:
+                            row[k] = v
+            if "to" not in row:
+                row["to"] = email
+            out.append(normalize_email(row, email))
+        return out
+    except Exception:  # noqa: BLE001
+        # HTTP 失败时回退到 WebSocket 缓存
+        box = _get_box(token, email)
+        with _lock:
+            return list(box.emails)

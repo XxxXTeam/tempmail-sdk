@@ -40,8 +40,8 @@ public final class Haribu {
             "(?is)<span\\s+class\\s*=\\s*[\"']mail_zaman[\"'][^>]*>([\\s\\S]*?)</span>");
     private static final Pattern MAIL_LINK_RE = Pattern.compile(
             "(?i)href\\s*=\\s*[\"']([^\"']*(?:mail|read|view)[^\"']*)[\"']");
-    private static final Pattern BODY_RE = Pattern.compile(
-            "(?is)<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>([\\s\\S]*?)</div>");
+    private static final Pattern BODY_OPEN_RE = Pattern.compile(
+            "(?is)<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>");
     private static final Pattern TAG_RE = Pattern.compile("<[^>]+>");
 
     private Haribu() {
@@ -197,6 +197,34 @@ public final class Haribu {
         return emails;
     }
 
+    /**
+     * 使用栈式深度匹配提取正文 div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private static String extractBodyHtml(String page) {
+        Matcher m = BODY_OPEN_RE.matcher(page);
+        if (!m.find()) return "";
+        int start = m.end();
+        int pos = start;
+        int depth = 1;
+        while (pos < page.length() && depth > 0) {
+            int nextOpen = page.indexOf("<div", pos);
+            int nextClose = page.indexOf("</div>", pos);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++;
+                pos = nextOpen + 4;
+            } else {
+                depth--;
+                if (depth == 0) {
+                    return page.substring(start, nextClose).strip();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
+
     private static String fetchDetail(String url, String cookieHdr) {
         try {
             Map<String, String> h = defaultHeaders();
@@ -204,8 +232,8 @@ public final class Haribu {
             h.put("Referer", BASE);
             HttpResult resp = HttpClient.get(url, h);
             if (!resp.isOk()) return "";
-            Matcher m = BODY_RE.matcher(resp.getBody());
-            if (m.find()) return m.group(1).trim();
+            String body = extractBodyHtml(resp.getBody());
+            if (!body.isEmpty()) return body;
         } catch (RuntimeException ignored) {
         }
         return "";

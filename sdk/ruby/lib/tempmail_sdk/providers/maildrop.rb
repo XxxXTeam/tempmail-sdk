@@ -62,6 +62,55 @@ module TempmailSdk
         EmailInfo.new(channel: CHANNEL, email: email, token: email)
       end
 
+      # 通过详情接口获取单封邮件完整内容
+      # GET /api/email_content.php?id={id}
+      # 详情响应字段（从前端代码确认）:
+      #   content: 完整 HTML 正文
+      #   subject / from_addr / date: 邮件元数据
+      #   attachment: JSON 字符串数组 [{filename, path, size}]
+      def fetch_detail(id)
+        mid = id.to_s.strip
+        return nil if mid.empty?
+
+        begin
+          resp = Http.get("#{BASE}/api/email_content.php?id=#{URI.encode_www_form_component(mid)}",
+                          headers: HEADERS, timeout: 15)
+          return nil if resp.status_code < 200 || resp.status_code >= 300
+
+          data = resp.body.empty? ? nil : resp.json
+          data.is_a?(Hash) ? data : nil
+        rescue StandardError
+          nil
+        end
+      end
+
+      # 解析详情接口的 attachment 字段（JSON 字符串）为附件数组
+      def parse_attachments(raw)
+        return [] if raw.nil? || !raw.is_a?(String) || raw.strip.empty?
+
+        begin
+          items = JSON.parse(raw)
+        rescue JSON::ParserError
+          return []
+        end
+        return [] unless items.is_a?(Array)
+
+        items.filter_map do |it|
+          next unless it.is_a?(Hash)
+
+          filename = (it["filename"] || "").to_s.strip
+          next if filename.empty?
+
+          entry = { "filename" => filename }
+          entry["size"] = it["size"].to_i if it["size"].is_a?(Numeric)
+          entry
+        end
+      end
+
+      # 获取邮件列表并对每封邮件补拉详情
+      # 1. GET /api/emails.php 拉取列表（仅含 description 摘要）
+      # 2. 对每封邮件 GET /api/email_content.php?id={id} 拉取详情（含 content 完整 HTML）
+      # 3. 详情失败时保留列表 description 作为回退
       # @param email [String]
       # @param token [String, nil]
       # @return [Array<Email>]
@@ -78,12 +127,38 @@ module TempmailSdk
         return [] unless rows.is_a?(Array)
 
         rows.select { |row| row.is_a?(Hash) }.map do |row|
+          mail_id = row["id"].to_s
+          desc = (row["description"] || "").strip
           ir = row["isRead"]
+          is_read = ir == true || ir == 1
+
+          from = (row["from_addr"] || "").strip
+          subject = (row["subject"] || "").strip
+          date = cx_date_to_iso(row["date"] || "")
+          html = ""
+          attachments = []
+
+          # 拉取详情覆盖 html/from/subject/date/attachments
+          unless mail_id.empty?
+            detail = fetch_detail(mail_id)
+            if detail
+              d_content = detail["content"]
+              html = d_content if d_content.is_a?(String) && !d_content.strip.empty?
+              d_from = detail["from_addr"]
+              from = d_from.strip if d_from.is_a?(String) && !d_from.strip.empty?
+              d_subj = detail["subject"]
+              subject = d_subj.strip if d_subj.is_a?(String) && !d_subj.strip.empty?
+              d_date = detail["date"]
+              date = cx_date_to_iso(d_date) if d_date.is_a?(String) && !d_date.strip.empty?
+              attachments = parse_attachments(detail["attachment"])
+            end
+          end
+
           Email.new(
-            id: row["id"].to_s, from_addr: (row["from_addr"] || "").strip, to: addr,
-            subject: (row["subject"] || "").strip, text: (row["description"] || "").strip,
-            html: "", date: cx_date_to_iso(row["date"] || ""),
-            is_read: ir == true || ir == 1, attachments: []
+            id: mail_id, from_addr: from, to: addr,
+            subject: subject, text: desc,
+            html: html, date: date,
+            is_read: is_read, attachments: attachments
           )
         end
       end

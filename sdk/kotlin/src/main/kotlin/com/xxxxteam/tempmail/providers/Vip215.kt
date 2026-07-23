@@ -65,12 +65,98 @@ object Vip215 : Provider {
         return EmailInfo(email = address, channel = CHANNEL, token = token, createdAt = jsonStr(data, "createdAt"))
     }
 
-    /** WebSocket 阻塞式收信：连接后监听 message.new 事件。 */
+    /**
+     * 通过 HTTP 接口获取邮件列表。
+     * GET https://vip.215.im/v1/messages
+     * 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整。
+     */
+    private suspend fun fetchMessagesViaHttp(jwt: String): List<JsonObject> {
+        val headers = apiHeaders() + ("Authorization" to "Bearer $jwt")
+        val resp = ProviderUtil.httpGet("$BASE/v1/messages", headers)
+        if (resp.statusCode < 200 || resp.statusCode >= 300) {
+            throw RuntimeException("$CHANNEL: /v1/messages HTTP ${resp.statusCode}")
+        }
+        val body = Http.json.parseToJsonElement(resp.body) as? JsonObject
+        if (body == null || !jsonBool(body, "success")) {
+            throw RuntimeException("$CHANNEL: /v1/messages success=false")
+        }
+        val data = body["data"] as? JsonObject ?: return emptyList()
+        val msgs = data["messages"] as? JsonArray ?: return emptyList()
+        return msgs.mapNotNull { it as? JsonObject }
+    }
+
+    /**
+     * 通过 HTTP 详情接口获取单封邮件完整内容。
+     * GET https://vip.215.im/v1/messages/{id}
+     */
+    private suspend fun fetchMessageDetail(jwt: String, id: String): JsonObject? {
+        if (id.isBlank()) return null
+        return try {
+            val headers = apiHeaders() + ("Authorization" to "Bearer $jwt")
+            val resp = ProviderUtil.httpGet(
+                "$BASE/v1/messages/${ProviderUtil.urlEncode(id)}", headers)
+            if (resp.statusCode < 200 || resp.statusCode >= 300) return null
+            val body = Http.json.parseToJsonElement(resp.body) as? JsonObject ?: return null
+            if (!jsonBool(body, "success")) return null
+            body["data"] as? JsonObject
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** 判断行是否包含真实正文。 */
+    private fun hasRealBody(row: JsonObject): Boolean {
+        for (key in arrayOf("text", "body_text", "html", "body_html", "content", "body")) {
+            val v = (row[key] as? JsonPrimitive)?.contentOrNull
+            if (!v.isNullOrBlank()) return true
+        }
+        return false
+    }
+
+    /** 提取邮件 ID。 */
+    private fun extractMessageId(row: JsonObject): String {
+        for (key in arrayOf("id", "messageId", "message_id")) {
+            (row[key] as? JsonPrimitive)?.contentOrNull?.trim()?.let {
+                if (it.isNotEmpty()) return it
+            }
+        }
+        return ""
+    }
+
+    /**
+     * 获取邮件列表（HTTP 优先，WebSocket 回退）。
+     * 1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+     * 2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+     * 3. HTTP 失败时回退到 WebSocket 阻塞收信（合成卡片）
+     */
     override suspend fun getEmails(info: EmailInfo): List<Email> {
         val token = info.token
         val email = info.email
         if (token.isEmpty()) throw RuntimeException("$CHANNEL: token 不能为空")
 
+        return try {
+            val messages = fetchMessagesViaHttp(token)
+            val out = mutableListOf<Email>()
+            for (row in messages) {
+                val id = extractMessageId(row)
+                val merged = row.toMutableMap()
+                if (!hasRealBody(row) && id.isNotEmpty()) {
+                    fetchMessageDetail(token, id)?.forEach { (k, v) -> merged[k] = v }
+                }
+                if (!merged.containsKey("to")) merged["to"] = JsonPrimitive(email)
+                out.add(Normalize.fromJson(JsonObject(merged), email))
+            }
+            out
+        } catch (_: Exception) {
+            /* HTTP 失败时回退到 WebSocket 阻塞收信 */
+            getEmailsViaWebSocket(info)
+        }
+    }
+
+    /** WebSocket 阻塞式收信（回退路径）：连接后监听 message.new 事件。 */
+    private suspend fun getEmailsViaWebSocket(info: EmailInfo): List<Email> {
+        val token = info.token
+        val email = info.email
         val ticket = fetchWsTicket(token)
         val wsUrl = "wss://vip.215.im/v1/ws?token=${ProviderUtil.urlEncode(ticket)}"
         val result = mutableListOf<Email>()

@@ -647,9 +647,30 @@ static cJSON *mok_parse_detail_json(const char *page, const char *id,
     eb = strchr(eb, '>');
     if (eb) {
       eb++;
-      const char *ebd = strstr(eb, "</div>");
-      if (ebd) {
-        size_t hn = (size_t)(ebd - eb);
+      /* 栈式深度匹配以支持嵌套 div，避免非贪婪截断 */
+      const char *pos = eb;
+      const char *page_end = page + strlen(page);
+      int depth = 1;
+      const char *body_end = NULL;
+      while (pos < page_end && depth > 0) {
+        const char *next_open = strstr(pos, "<div");
+        const char *next_close = strstr(pos, "</div>");
+        if (!next_close)
+          break;
+        if (next_open && next_open < next_close) {
+          depth++;
+          pos = next_open + 4;
+        } else {
+          depth--;
+          if (depth == 0) {
+            body_end = next_close;
+            break;
+          }
+          pos = next_close + 6;
+        }
+      }
+      if (body_end) {
+        size_t hn = (size_t)(body_end - eb);
         free(html_body);
         html_body = (char *)malloc(hn + 1);
         if (html_body) {

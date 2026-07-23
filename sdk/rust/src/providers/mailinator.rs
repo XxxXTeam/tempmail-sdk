@@ -144,13 +144,15 @@ fn flatten_message(
         .or_else(|| summary.get("date").cloned())
         .unwrap_or(Value::Null);
 
+    // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"、"body"（防御性编程）
+    // 优先读 "html" 键，回退兜底 "text/html"、"body"
     json!({
         "id": id,
         "from": from,
         "to": to,
         "subject": summary.get("subject").cloned().unwrap_or_else(|| Value::String(String::new())),
-        "text": first_text(text_payload, &["text/plain", "text", "body"]),
-        "html": first_text(html_payload, &["text/html", "html", "body"]),
+        "text": first_text(text_payload, &["text", "text/plain", "body"]),
+        "html": first_text(html_payload, &["html", "text/html", "body"]),
         "date": date,
         "isRead": false,
         "attachments": attachments,

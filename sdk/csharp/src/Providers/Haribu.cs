@@ -44,8 +44,42 @@ public static class Haribu
         "<span\\s+class\\s*=\\s*[\"']mail_zaman[\"'][^>]*>([\\s\\S]*?)</span>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex MailLinkRe = new(
         "href\\s*=\\s*[\"']([^\"']*(?:mail|read|view)[^\"']*)[\"']", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex BodyRe = new(
-        "<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>([\\s\\S]*?)</div>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    private static readonly Regex BodyOpenRe = new(
+        "<div\\s+(?:id|class)\\s*=\\s*[\"'](?:mail_icerik|icerik|mail-content|message-body)[\"'][^>]*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// 使用栈式深度匹配提取正文 div 的完整内部 HTML，
+    /// 避免非贪婪正则在嵌套 div 时截断正文。
+    /// </summary>
+    private static string ExtractBodyHtml(string page)
+    {
+        var m = BodyOpenRe.Match(page);
+        if (!m.Success) return "";
+        int start = m.Index + m.Length;
+        int pos = start;
+        int depth = 1;
+        while (pos < page.Length && depth > 0)
+        {
+            int nextOpen = page.IndexOf("<div", pos, StringComparison.OrdinalIgnoreCase);
+            int nextClose = page.IndexOf("</div>", pos, StringComparison.OrdinalIgnoreCase);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose)
+            {
+                depth++;
+                pos = nextOpen + 4;
+            }
+            else
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return page.Substring(start, nextClose - start).Trim();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
     private static readonly Regex TagRe = new("<[^>]+>", RegexOptions.Compiled);
 
     private static string StripTags(string s) => TagRe.Replace(s, " ").Trim();
@@ -110,8 +144,8 @@ public static class Haribu
             var h = new Dictionary<string, string>(Headers) { ["Cookie"] = cookieHdr, ["Referer"] = BaseUrl };
             var resp = Http.Get(detailUrl, h, 15);
             if (resp.StatusCode is < 200 or >= 300) return "";
-            var m = BodyRe.Match(resp.Body ?? "");
-            if (m.Success) return m.Groups[1].Value.Trim();
+            var body = ExtractBodyHtml(resp.Body ?? "");
+            if (!string.IsNullOrEmpty(body)) return body;
         }
         catch { /* 忽略 */ }
         return "";

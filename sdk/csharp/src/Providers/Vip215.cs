@@ -256,13 +256,110 @@ public static class Vip215
             createdAt: Json.Str(data, "createdAt") is { Length: > 0 } c ? c : null);
     }
 
-    /// <summary>获取邮件列表（返回后台累积快照）</summary>
+    /// <summary>
+    /// 通过 HTTP 接口获取邮件列表（GET /v1/messages）。
+    /// 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整。
+    /// </summary>
+    private static List<JsonObject> FetchMessagesViaHttp(string jwt)
+    {
+        var headers = new Dictionary<string, string>(ApiHeaders) { ["Authorization"] = $"Bearer {jwt}" };
+        var resp = Http.Get($"{Base}/v1/messages", headers, 15);
+        if (resp.StatusCode < 200 || resp.StatusCode >= 300)
+            throw new Exception($"vip-215: /v1/messages HTTP {resp.StatusCode}");
+        var body = Json.Parse(resp.Body) as JsonObject;
+        if ((body?["success"] as JsonValue)?.TryGetValue<bool>(out var ok) != true || !ok)
+            throw new Exception("vip-215: /v1/messages success=false");
+        var out_ = new List<JsonObject>();
+        if (body?["data"] is not JsonObject data) return out_;
+        if (data["messages"] is not JsonArray msgs) return out_;
+        foreach (var node in msgs)
+            if (node is JsonObject row) out_.Add(row);
+        return out_;
+    }
+
+    /// <summary>
+    /// 通过 HTTP 详情接口获取单封邮件完整内容（GET /v1/messages/{id}）。
+    /// </summary>
+    private static JsonObject? FetchMessageDetail(string jwt, string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        try
+        {
+            var headers = new Dictionary<string, string>(ApiHeaders) { ["Authorization"] = $"Bearer {jwt}" };
+            var resp = Http.Get($"{Base}/v1/messages/{Uri.EscapeDataString(id)}", headers, 15);
+            if (resp.StatusCode < 200 || resp.StatusCode >= 300) return null;
+            var body = Json.Parse(resp.Body) as JsonObject;
+            if ((body?["success"] as JsonValue)?.TryGetValue<bool>(out var ok) != true || !ok) return null;
+            return body?["data"] as JsonObject;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>判断行是否包含真实正文。</summary>
+    private static bool HasRealBody(JsonObject row)
+    {
+        foreach (var key in new[] { "text", "body_text", "html", "body_html", "content", "body" })
+        {
+            if (row[key] is JsonValue jv && jv.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>提取邮件 ID。</summary>
+    private static string ExtractMessageId(JsonObject row)
+    {
+        foreach (var key in new[] { "id", "messageId", "message_id" })
+        {
+            var s = Json.Str(row, key).Trim();
+            if (s.Length > 0) return s;
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// 获取邮件列表（HTTP 优先，WebSocket 回退）。
+    /// 1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+    /// 2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+    /// 3. HTTP 失败时回退到 WebSocket 已累积的合成卡片
+    /// </summary>
     public static List<Email> GetEmails(string? token, string email)
     {
         var tok = (token ?? "").Trim();
         if (tok.Length == 0) throw new Exception("vip-215: missing token");
+
+        /* 保持 WebSocket 订阅（供实时通知），HTTP 失败时提供回退数据 */
         EnsureWs(tok, email);
-        var box = GetBox(tok, email);
-        lock (Lock) { return new List<Email>(box.Emails); }
+
+        try
+        {
+            var messages = FetchMessagesViaHttp(tok);
+            var result = new List<Email>();
+            foreach (var row in messages)
+            {
+                var id = ExtractMessageId(row);
+                if (!HasRealBody(row) && id.Length > 0)
+                {
+                    var detail = FetchMessageDetail(tok, id);
+                    if (detail is not null)
+                    {
+                        foreach (var kv in detail)
+                        {
+                            if (kv.Value is null) continue;
+                            row[kv.Key] = kv.Value.DeepClone();
+                        }
+                    }
+                }
+                if (row["to"] is null) row["to"] = email;
+                result.Add(Normalize.NormalizeEmail(Json.ToDict(row), email));
+            }
+            return result;
+        }
+        catch
+        {
+            /* HTTP 失败时回退到 WebSocket 累积快照（合成卡片） */
+            var box = GetBox(tok, email);
+            lock (Lock) { return new List<Email>(box.Emails); }
+        }
     }
 }

@@ -96,6 +96,43 @@ pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {
     })
 }
 
+/// 通过详情接口获取单封邮件完整内容
+/// GET /api/email_content.php?id={id}
+/// 详情响应字段（从前端代码确认）:
+/// - content: 完整 HTML 正文
+/// - subject / from_addr / date: 邮件元数据
+/// - attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+async fn fetch_detail(id: &str) -> Option<Value> {
+    let trimmed = id.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    let url = format!(
+        "{}/api/email_content.php?id={}",
+        BASE,
+        urlencoding::encode(trimmed)
+    );
+    let resp = md_headers(http_client().get(url)).send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    resp.json::<Value>().await.ok()
+}
+
+/// 解析详情接口的 attachment 字段（JSON 字符串）为附件列表
+fn parse_attachments(raw: &Value) -> Value {
+    if let Some(s) = raw.as_str() {
+        if !s.trim().is_empty() {
+            if let Ok(v) = serde_json::from_str::<Value>(s) {
+                if v.is_array() {
+                    return v;
+                }
+            }
+        }
+    }
+    Value::Array(vec![])
+}
+
 pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
     let addr = email.trim();
     let addr = if addr.is_empty() { _token.trim() } else { addr };
@@ -119,6 +156,94 @@ pub fn get_emails(_token: &str, email: &str) -> Result<Vec<Email>, String> {
             .cloned()
             .unwrap_or_default();
 
-        Ok(rows.iter().map(|raw| normalize_email(raw, addr)).collect())
+        let mut out = Vec::with_capacity(rows.len());
+        for raw in &rows {
+            /* 提取 ID（支持 string/number） */
+            let id = raw
+                .get("id")
+                .and_then(|v| {
+                    v.as_str()
+                        .map(|s| s.to_string())
+                        .or_else(|| v.as_i64().map(|n| n.to_string()))
+                        .or_else(|| v.as_u64().map(|n| n.to_string()))
+                })
+                .unwrap_or_default();
+
+            /* 列表 description 作为文本回退 */
+            let desc = raw
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim()
+                .to_string();
+
+            /* 拉取详情覆盖 html/from/subject/date/attachments */
+            let mut from = raw
+                .get("from_addr")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            let mut subject = raw
+                .get("subject")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            let mut date = raw
+                .get("date")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let mut html = String::new();
+            let mut attachments = Value::Array(vec![]);
+
+            if !id.is_empty() {
+                if let Some(detail) = fetch_detail(&id).await {
+                    if let Some(c) = detail.get("content").and_then(|v| v.as_str()) {
+                        if !c.trim().is_empty() {
+                            html = c.to_string();
+                        }
+                    }
+                    if let Some(f) = detail.get("from_addr").and_then(|v| v.as_str()) {
+                        if !f.trim().is_empty() {
+                            from = f.trim().to_string();
+                        }
+                    }
+                    if let Some(s) = detail.get("subject").and_then(|v| v.as_str()) {
+                        if !s.trim().is_empty() {
+                            subject = s.trim().to_string();
+                        }
+                    }
+                    if let Some(d) = detail.get("date").and_then(|v| v.as_str()) {
+                        if !d.trim().is_empty() {
+                            date = d.to_string();
+                        }
+                    }
+                    if let Some(att_raw) = detail.get("attachment") {
+                        attachments = parse_attachments(att_raw);
+                    }
+                }
+            }
+
+            let is_read = raw
+                .get("isRead")
+                .and_then(|v| v.as_bool().or_else(|| v.as_i64().map(|n| n != 0)))
+                .unwrap_or(false);
+
+            let flat = serde_json::json!({
+                "id": id,
+                "from": from,
+                "to": addr,
+                "subject": subject,
+                "text": desc,
+                "html": html,
+                "date": date,
+                "isRead": is_read,
+                "attachments": attachments,
+            });
+            out.push(normalize_email(&flat, addr));
+        }
+        Ok(out)
     })
 }

@@ -14,6 +14,7 @@ import (
 
 	http "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
+	gohtml "golang.org/x/net/html"
 )
 
 // moakt.com：凭证为 tm_session 等 Cookie；先 GET 语言首页再 GET 收件箱解析 #email-address；
@@ -38,9 +39,43 @@ var (
 	moaktTitleRe    = regexp.MustCompile(`(?is)<li\s+class="title"\s*>([^<]*)</li>`)
 	moaktDateRe     = regexp.MustCompile(`(?is)<li\s+class="date"[^>]*>[\s\S]*?<span[^>]*>([^<]+)</span>`)
 	moaktSenderRe   = regexp.MustCompile(`(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>`)
-	moaktBodyRe     = regexp.MustCompile(`(?is)<div\s+class="email-body"\s*>([\s\S]*?)</div>`)
 	moaktFromAddrRe = regexp.MustCompile(`<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>`)
 )
+
+/*
+ * moaktExtractBodyHTML 使用 HTML 解析器提取 email-body div 的完整内部 HTML，
+ * 避免非贪婪正则在嵌套 div 时截断正文。
+ */
+func moaktExtractBodyHTML(page string) string {
+	doc, err := gohtml.Parse(strings.NewReader(page))
+	if err != nil {
+		return ""
+	}
+	var result string
+	var walk func(*gohtml.Node)
+	walk = func(n *gohtml.Node) {
+		if result != "" {
+			return
+		}
+		if n.Type == gohtml.ElementNode && n.Data == "div" {
+			for _, a := range n.Attr {
+				if a.Key == "class" && strings.Contains(a.Val, "email-body") {
+					var sb strings.Builder
+					for c := n.FirstChild; c != nil; c = c.NextSibling {
+						gohtml.Render(&sb, c)
+					}
+					result = strings.TrimSpace(sb.String())
+					return
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+	return result
+}
 
 func moaktRequestParts(domain *string) (string, string) {
 	if domain == nil {
@@ -231,8 +266,8 @@ func moaktParseMessageHTML(page string, id string, recipient string) map[string]
 			raw["from"] = strings.TrimSpace(em[1])
 		}
 	}
-	if sm := moaktBodyRe.FindStringSubmatch(page); len(sm) >= 2 {
-		body := strings.TrimSpace(sm[1])
+	/* 使用 HTML 解析器提取邮件正文（完整支持嵌套 div） */
+	if body := moaktExtractBodyHTML(page); body != "" {
 		raw["html"] = body
 	}
 	return raw

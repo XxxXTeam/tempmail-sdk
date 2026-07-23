@@ -72,6 +72,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
 }
 
 /// 获取邮件列表
+/// GET /api/fetch?to={email} → 列表元数据
+/// 对每封邮件 GET /api/fetch/{id} 补拉完整正文（无条件覆盖列表字段）
 pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
     let em = email.trim();
     if em.is_empty() {
@@ -108,7 +110,7 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
                 })
                 .unwrap_or_default();
 
-            // 尝试获取单封邮件详情
+            /* 无条件调用详情接口，用详情覆盖列表字段（确保正文完整） */
             let detail = fetch_detail(&id);
             let merged = if let Some(d) = &detail { d } else { raw };
 

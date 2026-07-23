@@ -428,9 +428,137 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     })
 }
 
+/// 通过 HTTP 接口获取邮件列表
+/// GET https://vip.215.im/v1/messages
+/// 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整
+fn fetch_messages_via_http(jwt: &str) -> Result<Vec<Value>, String> {
+    let ua = get_current_ua();
+    let client = http_client_no_cookie_jar();
+    block_on(async {
+        let mut req = client.get(format!("{HTTP_BASE}/v1/messages"));
+        req = apply_vip215_api_headers(req, ua, None);
+        req = req.header("Authorization", format!("Bearer {jwt}"));
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("vip-215 messages: {e}"))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let t = resp.text().await.unwrap_or_default();
+            return Err(format!("vip-215 messages HTTP {status} {t}"));
+        }
+        let body: Value = resp.json().await.map_err(|e| e.to_string())?;
+        if body.get("success").and_then(|v| v.as_bool()) != Some(true) {
+            return Err("vip-215 messages success=false".into());
+        }
+        Ok(body
+            .get("data")
+            .and_then(|d| d.get("messages"))
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default())
+    })
+}
+
+/// 通过 HTTP 详情接口获取单封邮件完整内容
+/// GET https://vip.215.im/v1/messages/{id}
+/// 用于列表条目缺正文时补拉，失败返回 None
+fn fetch_message_detail(jwt: &str, id: &str) -> Option<Value> {
+    let trimmed = id.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    let ua = get_current_ua();
+    let client = http_client_no_cookie_jar();
+    block_on(async {
+        let mut req = client.get(format!(
+            "{HTTP_BASE}/v1/messages/{}",
+            urlencoding::encode(trimmed)
+        ));
+        req = apply_vip215_api_headers(req, ua, None);
+        req = req.header("Authorization", format!("Bearer {jwt}"));
+        let resp = req.send().await.ok()?;
+        if !resp.status().is_success() {
+            return None;
+        }
+        let body: Value = resp.json().await.ok()?;
+        if body.get("success").and_then(|v| v.as_bool()) != Some(true) {
+            return None;
+        }
+        body.get("data").cloned()
+    })
+}
+
+/// 判断邮件条目是否已包含真实正文
+fn has_real_body(row: &Value) -> bool {
+    for key in ["text", "body_text", "html", "body_html", "content", "body"] {
+        if let Some(s) = row.get(key).and_then(|v| v.as_str()) {
+            if !s.trim().is_empty() {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// 提取邮件 ID
+fn extract_message_id(row: &Value) -> String {
+    for key in ["id", "messageId", "message_id"] {
+        if let Some(v) = row.get(key) {
+            if let Some(s) = v.as_str() {
+                let t = s.trim();
+                if !t.is_empty() {
+                    return t.to_string();
+                }
+            }
+            if let Some(n) = v.as_i64() {
+                return n.to_string();
+            }
+        }
+    }
+    String::new()
+}
+
+/// 获取邮件列表（HTTP 优先，WebSocket 缓存回退）
+/// 1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+/// 2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+/// 3. HTTP 失败时回退到 WebSocket 已缓存的合成卡片
 pub fn get_emails(token: &str, email: &str) -> Result<Vec<Email>, String> {
+    /* 确保 WebSocket 保持订阅（供实时通知） */
     ensure_ws(token, email);
-    let arc = get_box(token);
-    let b = arc.lock().map_err(|e| e.to_string())?;
-    Ok(b.emails.clone())
+
+    match fetch_messages_via_http(token) {
+        Ok(messages) => {
+            let mut out = Vec::with_capacity(messages.len());
+            for mut row in messages {
+                let id = extract_message_id(&row);
+                if !has_real_body(&row) && !id.is_empty() {
+                    if let Some(detail) = fetch_message_detail(token, &id) {
+                        /* 合并详情字段到行 */
+                        if let (Some(map), Some(dmap)) = (row.as_object_mut(), detail.as_object()) {
+                            for (k, v) in dmap {
+                                if !v.is_null() {
+                                    map.insert(k.clone(), v.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+                /* 补齐 to 字段 */
+                if let Some(map) = row.as_object_mut() {
+                    if !map.contains_key("to") {
+                        map.insert("to".to_string(), Value::String(email.to_string()));
+                    }
+                }
+                out.push(normalize_email(&row, email));
+            }
+            Ok(out)
+        }
+        Err(_) => {
+            /* HTTP 失败时回退到 WebSocket 缓存 */
+            let arc = get_box(token);
+            let b = arc.lock().map_err(|e| e.to_string())?;
+            Ok(b.emails.clone())
+        }
+    }
 }

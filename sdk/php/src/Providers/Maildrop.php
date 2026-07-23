@@ -82,6 +82,72 @@ final class Maildrop
     }
 
     /**
+     * 通过详情接口获取单封邮件完整内容
+     * GET /api/email_content.php?id={id}
+     * 详情响应字段（从前端代码确认）:
+     *   - content: 完整 HTML 正文
+     *   - subject / from_addr / date: 邮件元数据
+     *   - attachment: JSON 字符串数组 [{filename, path, size}]（可能为空）
+     *
+     * @return array<string,mixed>|null 详情数组，失败返回 null
+     */
+    private static function fetchDetail(string $id): ?array
+    {
+        $mid = trim($id);
+        if ($mid === '') {
+            return null;
+        }
+        try {
+            $resp = HttpClient::get(self::BASE . '/api/email_content.php', self::HEADERS, query: ['id' => $mid]);
+            $status = $resp->getStatusCode();
+            if ($status < 200 || $status >= 300) {
+                return null;
+            }
+            $data = HttpClient::json($resp);
+            return is_array($data) ? $data : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * 解析详情接口的 attachment 字段（JSON 字符串）为附件数组
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private static function parseAttachments(mixed $raw): array
+    {
+        if (!is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+        $items = json_decode($raw, true);
+        if (!is_array($items)) {
+            return [];
+        }
+        $out = [];
+        foreach ($items as $it) {
+            if (!is_array($it)) {
+                continue;
+            }
+            $filename = trim((string) ($it['filename'] ?? ''));
+            if ($filename === '') {
+                continue;
+            }
+            $entry = ['filename' => $filename];
+            if (is_int($it['size'] ?? null) || is_float($it['size'] ?? null)) {
+                $entry['size'] = (int) $it['size'];
+            }
+            $out[] = $entry;
+        }
+        return $out;
+    }
+
+    /**
+     * 获取邮件列表并对每封邮件补拉详情。
+     * 1. GET /api/emails.php 拉取列表（仅含 description 摘要）
+     * 2. 对每封邮件 GET /api/email_content.php?id={id} 拉取详情（含 content 完整 HTML）
+     * 3. 详情失败时保留列表 description 作为回退
+     *
      * @return Email[]
      */
     public static function getEmails(string $email, ?string $token): array
@@ -105,17 +171,50 @@ final class Maildrop
             if (!is_array($row)) {
                 continue;
             }
+            $mailId = (string) ($row['id'] ?? '');
+            $desc = trim((string) ($row['description'] ?? ''));
             $ir = $row['isRead'] ?? null;
+
+            $from = trim((string) ($row['from_addr'] ?? ''));
+            $subject = trim((string) ($row['subject'] ?? ''));
+            $date = self::cxDateToIso((string) ($row['date'] ?? ''));
+            $html = '';
+            $attachments = [];
+
+            /* 拉取详情覆盖 html/from/subject/date/attachments */
+            if ($mailId !== '') {
+                $detail = self::fetchDetail($mailId);
+                if ($detail !== null) {
+                    $dContent = $detail['content'] ?? null;
+                    if (is_string($dContent) && trim($dContent) !== '') {
+                        $html = $dContent;
+                    }
+                    $dFrom = $detail['from_addr'] ?? null;
+                    if (is_string($dFrom) && trim($dFrom) !== '') {
+                        $from = trim($dFrom);
+                    }
+                    $dSubj = $detail['subject'] ?? null;
+                    if (is_string($dSubj) && trim($dSubj) !== '') {
+                        $subject = trim($dSubj);
+                    }
+                    $dDate = $detail['date'] ?? null;
+                    if (is_string($dDate) && trim($dDate) !== '') {
+                        $date = self::cxDateToIso($dDate);
+                    }
+                    $attachments = self::parseAttachments($detail['attachment'] ?? null);
+                }
+            }
+
             $out[] = new Email(
-                id: (string) ($row['id'] ?? ''),
-                fromAddr: trim((string) ($row['from_addr'] ?? '')),
+                id: $mailId,
+                fromAddr: $from,
                 to: $addr,
-                subject: trim((string) ($row['subject'] ?? '')),
-                text: trim((string) ($row['description'] ?? '')),
-                html: '',
-                date: self::cxDateToIso((string) ($row['date'] ?? '')),
+                subject: $subject,
+                text: $desc,
+                html: $html,
+                date: $date,
                 isRead: $ir === true || $ir === 1,
-                attachments: [],
+                attachments: $attachments,
             );
         }
         return $out;

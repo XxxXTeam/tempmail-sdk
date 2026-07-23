@@ -95,3 +95,6 @@ sdk/csharp/tests/bin/
 .fake
 sdk/kotlin/.gradle/
 sdk/kotlin/build/
+sdk/go/verify/verify_result.json
+sdk/go/verify/verify_report.md
+sdk/go/verify/REPORT.md

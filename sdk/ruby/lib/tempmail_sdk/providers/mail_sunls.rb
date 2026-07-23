@@ -47,7 +47,41 @@ module TempmailSdk
         EmailInfo.new(channel: CHANNEL, email: "#{local}@#{domain}")
       end
 
+      # 通过详情接口获取单封邮件完整正文
+      # GET /api/fetch/{id}
+      # 失败时返回 nil，调用方回退到列表数据
+      def fetch_detail(id)
+        mid = id.to_s.strip
+        return nil if mid.empty?
+
+        begin
+          resp = Http.get("#{BASE}/api/fetch/#{URI.encode_www_form_component(mid)}",
+                          headers: HEADERS, timeout: 15)
+          return nil if resp.status_code < 200 || resp.status_code >= 300
+
+          data = resp.json
+          data.is_a?(Hash) ? data : nil
+        rescue StandardError
+          nil
+        end
+      end
+
+      # 从列表条目提取邮件 ID（支持多字段）
+      def extract_id(row)
+        %w[id _id mail_id messageId message_id].each do |key|
+          v = row[key]
+          next if v.nil?
+
+          return v.to_s.strip if v.is_a?(String) && !v.strip.empty?
+          return v.to_i.to_s if v.is_a?(Numeric)
+        end
+        ""
+      end
+
       # 获取邮件列表
+      # 1. GET /api/fetch?to={email} 拉取列表元数据
+      # 2. 对每封邮件 GET /api/fetch/{id} 拉取详情（含完整 text/html）
+      # 3. 详情失败时保留列表字段作为回退
       # @param email [String]
       # @return [Array<Email>]
       def get_emails(email)
@@ -60,7 +94,14 @@ module TempmailSdk
         return [] unless data.is_a?(Array)
 
         data.select { |raw| raw.is_a?(Hash) }.map do |raw|
-          Normalize.normalize_email(raw, addr)
+          mail_id = extract_id(raw)
+          merged = raw.dup
+          # 无条件调用详情接口，用详情字段覆盖列表字段
+          unless mail_id.empty?
+            detail = fetch_detail(mail_id)
+            merged.merge!(detail) if detail
+          end
+          Normalize.normalize_email(merged, addr)
         end
       end
     end

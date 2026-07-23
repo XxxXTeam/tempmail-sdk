@@ -32,7 +32,7 @@ module TempmailSdk
       SUBJECT_RE = /<span\s+class\s*=\s*["']mail_konu["'][^>]*>([\s\S]*?)<\/span>/mi
       DATE_RE = /<span\s+class\s*=\s*["']mail_zaman["'][^>]*>([\s\S]*?)<\/span>/mi
       MAIL_LINK_RE = /href\s*=\s*["']([^"']*(?:mail|read|view)[^"']*)["']/i
-      BODY_RE = /<div\s+(?:id|class)\s*=\s*["'](?:mail_icerik|icerik|mail-content|message-body)["'][^>]*>([\s\S]*?)<\/div>/mi
+      BODY_OPEN_RE = /<div\s+(?:id|class)\s*=\s*["'](?:mail_icerik|icerik|mail-content|message-body)["'][^>]*>/mi
       TAG_RE = /<[^>]+>/
 
       module_function
@@ -112,8 +112,34 @@ module TempmailSdk
         resp = Http.get(detail_url, headers: hdrs, timeout: 15)
         return "" unless resp.ok?
 
-        m = resp.body.match(BODY_RE)
-        m ? m[1].strip : ""
+        extract_body_html(resp.body)
+      end
+
+      # 使用栈式深度匹配提取正文 div 的完整内部 HTML，
+      # 避免非贪婪正则在嵌套 div 时截断正文。
+      def extract_body_html(page)
+        m = page.match(BODY_OPEN_RE)
+        return "" unless m
+
+        start = m.end(0)
+        pos = start
+        depth = 1
+        while pos < page.length && depth > 0
+          next_open = page.index("<div", pos)
+          next_close = page.index("</div>", pos)
+          break unless next_close
+
+          if next_open && next_open < next_close
+            depth += 1
+            pos = next_open + 4
+          else
+            depth -= 1
+            return page[start...next_close].strip if depth.zero?
+
+            pos = next_close + 6
+          end
+        end
+        ""
       rescue StandardError
         ""
       end

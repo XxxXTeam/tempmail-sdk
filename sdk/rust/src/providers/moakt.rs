@@ -50,13 +50,45 @@ static SENDER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?is)<li\s+class="sender"[^>]*>[\s\S]*?<span[^>]*>([\s\S]*?)</span>\s*</li>"#)
         .expect("re")
 });
-static BODY_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?is)<div\s+class="email-body"\s*>([\s\S]*?)</div>"#).expect("re")
+static BODY_OPEN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?is)<div\s+class="email-body"\s*>"#).expect("re")
 });
 static FROM_ADDR_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>"#).expect("re")
 });
 static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"<[^>]+>"#).expect("re"));
+
+/// 使用栈式深度匹配提取 email-body div 的完整内部 HTML，
+/// 避免非贪婪正则在嵌套 div 时截断正文。
+fn extract_body_html(page: &str) -> String {
+    let Some(m) = BODY_OPEN_RE.find(page) else {
+        return String::new();
+    };
+    let start = m.end();
+    let bytes = page.as_bytes();
+    let mut pos = start;
+    let mut depth = 1usize;
+    while pos < bytes.len() && depth > 0 {
+        let rest = &page[pos..];
+        let next_open = rest.find("<div").map(|i| pos + i);
+        let next_close = rest.find("</div>").map(|i| pos + i);
+        match (next_open, next_close) {
+            (_, None) => break,
+            (Some(no), Some(nc)) if no < nc => {
+                depth += 1;
+                pos = no + 4;
+            }
+            (_, Some(nc)) => {
+                depth -= 1;
+                if depth == 0 {
+                    return page[start..nc].trim().to_string();
+                }
+                pos = nc + 6;
+            }
+        }
+    }
+    String::new()
+}
 
 fn request_parts(domain: Option<&str>) -> (String, String) {
     let s = domain.unwrap_or("").trim();
@@ -227,11 +259,7 @@ fn parse_detail_page(page: &str, id: &str, recipient: &str) -> Value {
         .and_then(|c| c.get(1))
         .map(|m| light_unescape(m.as_str().trim()))
         .unwrap_or_default();
-    let html_body = BODY_RE
-        .captures(page)
-        .and_then(|c| c.get(1))
-        .map(|m| m.as_str().trim().to_string())
-        .unwrap_or_default();
+    let html_body = extract_body_html(page);
 
     json!({
         "id": id,

@@ -51,7 +51,41 @@ public static class MailSunls
         return new EmailInfo("mail-sunls", $"{RandomLocal()}@{domain}");
     }
 
-    /// <summary>获取邮件列表</summary>
+    /// <summary>
+    /// 通过详情接口获取单封邮件完整正文（GET /api/fetch/{id}）。
+    /// </summary>
+    /// <param name="id">邮件 ID</param>
+    /// <returns>详情 JsonObject，失败返回 null</returns>
+    private static JsonObject? FetchDetail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        try
+        {
+            var resp = Http.Get($"{Base}/api/fetch/{WebUtility.UrlEncode(id)}", Headers());
+            if (resp.StatusCode < 200 || resp.StatusCode >= 300) return null;
+            return Json.Parse(resp.Body) as JsonObject;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>从列表条目提取邮件 ID（支持多字段）。</summary>
+    private static string ExtractId(JsonObject row)
+    {
+        foreach (var key in new[] { "id", "_id", "mail_id", "messageId", "message_id" })
+        {
+            if (row[key] is null) continue;
+            var s = Json.Str(row, key).Trim();
+            if (s.Length > 0) return s;
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// 获取邮件列表。
+    /// 1. GET /api/fetch?to={email} 拉取列表元数据
+    /// 2. 对每封邮件 GET /api/fetch/{id} 拉取详情（含完整 text/html）
+    /// 3. 详情失败时保留列表字段作为回退
+    /// </summary>
     public static List<Email> GetEmails(string email)
     {
         var addr = (email ?? "").Trim();
@@ -62,7 +96,24 @@ public static class MailSunls
         var result = new List<Email>();
         if (rows is null) return result;
         foreach (var raw in rows)
-            if (raw is JsonObject) result.Add(Normalize.NormalizeEmail(Json.ToDict(raw), addr));
+        {
+            if (raw is not JsonObject row) continue;
+            var id = ExtractId(row);
+            /* 无条件调用详情接口，用详情字段覆盖列表字段（确保正文完整） */
+            if (id.Length > 0)
+            {
+                var detail = FetchDetail(id);
+                if (detail is not null)
+                {
+                    foreach (var kv in detail)
+                    {
+                        if (kv.Value is null) continue;
+                        row[kv.Key] = kv.Value.DeepClone();
+                    }
+                }
+            }
+            result.Add(Normalize.NormalizeEmail(Json.ToDict(row), addr));
+        }
         return result;
     }
 }

@@ -30,10 +30,36 @@ public final class Mohmal {
 
     private static final Pattern DATA_EMAIL_RE = Pattern.compile("data-email=\"([^\"]+)\"");
     private static final Pattern MESSAGE_LINK_RE = Pattern.compile("/en/message/(\\d+)");
-    private static final Pattern MESSAGE_BODY_RE = Pattern.compile(
-            "(?is)<div[^>]*class=\"[^\"]*mail-content[^\"]*\"[^>]*>([\\s\\S]*?)</div>");
-    private static final Pattern MESSAGE_BODY_ALT_RE = Pattern.compile(
-            "(?is)<div[^>]*class=\"[^\"]*message-body[^\"]*\"[^>]*>([\\s\\S]*?)</div>");
+    private static final Pattern MESSAGE_BODY_OPEN_RE = Pattern.compile(
+            "(?is)<div[^>]*class=\"[^\"]*(?:mail-content|message-body)[^\"]*\"[^>]*>");
+
+    /**
+     * 使用栈式深度匹配提取 mail-content/message-body div 的完整内部 HTML，
+     * 避免非贪婪正则在嵌套 div 时截断正文。
+     */
+    private static String extractBodyHtml(String page) {
+        Matcher m = MESSAGE_BODY_OPEN_RE.matcher(page);
+        if (!m.find()) return "";
+        int start = m.end();
+        int pos = start;
+        int depth = 1;
+        while (pos < page.length() && depth > 0) {
+            int nextOpen = page.indexOf("<div", pos);
+            int nextClose = page.indexOf("</div>", pos);
+            if (nextClose == -1) break;
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++;
+                pos = nextOpen + 4;
+            } else {
+                depth--;
+                if (depth == 0) {
+                    return page.substring(start, nextClose).strip();
+                }
+                pos = nextClose + 6;
+            }
+        }
+        return "";
+    }
     private static final Pattern DETAIL_FROM_RE = Pattern.compile(
             "(?is)<span[^>]*class=\"[^\"]*from[^\"]*\"[^>]*>([\\s\\S]*?)</span>");
     private static final Pattern DETAIL_SUBJECT_RE = Pattern.compile(
@@ -210,10 +236,9 @@ public final class Mohmal {
         Matcher dm = DETAIL_DATE_RE.matcher(page);
         if (dm.find()) raw.put("date", stripTags(dm.group(1)));
 
-        // 提取正文
-        Matcher bm = MESSAGE_BODY_RE.matcher(page);
-        if (!bm.find()) bm = MESSAGE_BODY_ALT_RE.matcher(page);
-        if (bm.find()) raw.put("html", bm.group(1).trim());
+        // 提取正文（使用栈式深度匹配避免嵌套 div 截断）
+        String body = extractBodyHtml(page);
+        if (!body.isEmpty()) raw.put("html", body);
 
         return raw;
     }

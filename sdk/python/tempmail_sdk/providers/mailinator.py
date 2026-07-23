@@ -110,13 +110,18 @@ def _flatten_message(
             }
         )
 
+    # 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+    text_content = _text_from_payload(text_payload, "text") or _text_from_payload(text_payload, "text/plain")
+    # 优先读 "html" 键，回退兜底 "text/html"
+    html_content = _text_from_payload(html_payload, "html") or _text_from_payload(html_payload, "text/html")
+
     return {
         "id": summary.get("id") or summary.get("messageId") or "",
         "from": summary.get("from") or summary.get("origfrom") or "",
         "to": summary.get("to") or recipient_email,
         "subject": summary.get("subject") or "",
-        "text": _text_from_payload(text_payload, "text/plain"),
-        "html": _text_from_payload(html_payload, "text/html"),
+        "text": text_content,
+        "html": html_content,
         "date": _to_iso_time(summary.get("time") or summary.get("date")),
         "seen": False,
         "attachments": attachments,

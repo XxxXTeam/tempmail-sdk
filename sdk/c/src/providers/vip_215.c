@@ -728,11 +728,139 @@ static tm_email_t *vip215_dup_list(const tm_email_t *src, int n) {
   return out;
 }
 
+/**
+ * 通过 HTTP 接口获取邮件列表
+ * GET https://vip.215.im/v1/messages
+ * 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整
+ * 返回 tm_email_t 数组，*count 为条目数（0 表示空列表，-1 表示失败）
+ */
+static tm_email_t *vip215_fetch_via_http(const char *token, const char *email,
+                                         int *count) {
+  *count = -1;
+  if (!token || !token[0]) return NULL;
+
+  char auth_line[8704];
+  snprintf(auth_line, sizeof(auth_line), "Authorization: Bearer %s", token);
+  const char *hdrs[32];
+  int i = 0;
+  for (const char **p = vip215_post_headers; *p; p++) hdrs[i++] = *p;
+  hdrs[i++] = auth_line;
+  hdrs[i] = NULL;
+
+  tm_http_response_t *resp =
+      tm_http_request(TM_HTTP_GET, VIP215_SITE "/v1/messages", hdrs, NULL, 15);
+  if (!resp || resp->status < 200 || resp->status >= 300) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+  cJSON *root = cJSON_Parse(resp->body);
+  tm_http_response_free(resp);
+  if (!root) return NULL;
+
+  cJSON *ok = cJSON_GetObjectItemCaseSensitive(root, "success");
+  if (!cJSON_IsBool(ok) || !cJSON_IsTrue(ok)) {
+    cJSON_Delete(root);
+    return NULL;
+  }
+  cJSON *data = cJSON_GetObjectItemCaseSensitive(root, "data");
+  cJSON *messages = data ? cJSON_GetObjectItemCaseSensitive(data, "messages") : NULL;
+  if (!messages || !cJSON_IsArray(messages)) {
+    cJSON_Delete(root);
+    *count = 0;
+    return NULL;
+  }
+
+  int n = cJSON_GetArraySize(messages);
+  *count = n;
+  if (n == 0) {
+    cJSON_Delete(root);
+    return NULL;
+  }
+
+  tm_email_t *out = tm_emails_new(n);
+  if (!out) {
+    cJSON_Delete(root);
+    *count = -1;
+    return NULL;
+  }
+
+  for (int j = 0; j < n; j++) {
+    cJSON *row = cJSON_GetArrayItem(messages, j);
+    if (!row) continue;
+
+    /* 判断是否已有真实正文 */
+    int has_body = 0;
+    const char *body_keys[] = {"text", "body_text", "html", "body_html", "content", "body"};
+    for (int k = 0; k < 6; k++) {
+      cJSON *item = cJSON_GetObjectItemCaseSensitive(row, body_keys[k]);
+      if (cJSON_IsString(item) && item->valuestring && item->valuestring[0]) {
+        has_body = 1;
+        break;
+      }
+    }
+
+    /* 若无真实正文，通过 GET /v1/messages/{id} 补拉详情 */
+    if (!has_body) {
+      char id_buf[128] = {0};
+      cJSON *id_item = cJSON_GetObjectItemCaseSensitive(row, "id");
+      if (cJSON_IsString(id_item) && id_item->valuestring) {
+        strncpy(id_buf, id_item->valuestring, sizeof(id_buf) - 1);
+      }
+      if (id_buf[0]) {
+        char detail_url[800];
+        snprintf(detail_url, sizeof(detail_url), "%s/v1/messages/%s",
+                 VIP215_SITE, id_buf);
+        tm_http_response_t *dresp =
+            tm_http_request(TM_HTTP_GET, detail_url, hdrs, NULL, 15);
+        if (dresp && dresp->status >= 200 && dresp->status < 300) {
+          cJSON *droot = cJSON_Parse(dresp->body);
+          cJSON *dok = droot ? cJSON_GetObjectItemCaseSensitive(droot, "success") : NULL;
+          cJSON *ddata = droot ? cJSON_GetObjectItemCaseSensitive(droot, "data") : NULL;
+          if (cJSON_IsBool(dok) && cJSON_IsTrue(dok) && ddata && cJSON_IsObject(ddata)) {
+            cJSON *item = NULL;
+            cJSON_ArrayForEach(item, ddata) {
+              if (!item->string) continue;
+              cJSON *dup = cJSON_Duplicate(item, 1);
+              if (!dup) continue;
+              cJSON_DeleteItemFromObjectCaseSensitive(row, item->string);
+              cJSON_AddItemToObject(row, item->string, dup);
+            }
+          }
+          cJSON_Delete(droot);
+        }
+        tm_http_response_free(dresp);
+      }
+    }
+
+    /* 补齐 to 字段 */
+    if (!cJSON_GetObjectItemCaseSensitive(row, "to")) {
+      cJSON_AddStringToObject(row, "to", email ? email : "");
+    }
+    out[j] = tm_normalize_email(row, email);
+  }
+  cJSON_Delete(root);
+  return out;
+}
+
 tm_email_t *tm_provider_vip215_get_emails(const char *token, const char *email,
                                           int *count) {
   *count = -1;
   if (!token || !email)
     return NULL;
+
+  /* 优先通过 HTTP 拉取完整邮件（含真实正文） */
+  int http_count = -1;
+  tm_email_t *http_list = vip215_fetch_via_http(token, email, &http_count);
+  if (http_count >= 0) {
+    /* HTTP 成功（可能为空列表） */
+#ifdef TM_VIP215_USE_CURL_WS
+    /* 同时保持 WebSocket 订阅（供实时通知） */
+    vip215_entry_t *e = vip215_find_or_create(token, email);
+    if (e) vip215_start_reader(e);
+#endif
+    *count = http_count;
+    return http_list;
+  }
 
 #ifndef TM_VIP215_USE_CURL_WS
   TM_LOG_WARN("vip-215: 当前 libcurl 版本 < 7.86，无 "
@@ -740,6 +868,7 @@ tm_email_t *tm_provider_vip215_get_emails(const char *token, const char *email,
   *count = 0;
   return NULL;
 #else
+  /* HTTP 失败时回退到 WebSocket 缓存 */
   vip215_entry_t *e = vip215_find_or_create(token, email);
   if (!e)
     return NULL;

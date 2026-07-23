@@ -31,7 +31,21 @@ module TempmailSdk
       TempmailLolV2: "tempmail_lol_v2", Tempmailpro: "tempmailpro", Tempmailten: "tempmailten",
       TempMails: "tempp_mails", TenMinuteMailNet: "ten_minute_mail_net",
       Throwawaymail: "throwawaymail", TmailLink: "tmail_link",
-      Uncorreotemporal: "uncorreotemporal", Webmailtemp: "webmailtemp", XkxMe: "xkx_me"
+      Uncorreotemporal: "uncorreotemporal", Webmailtemp: "webmailtemp", XkxMe: "xkx_me",
+      Altmails: "altmails", Apihz: "apihz", Awamail: "awamail", BestTempMail: "best_temp_mail",
+      ChatgptOrgUk: "chatgpt_org_uk", Disposablemail: "disposablemail",
+      DisposablemailApp: "disposablemail_app", Email10min: "email10min",
+      Emailnator: "emailnator", EmailtempOrg: "emailtemp_org",
+      Expressinboxhub: "expressinboxhub", Fakemail: "fakemail",
+      LinshiyouxiangNet: "linshiyouxiang_net", MailTd: "mail_td",
+      TempmailCn: "tempmail_cn", Linshiyou: "linshiyou", Mailnesia: "mailnesia",
+      Dropmail: "dropmail", SmailPw: "smail_pw", Vip215: "vip_215",
+      Tempgbox: "tempgbox", Anonbox: "anonbox", Eyepaste: "eyepaste",
+      Lroid: "lroid", Haribu: "haribu", Mohmal: "mohmal", Mailgolem: "mailgolem",
+      MytempmailCc: "mytempmail_cc", MailtempCc: "mailtemp_cc", Minuteinbox: "minuteinbox",
+      Mailcatch: "mailcatch", MaildropCc: "maildrop_cc", TenminutemailNet: "tenminutemail_net",
+      Openinbox: "openinbox", MailcatAi: "mailcat_ai", DropmailMe: "dropmail_me",
+      TwentyfourmailChacuo: "twentyfourmail_chacuo"
     }.freeze
 
     PROVIDER_AUTOLOADS.each do |mod_name, file|
@@ -1069,6 +1083,154 @@ module TempmailSdk
         "xkx-me" => {
           generate: ->(_o) { p::XkxMe.generate_email },
           get_emails: ->(e, t) { p::XkxMe.get_emails(require_token(t, "xkx-me"), e) }
+        },
+        "tempmail-cn" => {
+          generate: ->(o) { p::TempmailCn.generate_email(o.domain) },
+          get_emails: ->(e, _t) { p::TempmailCn.get_emails(e) }
+        },
+        "linshiyou" => {
+          generate: ->(_o) { p::Linshiyou.generate_email },
+          get_emails: ->(e, t) { p::Linshiyou.get_emails(require_token(t, "linshiyou"), e) }
+        },
+        "mailnesia" => {
+          generate: ->(_o) { p::Mailnesia.generate_email },
+          get_emails: ->(e, _t) { p::Mailnesia.get_emails(e) }
+        },
+        "dropmail" => {
+          generate: ->(_o) { p::Dropmail.generate_email },
+          get_emails: ->(e, t) { p::Dropmail.get_emails(require_token(t, "dropmail"), e) }
+        },
+        "smail-pw" => {
+          generate: ->(_o) { p::SmailPw.generate_email },
+          get_emails: ->(e, t) { p::SmailPw.get_emails(require_token(t, "smail-pw"), e) }
+        },
+        "vip-215" => {
+          generate: ->(_o) { p::Vip215.generate_email },
+          get_emails: ->(e, t) { p::Vip215.get_emails(require_token(t, "vip-215"), e) }
+        },
+        "tempgbox" => {
+          generate: ->(_o) { p::Tempgbox.generate_email },
+          get_emails: ->(e, t) { p::Tempgbox.get_emails(require_token(t, "tempgbox"), e) }
+        },
+        "emailnator" => {
+          generate: ->(_o) { p::Emailnator.generate_email },
+          get_emails: ->(e, t) { p::Emailnator.get_emails(e, require_token(t, "emailnator")) }
+        },
+        "anonbox" => {
+          generate: ->(_o) { p::Anonbox.generate_email },
+          get_emails: ->(e, t) { p::Anonbox.get_emails(require_token(t, "anonbox"), e) }
+        },
+        "eyepaste" => {
+          generate: ->(_o) { p::Eyepaste.generate_email },
+          get_emails: ->(e, _t) { p::Eyepaste.get_emails(e) }
+        },
+        "lroid" => {
+          generate: ->(_o) { p::Lroid.generate_email },
+          get_emails: ->(e, t) { p::Lroid.get_emails(require_token(t, "lroid"), e) }
+        },
+        "haribu" => {
+          generate: ->(_o) { p::Haribu.generate_email },
+          get_emails: ->(e, t) { p::Haribu.get_emails(require_token(t, "haribu"), e) }
+        },
+        "mohmal" => {
+          generate: ->(_o) { p::Mohmal.generate_email },
+          get_emails: ->(e, t) { p::Mohmal.get_emails(e, require_token(t, "mohmal")) }
+        },
+        "mailgolem" => {
+          generate: ->(_o) { p::Mailgolem.generate_email },
+          get_emails: ->(e, t) { p::Mailgolem.get_emails(e, require_token(t, "mailgolem")) }
+        },
+        "best-temp-mail" => {
+          generate: ->(_o) { p::BestTempMail.generate_email },
+          get_emails: ->(e, t) { p::BestTempMail.get_emails(e, require_token(t, "best-temp-mail")) }
+        },
+        "disposablemail-app" => {
+          generate: ->(_o) { p::DisposablemailApp.generate_email },
+          get_emails: ->(e, t) { p::DisposablemailApp.get_emails(e, require_token(t, "disposablemail-app")) }
+        },
+        "mailtemp-cc" => {
+          generate: ->(_o) { p::MailtempCc.generate_email },
+          get_emails: ->(e, t) { p::MailtempCc.get_emails(e, require_token(t, "mailtemp-cc")) }
+        },
+        "minuteinbox" => {
+          generate: ->(_o) { p::Minuteinbox.generate_email },
+          get_emails: ->(e, t) { p::Minuteinbox.get_emails(require_token(t, "minuteinbox"), e) }
+        },
+        "mailcatch" => {
+          generate: ->(_o) { p::Mailcatch.generate_email },
+          get_emails: ->(e, t) { p::Mailcatch.get_emails(e, require_token(t, "mailcatch")) }
+        },
+        "altmails" => {
+          generate: ->(_o) { p::Altmails.generate_email },
+          get_emails: ->(e, t) { p::Altmails.get_emails(e, require_token(t, "altmails")) }
+        },
+        "maildrop-cc" => {
+          generate: ->(_o) { p::MaildropCc.generate_email },
+          get_emails: ->(e, t) { p::MaildropCc.get_emails(e, t || "") }
+        },
+        "10minutemail-net" => {
+          generate: ->(_o) { p::TenminutemailNet.generate_email },
+          get_emails: ->(e, t) { p::TenminutemailNet.get_emails(e, require_token(t, "10minutemail-net")) }
+        },
+        "linshiyouxiang-net" => {
+          generate: ->(_o) { p::LinshiyouxiangNet.generate_email },
+          get_emails: ->(e, t) { p::LinshiyouxiangNet.get_emails(e, require_token(t, "linshiyouxiang-net")) }
+        },
+        "disposablemail-com" => {
+          generate: ->(_o) { p::Disposablemail.generate_email },
+          get_emails: ->(e, t) { p::Disposablemail.get_emails(e, require_token(t, "disposablemail-com")) }
+        },
+        "emailtemp-org" => {
+          generate: ->(_o) { p::EmailtempOrg.generate_email },
+          get_emails: ->(e, t) { p::EmailtempOrg.get_emails(e, require_token(t, "emailtemp-org")) }
+        },
+        "mytempmail-cc" => {
+          generate: ->(_o) { p::MytempmailCc.generate_email },
+          get_emails: ->(e, t) { p::MytempmailCc.get_emails(require_token(t, "mytempmail-cc"), e) }
+        },
+        "mail-td" => {
+          generate: ->(_o) { p::MailTd.generate_email },
+          get_emails: ->(e, t) { p::MailTd.get_emails(require_token(t, "mail-td"), e) }
+        },
+        "24mail-chacuo" => {
+          generate: ->(_o) { p::TwentyfourmailChacuo.generate_email },
+          get_emails: ->(e, _t) { p::TwentyfourmailChacuo.get_emails(e) }
+        },
+        "apihz" => {
+          generate: ->(_o) { p::Apihz.generate_email },
+          get_emails: ->(_e, t) { p::Apihz.get_emails(require_token(t, "apihz")) }
+        },
+        "mailcat-ai" => {
+          generate: ->(_o) { p::MailcatAi.generate_email },
+          get_emails: ->(e, t) { p::MailcatAi.get_emails(require_token(t, "mailcat-ai"), e) }
+        },
+        "dropmail-me" => {
+          generate: ->(_o) { p::DropmailMe.generate_email },
+          get_emails: ->(e, t) { p::DropmailMe.get_emails(require_token(t, "dropmail-me"), e) }
+        },
+        "openinbox" => {
+          generate: ->(_o) { p::Openinbox.generate_email },
+          get_emails: ->(e, t) { p::Openinbox.get_emails(require_token(t, "openinbox"), e) }
+        },
+        "chatgpt-org-uk" => {
+          generate: ->(_o) { p::ChatgptOrgUk.generate_email },
+          get_emails: ->(e, t) { p::ChatgptOrgUk.get_emails(e, require_token(t, "chatgpt-org-uk")) }
+        },
+        "expressinboxhub" => {
+          generate: ->(_o) { p::Expressinboxhub.generate_email },
+          get_emails: ->(e, t) { p::Expressinboxhub.get_emails(e, require_token(t, "expressinboxhub")) }
+        },
+        "fakemail" => {
+          generate: ->(_o) { p::Fakemail.generate_email },
+          get_emails: ->(e, t) { p::Fakemail.get_emails(require_token(t, "fakemail"), e) }
+        },
+        "awamail" => {
+          generate: ->(_o) { p::Awamail.generate_email },
+          get_emails: ->(e, t) { p::Awamail.get_emails(require_token(t, "awamail"), e) }
+        },
+        "email10min" => {
+          generate: ->(_o) { p::Email10min.generate_email },
+          get_emails: ->(e, t) { p::Email10min.get_emails(e, require_token(t, "email10min")) }
         },
       }
     end

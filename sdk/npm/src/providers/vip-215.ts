@@ -346,15 +346,130 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 /**
- * 通过 WebSocket 累积 `message.new` 推送；无 MIME 正文时按 synthetic-v1 规范填充 text/html
+ * 通过 HTTP 接口获取邮件列表
+ * GET https://vip.215.im/v1/messages
+ * 相比 WebSocket 推送的元数据 + 合成卡片，HTTP 接口能拿到完整正文
+ */
+async function fetchMessagesViaHttp(
+  jwt: string,
+): Promise<Array<Record<string, any>>> {
+  const res = await fetchWithTimeout(`${BASE}/v1/messages`, {
+    method: "GET",
+    headers: {
+      ...API_HEADERS,
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`vip-215 messages: HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as {
+    success?: boolean;
+    data?: { messages?: Array<Record<string, any>> };
+  };
+  if (!body?.success) {
+    throw new Error("vip-215 messages: success=false");
+  }
+  return Array.isArray(body.data?.messages) ? body.data.messages : [];
+}
+
+/**
+ * 通过 HTTP 详情接口获取单封邮件完整内容
+ * GET https://vip.215.im/v1/messages/{id}
+ * 用于列表条目缺正文时补拉，失败返回 null
+ */
+async function fetchMessageDetail(
+  jwt: string,
+  id: string,
+): Promise<Record<string, any> | null> {
+  const trimmedId = String(id || "").trim();
+  if (!trimmedId) return null;
+  try {
+    const res = await fetchWithTimeout(
+      `${BASE}/v1/messages/${encodeURIComponent(trimmedId)}`,
+      {
+        method: "GET",
+        headers: {
+          ...API_HEADERS,
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
+    );
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      success?: boolean;
+      data?: Record<string, any>;
+    };
+    if (!body?.success || !body.data) return null;
+    return body.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 判断行是否包含真实正文（用于决定是否需要补拉详情）
+ */
+function hasRealBody(row: Record<string, any>): boolean {
+  for (const key of ["text", "body_text", "html", "body_html", "content", "body"]) {
+    const v = row[key];
+    if (typeof v === "string" && v.trim()) return true;
+  }
+  return false;
+}
+
+/**
+ * 提取邮件 ID
+ */
+function extractMessageId(row: Record<string, any>): string {
+  for (const key of ["id", "messageId", "message_id"]) {
+    const v = row[key];
+    if (typeof v === "string" && v.trim()) return v.trim();
+    if (typeof v === "number") return String(v);
+  }
+  return "";
+}
+
+/**
+ * 获取邮件列表（HTTP 优先，WebSocket 回退）
+ * 1. GET /v1/messages 拉取完整邮件（含真实正文）
+ * 2. 缺正文的条目调用 GET /v1/messages/{id} 补详情
+ * 3. HTTP 失败时回退到 WebSocket 已缓存的合成卡片
  */
 export async function getEmails(
   token: string,
   email: string,
 ): Promise<Email[]> {
-  await ensureWs(token, email);
-  const st = getState(token);
-  const list = Array.from(st.emails.values());
-  list.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-  return list;
+  /* 确保 WebSocket 持续订阅（供实时推送） */
+  ensureWs(token, email).catch(() => {
+    /* WebSocket 失败不阻断 HTTP 路径 */
+  });
+
+  try {
+    const messages = await fetchMessagesViaHttp(token);
+    const out: Email[] = [];
+    for (const row of messages) {
+      const id = extractMessageId(row);
+      /* 若列表条目无真实正文，补拉详情 */
+      if (!hasRealBody(row) && id) {
+        const detail = await fetchMessageDetail(token, id);
+        if (detail) {
+          for (const [k, v] of Object.entries(detail)) {
+            if (v !== null && v !== undefined) {
+              row[k] = v;
+            }
+          }
+        }
+      }
+      if (!row.to) row.to = email;
+      out.push(normalizeEmail(row, email));
+    }
+    return out;
+  } catch {
+    /* HTTP 失败时回退到 WebSocket 缓存（可能含合成卡片） */
+    const st = getState(token);
+    const list = Array.from(st.emails.values());
+    list.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    return list;
+  }
 }

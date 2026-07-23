@@ -35,14 +35,35 @@ _INBOX_ROW_RE = re.compile(
 _MESSAGE_LINK_RE = re.compile(r"/en/message/(\d+)")
 
 # 提取邮件正文区域
-_MESSAGE_BODY_RE = re.compile(
-    r'(?is)<div[^>]*class="[^"]*mail-content[^"]*"[^>]*>([\s\S]*?)</div>'
+_MESSAGE_BODY_OPEN_RE = re.compile(
+    r'(?is)<div[^>]*class="[^"]*(?:mail-content|message-body)[^"]*"[^>]*>'
 )
 
-# 备选正文提取（如果 mail-content 找不到，尝试 message-body）
-_MESSAGE_BODY_ALT_RE = re.compile(
-    r'(?is)<div[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)</div>'
-)
+
+def _extract_body_html(page: str) -> str:
+    """使用栈式深度匹配提取 mail-content/message-body div 的完整内部 HTML，
+    避免非贪婪正则在嵌套 div 时截断正文。
+    """
+    m = _MESSAGE_BODY_OPEN_RE.search(page)
+    if not m:
+        return ""
+    start = m.end()
+    pos = start
+    depth = 1
+    while pos < len(page) and depth > 0:
+        next_open = page.find("<div", pos)
+        next_close = page.find("</div>", pos)
+        if next_close == -1:
+            break
+        if next_open != -1 and next_open < next_close:
+            depth += 1
+            pos = next_open + 4
+        else:
+            depth -= 1
+            if depth == 0:
+                return page[start:next_close].strip()
+            pos = next_close + 6
+    return ""
 
 # 提取邮件详情页中的发件人
 _DETAIL_FROM_RE = re.compile(
@@ -277,13 +298,8 @@ def _parse_message_detail(page: str, mid: str, recipient: str) -> dict:
     if dm:
         date = _strip_tags(dm.group(1))
 
-    # 提取正文 HTML
-    body_html = ""
-    bm = _MESSAGE_BODY_RE.search(page)
-    if not bm:
-        bm = _MESSAGE_BODY_ALT_RE.search(page)
-    if bm:
-        body_html = bm.group(1).strip()
+    # 提取正文 HTML（使用栈式深度匹配避免嵌套 div 截断）
+    body_html = _extract_body_html(page)
 
     return {
         "id": mid,

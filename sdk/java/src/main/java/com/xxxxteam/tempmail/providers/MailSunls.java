@@ -2,6 +2,7 @@ package com.xxxxteam.tempmail.providers;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.xxxxteam.tempmail.Email;
 import com.xxxxteam.tempmail.EmailInfo;
 import com.xxxxteam.tempmail.HttpResult;
@@ -60,7 +61,42 @@ public final class MailSunls {
     }
 
     /**
+     * 通过详情接口获取单封邮件完整正文。
+     * GET /api/fetch/{id}
+     *
+     * @param id 邮件 ID
+     * @return 详情 JsonObject（含 text/html），失败返回 null
+     */
+    private static JsonObject fetchDetail(String id) {
+        if (id == null || id.isBlank()) return null;
+        try {
+            HttpResult resp = HttpClient.get(
+                    BASE + "/api/fetch/" + ProviderUtil.urlEncode(id), HEADERS);
+            if (resp.getStatusCode() < 200 || resp.getStatusCode() >= 300) return null;
+            return Json.parseObject(resp.getBody());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从列表条目提取邮件 ID。
+     */
+    private static String extractId(JsonObject row) {
+        for (String key : new String[]{"id", "_id", "mail_id", "messageId", "message_id"}) {
+            if (row.has(key) && !row.get(key).isJsonNull()) {
+                String s = Json.str(row, key);
+                if (!s.isEmpty()) return s;
+            }
+        }
+        return "";
+    }
+
+    /**
      * 获取邮件列表。
+     * 1. GET /api/fetch?to={email} 拉取列表元数据
+     * 2. 对每封邮件 GET /api/fetch/{id} 拉取详情（含完整 text/html）
+     * 3. 详情失败时保留列表字段作为回退
      *
      * @param email 邮箱地址
      * @return 邮件列表
@@ -82,7 +118,20 @@ public final class MailSunls {
             if (!item.isJsonObject()) {
                 continue;
             }
-            result.add(Normalizer.normalizeEmail(Json.toDict(item), addr));
+            JsonObject row = item.getAsJsonObject();
+            String id = extractId(row);
+            /* 无条件调用详情接口，用详情字段覆盖列表字段（确保正文完整） */
+            if (!id.isEmpty()) {
+                JsonObject detail = fetchDetail(id);
+                if (detail != null) {
+                    for (Map.Entry<String, JsonElement> entry : detail.entrySet()) {
+                        if (entry.getValue() != null && !entry.getValue().isJsonNull()) {
+                            row.add(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            }
+            result.add(Normalizer.normalizeEmail(Json.toDict(row), addr));
         }
         return result;
     }

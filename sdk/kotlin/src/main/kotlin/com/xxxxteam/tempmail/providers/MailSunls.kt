@@ -31,14 +31,59 @@ object MailSunls : Provider {
         return EmailInfo(email = "$local@$domain", channel = "mail-sunls")
     }
 
-    /** 获取邮件列表。 */
+    /**
+     * 通过详情接口获取单封邮件完整正文。
+     * GET /api/fetch/{id}
+     *
+     * @param id 邮件 ID
+     * @return 详情 JsonObject（含 text/html），失败返回 null
+     */
+    private suspend fun fetchDetail(id: String): JsonObject? {
+        if (id.isBlank()) return null
+        return try {
+            val resp = ProviderUtil.httpGet(
+                "$BASE/api/fetch/${ProviderUtil.urlEncode(id)}", HEADERS)
+            if (resp.statusCode < 200 || resp.statusCode >= 300) null
+            else Http.json.parseToJsonElement(resp.body) as? JsonObject
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** 从列表条目提取邮件 ID（支持多字段）。 */
+    private fun extractId(row: JsonObject): String {
+        for (key in arrayOf("id", "_id", "mail_id", "messageId", "message_id")) {
+            (row[key] as? JsonPrimitive)?.contentOrNull?.trim()?.let {
+                if (it.isNotEmpty()) return it
+            }
+        }
+        return ""
+    }
+
+    /**
+     * 获取邮件列表。
+     * 1. GET /api/fetch?to={email} 拉取列表元数据
+     * 2. 对每封邮件 GET /api/fetch/{id} 拉取详情（含完整 text/html）
+     * 3. 详情失败时保留列表字段作为回退
+     */
     override suspend fun getEmails(info: EmailInfo): List<Email> {
         val addr = info.email.trim()
         if (addr.isBlank()) throw RuntimeException("mail-sunls: 邮箱地址为空")
         val resp = ProviderUtil.httpGet("$BASE/api/fetch?to=${ProviderUtil.urlEncode(addr)}", HEADERS)
         resp.ensureSuccess()
         val arr = Http.json.parseToJsonElement(resp.body) as? JsonArray ?: return emptyList()
-        return arr.mapNotNull { it as? JsonObject }.map { Normalize.fromJson(it, addr) }
+
+        val out = mutableListOf<Email>()
+        for (row in arr.mapNotNull { it as? JsonObject }) {
+            val id = extractId(row)
+            /* 合并列表 + 详情，详情字段优先覆盖 */
+            val merged = row.toMutableMap()
+            if (id.isNotEmpty()) {
+                fetchDetail(id)?.forEach { (k, v) -> merged[k] = v }
+            }
+            out.add(Normalize.fromJson(JsonObject(merged), addr))
+        }
+        return out
     }
 
     /** 拉取可用域名列表。 */

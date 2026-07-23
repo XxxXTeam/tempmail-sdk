@@ -139,14 +139,21 @@ public static class Mailinator
         var to = FirstStr(summary, "to");
         if (string.IsNullOrEmpty(to)) to = recipientEmail;
 
+        // 优先读 "text" 键（/text 端点实际返回键），回退兜底 "text/plain"（防御性编程）
+        var textContent = TextFromPayload(textPayload, "text");
+        if (string.IsNullOrEmpty(textContent)) textContent = TextFromPayload(textPayload, "text/plain");
+        // 优先读 "html" 键，回退兜底 "text/html"
+        var htmlContent = TextFromPayload(htmlPayload, "html");
+        if (string.IsNullOrEmpty(htmlContent)) htmlContent = TextFromPayload(htmlPayload, "text/html");
+
         return new Dictionary<string, object?>
         {
             ["id"] = FirstStr(summary, "id", "messageId"),
             ["from"] = FirstStr(summary, "from", "origfrom"),
             ["to"] = to,
             ["subject"] = FirstStr(summary, "subject"),
-            ["text"] = TextFromPayload(textPayload, "text/plain"),
-            ["html"] = TextFromPayload(htmlPayload, "text/html"),
+            ["text"] = textContent,
+            ["html"] = htmlContent,
             ["date"] = ToIsoTime(summary["time"] ?? summary["date"]),
             ["seen"] = false,
             ["attachments"] = attachments,

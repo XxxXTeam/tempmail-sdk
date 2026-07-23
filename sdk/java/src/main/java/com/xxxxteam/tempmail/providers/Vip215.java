@@ -94,7 +94,91 @@ public final class Vip215 {
     }
 
     /**
-     * WebSocket 阻塞式收信：连接后监听 message.new 事件。
+     * 通过 HTTP 接口获取邮件列表。
+     * GET https://vip.215.im/v1/messages
+     * 返回完整邮件（含真实正文），相比 WebSocket 推送的合成卡片更完整。
+     *
+     * @param jwt JWT 令牌
+     * @return 邮件列表；HTTP 失败时抛异常
+     */
+    private static List<Map<String, Object>> fetchMessagesViaHttp(String jwt) {
+        Map<String, String> headers = apiHeaders();
+        headers.put("Authorization", "Bearer " + jwt);
+        HttpResult resp = HttpClient.get(BASE + "/v1/messages", headers);
+        if (resp.getStatusCode() < 200 || resp.getStatusCode() >= 300) {
+            throw new RuntimeException(CHANNEL + ": /v1/messages HTTP " + resp.getStatusCode());
+        }
+        JsonObject body = Json.parseObject(resp.getBody());
+        if (body == null || !body.has("success") || !body.get("success").getAsBoolean()) {
+            throw new RuntimeException(CHANNEL + ": /v1/messages success=false");
+        }
+        JsonElement dataEl = body.get("data");
+        if (dataEl == null || !dataEl.isJsonObject()) return new ArrayList<>();
+        JsonElement msgs = dataEl.getAsJsonObject().get("messages");
+        List<Map<String, Object>> out = new ArrayList<>();
+        if (msgs == null || !msgs.isJsonArray()) return out;
+        for (JsonElement item : msgs.getAsJsonArray()) {
+            if (item.isJsonObject()) {
+                out.add(Json.toDict(item));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * 通过 HTTP 详情接口获取单封邮件完整内容。
+     * GET https://vip.215.im/v1/messages/{id}
+     *
+     * @param jwt JWT 令牌
+     * @param id  邮件 ID
+     * @return 详情 Map（含 text/html），失败返回 null
+     */
+    private static Map<String, Object> fetchMessageDetail(String jwt, String id) {
+        if (id == null || id.isBlank()) return null;
+        try {
+            Map<String, String> headers = apiHeaders();
+            headers.put("Authorization", "Bearer " + jwt);
+            HttpResult resp = HttpClient.get(
+                    BASE + "/v1/messages/" + urlEncode(id), headers);
+            if (resp.getStatusCode() < 200 || resp.getStatusCode() >= 300) return null;
+            JsonObject body = Json.parseObject(resp.getBody());
+            if (body == null || !body.has("success") || !body.get("success").getAsBoolean()) return null;
+            JsonElement d = body.get("data");
+            if (d == null || !d.isJsonObject()) return null;
+            return Json.toDict(d);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 判断行是否包含真实正文（用于决定是否补拉详情）。
+     */
+    private static boolean hasRealBody(Map<String, Object> row) {
+        for (String key : new String[]{"text", "body_text", "html", "body_html", "content", "body"}) {
+            Object v = row.get(key);
+            if (v instanceof String s && !s.isBlank()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * 提取邮件 ID。
+     */
+    private static String extractMessageId(Map<String, Object> row) {
+        for (String key : new String[]{"id", "messageId", "message_id"}) {
+            Object v = row.get(key);
+            if (v instanceof String s && !s.isBlank()) return s.trim();
+            if (v instanceof Number n) return String.valueOf(n.longValue());
+        }
+        return "";
+    }
+
+    /**
+     * 获取邮件列表（HTTP 优先，WebSocket 回退）。
+     * 1. HTTP GET /v1/messages 拉取完整邮件（含真实正文）
+     * 2. 缺正文的条目通过 GET /v1/messages/{id} 补拉详情
+     * 3. HTTP 失败时回退到原 WebSocket 阻塞收信路径（合成卡片）
      *
      * @param email 邮箱地址
      * @param token JWT 令牌
@@ -105,6 +189,39 @@ public final class Vip215 {
             throw new IllegalArgumentException(CHANNEL + ": token 不能为空");
         }
 
+        /* 优先通过 HTTP 拉取完整邮件 */
+        try {
+            List<Map<String, Object>> messages = fetchMessagesViaHttp(token);
+            List<Email> out = new ArrayList<>();
+            for (Map<String, Object> row : messages) {
+                String id = extractMessageId(row);
+                /* 若无真实正文，补拉详情 */
+                if (!hasRealBody(row) && !id.isEmpty()) {
+                    Map<String, Object> detail = fetchMessageDetail(token, id);
+                    if (detail != null) {
+                        for (Map.Entry<String, Object> e : detail.entrySet()) {
+                            if (e.getValue() != null) row.put(e.getKey(), e.getValue());
+                        }
+                    }
+                }
+                if (!row.containsKey("to")) row.put("to", email);
+                out.add(Normalizer.normalizeEmail(row, email));
+            }
+            return out;
+        } catch (RuntimeException httpErr) {
+            /* HTTP 失败时回退到 WebSocket 阻塞收信（合成卡片） */
+            return getEmailsViaWebSocket(email, token);
+        }
+    }
+
+    /**
+     * WebSocket 阻塞式收信：连接后监听 message.new 事件（回退路径）。
+     *
+     * @param email 邮箱地址
+     * @param token JWT 令牌
+     * @return 邮件列表
+     */
+    private static List<Email> getEmailsViaWebSocket(String email, String token) {
         String ticket = fetchWsTicket(token);
         String wsUrl = "wss://vip.215.im/v1/ws?token=" + urlEncode(ticket);
 

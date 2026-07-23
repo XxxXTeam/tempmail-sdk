@@ -64,9 +64,35 @@ _MAIL_LINK_RE = re.compile(
     r'(?i)href\s*=\s*["\']([^"\']*(?:mail|read|view)[^"\']*)["\']'
 )
 # 匹配邮件正文容器
-_BODY_RE = re.compile(
-    r'(?is)<div\s+(?:id|class)\s*=\s*["\'](?:mail_icerik|icerik|mail-content|message-body)["\'][^>]*>([\s\S]*?)</div>'
+_BODY_OPEN_RE = re.compile(
+    r'(?is)<div\s+(?:id|class)\s*=\s*["\'](?:mail_icerik|icerik|mail-content|message-body)["\'][^>]*>'
 )
+
+
+def _extract_body_html(page: str) -> str:
+    """使用栈式深度匹配提取正文 div 的完整内部 HTML，
+    避免非贪婪正则在嵌套 div 时截断正文。
+    """
+    m = _BODY_OPEN_RE.search(page)
+    if not m:
+        return ""
+    start = m.end()
+    pos = start
+    depth = 1
+    while pos < len(page) and depth > 0:
+        next_open = page.find("<div", pos)
+        next_close = page.find("</div>", pos)
+        if next_close == -1:
+            break
+        if next_open != -1 and next_open < next_close:
+            depth += 1
+            pos = next_open + 4
+        else:
+            depth -= 1
+            if depth == 0:
+                return page[start:next_close].strip()
+            pos = next_close + 6
+    return ""
 
 
 def _strip_tags(html_str: str) -> str:
@@ -176,9 +202,9 @@ def _fetch_detail(detail_url: str, cookie_hdr: str) -> str:
         if resp.status_code < 200 or resp.status_code >= 300:
             return ""
         html_str = resp.text or ""
-        m = _BODY_RE.search(html_str)
-        if m:
-            return m.group(1).strip()
+        body = _extract_body_html(html_str)
+        if body:
+            return body
     except Exception:
         pass
     return ""
