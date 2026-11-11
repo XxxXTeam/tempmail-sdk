@@ -4,7 +4,7 @@
  */
 
 use base64::Engine;
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use wreq::header::HeaderMap;
@@ -25,10 +25,10 @@ struct ZhujumpToken {
 
 fn random_value(prefix: &str, size: usize) -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut out = String::from(prefix);
     for _ in 0..size {
-        out.push(CHARS[rng.gen_range(0..CHARS.len())] as char);
+        out.push(CHARS[rng.random_range(0..CHARS.len())] as char);
     }
     out
 }

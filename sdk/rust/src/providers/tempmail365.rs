@@ -11,7 +11,7 @@ use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use chrono::Utc;
-use rand::Rng;
+use rand::RngExt;
 use regex::Regex;
 use serde_json::{json, Value};
 
@@ -83,16 +83,16 @@ fn pick_domain(domains: &[String], preferred: Option<&str>) -> Result<String, St
             return Err(format!("tempmail365: 域名不可用: {pl}"));
         }
     }
-    let mut rng = rand::thread_rng();
-    Ok(domains[rng.gen_range(0..domains.len())].clone())
+    let mut rng = rand::rng();
+    Ok(domains[rng.random_range(0..domains.len())].clone())
 }
 
 /// 生成随机用户名（8位字母数字）
 fn random_username() -> String {
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..8)
-        .map(|_| CHARSET[rng.gen_range(0..CHARSET.len())] as char)
+        .map(|_| CHARSET[rng.random_range(0..CHARSET.len())] as char)
         .collect()
 }
 

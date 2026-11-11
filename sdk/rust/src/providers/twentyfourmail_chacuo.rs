@@ -3,7 +3,7 @@
  * POST 注册/刷新同一接口，HTTP only。
  */
 
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 use crate::config::{block_on, http_client};
@@ -15,9 +15,9 @@ const DOMAINS: &[&str] = &["chacuo.net", "027168.com"];
 
 fn random_local(length: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..length)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -41,7 +41,7 @@ fn apply_headers(mut req: wreq::RequestBuilder) -> wreq::RequestBuilder {
 pub fn generate_email() -> Result<EmailInfo, String> {
     let client = http_client();
     let name = random_local(10);
-    let domain = DOMAINS[rand::thread_rng().gen_range(0..DOMAINS.len())];
+    let domain = DOMAINS[rand::rng().random_range(0..DOMAINS.len())];
 
     let body = format!("data={name}%40{domain}&type=refresh&arg=");
 

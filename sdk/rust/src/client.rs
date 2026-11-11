@@ -116,7 +116,7 @@ pub fn generate_email(options: &GenerateEmailOptions) -> Option<EmailInfo> {
 fn build_channel_order(preferred: Option<&Channel>) -> Vec<Channel> {
     use rand::seq::SliceRandom;
     let mut shuffled: Vec<Channel> = all_channels().to_vec();
-    shuffled.shuffle(&mut rand::thread_rng());
+    shuffled.shuffle(&mut rand::rng());
     match preferred {
         Some(pref) => {
             let rest: Vec<Channel> = shuffled.into_iter().filter(|ch| ch != pref).collect();

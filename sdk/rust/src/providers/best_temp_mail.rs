@@ -18,7 +18,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const BASE_URL: &str = "https://best-temp-mail.com";
@@ -26,7 +26,7 @@ const BASE_URL: &str = "https://best-temp-mail.com";
 /// 生成 UUID v4 格式字符串
 /// 格式: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 fn generate_uuid() -> String {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut bytes = [0u8; 16];
     rng.fill(&mut bytes);
     // 设置版本号为 4

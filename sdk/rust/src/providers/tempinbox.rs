@@ -6,7 +6,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const BASE: &str = "https://endpoint.tempinbox.xyz";
@@ -45,8 +45,8 @@ fn pick_domain(preferred: Option<&str>) -> Result<String, String> {
             return Err(format!("tempinbox: 域名不可用: {pl}"));
         }
     }
-    let mut rng = rand::thread_rng();
-    Ok(DOMAINS[rng.gen_range(0..DOMAINS.len())].to_string())
+    let mut rng = rand::rng();
+    Ok(DOMAINS[rng.random_range(0..DOMAINS.len())].to_string())
 }
 
 /// 创建随机临时邮箱
@@ -124,11 +124,11 @@ pub fn get_emails(email: &str) -> Result<Vec<Email>, String> {
 
 /// 生成随机用户名
 fn generate_random_user() -> String {
-    let mut rng = rand::thread_rng();
-    let len = rng.gen_range(8..13);
+    let mut rng = rand::rng();
+    let len = rng.random_range(8..13);
     (0..len)
         .map(|_| {
-            let idx = rng.gen_range(0..36);
+            let idx = rng.random_range(0..36);
             if idx < 26 {
                 (b'a' + idx) as char
             } else {

@@ -10,7 +10,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const BASE_URL: &str = "https://shitpost.email";
@@ -20,9 +20,9 @@ const DOMAINS: [&str; 2] = ["shitpost.email", "letsfuckingpiss.party"];
 /// 生成 "sdk"+10 位随机本地名
 fn random_local() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let suffix: String = (0..10)
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect();
     format!("sdk{suffix}")
 }
@@ -36,7 +36,7 @@ fn set_headers(req: wreq::RequestBuilder) -> wreq::RequestBuilder {
 /// 创建临时邮箱
 /// POST /api/create body {username,domain,ttl}
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let dom = DOMAINS[rand::thread_rng().gen_range(0..DOMAINS.len())];
+    let dom = DOMAINS[rand::rng().random_range(0..DOMAINS.len())];
     let body = json!({
         "username": random_local(),
         "domain": dom,

@@ -5,7 +5,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const BASE_URL: &str = "https://mail10s.com";
@@ -13,10 +13,10 @@ const DOMAIN: &str = "mail10s.com";
 
 fn random_local() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut out = String::from("sdk");
     for _ in 0..16 {
-        out.push(CHARS[rng.gen_range(0..CHARS.len())] as char);
+        out.push(CHARS[rng.random_range(0..CHARS.len())] as char);
     }
     out
 }

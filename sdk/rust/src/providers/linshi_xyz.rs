@@ -8,7 +8,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const BASE_URL: &str = "https://linshi.xyz";
@@ -17,10 +17,10 @@ const DOMAIN: &str = "linshi.xyz";
 /// 生成本地随机 6 位 hex 前缀（与官网 client 相同格式）
 fn local_name() -> String {
     const HEX_DIGITS: &[u8] = b"0123456789abcdef";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..6)
         .map(|_| {
-            let idx = rng.gen_range(0..HEX_DIGITS.len());
+            let idx = rng.random_range(0..HEX_DIGITS.len());
             HEX_DIGITS[idx] as char
         })
         .collect()

@@ -30,7 +30,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -53,9 +53,9 @@ struct MailTdToken {
 /// 生成指定长度的随机字符串（小写字母 + 数字）
 fn random_string(len: usize) -> String {
     let charset: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| charset[rng.gen_range(0..charset.len())] as char)
+        .map(|_| charset[rng.random_range(0..charset.len())] as char)
         .collect()
 }
 
@@ -154,7 +154,7 @@ async fn fetch_domain() -> Result<String, String> {
         return Err("mail-td: 无可用域名".into());
     }
 
-    let idx = rand::thread_rng().gen_range(0..usable.len());
+    let idx = rand::rng().random_range(0..usable.len());
     Ok(usable[idx].to_string())
 }
 
@@ -172,7 +172,7 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         let mut difficulty = INITIAL_DIFFICULTY;
         let mut retry_token: Option<String> = None;
         // nonce 起始值随机，避免固定搜索路径
-        let start_nonce: u64 = rand::thread_rng().gen::<u32>() as u64;
+        let start_nonce: u64 = rand::rng().random::<u32>() as u64;
 
         // 初始一次 + 最多 MAX_POW_RETRIES 次重试
         for _ in 0..=MAX_POW_RETRIES {

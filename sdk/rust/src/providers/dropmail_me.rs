@@ -8,7 +8,7 @@
 
 use base64::Engine;
 use chrono::Utc;
-use rand::Rng;
+use rand::RngExt;
 use regex::Regex;
 
 use crate::config::{block_on, get_current_ua, http_client};
@@ -46,9 +46,9 @@ fn extract_secret(data_k: &str) -> Result<String, String> {
 fn random_part() -> String {
     let date_str = Utc::now().format("%Y%m%d").to_string();
     let chars: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let rand_str: String = (0..16)
-        .map(|_| chars[rng.gen_range(0..chars.len())] as char)
+        .map(|_| chars[rng.random_range(0..chars.len())] as char)
         .collect();
     format!("{date_str}{rand_str}")
 }

@@ -5,7 +5,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::json;
 use serde_json::Value;
 
@@ -32,9 +32,9 @@ fn fl_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
 
 fn random_username(len: usize) -> String {
     const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| ALPHANUM[rng.gen_range(0..ALPHANUM.len())] as char)
+        .map(|_| ALPHANUM[rng.random_range(0..ALPHANUM.len())] as char)
         .collect()
 }
 
@@ -78,8 +78,8 @@ fn pick_domain(domains: &[String], preferred: Option<&str>) -> Result<String, St
             return Err(format!("fake-legal: domain not available: {pl}"));
         }
     }
-    let mut rng = rand::thread_rng();
-    Ok(domains[rng.gen_range(0..domains.len())].clone())
+    let mut rng = rand::rng();
+    Ok(domains[rng.random_range(0..domains.len())].clone())
 }
 
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {

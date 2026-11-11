@@ -7,7 +7,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const BASE: &str = "https://anonymmail.net";
@@ -15,9 +15,9 @@ const BASE: &str = "https://anonymmail.net";
 /// 随机生成 10 位字母数字字符串作为用户名
 fn random_username() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..10)
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect()
 }
 
@@ -60,8 +60,8 @@ fn fetch_domains() -> Result<Vec<String>, String> {
 /// 创建邮箱
 pub fn generate_email() -> Result<EmailInfo, String> {
     let domains = fetch_domains()?;
-    let mut rng = rand::thread_rng();
-    let domain = &domains[rng.gen_range(0..domains.len())];
+    let mut rng = rand::rng();
+    let domain = &domains[rng.random_range(0..domains.len())];
     let username = random_username();
     let email = format!("{username}@{domain}");
 

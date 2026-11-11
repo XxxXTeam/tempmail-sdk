@@ -13,7 +13,7 @@
 use crate::config::{block_on, get_current_ua, http_client_no_cookie_jar};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 use wreq::Client;
 
@@ -28,10 +28,10 @@ const TOKEN_PREFIX: &str = "shadowmail|";
 /// 生成随机注册邮箱前缀（sdk+8 位小写字母）
 fn random_account() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let body: String = (0..8)
         .map(|_| {
-            let idx = rng.gen_range(0..CHARS.len());
+            let idx = rng.random_range(0..CHARS.len());
             CHARS[idx] as char
         })
         .collect();

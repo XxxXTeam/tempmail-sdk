@@ -6,16 +6,16 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const BASE_URL: &str = "https://api.duckmail.sbs";
 
 fn random_string(len: usize) -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect()
 }
 
@@ -203,8 +203,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         return Err("No available domains".into());
     }
 
-    let mut rng = rand::thread_rng();
-    let domain = domains[rng.gen_range(0..domains.len())].clone();
+    let mut rng = rand::rng();
+    let domain = domains[rng.random_range(0..domains.len())].clone();
     generate_email_with_domain(&domain)
 }
 

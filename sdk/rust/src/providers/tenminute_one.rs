@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use chrono::Utc;
 use hex::encode as hex_encode;
-use rand::{Rng, RngCore};
+use rand::{Rng, RngExt};
 use regex::Regex;
 use serde_json::Value;
 use std::sync::LazyLock;
@@ -168,15 +168,15 @@ fn pick_mailbox_domain(hint: Option<&str>, available: &[String]) -> Result<Strin
             }
         }
     }
-    let i = rand::thread_rng().gen_range(0..available.len());
+    let i = rand::rng().random_range(0..available.len());
     Ok(available[i].clone())
 }
 
 fn random_local(len: usize) -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect()
 }
 
@@ -191,7 +191,7 @@ fn jwt_exp_unix(token: &str) -> Option<i64> {
 
 fn api_headers(token: &str) -> Vec<(&'static str, String)> {
     let mut rid = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut rid);
+    rand::rng().fill_bytes(&mut rid);
     let ts = Utc::now().timestamp().to_string();
     vec![
         ("Accept", "*/*".into()),

@@ -1,7 +1,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const BASE: &str = "https://maildrop.cx";
@@ -32,9 +32,9 @@ fn md_headers(b: wreq::RequestBuilder) -> wreq::RequestBuilder {
 
 fn random_local(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -78,8 +78,8 @@ fn pick_suffix(suffixes: &[String], preferred: Option<&str>) -> Result<String, S
             return Err(format!("maildrop: domain not available: {pl}"));
         }
     }
-    let mut rng = rand::thread_rng();
-    Ok(suffixes[rng.gen_range(0..suffixes.len())].clone())
+    let mut rng = rand::rng();
+    Ok(suffixes[rng.random_range(0..suffixes.len())].clone())
 }
 
 pub fn generate_email(domain: Option<&str>) -> Result<EmailInfo, String> {

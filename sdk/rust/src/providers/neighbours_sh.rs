@@ -7,7 +7,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const API_BASE: &str = "https://neighbours.sh/api/v1";
@@ -16,10 +16,10 @@ const DOMAIN: &str = "neighbours.sh";
 /// 生成随机用户名，前缀 sdk + 10 位小写字母数字
 fn random_username() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut out = String::from("sdk");
     for _ in 0..10 {
-        let idx = rng.gen_range(0..CHARS.len());
+        let idx = rng.random_range(0..CHARS.len());
         out.push(CHARS[idx] as char);
     }
     out

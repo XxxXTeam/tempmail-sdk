@@ -11,7 +11,7 @@
  *   TEMPMAIL_TELEMETRY_URL - 自定义上报端点
  */
 
-use rand::Rng;
+use rand::RngExt;
 use std::sync::{
     atomic::{AtomicU64, Ordering},
     OnceLock, RwLock,
@@ -98,7 +98,7 @@ static CURRENT_BROWSER_IDX: AtomicU64 = AtomicU64::new(0);
 
 /// 随机选取一个浏览器配置并缓存
 fn pick_random_browser() -> &'static BrowserConfig {
-    let idx = rand::thread_rng().gen_range(0..BROWSER_CONFIGS.len());
+    let idx = rand::rng().random_range(0..BROWSER_CONFIGS.len());
     CURRENT_BROWSER_IDX.store(idx as u64, Ordering::SeqCst);
     &BROWSER_CONFIGS[idx]
 }

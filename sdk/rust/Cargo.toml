@@ -12,12 +12,12 @@ keywords = ["tempmail", "email", "temporary-email", "disposable-email"]
 categories = ["api-bindings", "email"]
 
 [dependencies]
-wreq = { version = "6.0.0-rc", features = ["json", "cookies", "gzip", "brotli", "zstd", "socks", "form"] }
-wreq-util = { version = "3.0.0-rc", features = ["emulation"] }
+wreq = { version = "6.0.0-rc.31", features = ["json", "cookies", "gzip", "brotli", "zstd", "socks", "form"] }
+wreq-util = { version = "3.0.0-rc.14", features = ["emulation"] }
 tokio = { version = "1", features = ["rt", "macros"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rand = "0.8.6"
+rand = "0.10"
 log = "0.4"
 chrono = "0.4"
 urlencoding = "2"
@@ -26,4 +26,4 @@ regex = "1"
 base64 = "0.22"
 hex = "0.4"
 sha2 = "0.10"
-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+tungstenite = { version = "0.30", features = ["rustls-tls-webpki-roots"] }

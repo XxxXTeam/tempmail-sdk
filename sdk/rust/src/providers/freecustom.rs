@@ -15,7 +15,7 @@
  * token 即邮箱地址本身，读信仅需 email。
  */
 
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 use crate::config::{block_on, http_client};
@@ -30,9 +30,9 @@ const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 /// 生成随机本地部分（小写字母 + 数字）
 fn random_local(length: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..length)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -97,7 +97,7 @@ async fn pick_domain(client: &wreq::Client) -> Result<String, String> {
         return Err("freecustom: 无可用域名".into());
     }
 
-    let idx = rand::thread_rng().gen_range(0..pool.len());
+    let idx = rand::rng().random_range(0..pool.len());
     Ok(pool[idx].to_string())
 }
 

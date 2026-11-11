@@ -49,7 +49,7 @@ object Mailticking : Provider {
             val msg = ProviderUtil.str(data, "error").ifEmpty { ProviderUtil.str(data, "message").ifEmpty { "unknown error" } }
             throw RuntimeException("mailticking: 请求失败: $msg")
         }
-        return data ?: throw RuntimeException("mailticking: 响应非对象")
+        return data
     }
 
     /**

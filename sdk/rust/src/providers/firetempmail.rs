@@ -13,7 +13,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const API_BASE_URL: &str = "https://mail.firetempmail.com";
@@ -29,11 +29,11 @@ const DOMAINS: [&str; 3] = [
 /// 随机小写单词（3-6 位）+ 0-999，模拟官网 faker 词 + 1e3 取整
 fn random_local() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-    let mut rng = rand::thread_rng();
-    let word: String = (0..(3 + rng.gen_range(0..4)))
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+    let mut rng = rand::rng();
+    let word: String = (0..(3 + rng.random_range(0..4)))
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect();
-    format!("{word}{}", rng.gen_range(0..1000))
+    format!("{word}{}", rng.random_range(0..1000))
 }
 
 /// 多候选字段取值：返回第一个存在且非空的字符串值
@@ -55,7 +55,7 @@ fn pick_str(m: &Value, keys: &[&str]) -> String {
 /// 创建临时邮箱
 /// 建箱无需请求，本地生成 随机词+0-999@域名 的形式，token 复用完整地址
 pub fn generate_email() -> Result<EmailInfo, String> {
-    let dom = DOMAINS[rand::thread_rng().gen_range(0..DOMAINS.len())];
+    let dom = DOMAINS[rand::rng().random_range(0..DOMAINS.len())];
     let email = format!("{}@{dom}", random_local());
     Ok(EmailInfo {
         channel: Channel::Firetempmail,

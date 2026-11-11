@@ -7,14 +7,14 @@ use crate::config::{block_on, get_config as sdk_config, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use chrono::Utc;
-use rand::{distributions::Alphanumeric, Rng};
+use rand::{distr::Alphanumeric, RngExt};
 use serde_json::{json, Value};
 use std::time::Duration;
 
 const BASE_URL: &str = "https://mail.cx";
 
 fn random_string(len: usize) -> String {
-    rand::thread_rng()
+    rand::rng()
         .sample_iter(&Alphanumeric)
         .take(len)
         .map(char::from)

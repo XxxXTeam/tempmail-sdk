@@ -5,7 +5,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const API_BASE: &str = "https://neighbours.sh/api/v1";
@@ -38,7 +38,7 @@ fn random_int(limit: usize) -> usize {
     if limit <= 1 {
         return 0;
     }
-    rand::thread_rng().gen_range(0..limit)
+    rand::rng().random_range(0..limit)
 }
 
 fn random_local() -> String {

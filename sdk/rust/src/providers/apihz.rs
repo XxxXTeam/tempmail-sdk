@@ -15,7 +15,7 @@
  */
 
 use base64::Engine;
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 use crate::config::{block_on, get_config, get_current_ua, http_client};
@@ -49,9 +49,9 @@ fn get_credentials() -> (String, String) {
 /// 生成随机本地部分（小写字母 + 数字）
 fn random_local(length: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..length)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -60,9 +60,9 @@ fn random_password() -> String {
     let chars: Vec<char> = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         .chars()
         .collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..12)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -113,8 +113,8 @@ fn q(s: &str) -> String {
 pub fn generate_email() -> Result<EmailInfo, String> {
     let (id, key) = get_credentials();
     let domain = {
-        let mut rng = rand::thread_rng();
-        DOMAINS[rng.gen_range(0..DOMAINS.len())]
+        let mut rng = rand::rng();
+        DOMAINS[rng.random_range(0..DOMAINS.len())]
     };
     let name = random_local(10);
     let pwd = random_password();

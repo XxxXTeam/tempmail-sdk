@@ -15,7 +15,7 @@
 use crate::config::{block_on, get_current_ua, http_client, http_client_no_cookie_jar};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
@@ -39,10 +39,10 @@ fn solve_pow(challenge: &str, difficulty: usize) -> i64 {
 /// 生成本地随机名（与前端 generateRandomName 等价形态）
 fn random_address() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let body: String = (0..10)
         .map(|_| {
-            let idx = rng.gen_range(0..CHARS.len());
+            let idx = rng.random_range(0..CHARS.len());
             CHARS[idx] as char
         })
         .collect();

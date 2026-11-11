@@ -8,7 +8,7 @@
  * 4. GET  /api/emails?email=xxx 拉取邮件（Cookie: gm_sid, x-inbox-token: jwt）
  */
 
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -36,9 +36,9 @@ fn is_auth_error(message: &str) -> bool {
 /// 生成指定长度的随机用户名（小写字母 + 数字）
 fn random_username(len: usize) -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+        .map(|_| CHARS[rng.random_range(0..CHARS.len())] as char)
         .collect()
 }
 
@@ -155,8 +155,8 @@ fn create_inbox(email: &str) -> Result<(String, String), String> {
 pub fn generate_email() -> Result<EmailInfo, String> {
     let domains = fetch_domains()?;
     let domain = {
-        let mut rng = rand::thread_rng();
-        &domains[rng.gen_range(0..domains.len())]
+        let mut rng = rand::rng();
+        &domains[rng.random_range(0..domains.len())]
     };
     let email = format!("{}@{}", random_username(10), domain);
 

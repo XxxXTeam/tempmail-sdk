@@ -44,7 +44,7 @@ fn send_event(
 ) -> Result<(), String> {
     let arr = json!([event, payload]);
     let msg = format!("42{arr}");
-    ws.send(Message::Text(msg)).map_err(|e| e.to_string())
+    ws.send(Message::Text(msg.into())).map_err(|e| e.to_string())
 }
 
 fn flatten_mail(raw: &Value, recipient_email: &str) -> Value {

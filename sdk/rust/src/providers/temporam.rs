@@ -5,7 +5,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{Map, Value};
 
 const ORIGIN: &str = "https://temporam.com";
@@ -31,10 +31,10 @@ fn fetch_json(path: &str) -> Result<Value, String> {
 
 fn random_local() -> String {
     const CHARS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut out = String::from("sdk");
     for _ in 0..18 {
-        out.push(CHARS[rng.gen_range(0..CHARS.len())] as char);
+        out.push(CHARS[rng.random_range(0..CHARS.len())] as char);
     }
     out
 }
@@ -66,8 +66,8 @@ fn pick_domain(domains: &[String], preferred: Option<&str>) -> Result<String, St
             return Err(format!("temporam: unsupported domain {wanted}"));
         }
     }
-    let mut rng = rand::thread_rng();
-    Ok(domains[rng.gen_range(0..domains.len())].clone())
+    let mut rng = rand::rng();
+    Ok(domains[rng.random_range(0..domains.len())].clone())
 }
 
 fn flatten(raw: &Value, recipient: &str) -> Value {

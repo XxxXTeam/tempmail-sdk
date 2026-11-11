@@ -16,7 +16,7 @@
 use crate::config::{block_on, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const API_BASE: &str = "https://api.mytempmail.cc/api";
@@ -28,9 +28,9 @@ const DEFAULT_EXPIRY: u64 = 600;
 /// 生成随机用户名（小写字母 + 数字，10 位）
 fn random_name() -> String {
     let charset: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..10)
-        .map(|_| charset[rng.gen_range(0..charset.len())] as char)
+        .map(|_| charset[rng.random_range(0..charset.len())] as char)
         .collect()
 }
 

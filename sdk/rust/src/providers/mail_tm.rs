@@ -6,16 +6,16 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const BASE_URL: &str = "https://api.mail.tm";
 
 fn random_string(len: usize) -> String {
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..len)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .map(|_| chars[rng.random_range(0..chars.len())])
         .collect()
 }
 
@@ -104,8 +104,8 @@ pub fn generate_email() -> Result<EmailInfo, String> {
         return Err("No available domains".into());
     }
 
-    let mut rng = rand::thread_rng();
-    let domain = domains[rng.gen_range(0..domains.len())].clone();
+    let mut rng = rand::rng();
+    let domain = domains[rng.random_range(0..domains.len())].clone();
     generate_email_with_domain(&domain)
 }
 

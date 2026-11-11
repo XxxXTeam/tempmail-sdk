@@ -10,7 +10,7 @@
 use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 
 const BASE_URL: &str = "https://api.tenmin.app";
@@ -18,9 +18,9 @@ const BASE_URL: &str = "https://api.tenmin.app";
 /// 生成 6 位小写十六进制随机 localpart
 fn random_local() -> String {
     const HEX: &[u8] = b"0123456789abcdef";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..6)
-        .map(|_| HEX[rng.gen_range(0..HEX.len())] as char)
+        .map(|_| HEX[rng.random_range(0..HEX.len())] as char)
         .collect()
 }
 

@@ -156,7 +156,7 @@ fn connect_socket(host: &str) -> Result<WsSocket, String> {
 fn send_event(socket: &mut WsSocket, event: &str, payload: Value) -> Result<(), String> {
     let packet = format!("42{}", json!([event, payload]));
     socket
-        .send(Message::Text(packet))
+        .send(Message::Text(packet.into()))
         .map_err(|e| e.to_string())
 }
 

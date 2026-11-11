@@ -7,7 +7,7 @@ use crate::config::{block_on, get_current_ua, http_client};
 use crate::normalize::normalize_email;
 use crate::types::{Channel, Email, EmailInfo};
 use base64::{engine::general_purpose, Engine as _};
-use rand::Rng;
+use rand::RngExt;
 use serde_json::Value;
 
 const API_URL: &str = "https://tempgbox.net/api/proxy";
@@ -15,18 +15,18 @@ const API_URL: &str = "https://tempgbox.net/api/proxy";
 fn random_device_id() -> String {
     // 上游按 X-Device-ID 限制连续生成；每个新邮箱使用新的设备 ID，后续收件复用该邮箱 token。
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill(&mut bytes);
+    rand::rng().fill(&mut bytes);
     hex::encode(bytes)
 }
 
 fn random_ip() -> String {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     format!(
         "{}.{}.{}.{}",
-        rng.gen_range(1..=254),
-        rng.gen_range(1..=254),
-        rng.gen_range(1..=254),
-        rng.gen_range(1..=254)
+        rng.random_range(1..=254),
+        rng.random_range(1..=254),
+        rng.random_range(1..=254),
+        rng.random_range(1..=254)
     )
 }
 

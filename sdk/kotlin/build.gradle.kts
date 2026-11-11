@@ -1,8 +1,8 @@
 plugins {
 
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.serialization") version "2.0.21"
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    kotlin("jvm") version "2.4.21"
+    kotlin("plugin.serialization") version "2.4.21"
+    id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
 group = "io.github.xxxxteam"
@@ -12,7 +12,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.0.3"
+val ktorVersion = "3.6.1"
 
 dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
@@ -20,12 +20,12 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-websockets:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
     implementation(kotlin("reflect"))
 
     testImplementation(kotlin("test"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
 
 kotlin {
