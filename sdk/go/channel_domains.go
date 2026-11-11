@@ -50,7 +50,6 @@ var channelDomains = map[Channel][]string{
 	ChannelMaildropCc:   {"maildrop.cc"},
 	ChannelSmailPw:      {"smail.pw"},
 	ChannelInboxkitten:  {"inboxkitten.com"},
-	ChannelMffac:        {"mffac.com"},
 	ChannelNimail:       {"nimail.cn"},
 	ChannelMailgolem:    {"mailgolem.com"},
 
@@ -78,7 +77,31 @@ var channelDomains = map[Channel][]string{
 	ChannelMinuteinbox: {"minafter.com"},
 
 	// xkx.me
-	ChannelXkxMe: {"xkx.me"},
+	ChannelXkxMe:            {"xkx.me"},
+	ChannelBlondmailCom:     {"blondmail.com"},
+	ChannelChapsmailCom:     {"chapsmail.com"},
+	ChannelClowmailCom:      {"clowmail.com"},
+	ChannelDropjarCom:       {"dropjar.com"},
+	ChannelFivermailCom:     {"fivermail.com"},
+	ChannelGetairmailCom:    {"getairmail.com"},
+	ChannelGetmuleCom:       {"getmule.com"},
+	ChannelInboxbearCom:     {"inboxbear.com"},
+	ChannelReplyloopCom:     {"replyloop.com"},
+	ChannelTemptamiCom:      {"temptami.com"},
+	ChannelGimpmailCom:      {"gimpmail.com"},
+	ChannelGivmailCom:       {"givmail.com"},
+	ChannelGuysmailCom:      {"guysmail.com"},
+	ChannelRobotMailCom:     {"robot-mail.com"},
+	ChannelTupmailCom:       {"tupmail.com"},
+	ChannelVomotoCom:        {"vomoto.com"},
+	ChannelUquMe:            {"uqu.me"},
+	ChannelN9k3rCom:         {"9k3r.com"},
+	ChannelN2famailCom:      {"2famail.com"},
+	ChannelXikemailCom:      {"xikemail.com"},
+	ChannelFldubaiCom:       {"fldubai.com"},
+	ChannelNicegroundShop:   {"niceground.shop"},
+	ChannelGlasswhitehubCom: {"glasswhitehub.com"},
+	ChannelHubaiclassOrg:    {"hubaiclass.org"},
 }
 
 // dynamicDomainChannels 是域名通过 API 动态获取的渠道

@@ -41,18 +41,19 @@ public static class MailTm
         var domains = new List<string>();
         if (members is not null)
             foreach (var m in members)
-                if (m is JsonObject o && (o["isActive"]?.GetValue<bool>() ?? false))
+                if (m is JsonObject o && ((o["isActive"]?.GetValue<bool>() ?? false) || (o["isVerified"]?.GetValue<bool>() ?? false)))
                     domains.Add(o["domain"]!.GetValue<string>());
         return domains;
     }
 
     /// <summary>创建临时邮箱</summary>
-    public static EmailInfo Generate(string channel, string baseUrl)
+    public static EmailInfo Generate(string channel, string baseUrl, string? fixedDomain = null)
     {
         var domains = GetDomains(baseUrl);
         if (domains.Count == 0) throw new Exception("No available domains");
 
-        var address = $"{RandomString(12)}@{domains[Rand.Next(domains.Count)]}";
+        var chosen = string.IsNullOrEmpty(fixedDomain) ? domains[Rand.Next(domains.Count)] : fixedDomain!;
+        var address = $"{RandomString(12)}@{chosen}";
         var password = RandomString(16);
         var payload = Json.Serialize(new Dictionary<string, object?> { ["address"] = address, ["password"] = password });
 

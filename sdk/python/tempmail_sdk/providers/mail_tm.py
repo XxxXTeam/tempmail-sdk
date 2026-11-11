@@ -117,6 +117,23 @@ def generate_email(**kwargs) -> EmailInfo:
     )
 
 
+def generate_email_with_domain(domain: str) -> EmailInfo:
+    """使用指定域名创建临时邮箱：跳过随机选域，复用建账号与取 token 流程。"""
+    username = _random_string(12)
+    address = f"{username}@{domain}"
+    password = _random_string(16)
+
+    account = _create_account(address, password)
+    token = _get_token(address, password)
+
+    return EmailInfo(
+        channel=CHANNEL,
+        email=address,
+        _token=token,
+        created_at=account.get("createdAt"),
+    )
+
+
 def get_emails(token: str, email: str = "", **kwargs) -> list:
     """获取邮件列表"""
     # 1. 获取邮件列表

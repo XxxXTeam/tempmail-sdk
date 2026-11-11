@@ -77,6 +77,12 @@ def generate_email() -> EmailInfo:
     return EmailInfo(channel=CHANNEL, email=email, _token=email)
 
 
+def generate_email_with_domain(domain: str) -> EmailInfo:
+    """为 mailmomy 指定域名的镜像渠道生成邮箱（本地拼地址，token 即邮箱地址）"""
+    email = f"{_random_local(10)}@{domain}"
+    return EmailInfo(channel=CHANNEL, email=email, _token=email)
+
+
 def get_emails(email: str) -> List[Email]:
     """
     获取 mailmomy.com 邮件列表

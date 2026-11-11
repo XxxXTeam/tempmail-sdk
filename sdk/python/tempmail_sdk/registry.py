@@ -404,15 +404,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="mffac",
-        name="MFFAC",
-        website="mffac.com",
-        generate=lambda o: mffac.generate_email(),
-        get_emails=lambda e, t: mffac.get_emails(e, t or ""),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="tempmail-lol",
         name="TempMail LOL",
         website="tempmail.lol",
@@ -754,39 +745,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="kalimantanbarat-net",
-        name="kalimantanbarat.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "kalimantanbarat.net", "kalimantanbarat-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="kalimantanselatan-net",
-        name="kalimantanselatan.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "kalimantanselatan.net", "kalimantanselatan-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="kalimantantengah-net",
-        name="kalimantantengah.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "kalimantantengah.net", "kalimantantengah-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="kalimantantimur-net",
         name="kalimantantimur.net",
         website="getnada.net",
@@ -798,94 +756,10 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="kalimantanutara-net",
-        name="kalimantanutara.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "kalimantanutara.net", "kalimantanutara-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="kepulauanriau-net",
-        name="kepulauanriau.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "kepulauanriau.net", "kepulauanriau-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="luxury345-com",
         name="luxury345.com",
         website="getnada.net",
         generate=lambda o: getnada.generate_email("luxury345.com", "luxury345-com"),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="malukuutara-net",
-        name="malukuutara.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email("malukuutara.net", "malukuutara-net"),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="nusatenggarabarat-net",
-        name="nusatenggarabarat.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "nusatenggarabarat.net", "nusatenggarabarat-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="nusatenggaratimur-net",
-        name="nusatenggaratimur.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "nusatenggaratimur.net", "nusatenggaratimur-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="papuabarat-net",
-        name="papuabarat.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email("papuabarat.net", "papuabarat-net"),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="papuabaratdaya-net",
-        name="papuabaratdaya.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "papuabaratdaya.net", "papuabaratdaya-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="papuaselatan-net",
-        name="papuaselatan.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "papuaselatan.net", "papuaselatan-net"
-        ),
         get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
     )
 )
@@ -909,15 +783,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="pulaubali-net",
-        name="pulaubali.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email("pulaubali.net", "pulaubali-net"),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="riau-net",
         name="riau.net",
         website="getnada.net",
@@ -936,17 +801,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="sulawesibarat-net",
-        name="sulawesibarat.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "sulawesibarat.net", "sulawesibarat-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="sulawesiselatan-net",
         name="sulawesiselatan.net",
         website="getnada.net",
@@ -958,44 +812,11 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="sulawesitengah-net",
-        name="sulawesitengah.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "sulawesitengah.net", "sulawesitengah-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="sulawesitenggara-net",
-        name="sulawesitenggara.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "sulawesitenggara.net", "sulawesitenggara-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="sumaterabarat-net",
         name="sumaterabarat.net",
         website="getnada.net",
         generate=lambda o: getnada.generate_email(
             "sumaterabarat.net", "sumaterabarat-net"
-        ),
-        get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="sumateraselatan-net",
-        name="sumateraselatan.net",
-        website="getnada.net",
-        generate=lambda o: getnada.generate_email(
-            "sumateraselatan.net", "sumateraselatan-net"
         ),
         get_emails=lambda e, t: getnada.get_emails(_require_token(t, "getnada"), e),
     )
@@ -1378,15 +1199,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="mjj-cm",
-        name="MJJ Mail",
-        website="mjj.cm",
-        generate=lambda o: mjj_cm.generate_email(),
-        get_emails=lambda e, t: mjj_cm.get_emails(e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="linshi-co",
         name="临时Co",
         website="linshi.co",
@@ -1667,15 +1479,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="m2u",
-        name="MailToYou",
-        website="m2u.io",
-        generate=lambda o: m2u.generate_email(),
-        get_emails=lambda e, t: m2u.get_emails(t or "", e),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="tempy-email",
         name="Tempy Email",
         website="tempy.email",
@@ -1902,17 +1705,6 @@ register_channel(
         generate=lambda o: tempemail_co.generate_email(),
         get_emails=lambda e, t: tempemail_co.get_emails(
             e, _require_token(t, "tempemail-co")
-        ),
-    )
-)
-register_channel(
-    ChannelSpec(
-        channel="tempemails-net",
-        name="TempEmails.net",
-        website="tempemails.net",
-        generate=lambda o: tempemails_net.generate_email(),
-        get_emails=lambda e, t: tempemails_net.get_emails(
-            e, _require_token(t, "tempemails-net")
         ),
     )
 )
@@ -3101,17 +2893,6 @@ register_channel(
 )
 register_channel(
     ChannelSpec(
-        channel="noxen-de5-net",
-        name="UniMail Bot",
-        website="tempmail.noxen.de5.net",
-        generate=lambda o: noxen_de5_net.generate_email(),
-        get_emails=lambda e, t: noxen_de5_net.get_emails(
-            e, _require_token(t, "noxen-de5-net")
-        ),
-    )
-)
-register_channel(
-    ChannelSpec(
         channel="nukemail",
         name="NukeMail",
         website="nukemail.app",
@@ -3229,5 +3010,265 @@ register_channel(
         get_emails=lambda e, t: generator_email.get_emails(
             e, _require_token(t, "generator-email")
         ),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="blondmail-com",
+        name="blondmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("blondmail.com"), "blondmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="chapsmail-com",
+        name="chapsmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("chapsmail.com"), "chapsmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="clowmail-com",
+        name="clowmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("clowmail.com"), "clowmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="dropjar-com",
+        name="dropjar.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("dropjar.com"), "dropjar-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="fivermail-com",
+        name="fivermail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("fivermail.com"), "fivermail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="getairmail-com",
+        name="getairmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("getairmail.com"), "getairmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="getmule-com",
+        name="getmule.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("getmule.com"), "getmule-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="inboxbear-com",
+        name="inboxbear.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("inboxbear.com"), "inboxbear-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="replyloop-com",
+        name="replyloop.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("replyloop.com"), "replyloop-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="temptami-com",
+        name="temptami.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("temptami.com"), "temptami-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="gimpmail-com",
+        name="gimpmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("gimpmail.com"), "gimpmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="givmail-com",
+        name="givmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("givmail.com"), "givmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="guysmail-com",
+        name="guysmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("guysmail.com"), "guysmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="robot-mail-com",
+        name="robot-mail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("robot-mail.com"), "robot-mail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="tupmail-com",
+        name="tupmail.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("tupmail.com"), "tupmail-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="vomoto-com",
+        name="vomoto.com",
+        website="inboxes.com",
+        generate=lambda o: _with_channel(
+            inboxes.generate_email("vomoto.com"), "vomoto-com"
+        ),
+        get_emails=lambda e, t: inboxes.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="uqu-me",
+        name="uqu.me",
+        website="mail.cx",
+        generate=lambda o: _with_channel(mail_cx.generate_email("uqu.me"), "uqu-me"),
+        get_emails=lambda e, t: mail_cx.get_emails(_require_token(t, "mail-cx"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="9k3r-com",
+        name="9k3r.com",
+        website="mail.cx",
+        generate=lambda o: _with_channel(mail_cx.generate_email("9k3r.com"), "9k3r-com"),
+        get_emails=lambda e, t: mail_cx.get_emails(_require_token(t, "mail-cx"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="2famail-com",
+        name="2famail.com",
+        website="mailmomy.com",
+        generate=lambda o: _with_channel(
+            mailmomy.generate_email_with_domain("2famail.com"), "2famail-com"
+        ),
+        get_emails=lambda e, t: mailmomy.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="xikemail-com",
+        name="xikemail.com",
+        website="mailmomy.com",
+        generate=lambda o: _with_channel(
+            mailmomy.generate_email_with_domain("xikemail.com"), "xikemail-com"
+        ),
+        get_emails=lambda e, t: mailmomy.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="fldubai-com",
+        name="fldubai.com",
+        website="mail.tm",
+        generate=lambda o: _with_channel(
+            mail_tm.generate_email_with_domain("fldubai.com"), "fldubai-com"
+        ),
+        get_emails=lambda e, t: mail_tm.get_emails(_require_token(t, "mail-tm"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="niceground-shop",
+        name="niceground.shop",
+        website="duckmail.sbs",
+        generate=lambda o: _with_channel(
+            duckmail.generate_email_with_domain("niceground.shop"), "niceground-shop"
+        ),
+        get_emails=lambda e, t: duckmail.get_emails(_require_token(t, "duckmail"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="glasswhitehub-com",
+        name="glasswhitehub.com",
+        website="duckmail.sbs",
+        generate=lambda o: _with_channel(
+            duckmail.generate_email_with_domain("glasswhitehub.com"), "glasswhitehub-com"
+        ),
+        get_emails=lambda e, t: duckmail.get_emails(_require_token(t, "duckmail"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="hubaiclass-org",
+        name="hubaiclass.org",
+        website="duckmail.sbs",
+        generate=lambda o: _with_channel(
+            duckmail.generate_email_with_domain("hubaiclass.org"), "hubaiclass-org"
+        ),
+        get_emails=lambda e, t: duckmail.get_emails(_require_token(t, "duckmail"), e),
     )
 )

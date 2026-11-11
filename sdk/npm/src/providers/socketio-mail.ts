@@ -12,7 +12,6 @@ const HANDSHAKE_WAIT_MS = 1000;
 const INITIAL_SYNC_WAIT_MS = 80;
 const SOCKET_IO_VERSIONS = [4, 3];
 const SOCKET_HOST_BY_CHANNEL: Partial<Record<Channel, string>> = {
-  "mjj-cm": "mjj.cm",
   "linshi-co": "linshi.co",
 };
 

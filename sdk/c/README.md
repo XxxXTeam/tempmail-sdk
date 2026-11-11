@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（C），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider；其中 `mjj-cm` 与 `linshi-co` 在 C 端保留公开标识但当前不支持生成/收信。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（C），公开 **304** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider；其中 `linshi-co` 在 C 端保留公开标识但当前不支持生成/收信。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
 
 - **`tm_list_channels()`** 返回顺序与 `client.c` 中 `g_channel_infos` / `g_channel_try_order` 一致，并与 **Go `allChannels` / 其他 SDK 的 `listChannels`** 对齐。
 - **`tm_channel_t` 枚举常量**的数值顺序为历史兼容布局，与上表行序**不一致**；`tm_channel_name()` 按枚举值映射字符串。新增渠道时以 `tempmail_sdk.h` 为准。
@@ -58,7 +58,6 @@ cmake --build build
 | ygwpr-com | `CHANNEL_YGWPR_COM` | ygwpr.com | ✅ | 10minutemail.one 固定域名 `ygwpr.com` |
 | imxwe-com | `CHANNEL_IMXWE_COM` | imxwe.com | ✅ | 10minutemail.one 固定域名 `imxwe.com` |
 | linshiyou | `CHANNEL_LINSHIYOU` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
-| mffac | `CHANNEL_MFFAC` | mffac.com | ✅ | mailbox `id`；`/api/emails/{id}` 详情补齐 `text` / `html`；REST 24h |
 | tempmail-lol | `CHANNEL_TEMPMAIL_LOL` | tempmail.lol | ✅ | 支持指定域名 |
 | chatgpt-org-uk | `CHANNEL_CHATGPT_ORG_UK` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
 | temp-mail-io | `CHANNEL_TEMP_MAIL_IO` | temp-mail.io | ✅ | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3` |
@@ -91,30 +90,14 @@ cmake --build build
 | getnada-net | `CHANNEL_GETNADA_NET` | getnada.net | ✅ | GetNada 固定域名 `getnada.net` |
 | jawatengah-net | `CHANNEL_JAWATENGAH_NET` | jawatengah.net | ✅ | GetNada 固定域名 `jawatengah.net` |
 | jawatimur-net | `CHANNEL_JAWATIMUR_NET` | jawatimur.net | ✅ | GetNada 固定域名 `jawatimur.net` |
-| kalimantanbarat-net | `CHANNEL_KALIMANTANBARAT_NET` | kalimantanbarat.net | ✅ | GetNada 固定域名 `kalimantanbarat.net` |
-| kalimantanselatan-net | `CHANNEL_KALIMANTANSELATAN_NET` | kalimantanselatan.net | ✅ | GetNada 固定域名 `kalimantanselatan.net` |
-| kalimantantengah-net | `CHANNEL_KALIMANTANTENGAH_NET` | kalimantantengah.net | ✅ | GetNada 固定域名 `kalimantantengah.net` |
 | kalimantantimur-net | `CHANNEL_KALIMANTANTIMUR_NET` | kalimantantimur.net | ✅ | GetNada 固定域名 `kalimantantimur.net` |
-| kalimantanutara-net | `CHANNEL_KALIMANTANUTARA_NET` | kalimantanutara.net | ✅ | GetNada 固定域名 `kalimantanutara.net` |
-| kepulauanriau-net | `CHANNEL_KEPULAUANRIAU_NET` | kepulauanriau.net | ✅ | GetNada 固定域名 `kepulauanriau.net` |
 | luxury345-com | `CHANNEL_LUXURY345_COM` | luxury345.com | ✅ | GetNada 固定域名 `luxury345.com` |
-| malukuutara-net | `CHANNEL_MALUKUUTARA_NET` | malukuutara.net | ✅ | GetNada 固定域名 `malukuutara.net` |
-| nusatenggarabarat-net | `CHANNEL_NUSATENGGARABARAT_NET` | nusatenggarabarat.net | ✅ | GetNada 固定域名 `nusatenggarabarat.net` |
-| nusatenggaratimur-net | `CHANNEL_NUSATENGGARATIMUR_NET` | nusatenggaratimur.net | ✅ | GetNada 固定域名 `nusatenggaratimur.net` |
-| papuabarat-net | `CHANNEL_PAPUABARAT_NET` | papuabarat.net | ✅ | GetNada 固定域名 `papuabarat.net` |
-| papuabaratdaya-net | `CHANNEL_PAPUABARATDAYA_NET` | papuabaratdaya.net | ✅ | GetNada 固定域名 `papuabaratdaya.net` |
-| papuaselatan-net | `CHANNEL_PAPUASELATAN_NET` | papuaselatan.net | ✅ | GetNada 固定域名 `papuaselatan.net` |
 | pehol-com | `CHANNEL_PEHOL_COM` | pehol.com | ✅ | GetNada 固定域名 `pehol.com` |
 | ptruyen-com | `CHANNEL_PTRUYEN_COM` | ptruyen.com | ✅ | GetNada 固定域名 `ptruyen.com` |
-| pulaubali-net | `CHANNEL_PULAUBALI_NET` | pulaubali.net | ✅ | GetNada 固定域名 `pulaubali.net` |
 | riau-net | `CHANNEL_RIAU_NET` | riau.net | ✅ | GetNada 固定域名 `riau.net` |
 | seokey-org | `CHANNEL_SEOKEY_ORG` | seokey.org | ✅ | GetNada 固定域名 `seokey.org` |
-| sulawesibarat-net | `CHANNEL_SULAWESIBARAT_NET` | sulawesibarat.net | ✅ | GetNada 固定域名 `sulawesibarat.net` |
 | sulawesiselatan-net | `CHANNEL_SULAWESISELATAN_NET` | sulawesiselatan.net | ✅ | GetNada 固定域名 `sulawesiselatan.net` |
-| sulawesitengah-net | `CHANNEL_SULAWESITENGAH_NET` | sulawesitengah.net | ✅ | GetNada 固定域名 `sulawesitengah.net` |
-| sulawesitenggara-net | `CHANNEL_SULAWESITENGGARA_NET` | sulawesitenggara.net | ✅ | GetNada 固定域名 `sulawesitenggara.net` |
 | sumaterabarat-net | `CHANNEL_SUMATERABARAT_NET` | sumaterabarat.net | ✅ | GetNada 固定域名 `sumaterabarat.net` |
-| sumateraselatan-net | `CHANNEL_SUMATERASELATAN_NET` | sumateraselatan.net | ✅ | GetNada 固定域名 `sumateraselatan.net` |
 | sumaterautara-net | `CHANNEL_SUMATERAUTARA_NET` | sumaterautara.net | ✅ | GetNada 固定域名 `sumaterautara.net` |
 | villatogel-com | `CHANNEL_VILLATOGEL_COM` | villatogel.com | ✅ | GetNada 固定域名 `villatogel.com` |
 | mail123 | `CHANNEL_MAIL123` | mail123.fr | - | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
@@ -154,7 +137,6 @@ cmake --build build
 | tmail-ws | `CHANNEL_TMAIL_WS` |  | ✅ | tmail-ws |
 | bareed-ws | `CHANNEL_BAREED_WS` |  | ✅ | bareed-ws |
 | email10min | `CHANNEL_EMAIL10MIN` | email10min.com | ✅ | Cookie + CSRF；`POST /messages` 获取邮箱与邮件 |
-| mjj-cm | `CHANNEL_MJJ_CM` | mjj.cm | - | Socket.IO 渠道；当前 C SDK 不支持生成/收信 |
 | linshi-co | `CHANNEL_LINSHI_CO` | linshi.co | - | Socket.IO 克隆站；当前 C SDK 不支持生成/收信 |
 | harakirimail | `CHANNEL_HARAKIRIMAIL` | harakirimail.com | - | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
 | jqkjqk-xyz | `CHANNEL_JQKJQK_XYZ` | jqkjqk.xyz | ✅ | mail.zhujump.com 固定域名 `jqkjqk.xyz` |
@@ -183,7 +165,6 @@ cmake --build build
 | guerrillamail-org | `CHANNEL_GUERRILLAMAIL_ORG` | guerrillamail.org | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | guerrillamailblock | `CHANNEL_GUERRILLAMAILBLOCK` | guerrillamailblock.com | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | guerrillamail-com-www | `CHANNEL_GUERRILLAMAIL_COM_WWW` | guerrillamail.com | ✅ | GuerrillaMail `www` JSON API 入口 |
-| m2u | `CHANNEL_M2U` | MailToYou | ✅ | `POST /v1/mailboxes/auto` 建箱；`token` + `viewToken` 组成内部令牌；`GET /v1/mailboxes/{token}/messages?view={viewToken}` 列表，`GET /v1/mailboxes/{token}/messages/{id}?view={viewToken}` 详情 |
 | tempy-email | `CHANNEL_TEMPY_EMAIL` | Tempy Email | - | `POST /api/v1/mailbox` 建箱（请求体可为空 JSON；可选 `domain`）；`GET /api/v1/mailbox/{email}/messages` 拉列表 |
 | fmail | `CHANNEL_FMAIL` | fmail.men | - | `GET /v1/random` 建箱；`GET /v1/inbox/{local}?domain={domain}&limit=50` 拉列表；`GET /v1/email/{token}` 读取单封详情，可选 `Domain` |
 | ockito | `CHANNEL_OCKITO` | ockito.com | ✅ | `POST /gtoken` 换取 access_token / refresh_token；`GET /email` 建箱；`GET /retrieve/{email}/emails` 拉列表，`GET /retrieve/{email}/{uid}` 详情 |
@@ -209,7 +190,6 @@ cmake --build build
 | minuteinbox | `CHANNEL_MINUTEINBOX` |  | ✅ | minuteinbox |
 | mailcatch | `CHANNEL_MAILCATCH` |  | ✅ | mailcatch |
 | tempemail-co | `CHANNEL_TEMPEMAIL_CO` |  | ✅ | tempemail-co |
-| tempemails-net | `CHANNEL_TEMPEMAILS_NET` |  | ✅ | tempemails-net |
 | altmails | `CHANNEL_ALTMAILS` |  | ✅ | altmails |
 | tempemail-info | `CHANNEL_TEMPEMAIL_INFO` |  | ✅ | tempemail-info |
 | smailpro | `CHANNEL_SMAILPRO` |  | ✅ | smailpro |
@@ -326,6 +306,30 @@ cmake --build build
 | restmail-net | `CHANNEL_RESTMAIL_NET` |  | - | restmail-net |
 | dropmail-me | `CHANNEL_DROPMAIL_ME` |  | ✅ | dropmail-me |
 | ten-minute-mail-net | `CHANNEL_TEN_MINUTE_MAIL_NET` |  | ✅ | ten-minute-mail-net |
+| blondmail-com | `CHANNEL_BLONDMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `blondmail.com` |
+| chapsmail-com | `CHANNEL_CHAPSMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `chapsmail.com` |
+| clowmail-com | `CHANNEL_CLOWMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `clowmail.com` |
+| dropjar-com | `CHANNEL_DROPJAR_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `dropjar.com` |
+| fivermail-com | `CHANNEL_FIVERMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `fivermail.com` |
+| getairmail-com | `CHANNEL_GETAIRMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `getairmail.com` |
+| getmule-com | `CHANNEL_GETMULE_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `getmule.com` |
+| inboxbear-com | `CHANNEL_INBOXBEAR_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `inboxbear.com` |
+| replyloop-com | `CHANNEL_REPLYLOOP_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `replyloop.com` |
+| temptami-com | `CHANNEL_TEMPTAMI_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `temptami.com` |
+| gimpmail-com | `CHANNEL_GIMPMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `gimpmail.com` |
+| givmail-com | `CHANNEL_GIVMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `givmail.com` |
+| guysmail-com | `CHANNEL_GUYSMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `guysmail.com` |
+| robot-mail-com | `CHANNEL_ROBOT_MAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `robot-mail.com` |
+| tupmail-com | `CHANNEL_TUPMAIL_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `tupmail.com` |
+| vomoto-com | `CHANNEL_VOMOTO_COM` | inboxes.com | ✅ | inboxes.com 服务方镜像域名 `vomoto.com` |
+| uqu-me | `CHANNEL_UQU_ME` | mail.cx | ✅ | mail.cx 固定域名 `uqu.me` |
+| 9k3r-com | `CHANNEL_9K3R_COM` | mail.cx | ✅ | mail.cx 固定域名 `9k3r.com` |
+| 2famail-com | `CHANNEL_2FAMAIL_COM` | mailmomy.com | ✅ | mailmomy 固定域名 `2famail.com` |
+| xikemail-com | `CHANNEL_XIKEMAIL_COM` | mailmomy.com | ✅ | mailmomy 固定域名 `xikemail.com` |
+| fldubai-com | `CHANNEL_FLDUBAI_COM` | mail.tm | ✅ | mail.tm 固定域名 `fldubai.com` |
+| niceground-shop | `CHANNEL_NICEGROUND_SHOP` | duckmail.sbs | ✅ | duckmail 固定域名 `niceground.shop` |
+| glasswhitehub-com | `CHANNEL_GLASSWHITEHUB_COM` | duckmail.sbs | ✅ | duckmail 固定域名 `glasswhitehub.com` |
+| hubaiclass-org | `CHANNEL_HUBAICLASS_ORG` | duckmail.sbs | ✅ | duckmail 固定域名 `hubaiclass.org` |
 
 ## 快速开始
 

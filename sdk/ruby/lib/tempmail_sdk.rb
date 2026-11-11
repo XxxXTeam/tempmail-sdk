@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # 临时邮箱 SDK (Ruby)
-# 聚合 296 个第三方临时邮箱渠道，所有渠道返回统一标准化格式。
+# 聚合 290 个第三方临时邮箱渠道，所有渠道返回统一标准化格式。
 # 与 Go / npm / Rust / Python / C / PHP 各端共享相同的渠道标识与顺序。
 
 require_relative "tempmail_sdk/version"

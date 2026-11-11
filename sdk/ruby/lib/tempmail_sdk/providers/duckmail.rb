@@ -26,7 +26,7 @@ module TempmailSdk
         resp.raise_for_status
         data = resp.json
         members = data.is_a?(Array) ? data : (data["hydra:member"] || [])
-        members.select { |d| d["isActive"] }.map { |d| d["domain"] }
+        members.select { |d| d["isActive"] || d["isVerified"] }.map { |d| d["domain"] }
       end
 
       # @return [EmailInfo]
@@ -34,7 +34,14 @@ module TempmailSdk
         domains = fetch_domains
         raise "No available domains" if domains.empty?
 
-        address = "#{random_string(12)}@#{domains.sample}"
+        generate_email_at_domain(domains.sample)
+      end
+
+      # 为 duckmail 指定域名的镜像渠道创建账号（跳过随机选域）
+      # @param domain [String]
+      # @return [EmailInfo]
+      def generate_email_at_domain(domain)
+        address = "#{random_string(12)}@#{domain}"
         password = random_string(16)
         acc = Http.post("#{BASE_URL}/accounts",
                         headers: DEFAULT_HEADERS.merge("Content-Type" => "application/ld+json"),

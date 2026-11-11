@@ -15,7 +15,11 @@ import java.net.URI
  * @property channel 对外渠道标识
  * @property baseUrl API 基地址
  */
-class MailTm(private val channel: String, private val baseUrl: String) : Provider {
+class MailTm(
+    private val channel: String,
+    private val baseUrl: String,
+    private val fixedDomain: String = "",
+) : Provider {
 
     private fun baseHeaders(): Map<String, String> = mapOf(
         "Accept" to "application/json",
@@ -38,8 +42,9 @@ class MailTm(private val channel: String, private val baseUrl: String) : Provide
         val domains = mutableListOf<String>()
         members?.filterIsInstance<JsonObject>()?.forEach { o ->
             val active = (o["isActive"] as? JsonPrimitive)?.booleanOrNull ?: false
+            val verified = (o["isVerified"] as? JsonPrimitive)?.booleanOrNull ?: false
             val domain = ProviderUtil.str(o, "domain")
-            if (active && domain.isNotEmpty()) domains.add(domain)
+            if ((active || verified) && domain.isNotEmpty()) domains.add(domain)
         }
         return domains
     }
@@ -48,7 +53,8 @@ class MailTm(private val channel: String, private val baseUrl: String) : Provide
     override suspend fun generate(): EmailInfo {
         val domains = getDomains()
         if (domains.isEmpty()) throw RuntimeException("$channel: 无可用域名")
-        val address = "${ProviderUtil.randomString(12)}@${domains.random()}"
+        val chosen = fixedDomain.ifEmpty { domains.random() }
+        val address = "${ProviderUtil.randomString(12)}@$chosen"
         val password = ProviderUtil.randomString(16)
         val payload = buildJsonObject {
             put("address", address)

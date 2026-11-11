@@ -180,6 +180,37 @@ tm_email_info_t *tm_provider_mailmomy_generate(void) {
   return info;
 }
 
+/* 为 mailmomy 指定域名的镜像渠道生成邮箱（本地拼地址，token 即邮箱地址） */
+tm_email_info_t *tm_provider_mailmomy_generate_domain(const char *domain) {
+  if (!domain || !domain[0])
+    return NULL;
+
+  char local[16];
+  mailmomy_random_local(local, sizeof(local));
+
+  size_t email_cap = strlen(local) + strlen(domain) + 2;
+  char *email_addr = (char *)malloc(email_cap);
+  if (!email_addr)
+    return NULL;
+  snprintf(email_addr, email_cap, "%s@%s", local, domain);
+
+  tm_email_info_t *info = tm_email_info_new();
+  if (!info) {
+    free(email_addr);
+    return NULL;
+  }
+  info->channel = CHANNEL_MAILMOMY;
+  info->email = email_addr;
+  info->token = tm_strdup(email_addr);
+  if (!info->token) {
+    tm_free_email_info(info);
+    return NULL;
+  }
+  info->expires_at = 0;
+  info->created_at = tm_strdup("");
+  return info;
+}
+
 /**
  * 获取 mailmomy.com 邮件列表
  */

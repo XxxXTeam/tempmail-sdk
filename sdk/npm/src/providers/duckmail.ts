@@ -65,8 +65,9 @@ async function getDomains(): Promise<string[]> {
 
   const data = await response.json();
   const members = parseHydraMember(data);
+  /* /domains 实际返回 isVerified（而非 isActive），两者任一为真即视为可用域名 */
   return members
-    .filter((d: any) => d && d.isActive !== false)
+    .filter((d: any) => d && (d.isActive || d.isVerified))
     .map((d: any) => d.domain)
     .filter(Boolean);
 }
@@ -117,6 +118,27 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
   const domain = domains[randomInt(domains.length)];
   const username = randomString(12);
   const address = `${username}@${domain}`;
+  const password = randomString(16);
+
+  const account = await createAccount(address, password);
+  const token = await getToken(address, password);
+
+  return {
+    channel: CHANNEL,
+    email: address,
+    token: token,
+    createdAt: account.createdAt,
+  };
+}
+
+/**
+ * 使用指定域名创建邮箱：跳过随机选域，复用建账号与取 token 流程。
+ * 供同一 provider 派生的固定域名渠道使用。
+ */
+export async function generateEmailWithDomain(
+  domain: string,
+): Promise<InternalEmailInfo> {
+  const address = `${randomString(12)}@${domain}`;
   const password = randomString(16);
 
   const account = await createAccount(address, password);

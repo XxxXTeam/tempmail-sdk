@@ -12,11 +12,11 @@
 [![Gem Version](https://badge.fury.io/rb/tempmail_sdk.svg)](https://rubygems.org/gems/tempmail_sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A ten-language temporary-email SDK (**Go, npm, Rust, Python, C, Java, C#, Ruby, PHP, Kotlin**) that exposes **279** `channel` identifiers, consolidated into roughly **110** independent providers. Fixed domains, bare domains, mirror domains and multiple domains of the same API all count as a single provider. Every SDK shares the same channel identifier strings, count and order (aligned with `.baseline_channels.txt`). All channels return a **unified, normalized email format**, so you never have to deal with the differences between individual upstream APIs.
+A ten-language temporary-email SDK (**Go, npm, Rust, Python, C, Java, C#, Ruby, PHP, Kotlin**) that exposes **304** `channel` identifiers, consolidated into roughly **110** independent providers. Fixed domains, bare domains, mirror domains and multiple domains of the same API all count as a single provider. Every SDK shares the same channel identifier strings, count and order (aligned with `.baseline_channels.txt`). All channels return a **unified, normalized email format**, so you never have to deal with the differences between individual upstream APIs.
 
 ## ✨ Features
 
-- 🌐 **279 `channel` identifiers shared across all ten SDKs, consolidated into ~110 independent providers** — identifier strings, count and list order are identical on every platform (aligned with `.baseline_channels.txt`)
+- 🌐 **304 `channel` identifiers shared across all ten SDKs, consolidated into ~110 independent providers** — identifier strings, count and list order are identical on every platform (aligned with `.baseline_channels.txt`)
 - 📐 **Unified normalized response format** — the email data structure is identical regardless of channel
 - 📦 Ten SDKs: Go, npm (TypeScript), Rust, Python, C, Java, C#, Ruby, PHP, Kotlin
 - 🔄 Email generation and inbox polling
@@ -32,7 +32,7 @@ A ten-language temporary-email SDK (**Go, npm, Rust, Python, C, Java, C#, Ruby, 
 
 All SDKs share the same public channel set, count and list order (returned by `listChannels` / `ListChannels` / `list_channels` / `tm_list_channels()` and their equivalents). When generating a random email, each SDK independently shuffles its own attempt order — cross-SDK random order is neither required nor promised. Channel counts are measured by independent provider: fixed domains, bare domains, mirror domains and multiple domains of the same API are not counted separately.
 
-Below are 30 representative channels. The complete list of all 279 identifiers is in [`.baseline_channels.txt`](.baseline_channels.txt).
+Below are 30 representative channels. The complete list of all 304 identifiers is in [`.baseline_channels.txt`](.baseline_channels.txt).
 
 <details>
 <summary>Show 30 representative channels</summary>

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Kotlin 语言临时邮箱 SDK，聚合 **296** 个第三方临时邮箱渠道标识，与 Go / npm / Rust / Python / C / PHP 等其余各端保持一致；所有渠道返回**统一标准化邮件格式**。基于 Kotlin 协程（`suspend` 函数）与 Ktor 客户端，序列化使用 `kotlinx.serialization`。
+Kotlin 语言临时邮箱 SDK，聚合 **304** 个第三方临时邮箱渠道标识，与 Go / npm / Rust / Python / C / PHP 等其余各端保持一致；所有渠道返回**统一标准化邮件格式**。基于 Kotlin 协程（`suspend` 函数）与 Ktor 客户端，序列化使用 `kotlinx.serialization`。
 
 ## 安装
 

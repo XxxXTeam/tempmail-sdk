@@ -17,7 +17,6 @@ use ChanhanzhanX\TempMail\Providers\Fmail;
 use ChanhanzhanX\TempMail\Providers\HarakiriMail;
 use ChanhanzhanX\TempMail\Providers\Inboxes;
 use ChanhanzhanX\TempMail\Providers\InboxKitten;
-use ChanhanzhanX\TempMail\Providers\M2u;
 use ChanhanzhanX\TempMail\Providers\Mail10s;
 use ChanhanzhanX\TempMail\Providers\Mail123;
 use ChanhanzhanX\TempMail\Providers\FakeLegal;
@@ -31,7 +30,6 @@ use ChanhanzhanX\TempMail\Providers\Mailinator;
 use ChanhanzhanX\TempMail\Providers\Mailmomy;
 use ChanhanzhanX\TempMail\Providers\MailSunls;
 use ChanhanzhanX\TempMail\Providers\MailTm;
-use ChanhanzhanX\TempMail\Providers\Mffac;
 use ChanhanzhanX\TempMail\Providers\Moakt;
 use ChanhanzhanX\TempMail\Providers\Neighbours;
 use ChanhanzhanX\TempMail\Providers\NeighboursSh;
@@ -40,7 +38,6 @@ use ChanhanzhanX\TempMail\Providers\Ockito;
 use ChanhanzhanX\TempMail\Providers\RestmailNet;
 use ChanhanzhanX\TempMail\Providers\Smailpro;
 use ChanhanzhanX\TempMail\Providers\LinshiCo;
-use ChanhanzhanX\TempMail\Providers\MjjCm;
 use ChanhanzhanX\TempMail\Providers\TempmailCn;
 use ChanhanzhanX\TempMail\Providers\Vip215;
 use ChanhanzhanX\TempMail\Providers\Stub;
@@ -98,7 +95,6 @@ use ChanhanzhanX\TempMail\Providers\TaEasy;
 use ChanhanzhanX\TempMail\Providers\TempMailOrg;
 use ChanhanzhanX\TempMail\Providers\TempEmailCo;
 use ChanhanzhanX\TempMail\Providers\TempEmailInfo;
-use ChanhanzhanX\TempMail\Providers\TempEmailsNet;
 use ChanhanzhanX\TempMail\Providers\TempFastMail;
 use ChanhanzhanX\TempMail\Providers\TempGmailer;
 use ChanhanzhanX\TempMail\Providers\TempgoEmail;
@@ -129,7 +125,6 @@ use ChanhanzhanX\TempMail\Providers\TemporarymailCom;
 use ChanhanzhanX\TempMail\Providers\ThirtyMinEmail;
 use ChanhanzhanX\TempMail\Providers\LinshiXyz;
 use ChanhanzhanX\TempMail\Providers\Crazymailing;
-use ChanhanzhanX\TempMail\Providers\NoxenDe5Net;
 use ChanhanzhanX\TempMail\Providers\Nukemail;
 use ChanhanzhanX\TempMail\Providers\Shadowmail;
 use ChanhanzhanX\TempMail\Providers\Flybymail;
@@ -146,7 +141,7 @@ use ChanhanzhanX\TempMail\Providers\GeneratorEmail;
 /**
  * 渠道注册表：单一事实来源
  *
- * 按 ChannelData 定义的顺序（与 baseline 逐行一致）注册全部 296 个渠道。
+ * 按 ChannelData 定义的顺序（与 baseline 逐行一致）注册全部 290 个渠道。
  * 有真实现的渠道绑定对应 provider 闭包，其余绑定桩实现。
  * listChannels / getChannelInfo / 两个 dispatch 全部由注册表派生。
  */
@@ -406,30 +401,14 @@ final class Registry
             'getnada-net' => 'getnada.net',
             'jawatengah-net' => 'jawatengah.net',
             'jawatimur-net' => 'jawatimur.net',
-            'kalimantanbarat-net' => 'kalimantanbarat.net',
-            'kalimantanselatan-net' => 'kalimantanselatan.net',
-            'kalimantantengah-net' => 'kalimantantengah.net',
             'kalimantantimur-net' => 'kalimantantimur.net',
-            'kalimantanutara-net' => 'kalimantanutara.net',
-            'kepulauanriau-net' => 'kepulauanriau.net',
             'luxury345-com' => 'luxury345.com',
-            'malukuutara-net' => 'malukuutara.net',
-            'nusatenggarabarat-net' => 'nusatenggarabarat.net',
-            'nusatenggaratimur-net' => 'nusatenggaratimur.net',
-            'papuabarat-net' => 'papuabarat.net',
-            'papuabaratdaya-net' => 'papuabaratdaya.net',
-            'papuaselatan-net' => 'papuaselatan.net',
             'pehol-com' => 'pehol.com',
             'ptruyen-com' => 'ptruyen.com',
-            'pulaubali-net' => 'pulaubali.net',
             'riau-net' => 'riau.net',
             'seokey-org' => 'seokey.org',
-            'sulawesibarat-net' => 'sulawesibarat.net',
             'sulawesiselatan-net' => 'sulawesiselatan.net',
-            'sulawesitengah-net' => 'sulawesitengah.net',
-            'sulawesitenggara-net' => 'sulawesitenggara.net',
             'sumaterabarat-net' => 'sumaterabarat.net',
-            'sumateraselatan-net' => 'sumateraselatan.net',
             'sumaterautara-net' => 'sumaterautara.net',
             'villatogel-com' => 'villatogel.com',
         ];
@@ -459,6 +438,8 @@ final class Registry
             'proid-cloud-ip-cc' => 'proid.cloud-ip.cc',
             'sbook-pics' => 'sbook.pics',
             'xue32-buzz' => 'xue32.buzz',
+            '2famail-com' => '2famail.com',
+            'xikemail-com' => 'xikemail.com',
             'mailmomy' => null,
         ];
         foreach ($mailmomyChannels as $slug => $fixedDomain) {
@@ -592,12 +573,6 @@ final class Registry
             static fn (string $e, ?string $t): array => MailholeDe::getEmails($t !== null && $t !== '' ? $t : $e, $t),
         ];
 
-        // mffac：POST 创建邮箱 + 详情补全
-        $ov['mffac'] = [
-            static fn (GenerateEmailOptions $o): EmailInfo => Mffac::generate(),
-            static fn (string $e, ?string $t): array => Mffac::getEmails($e, $t ?? ''),
-        ];
-
         // neighbours：拉域名后本地生成地址
         $ov['neighbours'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => Neighbours::generate($o->domain),
@@ -678,12 +653,6 @@ final class Registry
             static fn (string $e, ?string $t): array => TempmailCn::getEmails($e, $t),
         ];
 
-        // mjj-cm：Socket.IO shortid 协议
-        $ov['mjj-cm'] = [
-            static fn (GenerateEmailOptions $o): EmailInfo => MjjCm::generate(),
-            static fn (string $e, ?string $t): array => MjjCm::getEmails($e, $t),
-        ];
-
         // linshi-co：Socket.IO shortid 协议
         $ov['linshi-co'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => LinshiCo::generate(),
@@ -758,16 +727,52 @@ final class Registry
             static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
         ];
 
+        // inboxes.com 镜像域名渠道：固定域名生成邮箱，回填各自渠道标识
+        $ov['blondmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('blondmail.com', 'blondmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['chapsmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('chapsmail.com', 'chapsmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['clowmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('clowmail.com', 'clowmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['dropjar-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('dropjar.com', 'dropjar-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['fivermail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('fivermail.com', 'fivermail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['getairmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('getairmail.com', 'getairmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['getmule-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('getmule.com', 'getmule-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['inboxbear-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('inboxbear.com', 'inboxbear-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['replyloop-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('replyloop.com', 'replyloop-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['temptami-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('temptami.com', 'temptami-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+
         // inboxkitten：本地生成邮箱，storage 补全正文
         $ov['inboxkitten'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => InboxKitten::generate(),
             static fn (string $e, ?string $t): array => InboxKitten::getEmails($e),
-        ];
-
-        // m2u：token+view_token 打包鉴权
-        $ov['m2u'] = [
-            static fn (GenerateEmailOptions $o): EmailInfo => M2u::generate(),
-            static fn (string $e, ?string $t): array => M2u::getEmails($e, $t),
         ];
 
         // mail10s：本地生成邮箱，token 即邮箱
@@ -1030,12 +1035,6 @@ final class Registry
             static fn (string $e, ?string $t): array => TempEmailInfo::getEmails($e, $t),
         ];
 
-        // tempemails-net：CSRF meta + session cookie，POST /get_messages + GET /view
-        $ov['tempemails-net'] = [
-            static fn (GenerateEmailOptions $o): EmailInfo => TempEmailsNet::generate(),
-            static fn (string $e, ?string $t): array => TempEmailsNet::getEmails($e, $t),
-        ];
-
         // tempfastmail：uuid token，POST /api/email-box + GET 读信
         $ov['tempfastmail'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => TempFastMail::generate(),
@@ -1216,12 +1215,6 @@ final class Registry
             static fn (string $e, ?string $t): array => Crazymailing::getEmails($e, $t ?? ''),
         ];
 
-        // noxen-de5-net：UniMail-Bot 公共实例（guest 登录 JWT Cookie 会话 + 随机建箱 + R2 下载 EML 解析）
-        $ov['noxen-de5-net'] = [
-            static fn (GenerateEmailOptions $o): EmailInfo => NoxenDe5Net::generate($o->domain),
-            static fn (string $e, ?string $t): array => NoxenDe5Net::getEmails($e, $t ?? ''),
-        ];
-
         // nukemail：SHA-256 PoW（前缀 4 零）建箱 + nukemail_token Cookie 会话读信
         $ov['nukemail'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => Nukemail::generate(),
@@ -1292,6 +1285,62 @@ final class Registry
         $ov['generator-email'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => GeneratorEmail::generate(),
             static fn (string $e, ?string $t): array => GeneratorEmail::getEmails($e, $t ?? ''),
+        ];
+
+        // inboxes.com 镜像域名渠道（固定域名生成 + 回填渠道标识）
+        $ov['gimpmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('gimpmail.com', 'gimpmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['givmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('givmail.com', 'givmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['guysmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('guysmail.com', 'guysmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['robot-mail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('robot-mail.com', 'robot-mail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['tupmail-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('tupmail.com', 'tupmail-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+        $ov['vomoto-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Inboxes::generate('vomoto.com', 'vomoto-com'),
+            static fn (string $e, ?string $t): array => Inboxes::getEmails($e),
+        ];
+
+        // mail.cx 镜像域名渠道（固定域名 + 回填渠道标识）
+        $ov['uqu-me'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => MailCx::generate('uqu.me', 'uqu-me'),
+            static fn (string $e, ?string $t): array => MailCx::getEmails($e, $t),
+        ];
+        $ov['9k3r-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => MailCx::generate('9k3r.com', '9k3r-com'),
+            static fn (string $e, ?string $t): array => MailCx::getEmails($e, $t),
+        ];
+
+        // mail.tm 镜像域名渠道（指定域名建账号 + 回填渠道标识）
+        $ov['fldubai-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => MailTm::generate('fldubai-com', 'fldubai.com'),
+            static fn (string $e, ?string $t): array => MailTm::getEmails($e, $t),
+        ];
+
+        // duckmail 镜像域名渠道（指定域名建账号 + 回填渠道标识）
+        $ov['niceground-shop'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => DuckMail::generate('niceground-shop', 'niceground.shop'),
+            static fn (string $e, ?string $t): array => DuckMail::getEmails($e, $t),
+        ];
+        $ov['glasswhitehub-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => DuckMail::generate('glasswhitehub-com', 'glasswhitehub.com'),
+            static fn (string $e, ?string $t): array => DuckMail::getEmails($e, $t),
+        ];
+        $ov['hubaiclass-org'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => DuckMail::generate('hubaiclass-org', 'hubaiclass.org'),
+            static fn (string $e, ?string $t): array => DuckMail::getEmails($e, $t),
         ];
 
         return $ov;

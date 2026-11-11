@@ -44,6 +44,16 @@ func genTenminuteVariant(domain string, channel Channel) (*EmailInfo, error) {
 	return info, nil
 }
 
+/* genInboxesVariant 生成 inboxes 服务方指定域名的镜像渠道邮箱并回填渠道标识 */
+func genInboxesVariant(domain string, channel Channel) (*EmailInfo, error) {
+	info, err := fromMailbox(prov.InboxesGenerate(fixedDomain(domain)))
+	if err != nil {
+		return nil, err
+	}
+	info.Channel = channel
+	return info, nil
+}
+
 type ChannelInfo struct {
 	/* 渠道标识 */
 	Channel Channel

@@ -202,6 +202,23 @@ func MailTmGenerate() (*CreatedMailbox, error) {
 	return info, nil
 }
 
+/* MailTmGenerateAtDomain 为 mail.tm 指定域名的镜像渠道创建账号并回填渠道标识 */
+func MailTmGenerateAtDomain(domain, channel string) (*CreatedMailbox, error) {
+	address := fmt.Sprintf("%s@%s", randomStr(12), domain)
+	password := randomStr(16)
+	account, err := mailTmCreateAccount(address, password)
+	if err != nil {
+		return nil, err
+	}
+	token, err := mailTmGetToken(address, password)
+	if err != nil {
+		return nil, err
+	}
+	info := &CreatedMailbox{Channel: channel, Email: address, Token: token}
+	info.CreatedAt = account.CreatedAt
+	return info, nil
+}
+
 // mailTmFlattenMessage 将 mail.tm 的消息格式扁平化为 normalizeEmail 可处理的 map
 func mailTmFlattenMessage(raw map[string]interface{}, recipientEmail string) map[string]interface{} {
 	flat := map[string]interface{}{

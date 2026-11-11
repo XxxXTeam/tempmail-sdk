@@ -104,11 +104,15 @@ final class Inboxes
         ];
     }
 
-    public static function generate(?string $domain = null): EmailInfo
+    /**
+     * @param string|null $domain  指定域名；镜像渠道传入固定域名
+     * @param string|null $channel 回填的渠道标识；缺省为 'inboxes'
+     */
+    public static function generate(?string $domain = null, ?string $channel = null): EmailInfo
     {
         $domains = self::getDomains();
         $selected = self::pickDomain($domains, $domain);
-        return new EmailInfo(self::CHANNEL, self::randomLocal() . '@' . $selected);
+        return new EmailInfo($channel ?? self::CHANNEL, self::randomLocal() . '@' . $selected);
     }
 
     /**

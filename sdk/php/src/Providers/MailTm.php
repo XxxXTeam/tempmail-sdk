@@ -54,14 +54,14 @@ final class MailTm
         return $domains;
     }
 
-    public static function generate(string $channel = 'mail-tm'): EmailInfo
+    public static function generate(string $channel = 'mail-tm', ?string $fixedDomain = null): EmailInfo
     {
         $selectedChannel = trim($channel) ?: 'mail-tm';
         $domains = self::getDomains();
         if (empty($domains)) {
             throw new \RuntimeException('mail-tm: 无可用域名');
         }
-        $domain = $domains[array_rand($domains)];
+        $domain = $fixedDomain !== null && $fixedDomain !== '' ? $fixedDomain : $domains[array_rand($domains)];
         $address = self::randomString(12) . '@' . $domain;
         $password = self::randomString(16);
 

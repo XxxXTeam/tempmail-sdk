@@ -33,7 +33,6 @@ add_library(tempmail_sdk STATIC
     src/providers/smail_pw.c
     src/providers/vip_215.c
     src/providers/fake_legal.c
-    src/providers/mffac.c
     src/providers/ta_easy.c
     src/providers/moakt.c
     src/providers/tenminute_one.c
@@ -71,7 +70,6 @@ add_library(tempmail_sdk STATIC
     src/providers/inboxes.c
     src/providers/uncorreotemporal.c
     src/providers/zhujump.c
-    src/providers/m2u.c
     src/providers/tempy_email.c
     src/providers/fmail.c
     src/providers/ockito.c
@@ -95,7 +93,6 @@ add_library(tempmail_sdk STATIC
     src/providers/mailtemp_cc.c
     src/providers/minuteinbox.c
     src/providers/tempemail_co.c
-    src/providers/tempemails_net.c
     src/providers/altmails.c
     src/providers/tempemail_info.c
     src/providers/smailpro.c
@@ -219,7 +216,6 @@ add_library(tempmail_sdk STATIC
     src/providers/email30min.c
     src/providers/linshi_xyz.c
     src/providers/crazymailing.c
-    src/providers/noxen_de5_net.c
     src/providers/nukemail.c
     src/providers/shadowmail.c
     src/providers/flybymail.c

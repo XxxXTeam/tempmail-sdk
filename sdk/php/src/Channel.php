@@ -7,7 +7,7 @@ namespace ChanhanzhanX\TempMail;
 /**
  * 渠道标识常量类
  *
- * 暴露全部 296 个渠道 slug 常量，便于调用方以类型友好的方式引用渠道。
+ * 暴露全部 304 个渠道 slug 常量，便于调用方以类型友好的方式引用渠道。
  * 常量值即渠道标识字符串。由 .channel_meta.json 生成。
  */
 final class Channel
@@ -34,8 +34,6 @@ final class Channel
     public const IMXWE_COM = "imxwe-com";
     /** 临时邮（linshiyou.com） */
     public const LINSHIYOU = "linshiyou";
-    /** MFFAC（mffac.com） */
-    public const MFFAC = "mffac";
     /** TempMail LOL（tempmail.lol） */
     public const TEMPMAIL_LOL = "tempmail-lol";
     /** ChatGPT Mail（mail.chatgpt.org.uk） */
@@ -106,54 +104,22 @@ final class Channel
     public const JAWATENGAH_NET = "jawatengah-net";
     /** jawatimur.net（getnada.net） */
     public const JAWATIMUR_NET = "jawatimur-net";
-    /** kalimantanbarat.net（getnada.net） */
-    public const KALIMANTANBARAT_NET = "kalimantanbarat-net";
-    /** kalimantanselatan.net（getnada.net） */
-    public const KALIMANTANSELATAN_NET = "kalimantanselatan-net";
-    /** kalimantantengah.net（getnada.net） */
-    public const KALIMANTANTENGAH_NET = "kalimantantengah-net";
     /** kalimantantimur.net（getnada.net） */
     public const KALIMANTANTIMUR_NET = "kalimantantimur-net";
-    /** kalimantanutara.net（getnada.net） */
-    public const KALIMANTANUTARA_NET = "kalimantanutara-net";
-    /** kepulauanriau.net（getnada.net） */
-    public const KEPULAUANRIAU_NET = "kepulauanriau-net";
     /** luxury345.com（getnada.net） */
     public const LUXURY345_COM = "luxury345-com";
-    /** malukuutara.net（getnada.net） */
-    public const MALUKUUTARA_NET = "malukuutara-net";
-    /** nusatenggarabarat.net（getnada.net） */
-    public const NUSATENGGARABARAT_NET = "nusatenggarabarat-net";
-    /** nusatenggaratimur.net（getnada.net） */
-    public const NUSATENGGARATIMUR_NET = "nusatenggaratimur-net";
-    /** papuabarat.net（getnada.net） */
-    public const PAPUABARAT_NET = "papuabarat-net";
-    /** papuabaratdaya.net（getnada.net） */
-    public const PAPUABARATDAYA_NET = "papuabaratdaya-net";
-    /** papuaselatan.net（getnada.net） */
-    public const PAPUASELATAN_NET = "papuaselatan-net";
     /** pehol.com（getnada.net） */
     public const PEHOL_COM = "pehol-com";
     /** ptruyen.com（getnada.net） */
     public const PTRUYEN_COM = "ptruyen-com";
-    /** pulaubali.net（getnada.net） */
-    public const PULAUBALI_NET = "pulaubali-net";
     /** riau.net（getnada.net） */
     public const RIAU_NET = "riau-net";
     /** seokey.org（getnada.net） */
     public const SEOKEY_ORG = "seokey-org";
-    /** sulawesibarat.net（getnada.net） */
-    public const SULAWESIBARAT_NET = "sulawesibarat-net";
     /** sulawesiselatan.net（getnada.net） */
     public const SULAWESISELATAN_NET = "sulawesiselatan-net";
-    /** sulawesitengah.net（getnada.net） */
-    public const SULAWESITENGAH_NET = "sulawesitengah-net";
-    /** sulawesitenggara.net（getnada.net） */
-    public const SULAWESITENGGARA_NET = "sulawesitenggara-net";
     /** sumaterabarat.net（getnada.net） */
     public const SUMATERABARAT_NET = "sumaterabarat-net";
-    /** sumateraselatan.net（getnada.net） */
-    public const SUMATERASELATAN_NET = "sumateraselatan-net";
     /** sumaterautara.net（getnada.net） */
     public const SUMATERAUTARA_NET = "sumaterautara-net";
     /** villatogel.com（getnada.net） */
@@ -230,8 +196,6 @@ final class Channel
     public const BAREED_WS = "bareed-ws";
     /** Email10Min（email10min.com） */
     public const EMAIL10MIN = "email10min";
-    /** MJJ Mail（mjj.cm） */
-    public const MJJ_CM = "mjj-cm";
     /** 临时Co（linshi.co） */
     public const LINSHI_CO = "linshi-co";
     /** HarakiriMail（harakirimail.com） */
@@ -288,8 +252,6 @@ final class Channel
     public const GUERRILLAMAILBLOCK = "guerrillamailblock";
     /** GuerrillaMail WWW（guerrillamail.com） */
     public const GUERRILLAMAIL_COM_WWW = "guerrillamail-com-www";
-    /** MailToYou（m2u.io） */
-    public const M2U = "m2u";
     /** Tempy Email（tempy.email） */
     public const TEMPY_EMAIL = "tempy-email";
     /** FMail（fmail.men） */
@@ -338,8 +300,6 @@ final class Channel
     public const MAILCATCH = "mailcatch";
     /** TempEmail.co（tempemail.co） */
     public const TEMPEMAIL_CO = "tempemail-co";
-    /** TempEmails.net（tempemails.net） */
-    public const TEMPEMAILS_NET = "tempemails-net";
     /** AltMails（tempmail.altmails.com） */
     public const ALTMAILS = "altmails";
     /** TempEmailInfo（tempemail.info） */
@@ -590,8 +550,6 @@ final class Channel
     public const LINSHI_XYZ = "linshi-xyz";
     /** CrazyMailing（crazymailing.com） */
     public const CRAZYMAILING = "crazymailing";
-    /** UniMail Bot（tempmail.noxen.de5.net） */
-    public const NOXEN_DE5_NET = "noxen-de5-net";
     /** NukeMail（nukemail.app） */
     public const NUKEMAIL = "nukemail";
     /** ShadowMail（shadowmail.win） */
@@ -614,4 +572,52 @@ final class Channel
     public const INTERNXT = "internxt";
     /** GeneratorEmail（generator.email） */
     public const GENERATOR_EMAIL = "generator-email";
+    /** blondmail.com（inboxes.com） */
+    public const BLONDMAIL_COM = "blondmail-com";
+    /** chapsmail.com（inboxes.com） */
+    public const CHAPSMAIL_COM = "chapsmail-com";
+    /** clowmail.com（inboxes.com） */
+    public const CLOWMAIL_COM = "clowmail-com";
+    /** dropjar.com（inboxes.com） */
+    public const DROPJAR_COM = "dropjar-com";
+    /** fivermail.com（inboxes.com） */
+    public const FIVERMAIL_COM = "fivermail-com";
+    /** getairmail.com（inboxes.com） */
+    public const GETAIRMAIL_COM = "getairmail-com";
+    /** getmule.com（inboxes.com） */
+    public const GETMULE_COM = "getmule-com";
+    /** inboxbear.com（inboxes.com） */
+    public const INBOXBEAR_COM = "inboxbear-com";
+    /** replyloop.com（inboxes.com） */
+    public const REPLYLOOP_COM = "replyloop-com";
+    /** temptami.com（inboxes.com） */
+    public const TEMPTAMI_COM = "temptami-com";
+    /** gimpmail.com（inboxes.com） */
+    public const GIMPMAIL_COM = "gimpmail-com";
+    /** givmail.com（inboxes.com） */
+    public const GIVMAIL_COM = "givmail-com";
+    /** guysmail.com（inboxes.com） */
+    public const GUYSMAIL_COM = "guysmail-com";
+    /** robot-mail.com（inboxes.com） */
+    public const ROBOT_MAIL_COM = "robot-mail-com";
+    /** tupmail.com（inboxes.com） */
+    public const TUPMAIL_COM = "tupmail-com";
+    /** vomoto.com（inboxes.com） */
+    public const VOMOTO_COM = "vomoto-com";
+    /** uqu.me（mail.cx） */
+    public const UQU_ME = "uqu-me";
+    /** 9k3r.com（mail.cx） */
+    public const C_9K3R_COM = "9k3r-com";
+    /** Mailmomy (2famail.com)（mailmomy.com） */
+    public const C_2FAMAIL_COM = "2famail-com";
+    /** Mailmomy (xikemail.com)（mailmomy.com） */
+    public const XIKEMAIL_COM = "xikemail-com";
+    /** Mail.tm (fldubai.com)（mail.tm） */
+    public const FLDUBAI_COM = "fldubai-com";
+    /** DuckMail (niceground.shop)（duckmail.sbs） */
+    public const NICEGROUND_SHOP = "niceground-shop";
+    /** DuckMail (glasswhitehub.com)（duckmail.sbs） */
+    public const GLASSWHITEHUB_COM = "glasswhitehub-com";
+    /** DuckMail (hubaiclass.org)（duckmail.sbs） */
+    public const HUBAICLASS_ORG = "hubaiclass-org";
 }

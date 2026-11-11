@@ -50,7 +50,6 @@ CHANNEL_DOMAINS: Dict[str, List[str]] = {
     "maildrop-cc": ["maildrop.cc"],
     "smail-pw": ["smail.pw"],
     "inboxkitten": ["inboxkitten.com"],
-    "mffac": ["mffac.com"],
     "nimail": ["nimail.cn"],
     "mailgolem": ["mailgolem.com"],
     "minuteinbox": ["minafter.com"],
@@ -79,6 +78,32 @@ CHANNEL_DOMAINS: Dict[str, List[str]] = {
 
     # xkx.me
     "xkx-me": ["xkx.me"],
+
+    # inboxes.com 镜像域名
+    "blondmail-com": ["blondmail.com"],
+    "chapsmail-com": ["chapsmail.com"],
+    "clowmail-com": ["clowmail.com"],
+    "dropjar-com": ["dropjar.com"],
+    "fivermail-com": ["fivermail.com"],
+    "getairmail-com": ["getairmail.com"],
+    "getmule-com": ["getmule.com"],
+    "inboxbear-com": ["inboxbear.com"],
+    "replyloop-com": ["replyloop.com"],
+    "temptami-com": ["temptami.com"],
+    "gimpmail-com": ["gimpmail.com"],
+    "givmail-com": ["givmail.com"],
+    "guysmail-com": ["guysmail.com"],
+    "robot-mail-com": ["robot-mail.com"],
+    "tupmail-com": ["tupmail.com"],
+    "vomoto-com": ["vomoto.com"],
+    "uqu-me": ["uqu.me"],
+    "9k3r-com": ["9k3r.com"],
+    "2famail-com": ["2famail.com"],
+    "xikemail-com": ["xikemail.com"],
+    "fldubai-com": ["fldubai.com"],
+    "niceground-shop": ["niceground.shop"],
+    "glasswhitehub-com": ["glasswhitehub.com"],
+    "hubaiclass-org": ["hubaiclass.org"],
 }
 
 # 域名通过 API 动态获取的渠道（筛选时默认保留）

@@ -99,6 +99,30 @@ static CHANNEL_DOMAINS: LazyLock<HashMap<Channel, Vec<&'static str>>> = LazyLock
         vec!["disposablemail.dev", "mailmehere.cc"],
     );
     m.insert(Channel::Minuteinbox, vec!["minafter.com"]);
+    m.insert(Channel::BlondmailCom, vec!["blondmail.com"]);
+    m.insert(Channel::ChapsmailCom, vec!["chapsmail.com"]);
+    m.insert(Channel::ClowmailCom, vec!["clowmail.com"]);
+    m.insert(Channel::DropjarCom, vec!["dropjar.com"]);
+    m.insert(Channel::FivermailCom, vec!["fivermail.com"]);
+    m.insert(Channel::GetairmailCom, vec!["getairmail.com"]);
+    m.insert(Channel::GetmuleCom, vec!["getmule.com"]);
+    m.insert(Channel::InboxbearCom, vec!["inboxbear.com"]);
+    m.insert(Channel::ReplyloopCom, vec!["replyloop.com"]);
+    m.insert(Channel::TemptamiCom, vec!["temptami.com"]);
+    m.insert(Channel::GimpmailCom, vec!["gimpmail.com"]);
+    m.insert(Channel::GivmailCom, vec!["givmail.com"]);
+    m.insert(Channel::GuysmailCom, vec!["guysmail.com"]);
+    m.insert(Channel::RobotMailCom, vec!["robot-mail.com"]);
+    m.insert(Channel::TupmailCom, vec!["tupmail.com"]);
+    m.insert(Channel::VomotoCom, vec!["vomoto.com"]);
+    m.insert(Channel::UquMe, vec!["uqu.me"]);
+    m.insert(Channel::N9k3rCom, vec!["9k3r.com"]);
+    m.insert(Channel::N2famailCom, vec!["2famail.com"]);
+    m.insert(Channel::XikemailCom, vec!["xikemail.com"]);
+    m.insert(Channel::FldubaiCom, vec!["fldubai.com"]);
+    m.insert(Channel::NicegroundShop, vec!["niceground.shop"]);
+    m.insert(Channel::GlasswhitehubCom, vec!["glasswhitehub.com"]);
+    m.insert(Channel::HubaiclassOrg, vec!["hubaiclass.org"]);
     m
 });
 

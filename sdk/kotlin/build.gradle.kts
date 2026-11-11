@@ -43,7 +43,7 @@ mavenPublishing {
 
     pom {
         name.set("TempMail SDK")
-        description.set("Kotlin SDK for temporary email services, aggregating 284 channels")
+        description.set("Kotlin SDK for temporary email services, aggregating 290 channels")
         inceptionYear.set("2026")
         url.set("https://github.com/XxxXTeam/tempmail-sdk")
         licenses {

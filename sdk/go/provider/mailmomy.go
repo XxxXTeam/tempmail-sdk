@@ -81,6 +81,12 @@ func MailmomyGenerate() (*CreatedMailbox, error) {
 	}, nil
 }
 
+/* MailmomyVariantGenerate 为 mailmomy 指定域名的镜像渠道生成邮箱并回填渠道标识 */
+func MailmomyVariantGenerate(domain, channel string) (*CreatedMailbox, error) {
+	email := fmt.Sprintf("%s@%s", mailmomyRandomLocal(10), domain)
+	return &CreatedMailbox{Channel: channel, Email: email, Token: email}, nil
+}
+
 // mailmomyMessage mailmomy 邮件消息
 type mailmomyMessage struct {
 	ID         string `json:"id"`

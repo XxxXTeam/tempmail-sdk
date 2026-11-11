@@ -8,20 +8,16 @@ import com.xxxxteam.tempmail.Provider
 import kotlinx.serialization.json.*
 
 /**
- * Inboxes 渠道（inboxes.com）。
+ * Inboxes 渠道（inboxes.com）及其镜像域名变体。
  *
  * 无状态：generate 拉取可用域名后本地拼接邮箱，getEmails 按需拉取每封详情。
+ * 通过构造参数支持「同后端、多固定域名」变体：domain 指定服务方域名，
+ * channel 回填到 EmailInfo，保证返回渠道标识与注册项一致。
+ *
+ * @property channel 对外渠道标识，默认 "inboxes"
+ * @property domain 指定固定域名，为空时由服务端域名池默认选取
  */
-object Inboxes : Provider {
-
-    private const val API_BASE = "https://inboxes.com/api/v2"
-    private const val DEFAULT_DOMAIN = "blondmail.com"
-    private val HEADERS = mapOf(
-        "Accept" to "application/json",
-        "Origin" to "https://inboxes.com",
-        "Referer" to "https://inboxes.com/",
-        "User-Agent" to "Mozilla/5.0",
-    )
+class Inboxes(private val channel: String = "inboxes", private val domain: String = "") : Provider {
 
     /** 获取可用域名列表。 */
     private suspend fun getDomains(): List<String> {
@@ -37,11 +33,18 @@ object Inboxes : Provider {
         return domains
     }
 
-    /** 创建临时邮箱。 */
+    /** 创建临时邮箱（支持指定固定域名），并回填 channel 标识。 */
     override suspend fun generate(): EmailInfo {
         val domains = getDomains()
-        val selected = if (domains.contains(DEFAULT_DOMAIN)) DEFAULT_DOMAIN else domains[0]
-        return EmailInfo(email = ProviderUtil.randomLocalSdk() + "@" + selected, channel = "inboxes")
+        val wanted = domain.trim().lowercase()
+        val selected = if (wanted.isNotEmpty()) {
+            domains.firstOrNull { it.lowercase() == wanted } ?: DEFAULT_DOMAIN
+        } else if (domains.contains(DEFAULT_DOMAIN)) {
+            DEFAULT_DOMAIN
+        } else {
+            domains[0]
+        }
+        return EmailInfo(email = ProviderUtil.randomLocalSdk() + "@" + selected, channel = channel)
     }
 
     /** 获取邮件列表。 */
@@ -76,6 +79,17 @@ object Inboxes : Provider {
         } catch (_: Exception) {
             null
         }
+    }
+
+    companion object {
+        private const val API_BASE = "https://inboxes.com/api/v2"
+        private const val DEFAULT_DOMAIN = "blondmail.com"
+        private val HEADERS = mapOf(
+            "Accept" to "application/json",
+            "Origin" to "https://inboxes.com",
+            "Referer" to "https://inboxes.com/",
+            "User-Agent" to "Mozilla/5.0",
+        )
     }
 }
 

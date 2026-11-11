@@ -15,8 +15,9 @@ import (
 const duckmailBaseURL = "https://api.duckmail.sbs"
 
 type duckmailDomainItem struct {
-	Domain   string `json:"domain"`
-	IsActive bool   `json:"isActive"`
+	Domain     string `json:"domain"`
+	IsActive   bool   `json:"isActive"`
+	IsVerified bool   `json:"isVerified"`
 }
 
 type duckmailDomainsResponse struct {
@@ -72,7 +73,7 @@ func duckmailGetDomains() ([]string, error) {
 
 	var domains []string
 	for _, d := range items {
-		if d.IsActive {
+		if d.IsActive || d.IsVerified {
 			domains = append(domains, d.Domain)
 		}
 	}
@@ -178,6 +179,23 @@ func DuckmailGenerate() (*CreatedMailbox, error) {
 	}
 
 	info := &CreatedMailbox{Channel: "duckmail", Email: address, Token: token}
+	info.CreatedAt = account.CreatedAt
+	return info, nil
+}
+
+/* DuckmailGenerateAtDomain 为 duckmail 指定域名的镜像渠道创建账号并回填渠道标识 */
+func DuckmailGenerateAtDomain(domain, channel string) (*CreatedMailbox, error) {
+	address := fmt.Sprintf("%s@%s", randomStr(12), domain)
+	password := randomStr(16)
+	account, err := duckmailCreateAccount(address, password)
+	if err != nil {
+		return nil, err
+	}
+	token, err := duckmailGetToken(address, password)
+	if err != nil {
+		return nil, err
+	}
+	info := &CreatedMailbox{Channel: channel, Email: address, Token: token}
 	info.CreatedAt = account.CreatedAt
 	return info, nil
 }

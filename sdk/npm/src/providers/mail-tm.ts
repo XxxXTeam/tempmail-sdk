@@ -130,6 +130,27 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
     createdAt: account.createdAt,
   };
 }
+
+/**
+ * 使用指定域名创建邮箱：跳过随机选域，复用建账号与取 token 流程。
+ * 供同一 provider 派生的固定域名渠道使用。
+ */
+export async function generateEmailWithDomain(
+  domain: string,
+): Promise<InternalEmailInfo> {
+  const address = `${randomString(12)}@${domain}`;
+  const password = randomString(16);
+
+  const account = await createAccount(address, password);
+  const token = await getToken(address, password);
+
+  return {
+    channel: CHANNEL,
+    email: address,
+    token: token,
+    createdAt: account.createdAt,
+  };
+}
 function flattenMessage(msg: any, recipientEmail: string): any {
   return {
     id: msg.id || "",

@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-.NET 临时邮箱 SDK，公开 **279** 个 `channel` 渠道标识，聚合 100+ 个第三方临时邮箱服务商，所有渠道返回**统一标准化格式**。渠道标识与顺序与 Go / npm / Rust / Python / C 等其余各端保持一致（十端同步）；随机生成邮箱时在本端独立打乱尝试顺序。
+.NET 临时邮箱 SDK，公开 **304** 个 `channel` 渠道标识，聚合 100+ 个第三方临时邮箱服务商，所有渠道返回**统一标准化格式**。渠道标识与顺序与 Go / npm / Rust / Python / C 等其余各端保持一致（十端同步）；随机生成邮箱时在本端独立打乱尝试顺序。
 
 ## 安装
 

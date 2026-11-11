@@ -109,12 +109,6 @@ static tm_email_info_t *tm_reg_gen_14(const tm_gen_ctx_t *ctx) {
                           CHANNEL_PULSEWEBMENU_DE);
 }
 
-static tm_email_info_t *tm_reg_gen_15(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_MFFAC */
-  (void)ctx;
-  return tm_provider_mffac_generate();
-}
-
 static tm_email_info_t *tm_reg_gen_16(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_TA_EASY */
   (void)ctx;
@@ -277,12 +271,6 @@ static tm_email_info_t *tm_reg_gen_39(const tm_gen_ctx_t *ctx) {
   return tm_provider_email10min_generate();
 }
 
-static tm_email_info_t *tm_reg_gen_40(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_MJJ_CM */
-  (void)ctx;
-  return NULL;
-}
-
 static tm_email_info_t *tm_reg_gen_41(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_LINSHI_CO */
   (void)ctx;
@@ -393,12 +381,6 @@ static tm_email_info_t *tm_reg_gen_57(const tm_gen_ctx_t *ctx) {
 static tm_email_info_t *tm_reg_gen_58(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_NEIGHBOURS */
   return tm_provider_neighbours_generate(ctx->domain);
-}
-
-static tm_email_info_t *tm_reg_gen_59(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_M2U */
-  (void)ctx;
-  return tm_provider_m2u_generate();
 }
 
 static tm_email_info_t *tm_reg_gen_60(const tm_gen_ctx_t *ctx) {
@@ -735,27 +717,6 @@ static tm_email_info_t *tm_reg_gen_110(const tm_gen_ctx_t *ctx) {
                                CHANNEL_JAWATIMUR_NET);
 }
 
-static tm_email_info_t *tm_reg_gen_111(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_KALIMANTANBARAT_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("kalimantanbarat.net"),
-                          CHANNEL_KALIMANTANBARAT_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_112(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_KALIMANTANSELATAN_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("kalimantanselatan.net"),
-                          CHANNEL_KALIMANTANSELATAN_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_113(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_KALIMANTANTENGAH_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("kalimantantengah.net"),
-                          CHANNEL_KALIMANTANTENGAH_NET);
-}
-
 static tm_email_info_t *tm_reg_gen_114(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_KALIMANTANTIMUR_NET */
   (void)ctx;
@@ -763,67 +724,11 @@ static tm_email_info_t *tm_reg_gen_114(const tm_gen_ctx_t *ctx) {
                           CHANNEL_KALIMANTANTIMUR_NET);
 }
 
-static tm_email_info_t *tm_reg_gen_115(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_KALIMANTANUTARA_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("kalimantanutara.net"),
-                          CHANNEL_KALIMANTANUTARA_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_116(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_KEPULAUANRIAU_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("kepulauanriau.net"),
-                          CHANNEL_KEPULAUANRIAU_NET);
-}
-
 static tm_email_info_t *tm_reg_gen_117(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_LUXURY345_COM */
   (void)ctx;
   return tm_with_channel(tm_provider_getnada_generate("luxury345.com"),
                                CHANNEL_LUXURY345_COM);
-}
-
-static tm_email_info_t *tm_reg_gen_118(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_MALUKUUTARA_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("malukuutara.net"),
-                               CHANNEL_MALUKUUTARA_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_119(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_NUSATENGGARABARAT_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("nusatenggarabarat.net"),
-                          CHANNEL_NUSATENGGARABARAT_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_120(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_NUSATENGGARATIMUR_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("nusatenggaratimur.net"),
-                          CHANNEL_NUSATENGGARATIMUR_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_121(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_PAPUABARAT_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("papuabarat.net"),
-                               CHANNEL_PAPUABARAT_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_122(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_PAPUABARATDAYA_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("papuabaratdaya.net"),
-                          CHANNEL_PAPUABARATDAYA_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_123(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_PAPUASELATAN_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("papuaselatan.net"),
-                               CHANNEL_PAPUASELATAN_NET);
 }
 
 static tm_email_info_t *tm_reg_gen_124(const tm_gen_ctx_t *ctx) {
@@ -840,13 +745,6 @@ static tm_email_info_t *tm_reg_gen_125(const tm_gen_ctx_t *ctx) {
                                CHANNEL_PTRUYEN_COM);
 }
 
-static tm_email_info_t *tm_reg_gen_126(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_PULAUBALI_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("pulaubali.net"),
-                               CHANNEL_PULAUBALI_NET);
-}
-
 static tm_email_info_t *tm_reg_gen_127(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_RIAU_NET */
   (void)ctx;
@@ -861,13 +759,6 @@ static tm_email_info_t *tm_reg_gen_128(const tm_gen_ctx_t *ctx) {
                                CHANNEL_SEOKEY_ORG);
 }
 
-static tm_email_info_t *tm_reg_gen_129(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_SULAWESIBARAT_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("sulawesibarat.net"),
-                          CHANNEL_SULAWESIBARAT_NET);
-}
-
 static tm_email_info_t *tm_reg_gen_130(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_SULAWESISELATAN_NET */
   (void)ctx;
@@ -875,32 +766,11 @@ static tm_email_info_t *tm_reg_gen_130(const tm_gen_ctx_t *ctx) {
                           CHANNEL_SULAWESISELATAN_NET);
 }
 
-static tm_email_info_t *tm_reg_gen_131(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_SULAWESITENGAH_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("sulawesitengah.net"),
-                          CHANNEL_SULAWESITENGAH_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_132(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_SULAWESITENGGARA_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("sulawesitenggara.net"),
-                          CHANNEL_SULAWESITENGGARA_NET);
-}
-
 static tm_email_info_t *tm_reg_gen_133(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_SUMATERABARAT_NET */
   (void)ctx;
   return tm_with_channel(tm_provider_getnada_generate("sumaterabarat.net"),
                           CHANNEL_SUMATERABARAT_NET);
-}
-
-static tm_email_info_t *tm_reg_gen_134(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_SUMATERASELATAN_NET */
-  (void)ctx;
-  return tm_with_channel(tm_provider_getnada_generate("sumateraselatan.net"),
-                          CHANNEL_SUMATERASELATAN_NET);
 }
 
 static tm_email_info_t *tm_reg_gen_135(const tm_gen_ctx_t *ctx) {
@@ -1063,12 +933,6 @@ static tm_email_info_t *tm_reg_gen_163(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_TEMPEMAIL_CO */
   (void)ctx;
   return tm_provider_tempemail_co_generate();
-}
-
-static tm_email_info_t *tm_reg_gen_164(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_TEMPEMAILS_NET */
-  (void)ctx;
-  return tm_provider_tempemails_net_generate();
 }
 
 static tm_email_info_t *tm_reg_gen_165(const tm_gen_ctx_t *ctx) {
@@ -1807,10 +1671,6 @@ static tm_email_info_t *tm_reg_gen_294(const tm_gen_ctx_t *ctx) {
   (void)ctx;
   return tm_provider_crazymailing_generate();
 }
-static tm_email_info_t *tm_reg_gen_295(const tm_gen_ctx_t *ctx) {
-  /* CHANNEL_NOXEN_DE5_NET */
-  return tm_provider_noxen_de5_net_generate(ctx->domain);
-}
 static tm_email_info_t *tm_reg_gen_296(const tm_gen_ctx_t *ctx) {
   /* CHANNEL_NUKEMAIL */
   (void)ctx;
@@ -1964,12 +1824,6 @@ static tm_email_t *tm_reg_get_12(const char *email, const char *token, int *coun
   return tm_provider_fake_legal_get_emails(email, count);
 }
 
-static tm_email_t *tm_reg_get_13(const char *email, const char *token, int *count) {
-  /* CHANNEL_MFFAC */
-  return tm_provider_mffac_get_emails(token,
-                                            email, count);
-}
-
 static tm_email_t *tm_reg_get_14(const char *email, const char *token, int *count) {
   /* CHANNEL_TA_EASY */
   if (!token) {
@@ -2008,14 +1862,6 @@ static tm_email_t *tm_reg_get_17(const char *email, const char *token, int *coun
   }
   return tm_provider_email10min_get_emails(token,
                                                  email, count);
-}
-
-static tm_email_t *tm_reg_get_18(const char *email, const char *token, int *count) {
-  /* CHANNEL_MJJ_CM */
-  (void)email;
-  (void)token;
-  *count = -1;
-  return NULL;
 }
 
 static tm_email_t *tm_reg_get_19(const char *email, const char *token, int *count) {
@@ -2088,16 +1934,6 @@ static tm_email_t *tm_reg_get_27(const char *email, const char *token, int *coun
   /* CHANNEL_NEIGHBOURS */
   (void)token;
   return tm_provider_neighbours_get_emails(email, count);
-}
-
-static tm_email_t *tm_reg_get_28(const char *email, const char *token, int *count) {
-  /* CHANNEL_M2U */
-  if (!token) {
-    *count = -1;
-    return NULL;
-  }
-  return tm_provider_m2u_get_emails(token, email,
-                                          count);
 }
 
 static tm_email_t *tm_reg_get_29(const char *email, const char *token, int *count) {
@@ -2418,7 +2254,7 @@ static tm_email_t *tm_reg_get_65(const char *email, const char *token, int *coun
 }
 
 static tm_email_t *tm_reg_get_66(const char *email, const char *token, int *count) {
-  /* CHANNEL_GETNADA, CHANNEL_ONE_VPN_NET, CHANNEL_ABEMATV_COM, CHANNEL_ABEMATV_NET, CHANNEL_ABEMATV_ORG, CHANNEL_ACEH_CC, CHANNEL_BANGKABELITUNG_NET, CHANNEL_CCTRUYEN_COM, CHANNEL_GETNADA_COM, CHANNEL_GETNADA_EMAIL, CHANNEL_GETNADA_NET, CHANNEL_JAWATENGAH_NET, CHANNEL_JAWATIMUR_NET, CHANNEL_KALIMANTANBARAT_NET, CHANNEL_KALIMANTANSELATAN_NET, CHANNEL_KALIMANTANTENGAH_NET, CHANNEL_KALIMANTANTIMUR_NET, CHANNEL_KALIMANTANUTARA_NET, CHANNEL_KEPULAUANRIAU_NET, CHANNEL_LUXURY345_COM, CHANNEL_MALUKUUTARA_NET, CHANNEL_NUSATENGGARABARAT_NET, CHANNEL_NUSATENGGARATIMUR_NET, CHANNEL_PAPUABARAT_NET, CHANNEL_PAPUABARATDAYA_NET, CHANNEL_PAPUASELATAN_NET, CHANNEL_PEHOL_COM, CHANNEL_PTRUYEN_COM, CHANNEL_PULAUBALI_NET, CHANNEL_RIAU_NET, CHANNEL_SEOKEY_ORG, CHANNEL_SULAWESIBARAT_NET, CHANNEL_SULAWESISELATAN_NET, CHANNEL_SULAWESITENGAH_NET, CHANNEL_SULAWESITENGGARA_NET, CHANNEL_SUMATERABARAT_NET, CHANNEL_SUMATERASELATAN_NET, CHANNEL_SUMATERAUTARA_NET, CHANNEL_VILLATOGEL_COM */
+  /* CHANNEL_GETNADA, CHANNEL_ONE_VPN_NET, CHANNEL_ABEMATV_COM, CHANNEL_ABEMATV_NET, CHANNEL_ABEMATV_ORG, CHANNEL_ACEH_CC, CHANNEL_BANGKABELITUNG_NET, CHANNEL_CCTRUYEN_COM, CHANNEL_GETNADA_COM, CHANNEL_GETNADA_EMAIL, CHANNEL_GETNADA_NET, CHANNEL_JAWATENGAH_NET, CHANNEL_JAWATIMUR_NET, CHANNEL_KALIMANTANTIMUR_NET, CHANNEL_LUXURY345_COM, CHANNEL_PEHOL_COM, CHANNEL_PTRUYEN_COM, CHANNEL_RIAU_NET, CHANNEL_SEOKEY_ORG, CHANNEL_SULAWESISELATAN_NET, CHANNEL_SUMATERABARAT_NET, CHANNEL_SUMATERAUTARA_NET, CHANNEL_VILLATOGEL_COM */
   if (!token) {
     *count = -1;
     return NULL;
@@ -2631,16 +2467,6 @@ static tm_email_t *tm_reg_get_92(const char *email, const char *token, int *coun
   }
   return tm_provider_tempemail_co_get_emails(token,
                                                    email, count);
-}
-
-static tm_email_t *tm_reg_get_93(const char *email, const char *token, int *count) {
-  /* CHANNEL_TEMPEMAILS_NET */
-  if (!token) {
-    *count = -1;
-    return NULL;
-  }
-  return tm_provider_tempemails_net_get_emails(token,
-                                                     email, count);
 }
 
 static tm_email_t *tm_reg_get_94(const char *email, const char *token, int *count) {
@@ -3505,14 +3331,6 @@ static tm_email_t *tm_reg_get_223(const char *email, const char *token, int *cou
   }
   return tm_provider_crazymailing_get_emails(email, token, count);
 }
-static tm_email_t *tm_reg_get_224(const char *email, const char *token, int *count) {
-  /* CHANNEL_NOXEN_DE5_NET */
-  if (!token || !token[0]) {
-    *count = -1;
-    return NULL;
-  }
-  return tm_provider_noxen_de5_net_get_emails(email, token, count);
-}
 static tm_email_t *tm_reg_get_225(const char *email, const char *token, int *count) {
   /* CHANNEL_NUKEMAIL */
   if (!token || !token[0]) {
@@ -3607,6 +3425,314 @@ static tm_email_t *tm_reg_get_236(const char *email, const char *token, int *cou
   return tm_provider_generator_email_get_emails(email, token, count);
 }
 
+/* ========== inboxes 镜像域名渠道 thunk（10 个变体复用 inboxes provider） ========== */
+
+static tm_email_info_t *tm_reg_gen_308(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_BLONDMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("blondmail.com"),
+                         CHANNEL_BLONDMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_309(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_CHAPSMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("chapsmail.com"),
+                         CHANNEL_CHAPSMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_310(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_CLOWMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("clowmail.com"),
+                         CHANNEL_CLOWMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_311(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_DROPJAR_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("dropjar.com"),
+                         CHANNEL_DROPJAR_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_312(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_FIVERMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("fivermail.com"),
+                         CHANNEL_FIVERMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_313(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GETAIRMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("getairmail.com"),
+                         CHANNEL_GETAIRMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_314(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GETMULE_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("getmule.com"),
+                         CHANNEL_GETMULE_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_315(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_INBOXBEAR_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("inboxbear.com"),
+                         CHANNEL_INBOXBEAR_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_316(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_REPLYLOOP_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("replyloop.com"),
+                         CHANNEL_REPLYLOOP_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_317(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TEMPTAMI_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("temptami.com"),
+                         CHANNEL_TEMPTAMI_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_318(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GIMPMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("gimpmail.com"),
+                         CHANNEL_GIMPMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_319(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GIVMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("givmail.com"),
+                         CHANNEL_GIVMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_320(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GUYSMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("guysmail.com"),
+                         CHANNEL_GUYSMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_321(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_ROBOT_MAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("robot-mail.com"),
+                         CHANNEL_ROBOT_MAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_322(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TUPMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("tupmail.com"),
+                         CHANNEL_TUPMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_323(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_VOMOTO_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_inboxes_generate("vomoto.com"),
+                         CHANNEL_VOMOTO_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_324(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_UQU_ME */
+  (void)ctx;
+  return tm_with_channel(tm_provider_mail_cx_generate("uqu.me"),
+                         CHANNEL_UQU_ME);
+}
+
+static tm_email_info_t *tm_reg_gen_325(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_9K3R_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_mail_cx_generate("9k3r.com"),
+                         CHANNEL_9K3R_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_326(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_2FAMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_mailmomy_generate_domain("2famail.com"),
+                         CHANNEL_2FAMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_327(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_XIKEMAIL_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_mailmomy_generate_domain("xikemail.com"),
+                         CHANNEL_XIKEMAIL_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_328(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_FLDUBAI_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_mail_tm_generate_domain("fldubai.com"),
+                         CHANNEL_FLDUBAI_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_329(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_NICEGROUND_SHOP */
+  (void)ctx;
+  return tm_with_channel(tm_provider_duckmail_generate_domain("niceground.shop"),
+                         CHANNEL_NICEGROUND_SHOP);
+}
+
+static tm_email_info_t *tm_reg_gen_330(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GLASSWHITEHUB_COM */
+  (void)ctx;
+  return tm_with_channel(
+      tm_provider_duckmail_generate_domain("glasswhitehub.com"),
+      CHANNEL_GLASSWHITEHUB_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_331(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_HUBAICLASS_ORG */
+  (void)ctx;
+  return tm_with_channel(
+      tm_provider_duckmail_generate_domain("hubaiclass.org"),
+      CHANNEL_HUBAICLASS_ORG);
+}
+
+static tm_email_t *tm_reg_get_237(const char *email, const char *token, int *count) {
+  /* CHANNEL_BLONDMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_238(const char *email, const char *token, int *count) {
+  /* CHANNEL_CHAPSMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_239(const char *email, const char *token, int *count) {
+  /* CHANNEL_CLOWMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_240(const char *email, const char *token, int *count) {
+  /* CHANNEL_DROPJAR_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_241(const char *email, const char *token, int *count) {
+  /* CHANNEL_FIVERMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_242(const char *email, const char *token, int *count) {
+  /* CHANNEL_GETAIRMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_243(const char *email, const char *token, int *count) {
+  /* CHANNEL_GETMULE_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_244(const char *email, const char *token, int *count) {
+  /* CHANNEL_INBOXBEAR_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_245(const char *email, const char *token, int *count) {
+  /* CHANNEL_REPLYLOOP_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_246(const char *email, const char *token, int *count) {
+  /* CHANNEL_TEMPTAMI_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_247(const char *email, const char *token, int *count) {
+  /* CHANNEL_GIMPMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_248(const char *email, const char *token, int *count) {
+  /* CHANNEL_GIVMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_249(const char *email, const char *token, int *count) {
+  /* CHANNEL_GUYSMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_250(const char *email, const char *token, int *count) {
+  /* CHANNEL_ROBOT_MAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_251(const char *email, const char *token, int *count) {
+  /* CHANNEL_TUPMAIL_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_252(const char *email, const char *token, int *count) {
+  /* CHANNEL_VOMOTO_COM */
+  (void)token;
+  return tm_provider_inboxes_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_253(const char *email, const char *token, int *count) {
+  /* CHANNEL_UQU_ME */
+  return tm_provider_mail_cx_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_254(const char *email, const char *token, int *count) {
+  /* CHANNEL_9K3R_COM */
+  return tm_provider_mail_cx_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_255(const char *email, const char *token, int *count) {
+  /* CHANNEL_2FAMAIL_COM */
+  return tm_provider_mailmomy_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_256(const char *email, const char *token, int *count) {
+  /* CHANNEL_XIKEMAIL_COM */
+  return tm_provider_mailmomy_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_257(const char *email, const char *token, int *count) {
+  /* CHANNEL_FLDUBAI_COM */
+  return tm_provider_mail_tm_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_258(const char *email, const char *token, int *count) {
+  /* CHANNEL_NICEGROUND_SHOP */
+  return tm_provider_duckmail_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_259(const char *email, const char *token, int *count) {
+  /* CHANNEL_GLASSWHITEHUB_COM */
+  return tm_provider_duckmail_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_260(const char *email, const char *token, int *count) {
+  /* CHANNEL_HUBAICLASS_ORG */
+  return tm_provider_duckmail_get_emails(token, email, count);
+}
+
 /* ========== 有序渠道注册表（顺序即 baseline / listChannels 顺序） ========== */
     /* ========== 有序渠道注册表（顺序即 baseline / listChannels 顺序） ========== */
 static const tm_channel_spec_t g_channel_registry[] = {
@@ -3621,7 +3747,6 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_YGWPR_COM, "ygwpr.com", "10minutemail.one", tm_reg_gen_37, tm_reg_get_16},
     {CHANNEL_IMXWE_COM, "imxwe.com", "10minutemail.one", tm_reg_gen_38, tm_reg_get_16},
     {CHANNEL_LINSHIYOU, "临时邮", "linshiyou.com", tm_reg_gen_2, tm_reg_get_2},
-    {CHANNEL_MFFAC, "MFFAC", "mffac.com", tm_reg_gen_15, tm_reg_get_13},
     {CHANNEL_TEMPMAIL_LOL, "TempMail LOL", "tempmail.lol", tm_reg_gen_3, tm_reg_get_3},
     {CHANNEL_CHATGPT_ORG_UK, "ChatGPT Mail", "mail.chatgpt.org.uk", tm_reg_gen_4, tm_reg_get_4},
     {CHANNEL_TEMP_MAIL_IO, "Temp-Mail.io", "temp-mail.io", tm_reg_gen_79, tm_reg_get_48},
@@ -3657,30 +3782,14 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_GETNADA_NET, "getnada.net", "getnada.net", tm_reg_gen_108, tm_reg_get_66},
     {CHANNEL_JAWATENGAH_NET, "jawatengah.net", "getnada.net", tm_reg_gen_109, tm_reg_get_66},
     {CHANNEL_JAWATIMUR_NET, "jawatimur.net", "getnada.net", tm_reg_gen_110, tm_reg_get_66},
-    {CHANNEL_KALIMANTANBARAT_NET, "kalimantanbarat.net", "getnada.net", tm_reg_gen_111, tm_reg_get_66},
-    {CHANNEL_KALIMANTANSELATAN_NET, "kalimantanselatan.net", "getnada.net", tm_reg_gen_112, tm_reg_get_66},
-    {CHANNEL_KALIMANTANTENGAH_NET, "kalimantantengah.net", "getnada.net", tm_reg_gen_113, tm_reg_get_66},
     {CHANNEL_KALIMANTANTIMUR_NET, "kalimantantimur.net", "getnada.net", tm_reg_gen_114, tm_reg_get_66},
-    {CHANNEL_KALIMANTANUTARA_NET, "kalimantanutara.net", "getnada.net", tm_reg_gen_115, tm_reg_get_66},
-    {CHANNEL_KEPULAUANRIAU_NET, "kepulauanriau.net", "getnada.net", tm_reg_gen_116, tm_reg_get_66},
     {CHANNEL_LUXURY345_COM, "luxury345.com", "getnada.net", tm_reg_gen_117, tm_reg_get_66},
-    {CHANNEL_MALUKUUTARA_NET, "malukuutara.net", "getnada.net", tm_reg_gen_118, tm_reg_get_66},
-    {CHANNEL_NUSATENGGARABARAT_NET, "nusatenggarabarat.net", "getnada.net", tm_reg_gen_119, tm_reg_get_66},
-    {CHANNEL_NUSATENGGARATIMUR_NET, "nusatenggaratimur.net", "getnada.net", tm_reg_gen_120, tm_reg_get_66},
-    {CHANNEL_PAPUABARAT_NET, "papuabarat.net", "getnada.net", tm_reg_gen_121, tm_reg_get_66},
-    {CHANNEL_PAPUABARATDAYA_NET, "papuabaratdaya.net", "getnada.net", tm_reg_gen_122, tm_reg_get_66},
-    {CHANNEL_PAPUASELATAN_NET, "papuaselatan.net", "getnada.net", tm_reg_gen_123, tm_reg_get_66},
     {CHANNEL_PEHOL_COM, "pehol.com", "getnada.net", tm_reg_gen_124, tm_reg_get_66},
     {CHANNEL_PTRUYEN_COM, "ptruyen.com", "getnada.net", tm_reg_gen_125, tm_reg_get_66},
-    {CHANNEL_PULAUBALI_NET, "pulaubali.net", "getnada.net", tm_reg_gen_126, tm_reg_get_66},
     {CHANNEL_RIAU_NET, "riau.net", "getnada.net", tm_reg_gen_127, tm_reg_get_66},
     {CHANNEL_SEOKEY_ORG, "seokey.org", "getnada.net", tm_reg_gen_128, tm_reg_get_66},
-    {CHANNEL_SULAWESIBARAT_NET, "sulawesibarat.net", "getnada.net", tm_reg_gen_129, tm_reg_get_66},
     {CHANNEL_SULAWESISELATAN_NET, "sulawesiselatan.net", "getnada.net", tm_reg_gen_130, tm_reg_get_66},
-    {CHANNEL_SULAWESITENGAH_NET, "sulawesitengah.net", "getnada.net", tm_reg_gen_131, tm_reg_get_66},
-    {CHANNEL_SULAWESITENGGARA_NET, "sulawesitenggara.net", "getnada.net", tm_reg_gen_132, tm_reg_get_66},
     {CHANNEL_SUMATERABARAT_NET, "sumaterabarat.net", "getnada.net", tm_reg_gen_133, tm_reg_get_66},
-    {CHANNEL_SUMATERASELATAN_NET, "sumateraselatan.net", "getnada.net", tm_reg_gen_134, tm_reg_get_66},
     {CHANNEL_SUMATERAUTARA_NET, "sumaterautara.net", "getnada.net", tm_reg_gen_135, tm_reg_get_66},
     {CHANNEL_VILLATOGEL_COM, "villatogel.com", "getnada.net", tm_reg_gen_136, tm_reg_get_66},
     {CHANNEL_MAIL123, "Mail123", "mail123.fr", tm_reg_gen_137, tm_reg_get_67},
@@ -3719,7 +3828,6 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_TMAIL_WS, "tmail.ws", "moakt.com", tm_reg_gen_30, tm_reg_get_15},
     {CHANNEL_BAREED_WS, "bareed.ws", "moakt.com", tm_reg_gen_31, tm_reg_get_15},
     {CHANNEL_EMAIL10MIN, "Email10Min", "email10min.com", tm_reg_gen_39, tm_reg_get_17},
-    {CHANNEL_MJJ_CM, "MJJ Mail", "mjj.cm", tm_reg_gen_40, tm_reg_get_18},
     {CHANNEL_LINSHI_CO, "临时Co", "linshi.co", tm_reg_gen_41, tm_reg_get_19},
     {CHANNEL_HARAKIRIMAIL, "HarakiriMail", "harakirimail.com", tm_reg_gen_42, tm_reg_get_20},
     {CHANNEL_JQKJQK_XYZ, "jqkjqk.xyz", "mail.zhujump.com", tm_reg_gen_43, tm_reg_get_21},
@@ -3748,7 +3856,6 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_GUERRILLAMAIL_ORG, "GuerrillaMail Org", "guerrillamail.org", tm_reg_gen_76, tm_reg_get_45},
     {CHANNEL_GUERRILLAMAILBLOCK, "GuerrillaMailBlock", "guerrillamailblock.com", tm_reg_gen_77, tm_reg_get_46},
     {CHANNEL_GUERRILLAMAIL_COM_WWW, "GuerrillaMail WWW", "guerrillamail.com", tm_reg_gen_78, tm_reg_get_47},
-    {CHANNEL_M2U, "MailToYou", "m2u.io", tm_reg_gen_59, tm_reg_get_28},
     {CHANNEL_TEMPY_EMAIL, "Tempy Email", "tempy.email", tm_reg_gen_60, tm_reg_get_29},
     {CHANNEL_FMAIL, "FMail", "fmail.men", tm_reg_gen_61, tm_reg_get_30},
     {CHANNEL_OCKITO, "Ockito", "ockito.com", tm_reg_gen_62, tm_reg_get_31},
@@ -3773,7 +3880,6 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_MINUTEINBOX, "MinuteInbox", "minuteinbox.com", tm_reg_gen_161, tm_reg_get_90},
     {CHANNEL_MAILCATCH, "MailCatch", "mailcatch.com", tm_reg_gen_162, tm_reg_get_91},
     {CHANNEL_TEMPEMAIL_CO, "TempEmail.co", "tempemail.co", tm_reg_gen_163, tm_reg_get_92},
-    {CHANNEL_TEMPEMAILS_NET, "TempEmails.net", "tempemails.net", tm_reg_gen_164, tm_reg_get_93},
     {CHANNEL_ALTMAILS, "AltMails", "tempmail.altmails.com", tm_reg_gen_165, tm_reg_get_94},
     {CHANNEL_TEMPEMAIL_INFO, "TempEmailInfo", "tempemail.info", tm_reg_gen_166, tm_reg_get_95},
     {CHANNEL_SMAILPRO, "SmailPro", "smailpro.com", tm_reg_gen_167, tm_reg_get_96},
@@ -3899,7 +4005,6 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_EMAIL30MIN, "30minemail", "30minemail.com", tm_reg_gen_292, tm_reg_get_221},
     {CHANNEL_LINSHI_XYZ, "Linshi.xyz", "linshi.xyz", tm_reg_gen_293, tm_reg_get_222},
     {CHANNEL_CRAZYMAILING, "CrazyMailing", "crazymailing.com", tm_reg_gen_294, tm_reg_get_223},
-    {CHANNEL_NOXEN_DE5_NET, "UniMail Bot", "tempmail.noxen.de5.net", tm_reg_gen_295, tm_reg_get_224},
     {CHANNEL_NUKEMAIL, "NukeMail", "nukemail.app", tm_reg_gen_296, tm_reg_get_225},
     {CHANNEL_SHADOWMAIL, "ShadowMail", "shadowmail.win", tm_reg_gen_297, tm_reg_get_226},
     {CHANNEL_FLYBYMAIL, "FlyByMail", "flybymail.com", tm_reg_gen_298, tm_reg_get_227},
@@ -3911,6 +4016,30 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_TMPKIT, "Tmpkit", "tmpkit.com", tm_reg_gen_305, tm_reg_get_234},
     {CHANNEL_INTERNXT, "Internxt", "internxt.com", tm_reg_gen_306, tm_reg_get_235},
     {CHANNEL_GENERATOR_EMAIL, "GeneratorEmail", "generator.email", tm_reg_gen_307, tm_reg_get_236},
+    {CHANNEL_BLONDMAIL_COM, "blondmail.com", "inboxes.com", tm_reg_gen_308, tm_reg_get_237},
+    {CHANNEL_CHAPSMAIL_COM, "chapsmail.com", "inboxes.com", tm_reg_gen_309, tm_reg_get_238},
+    {CHANNEL_CLOWMAIL_COM, "clowmail.com", "inboxes.com", tm_reg_gen_310, tm_reg_get_239},
+    {CHANNEL_DROPJAR_COM, "dropjar.com", "inboxes.com", tm_reg_gen_311, tm_reg_get_240},
+    {CHANNEL_FIVERMAIL_COM, "fivermail.com", "inboxes.com", tm_reg_gen_312, tm_reg_get_241},
+    {CHANNEL_GETAIRMAIL_COM, "getairmail.com", "inboxes.com", tm_reg_gen_313, tm_reg_get_242},
+    {CHANNEL_GETMULE_COM, "getmule.com", "inboxes.com", tm_reg_gen_314, tm_reg_get_243},
+    {CHANNEL_INBOXBEAR_COM, "inboxbear.com", "inboxes.com", tm_reg_gen_315, tm_reg_get_244},
+    {CHANNEL_REPLYLOOP_COM, "replyloop.com", "inboxes.com", tm_reg_gen_316, tm_reg_get_245},
+    {CHANNEL_TEMPTAMI_COM, "temptami.com", "inboxes.com", tm_reg_gen_317, tm_reg_get_246},
+    {CHANNEL_GIMPMAIL_COM, "gimpmail.com", "inboxes.com", tm_reg_gen_318, tm_reg_get_247},
+    {CHANNEL_GIVMAIL_COM, "givmail.com", "inboxes.com", tm_reg_gen_319, tm_reg_get_248},
+    {CHANNEL_GUYSMAIL_COM, "guysmail.com", "inboxes.com", tm_reg_gen_320, tm_reg_get_249},
+    {CHANNEL_ROBOT_MAIL_COM, "robot-mail.com", "inboxes.com", tm_reg_gen_321, tm_reg_get_250},
+    {CHANNEL_TUPMAIL_COM, "tupmail.com", "inboxes.com", tm_reg_gen_322, tm_reg_get_251},
+    {CHANNEL_VOMOTO_COM, "vomoto.com", "inboxes.com", tm_reg_gen_323, tm_reg_get_252},
+    {CHANNEL_UQU_ME, "uqu.me", "mail.cx", tm_reg_gen_324, tm_reg_get_253},
+    {CHANNEL_9K3R_COM, "9k3r.com", "mail.cx", tm_reg_gen_325, tm_reg_get_254},
+    {CHANNEL_2FAMAIL_COM, "2famail.com", "mailmomy.com", tm_reg_gen_326, tm_reg_get_255},
+    {CHANNEL_XIKEMAIL_COM, "xikemail.com", "mailmomy.com", tm_reg_gen_327, tm_reg_get_256},
+    {CHANNEL_FLDUBAI_COM, "fldubai.com", "mail.tm", tm_reg_gen_328, tm_reg_get_257},
+    {CHANNEL_NICEGROUND_SHOP, "niceground.shop", "duckmail.sbs", tm_reg_gen_329, tm_reg_get_258},
+    {CHANNEL_GLASSWHITEHUB_COM, "glasswhitehub.com", "duckmail.sbs", tm_reg_gen_330, tm_reg_get_259},
+    {CHANNEL_HUBAICLASS_ORG, "hubaiclass.org", "duckmail.sbs", tm_reg_gen_331, tm_reg_get_260},
 };
 
 #define TM_REGISTRY_N ((int)(sizeof(g_channel_registry) / sizeof(g_channel_registry[0])))

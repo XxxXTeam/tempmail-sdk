@@ -73,12 +73,12 @@ public static class Inboxes
         };
     }
 
-    /// <summary>创建临时邮箱（可指定域名）</summary>
-    public static EmailInfo Generate(string? domain = null)
+    /// <summary>创建临时邮箱（可指定域名与归属渠道标识）</summary>
+    public static EmailInfo Generate(string? domain = null, string channel = "inboxes")
     {
         var domains = GetDomains();
         var selected = PickDomain(domains, domain);
-        return new EmailInfo("inboxes", $"{RandomLocal()}@{selected}");
+        return new EmailInfo(channel, $"{RandomLocal()}@{selected}");
     }
 
     private static JsonObject? FetchDetail(string uid)

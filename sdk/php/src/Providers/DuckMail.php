@@ -46,20 +46,20 @@ final class DuckMail
         $members = array_is_list($data) ? $data : ($data['hydra:member'] ?? []);
         $domains = [];
         foreach ($members as $d) {
-            if (is_array($d) && ($d['isActive'] ?? false) && !empty($d['domain'])) {
+            if (is_array($d) && (($d['isActive'] ?? false) || ($d['isVerified'] ?? false)) && !empty($d['domain'])) {
                 $domains[] = (string) $d['domain'];
             }
         }
         return $domains;
     }
 
-    public static function generate(): EmailInfo
+    public static function generate(string $channel = 'duckmail', ?string $fixedDomain = null): EmailInfo
     {
         $domains = self::getDomains();
         if (empty($domains)) {
             throw new \RuntimeException('duckmail: 无可用域名');
         }
-        $domain = $domains[array_rand($domains)];
+        $domain = $fixedDomain !== null && $fixedDomain !== '' ? $fixedDomain : $domains[array_rand($domains)];
         $address = self::randomString(12) . '@' . $domain;
         $password = self::randomString(16);
 
@@ -80,7 +80,7 @@ final class DuckMail
             throw new \RuntimeException('duckmail: 获取 token 失败');
         }
 
-        return new EmailInfo('duckmail', $address, $token, createdAt: $account['createdAt'] ?? null);
+        return new EmailInfo($channel, $address, $token, createdAt: $account['createdAt'] ?? null);
     }
 
     /**

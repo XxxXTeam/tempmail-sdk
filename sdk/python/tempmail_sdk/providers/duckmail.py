@@ -34,7 +34,12 @@ def _get_domains() -> list:
     resp.raise_for_status()
     data = resp.json()
     members = data if isinstance(data, list) else (data.get("hydra:member") or [])
-    return [d["domain"] for d in members if d.get("isActive")]
+    # /domains 实际返回 isVerified（而非 isActive），两者任一为真即视为可用域名
+    return [
+        d["domain"]
+        for d in members
+        if (d.get("isActive") or d.get("isVerified")) and d.get("domain")
+    ]
 
 
 def _create_account(address: str, password: str) -> dict:
@@ -107,6 +112,23 @@ def generate_email(**kwargs) -> EmailInfo:
         raise Exception("No available domains")
 
     domain = random.choice(domains)
+    username = _random_string(12)
+    address = f"{username}@{domain}"
+    password = _random_string(16)
+
+    account = _create_account(address, password)
+    token = _get_token(address, password)
+
+    return EmailInfo(
+        channel=CHANNEL,
+        email=address,
+        _token=token,
+        created_at=account.get("createdAt"),
+    )
+
+
+def generate_email_with_domain(domain: str) -> EmailInfo:
+    """使用指定域名创建临时邮箱：跳过随机选域，复用建账号与取 token 流程。"""
     username = _random_string(12)
     address = f"{username}@{domain}"
     password = _random_string(16)

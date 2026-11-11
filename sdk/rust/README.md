@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/tempmail-sdk.svg)](https://crates.io/crates/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（Rust），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致，并与 Go / npm / Python / C 的 `listChannels` 顺序对齐。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+临时邮箱 SDK（Rust），公开 **304** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。顺序与 `client.rs` 中 `ALL_CHANNELS` 一致，并与 Go / npm / Python / C 的 `listChannels` 顺序对齐。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 ## 安装
 
@@ -32,7 +32,6 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `YgwprCom` | ygwpr.com | ✅ | 10minutemail.one 固定域名 `ygwpr.com` |
 | `ImxweCom` | imxwe.com | ✅ | 10minutemail.one 固定域名 `imxwe.com` |
 | `Linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + Cookie；HTML 分段解析 |
-| `Mffac` | mffac.com | ✅ | mailbox `id` token；`/api/emails/{id}` 详情补齐 `text` / `html`；REST 24h |
 | `TempmailLol` | tempmail.lol | ✅ | 支持指定域名 |
 | `ChatgptOrgUk` | mail.chatgpt.org.uk | ✅ | Inbox Token 等由 SDK 封装 |
 | `TempMailIo` | temp-mail.io | ✅ | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3` |
@@ -65,30 +64,14 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `GetnadaNet` | getnada.net | ✅ | GetNada 固定域名 `getnada.net` |
 | `JawatengahNet` | jawatengah.net | ✅ | GetNada 固定域名 `jawatengah.net` |
 | `JawatimurNet` | jawatimur.net | ✅ | GetNada 固定域名 `jawatimur.net` |
-| `KalimantanbaratNet` | kalimantanbarat.net | ✅ | GetNada 固定域名 `kalimantanbarat.net` |
-| `KalimantanselatanNet` | kalimantanselatan.net | ✅ | GetNada 固定域名 `kalimantanselatan.net` |
-| `KalimantantengahNet` | kalimantantengah.net | ✅ | GetNada 固定域名 `kalimantantengah.net` |
 | `KalimantantimurNet` | kalimantantimur.net | ✅ | GetNada 固定域名 `kalimantantimur.net` |
-| `KalimantanutaraNet` | kalimantanutara.net | ✅ | GetNada 固定域名 `kalimantanutara.net` |
-| `KepulauanriauNet` | kepulauanriau.net | ✅ | GetNada 固定域名 `kepulauanriau.net` |
 | `Luxury345Com` | luxury345.com | ✅ | GetNada 固定域名 `luxury345.com` |
-| `MalukuutaraNet` | malukuutara.net | ✅ | GetNada 固定域名 `malukuutara.net` |
-| `NusatenggarabaratNet` | nusatenggarabarat.net | ✅ | GetNada 固定域名 `nusatenggarabarat.net` |
-| `NusatenggaratimurNet` | nusatenggaratimur.net | ✅ | GetNada 固定域名 `nusatenggaratimur.net` |
-| `PapuabaratNet` | papuabarat.net | ✅ | GetNada 固定域名 `papuabarat.net` |
-| `PapuabaratdayaNet` | papuabaratdaya.net | ✅ | GetNada 固定域名 `papuabaratdaya.net` |
-| `PapuaselatanNet` | papuaselatan.net | ✅ | GetNada 固定域名 `papuaselatan.net` |
 | `PeholCom` | pehol.com | ✅ | GetNada 固定域名 `pehol.com` |
 | `PtruyenCom` | ptruyen.com | ✅ | GetNada 固定域名 `ptruyen.com` |
-| `PulaubaliNet` | pulaubali.net | ✅ | GetNada 固定域名 `pulaubali.net` |
 | `RiauNet` | riau.net | ✅ | GetNada 固定域名 `riau.net` |
 | `SeokeyOrg` | seokey.org | ✅ | GetNada 固定域名 `seokey.org` |
-| `SulawesibaratNet` | sulawesibarat.net | ✅ | GetNada 固定域名 `sulawesibarat.net` |
 | `SulawesiselatanNet` | sulawesiselatan.net | ✅ | GetNada 固定域名 `sulawesiselatan.net` |
-| `SulawesitengahNet` | sulawesitengah.net | ✅ | GetNada 固定域名 `sulawesitengah.net` |
-| `SulawesitenggaraNet` | sulawesitenggara.net | ✅ | GetNada 固定域名 `sulawesitenggara.net` |
 | `SumaterabaratNet` | sumaterabarat.net | ✅ | GetNada 固定域名 `sumaterabarat.net` |
-| `SumateraselatanNet` | sumateraselatan.net | ✅ | GetNada 固定域名 `sumateraselatan.net` |
 | `SumaterautaraNet` | sumaterautara.net | ✅ | GetNada 固定域名 `sumaterautara.net` |
 | `VillatogelCom` | villatogel.com | ✅ | GetNada 固定域名 `villatogel.com` |
 | `Mail123` | mail123.fr | - | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
@@ -128,7 +111,6 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `TmailWs` | tmail.ws | ✅ | Moakt 固定域名 `tmail.ws` |
 | `BareedWs` | bareed.ws | ✅ | Moakt 固定域名 `bareed.ws` |
 | `Email10min` | email10min.com | ✅ | Cookie + CSRF；`POST /messages` 获取邮箱与邮件 |
-| `MjjCm` | mjj.cm | - | Socket.IO：`request shortid` / `set shortid` / `mail` |
 | `LinshiCo` | linshi.co | - | Socket.IO 克隆站，协议同 `MjjCm` |
 | `Harakirimail` | harakirimail.com | - | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
 | `JqkjqkXyz` | jqkjqk.xyz | ✅ | mail.zhujump.com 固定域名 `jqkjqk.xyz` |
@@ -157,7 +139,6 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `GuerrillamailOrg` | guerrillamail.org | ✅ | GuerrillaMail 镜像，API 与 `GuerrillaMail` 相同 |
 | `Guerrillamailblock` | guerrillamailblock.com | ✅ | GuerrillaMail 镜像，API 与 `GuerrillaMail` 相同 |
 | `GuerrillamailComWww` | guerrillamail.com | ✅ | GuerrillaMail `www` JSON API 入口 |
-| `M2u` | MailToYou | ✅ | `POST /v1/mailboxes/auto` 建箱；`token` + `viewToken` 组成内部 Token；`GET /v1/mailboxes/{token}/messages?view={viewToken}` 拉列表，`GET /v1/mailboxes/{token}/messages/{id}?view={viewToken}` 读取详情 |
 | `TempyEmail` | Tempy Email | - | `POST /api/v1/mailbox` 建箱（请求体可为空 JSON；可选 `domain`）；`GET /api/v1/mailbox/{email}/messages` 拉列表 |
 | `Fmail` | fmail.men | - | `GET /v1/random` 建箱；`GET /v1/inbox/{local}?domain={domain}&limit=50` 拉列表；`GET /v1/email/{token}` 读取单封详情，可选 `Domain` |
 | `Ockito` | ockito.com | ✅ | `POST /gtoken` 换取 access_token / refresh_token；`GET /email` 建箱；`GET /retrieve/{email}/emails` 拉列表，`GET /retrieve/{email}/{uid}` 详情 |
@@ -183,7 +164,6 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `Minuteinbox` |  | ✅ | minuteinbox |
 | `Mailcatch` |  | ✅ | mailcatch |
 | `TempemailCo` |  | ✅ | tempemail-co |
-| `TempemailsNet` |  | ✅ | tempemails-net |
 | `Altmails` |  | ✅ | altmails |
 | `TempemailInfo` |  | ✅ | tempemail-info |
 | `Smailpro` |  | ✅ | smailpro |
@@ -300,6 +280,16 @@ tempmail-sdk = { git = "https://github.com/XxxXTeam/tempmail-sdk", subdirectory 
 | `RestmailNet` |  | - | restmail-net |
 | `DropmailMe` |  | ✅ | dropmail-me |
 | `TenMinuteMailNet` |  | ✅ | ten-minute-mail-net |
+| `BlondmailCom` | blondmail.com | - | inboxes.com 服务方镜像域名 `blondmail.com` |
+| `ChapsmailCom` | chapsmail.com | - | inboxes.com 服务方镜像域名 `chapsmail.com` |
+| `ClowmailCom` | clowmail.com | - | inboxes.com 服务方镜像域名 `clowmail.com` |
+| `DropjarCom` | dropjar.com | - | inboxes.com 服务方镜像域名 `dropjar.com` |
+| `FivermailCom` | fivermail.com | - | inboxes.com 服务方镜像域名 `fivermail.com` |
+| `GetairmailCom` | getairmail.com | - | inboxes.com 服务方镜像域名 `getairmail.com` |
+| `GetmuleCom` | getmule.com | - | inboxes.com 服务方镜像域名 `getmule.com` |
+| `InboxbearCom` | inboxbear.com | - | inboxes.com 服务方镜像域名 `inboxbear.com` |
+| `ReplyloopCom` | replyloop.com | - | inboxes.com 服务方镜像域名 `replyloop.com` |
+| `TemptamiCom` | temptami.com | - | inboxes.com 服务方镜像域名 `temptami.com` |
 
 ## 快速开始
 

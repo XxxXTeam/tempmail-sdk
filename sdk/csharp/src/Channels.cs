@@ -1,7 +1,7 @@
 namespace XxxXTeam.TempMail;
 
 /// <summary>
-/// 全部 284 个渠道标识常量（与 baseline 逐行一致，供强类型引用）。
+/// 全部 290 个渠道标识常量（与 baseline 逐行一致，供强类型引用）。
 /// </summary>
 public static class Channels
 {
@@ -607,4 +607,52 @@ public static class Channels
     public const string Internxt = "internxt";
     /// <summary>GeneratorEmail</summary>
     public const string GeneratorEmail = "generator-email";
+    /// <summary>blondmail.com</summary>
+    public const string BlondmailCom = "blondmail-com";
+    /// <summary>chapsmail.com</summary>
+    public const string ChapsmailCom = "chapsmail-com";
+    /// <summary>clowmail.com</summary>
+    public const string ClowmailCom = "clowmail-com";
+    /// <summary>dropjar.com</summary>
+    public const string DropjarCom = "dropjar-com";
+    /// <summary>fivermail.com</summary>
+    public const string FivermailCom = "fivermail-com";
+    /// <summary>getairmail.com</summary>
+    public const string GetairmailCom = "getairmail-com";
+    /// <summary>getmule.com</summary>
+    public const string GetmuleCom = "getmule-com";
+    /// <summary>inboxbear.com</summary>
+    public const string InboxbearCom = "inboxbear-com";
+    /// <summary>replyloop.com</summary>
+    public const string ReplyloopCom = "replyloop-com";
+    /// <summary>temptami.com</summary>
+    public const string TemptamiCom = "temptami-com";
+    /// <summary>gimpmail.com</summary>
+    public const string GimpmailCom = "gimpmail-com";
+    /// <summary>givmail.com</summary>
+    public const string GivmailCom = "givmail-com";
+    /// <summary>guysmail.com</summary>
+    public const string GuysmailCom = "guysmail-com";
+    /// <summary>robot-mail.com</summary>
+    public const string RobotMailCom = "robot-mail-com";
+    /// <summary>tupmail.com</summary>
+    public const string TupmailCom = "tupmail-com";
+    /// <summary>vomoto.com</summary>
+    public const string VomotoCom = "vomoto-com";
+    /// <summary>uqu.me</summary>
+    public const string UquMe = "uqu-me";
+    /// <summary>9k3r.com</summary>
+    public const string N9k3rCom = "9k3r-com";
+    /// <summary>2famail.com</summary>
+    public const string N2famailCom = "2famail-com";
+    /// <summary>xikemail.com</summary>
+    public const string XikemailCom = "xikemail-com";
+    /// <summary>fldubai.com</summary>
+    public const string FldubaiCom = "fldubai-com";
+    /// <summary>niceground.shop</summary>
+    public const string NicegroundShop = "niceground-shop";
+    /// <summary>glasswhitehub.com</summary>
+    public const string GlasswhitehubCom = "glasswhitehub-com";
+    /// <summary>hubaiclass.org</summary>
+    public const string HubaiclassOrg = "hubaiclass-org";
 }

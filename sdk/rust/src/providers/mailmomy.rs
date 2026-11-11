@@ -90,6 +90,18 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     })
 }
 
+/// 为 mailmomy 指定域名的镜像渠道生成邮箱（本地拼地址，token 即邮箱地址）
+pub fn generate_email_with_domain(domain: &str) -> Result<EmailInfo, String> {
+    let email = format!("{}@{}", random_local(10), domain);
+    Ok(EmailInfo {
+        channel: Channel::Mailmomy,
+        email: email.clone(),
+        token: Some(email),
+        expires_at: None,
+        created_at: None,
+    })
+}
+
 /// 获取 mailmomy.com 邮件列表
 /// GET /api/mail/messages?to={email}&page=1&limit=20
 /// 返回 {emails:[{id,recipient,from,subject,message,bodyText,receivedAt}], total, page, limit, pages}

@@ -58,9 +58,11 @@ public final class MailTm {
             for (JsonElement m : members) {
                 if (m.isJsonObject()) {
                     JsonObject o = m.getAsJsonObject();
-                    boolean active = o.has("isActive") && o.get("isActive").isJsonPrimitive()
+                    boolean isActive = o.has("isActive") && o.get("isActive").isJsonPrimitive()
                             && o.get("isActive").getAsBoolean();
-                    if (active && o.has("domain")) {
+                    boolean isVerified = o.has("isVerified") && o.get("isVerified").isJsonPrimitive()
+                            && o.get("isVerified").getAsBoolean();
+                    if ((isActive || isVerified) && o.has("domain")) {
                         domains.add(o.get("domain").getAsString());
                     }
                 }
@@ -81,8 +83,20 @@ public final class MailTm {
         if (domains.isEmpty()) {
             throw new RuntimeException("No available domains");
         }
-        String address = ProviderUtil.randomString(12) + "@"
-                + domains.get(ThreadLocalRandom.current().nextInt(domains.size()));
+        String domain = domains.get(ThreadLocalRandom.current().nextInt(domains.size()));
+        return generate(channel, baseUrl, domain);
+    }
+
+    /**
+     * 指定域名创建临时邮箱（跳过随机选域），复用建账号/取 token 流程。
+     *
+     * @param channel 渠道标识
+     * @param baseUrl API 基地址
+     * @param domain  指定域名
+     * @return 邮箱信息
+     */
+    public static EmailInfo generate(String channel, String baseUrl, String domain) {
+        String address = ProviderUtil.randomString(12) + "@" + domain;
         String password = ProviderUtil.randomString(16);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("address", address);

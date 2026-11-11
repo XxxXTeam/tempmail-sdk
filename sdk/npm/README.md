@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/tempmail-sdk.svg)](https://www.npmjs.com/package/tempmail-sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-临时邮箱 SDK（TypeScript/Node.js），公开 **279** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
+临时邮箱 SDK（TypeScript/Node.js），公开 **304** 个 `channel` 标识，按独立服务商合并为 **109** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有渠道返回**统一标准化格式**。
 
 ## 安装
 
@@ -17,7 +17,7 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 
 ## 支持的渠道
 
-共 **279** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **109** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
+共 **304** 个公开 `channel` 标识，顺序与 `listChannels()` 一致（与 `src/index.ts` 中 `allChannels` 相同），并与 Go / Rust / Python / C 的公共列表对齐。按独立服务商合并为 **109** 个 provider；同一服务商的固定域名、裸域、镜像域名和同 API 多域名不重复计数。随机生成邮箱时会在本端独立打乱尝试顺序，不需要与其他 SDK 的随机顺序一致。
 
 | 渠道 | 服务商 | 需要 Token | 说明 |
 |------|--------|:----------:|------|
@@ -32,7 +32,6 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `ygwpr-com` | ygwpr.com | ✅ | 10minutemail.one 固定域名 `ygwpr.com` |
 | `imxwe-com` | imxwe.com | ✅ | 10minutemail.one 固定域名 `imxwe.com` |
 | `linshiyou` | linshiyou.com | ✅ | `NEXUS_TOKEN` + `tmail-emails` 等 Cookie；HTML 分段解析 |
-| `mffac` | mffac.com | ✅ | `POST /api/mailboxes`；`GET /api/mailboxes/{local}/emails` 列表，`GET /api/emails/{id}` 详情补齐 `text` / `html`；token 为 mailbox `id`；24h |
 | `tempmail-lol` | tempmail.lol | ✅ | 支持指定域名 |
 | `chatgpt-org-uk` | mail.chatgpt.org.uk | ✅ | 首页注入 `__BROWSER_AUTH`，创建邮箱时须带 `X-Inbox-Token` + `gm_sid`（已自动处理） |
 | `temp-mail-io` | temp-mail.io | ✅ | REST：动态读取 `mobileTestingHeader` 后调用 `api.internal.temp-mail.io/api/v3` |
@@ -65,30 +64,14 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `getnada-net` | getnada.net | ✅ | GetNada 固定域名 `getnada.net` |
 | `jawatengah-net` | jawatengah.net | ✅ | GetNada 固定域名 `jawatengah.net` |
 | `jawatimur-net` | jawatimur.net | ✅ | GetNada 固定域名 `jawatimur.net` |
-| `kalimantanbarat-net` | kalimantanbarat.net | ✅ | GetNada 固定域名 `kalimantanbarat.net` |
-| `kalimantanselatan-net` | kalimantanselatan.net | ✅ | GetNada 固定域名 `kalimantanselatan.net` |
-| `kalimantantengah-net` | kalimantantengah.net | ✅ | GetNada 固定域名 `kalimantantengah.net` |
 | `kalimantantimur-net` | kalimantantimur.net | ✅ | GetNada 固定域名 `kalimantantimur.net` |
-| `kalimantanutara-net` | kalimantanutara.net | ✅ | GetNada 固定域名 `kalimantanutara.net` |
-| `kepulauanriau-net` | kepulauanriau.net | ✅ | GetNada 固定域名 `kepulauanriau.net` |
 | `luxury345-com` | luxury345.com | ✅ | GetNada 固定域名 `luxury345.com` |
-| `malukuutara-net` | malukuutara.net | ✅ | GetNada 固定域名 `malukuutara.net` |
-| `nusatenggarabarat-net` | nusatenggarabarat.net | ✅ | GetNada 固定域名 `nusatenggarabarat.net` |
-| `nusatenggaratimur-net` | nusatenggaratimur.net | ✅ | GetNada 固定域名 `nusatenggaratimur.net` |
-| `papuabarat-net` | papuabarat.net | ✅ | GetNada 固定域名 `papuabarat.net` |
-| `papuabaratdaya-net` | papuabaratdaya.net | ✅ | GetNada 固定域名 `papuabaratdaya.net` |
-| `papuaselatan-net` | papuaselatan.net | ✅ | GetNada 固定域名 `papuaselatan.net` |
 | `pehol-com` | pehol.com | ✅ | GetNada 固定域名 `pehol.com` |
 | `ptruyen-com` | ptruyen.com | ✅ | GetNada 固定域名 `ptruyen.com` |
-| `pulaubali-net` | pulaubali.net | ✅ | GetNada 固定域名 `pulaubali.net` |
 | `riau-net` | riau.net | ✅ | GetNada 固定域名 `riau.net` |
 | `seokey-org` | seokey.org | ✅ | GetNada 固定域名 `seokey.org` |
-| `sulawesibarat-net` | sulawesibarat.net | ✅ | GetNada 固定域名 `sulawesibarat.net` |
 | `sulawesiselatan-net` | sulawesiselatan.net | ✅ | GetNada 固定域名 `sulawesiselatan.net` |
-| `sulawesitengah-net` | sulawesitengah.net | ✅ | GetNada 固定域名 `sulawesitengah.net` |
-| `sulawesitenggara-net` | sulawesitenggara.net | ✅ | GetNada 固定域名 `sulawesitenggara.net` |
 | `sumaterabarat-net` | sumaterabarat.net | ✅ | GetNada 固定域名 `sumaterabarat.net` |
-| `sumateraselatan-net` | sumateraselatan.net | ✅ | GetNada 固定域名 `sumateraselatan.net` |
 | `sumaterautara-net` | sumaterautara.net | ✅ | GetNada 固定域名 `sumaterautara.net` |
 | `villatogel-com` | villatogel.com | ✅ | GetNada 固定域名 `villatogel.com` |
 | `mail123` | mail123.fr | - | `GET /api/v1/mailbox/new` 建址；`GET /api/v1/mailbox/{address}/messages?limit=50` 列表；详情含 `text` / `html` |
@@ -128,7 +111,6 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `tmail-ws` | tmail.ws | ✅ | Moakt 固定域名 `tmail.ws` |
 | `bareed-ws` | bareed.ws | ✅ | Moakt 固定域名 `bareed.ws` |
 | `email10min` | email10min.com | ✅ | Cookie + CSRF；`POST /messages` 获取邮箱与邮件 |
-| `mjj-cm` | mjj.cm | ✅ | Socket.IO：`request shortid` / `set shortid` / `mail` |
 | `linshi-co` | linshi.co | ✅ | Socket.IO 克隆站，协议同 `mjj-cm` |
 | `harakirimail` | harakirimail.com | - | 公开 REST：`GET /api/v1/inbox/{name}` + `GET /api/v1/email/{id}` |
 | `jqkjqk-xyz` | jqkjqk.xyz | ✅ | mail.zhujump.com 固定域名 `jqkjqk.xyz` |
@@ -157,7 +139,6 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `guerrillamail-org` | guerrillamail.org | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `guerrillamailblock` | guerrillamailblock.com | ✅ | GuerrillaMail 镜像，API 与 `guerrillamail` 相同 |
 | `guerrillamail-com-www` | guerrillamail.com | ✅ | GuerrillaMail `www` JSON API 入口 |
-| `m2u` | MailToYou | ✅ | `POST /v1/mailboxes/auto` 建箱；`token` + `viewToken` 组成内部 Token；`GET /v1/mailboxes/{token}/messages?view={viewToken}` 拉列表，`GET /v1/mailboxes/{token}/messages/{id}?view={viewToken}` 读取详情 |
 | `tempy-email` | Tempy Email | - | `POST /api/v1/mailbox` 建箱（请求体可为空 JSON；可选 `domain`）；`GET /api/v1/mailbox/{email}/messages` 拉列表 |
 | `fmail` | fmail.men | - | `GET /v1/random` 建址；`GET /v1/inbox/{local}?domain={domain}&limit=50` 拉列表；`GET /v1/email/{token}` 读取单封详情，可选 `domain` |
 | `ockito` | ockito.com | ✅ | `POST /gtoken` 换取 access_token / refresh_token；`GET /email` 建址；`GET /retrieve/{email}/emails` 拉列表，`GET /retrieve/{email}/{uid}` 详情 |
@@ -183,7 +164,6 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `minuteinbox` |  | ✅ | minuteinbox |
 | `mailcatch` |  | ✅ | mailcatch |
 | `tempemail-co` |  | ✅ | tempemail-co |
-| `tempemails-net` |  | ✅ | tempemails-net |
 | `altmails` |  | ✅ | altmails |
 | `tempemail-info` |  | ✅ | tempemail-info |
 | `smailpro` |  | ✅ | smailpro |
@@ -300,6 +280,16 @@ npm install @XxxXTeam/tempmail-sdk --registry=https://npm.pkg.github.com
 | `restmail-net` |  | - | restmail-net |
 | `dropmail-me` |  | ✅ | dropmail-me |
 | `ten-minute-mail-net` |  | ✅ | ten-minute-mail-net |
+| `blondmail-com` | inboxes.com | - | inboxes.com 镜像域名 `blondmail.com` |
+| `chapsmail-com` | inboxes.com | - | inboxes.com 镜像域名 `chapsmail.com` |
+| `clowmail-com` | inboxes.com | - | inboxes.com 镜像域名 `clowmail.com` |
+| `dropjar-com` | inboxes.com | - | inboxes.com 镜像域名 `dropjar.com` |
+| `fivermail-com` | inboxes.com | - | inboxes.com 镜像域名 `fivermail.com` |
+| `getairmail-com` | inboxes.com | - | inboxes.com 镜像域名 `getairmail.com` |
+| `getmule-com` | inboxes.com | - | inboxes.com 镜像域名 `getmule.com` |
+| `inboxbear-com` | inboxes.com | - | inboxes.com 镜像域名 `inboxbear.com` |
+| `replyloop-com` | inboxes.com | - | inboxes.com 镜像域名 `replyloop.com` |
+| `temptami-com` | inboxes.com | - | inboxes.com 镜像域名 `temptami.com` |
 
 > **提示：** 使用 `TempEmailClient` 类时无需手动处理 Token，SDK 自动管理。
 

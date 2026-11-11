@@ -18,8 +18,8 @@ require $channelDataPath;
 
 $slugs = array_column(ChanhanzhanX\TempMail\ChannelData::CHANNELS, 0);
 $n = count($slugs);
-if ($n !== 296) {
-    fwrite(STDERR, "FAIL: ChannelData 数量 $n，期望 296\n");
+if ($n !== 304) {
+    fwrite(STDERR, "FAIL: ChannelData 数量 $n，期望 304\n");
     exit(1);
 }
 if (count(array_unique($slugs)) !== $n) {
@@ -109,8 +109,8 @@ try {
     exit(1);
 }
 
-if (count($all) !== 296) {
-    fwrite(STDERR, 'FAIL: Registry::all() 数量 ' . count($all) . "，期望 296\n");
+if (count($all) !== 304) {
+    fwrite(STDERR, 'FAIL: Registry::all() 数量 ' . count($all) . "，期望 304\n");
     exit(1);
 }
 if ($names !== $slugs) {
@@ -129,5 +129,5 @@ if ($actual !== $slugs) {
     exit(1);
 }
 
-echo "OK: Registry 与 ChannelData 均为 296 个渠道且顺序一致\n";
+echo "OK: Registry 与 ChannelData 均为 304 个渠道且顺序一致\n";
 exit(0);

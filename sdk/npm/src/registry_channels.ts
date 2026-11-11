@@ -8,7 +8,6 @@ import * as tempmail from "./providers/tempmail";
 import * as tempmailCn from "./providers/tempmail-cn";
 import * as taEasy from "./providers/ta-easy";
 import * as linshiyou from "./providers/linshiyou";
-import * as mffac from "./providers/mffac";
 import * as tempmailLol from "./providers/tempmail-lol";
 import * as chatgptOrgUk from "./providers/chatgpt-org-uk";
 import * as tempMailIo from "./providers/temp-mail-io";
@@ -23,7 +22,6 @@ import * as tempmailFish from "./providers/tempmail-fish";
 import * as neighboursSh from "./providers/neighbours-sh";
 import * as shittyEmail from "./providers/shitty-email";
 import * as tempmailpro from "./providers/tempmailpro";
-import * as m2u from "./providers/m2u";
 import * as tempyEmail from "./providers/tempy-email";
 import * as devmailUk from "./providers/devmail-uk";
 import * as cleantempmail from "./providers/cleantempmail";
@@ -48,7 +46,6 @@ import * as fakeLegal from "./providers/fake-legal";
 import * as moakt from "./providers/moakt";
 import * as tenminuteOne from "./providers/10minute-one";
 import * as email10min from "./providers/email10min";
-import * as mjjCm from "./providers/mjj-cm";
 import * as linshiCo from "./providers/linshi-co";
 import * as harakirimail from "./providers/harakirimail";
 import * as zhujump from "./providers/zhujump";
@@ -167,7 +164,6 @@ import * as mailtempCc from "./providers/mailtemp-cc";
 import * as minuteinbox from "./providers/minuteinbox";
 import * as mailcatch from "./providers/mailcatch";
 import * as tempemailCo from "./providers/tempemail-co";
-import * as tempemailsNet from "./providers/tempemails-net";
 import * as altmails from "./providers/altmails";
 import * as tempemailInfo from "./providers/tempemail-info";
 import * as smailpro from "./providers/smailpro";
@@ -208,7 +204,6 @@ import * as temporarymailCom from "./providers/temporarymail-com";
 import * as email30Min from "./providers/30minemail";
 import * as linshiXyz from "./providers/linshi-xyz";
 import * as crazymailing from "./providers/crazymailing";
-import * as noxenDe5Net from "./providers/noxen-de5-net";
 import * as nukemail from "./providers/nukemail";
 import * as shadowmail from "./providers/shadowmail";
 import * as flybymail from "./providers/flybymail";
@@ -399,18 +394,6 @@ import { registerChannel } from "./registry";
         if (!token)
           throw new Error("internal error: token missing for linshiyou");
         return linshiyou.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "mffac",
-    name: "MFFAC",
-    website: "mffac.com",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return mffac.generateEmail();
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        return mffac.getEmails(email, token);
     },
   });
 
@@ -872,54 +855,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "kalimantanbarat-net",
-    name: "kalimantanbarat.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "kalimantanbarat.net",
-          "kalimantanbarat-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "kalimantanselatan-net",
-    name: "kalimantanselatan.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "kalimantanselatan.net",
-          "kalimantanselatan-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "kalimantantengah-net",
-    name: "kalimantantengah.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "kalimantantengah.net",
-          "kalimantantengah-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "kalimantantimur-net",
     name: "kalimantantimur.net",
     website: "getnada.net",
@@ -936,124 +871,11 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "kalimantanutara-net",
-    name: "kalimantanutara.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "kalimantanutara.net",
-          "kalimantanutara-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "kepulauanriau-net",
-    name: "kepulauanriau.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("kepulauanriau.net", "kepulauanriau-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "luxury345-com",
     name: "luxury345.com",
     website: "getnada.net",
     generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
         return getnada.generateEmail("luxury345.com", "luxury345-com");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "malukuutara-net",
-    name: "malukuutara.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("malukuutara.net", "malukuutara-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "nusatenggarabarat-net",
-    name: "nusatenggarabarat.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "nusatenggarabarat.net",
-          "nusatenggarabarat-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "nusatenggaratimur-net",
-    name: "nusatenggaratimur.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "nusatenggaratimur.net",
-          "nusatenggaratimur-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "papuabarat-net",
-    name: "papuabarat.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("papuabarat.net", "papuabarat-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "papuabaratdaya-net",
-    name: "papuabaratdaya.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("papuabaratdaya.net", "papuabaratdaya-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "papuaselatan-net",
-    name: "papuaselatan.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("papuaselatan.net", "papuaselatan-net");
     },
     getEmails: (email: string, token?: string): Promise<Email[]> => {
         if (!token) throw new Error("internal error: token missing for getnada");
@@ -1088,19 +910,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "pulaubali-net",
-    name: "pulaubali.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("pulaubali.net", "pulaubali-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "riau-net",
     name: "riau.net",
     website: "getnada.net",
@@ -1127,19 +936,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "sulawesibarat-net",
-    name: "sulawesibarat.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("sulawesibarat.net", "sulawesibarat-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "sulawesiselatan-net",
     name: "sulawesiselatan.net",
     website: "getnada.net",
@@ -1156,56 +952,11 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "sulawesitengah-net",
-    name: "sulawesitengah.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail("sulawesitengah.net", "sulawesitengah-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "sulawesitenggara-net",
-    name: "sulawesitenggara.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "sulawesitenggara.net",
-          "sulawesitenggara-net",
-        );
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "sumaterabarat-net",
     name: "sumaterabarat.net",
     website: "getnada.net",
     generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
         return getnada.generateEmail("sumaterabarat.net", "sumaterabarat-net");
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for getnada");
-        return getnada.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "sumateraselatan-net",
-    name: "sumateraselatan.net",
-    website: "getnada.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return getnada.generateEmail(
-          "sumateraselatan.net",
-          "sumateraselatan-net",
-        );
     },
     getEmails: (email: string, token?: string): Promise<Email[]> => {
         if (!token) throw new Error("internal error: token missing for getnada");
@@ -1739,18 +1490,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "mjj-cm",
-    name: "MJJ Mail",
-    website: "mjj.cm",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return mjjCm.generateEmail();
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        return mjjCm.getEmails(email);
-    },
-  });
-
-  registerChannel({
     channel: "linshi-co",
     name: "临时Co",
     website: "linshi.co",
@@ -2123,19 +1862,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "m2u",
-    name: "MailToYou",
-    website: "m2u.io",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return m2u.generateEmail();
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token) throw new Error("internal error: token missing for m2u");
-        return m2u.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
     channel: "tempy-email",
     name: "Tempy Email",
     website: "tempy.email",
@@ -2444,24 +2170,6 @@ import { registerChannel } from "./registry";
         if (!token)
           throw new Error("internal error: token missing for tempemail-co");
         return tempemailCo.getEmails(token, email);
-    },
-  });
-
-  registerChannel({
-    channel: "tempemails-net",
-    name: "TempEmails.net",
-    website: "tempemails.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        const channel: Channel = "tempemails-net";
-        return tempemailsNet
-          .generateEmail()
-          .then((info) => ({ ...info, channel }));
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        const channel: Channel = "tempemails-net";
-        if (!token)
-          throw new Error(`internal error: token missing for ${channel}`);
-        return tempemailsNet.getEmails(token, email);
     },
   });
 
@@ -4039,20 +3747,6 @@ import { registerChannel } from "./registry";
   });
 
   registerChannel({
-    channel: "noxen-de5-net",
-    name: "UniMail Bot",
-    website: "tempmail.noxen.de5.net",
-    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
-        return noxenDe5Net.generateEmail();
-    },
-    getEmails: (email: string, token?: string): Promise<Email[]> => {
-        if (!token)
-          throw new Error("internal error: token missing for noxen-de5-net");
-        return noxenDe5Net.getEmails(email, token);
-    },
-  });
-
-  registerChannel({
     channel: "nukemail",
     name: "NukeMail",
     website: "nukemail.app",
@@ -4203,5 +3897,347 @@ import { registerChannel } from "./registry";
         if (!token)
           throw new Error("internal error: token missing for generator-email");
         return generatorEmail.getEmails(email, token);
+    },
+  });
+
+  registerChannel({
+    channel: "blondmail-com",
+    name: "blondmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("blondmail.com")
+          .then((info) => ({ ...info, channel: "blondmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "chapsmail-com",
+    name: "chapsmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("chapsmail.com")
+          .then((info) => ({ ...info, channel: "chapsmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "clowmail-com",
+    name: "clowmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("clowmail.com")
+          .then((info) => ({ ...info, channel: "clowmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "dropjar-com",
+    name: "dropjar.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("dropjar.com")
+          .then((info) => ({ ...info, channel: "dropjar-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "fivermail-com",
+    name: "fivermail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("fivermail.com")
+          .then((info) => ({ ...info, channel: "fivermail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "getairmail-com",
+    name: "getairmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("getairmail.com")
+          .then((info) => ({ ...info, channel: "getairmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "getmule-com",
+    name: "getmule.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("getmule.com")
+          .then((info) => ({ ...info, channel: "getmule-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "inboxbear-com",
+    name: "inboxbear.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("inboxbear.com")
+          .then((info) => ({ ...info, channel: "inboxbear-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "replyloop-com",
+    name: "replyloop.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("replyloop.com")
+          .then((info) => ({ ...info, channel: "replyloop-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "temptami-com",
+    name: "temptami.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("temptami.com")
+          .then((info) => ({ ...info, channel: "temptami-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "gimpmail-com",
+    name: "gimpmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("gimpmail.com")
+          .then((info) => ({ ...info, channel: "gimpmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "givmail-com",
+    name: "givmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("givmail.com")
+          .then((info) => ({ ...info, channel: "givmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "guysmail-com",
+    name: "guysmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("guysmail.com")
+          .then((info) => ({ ...info, channel: "guysmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "robot-mail-com",
+    name: "robot-mail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("robot-mail.com")
+          .then((info) => ({ ...info, channel: "robot-mail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "tupmail-com",
+    name: "tupmail.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("tupmail.com")
+          .then((info) => ({ ...info, channel: "tupmail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "vomoto-com",
+    name: "vomoto.com",
+    website: "inboxes.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return inboxes
+          .generateEmail("vomoto.com")
+          .then((info) => ({ ...info, channel: "vomoto-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return inboxes.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "uqu-me",
+    name: "uqu.me",
+    website: "mail.cx",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailCx
+          .generateEmail("uqu.me")
+          .then((info) => ({ ...info, channel: "uqu-me" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for mail-cx");
+        return mailCx.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "9k3r-com",
+    name: "9k3r.com",
+    website: "mail.cx",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailCx
+          .generateEmail("9k3r.com")
+          .then((info) => ({ ...info, channel: "9k3r-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for mail-cx");
+        return mailCx.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "2famail-com",
+    name: "Mailmomy (2famail.com)",
+    website: "mailmomy.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailmomy
+          .generateEmailWithDomain("2famail.com")
+          .then((info) => ({ ...info, channel: "2famail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return mailmomy.getEmails(token || "", email);
+    },
+  });
+
+  registerChannel({
+    channel: "xikemail-com",
+    name: "Mailmomy (xikemail.com)",
+    website: "mailmomy.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailmomy
+          .generateEmailWithDomain("xikemail.com")
+          .then((info) => ({ ...info, channel: "xikemail-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return mailmomy.getEmails(token || "", email);
+    },
+  });
+
+  registerChannel({
+    channel: "fldubai-com",
+    name: "fldubai.com",
+    website: "mail.tm",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailTm
+          .generateEmailWithDomain("fldubai.com")
+          .then((info) => ({ ...info, channel: "fldubai-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for mail-tm");
+        return mailTm.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "niceground-shop",
+    name: "niceground.shop",
+    website: "duckmail.sbs",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return duckmail
+          .generateEmailWithDomain("niceground.shop")
+          .then((info) => ({ ...info, channel: "niceground-shop" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for duckmail");
+        return duckmail.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "glasswhitehub-com",
+    name: "glasswhitehub.com",
+    website: "duckmail.sbs",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return duckmail
+          .generateEmailWithDomain("glasswhitehub.com")
+          .then((info) => ({ ...info, channel: "glasswhitehub-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for duckmail");
+        return duckmail.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "hubaiclass-org",
+    name: "hubaiclass.org",
+    website: "duckmail.sbs",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return duckmail
+          .generateEmailWithDomain("hubaiclass.org")
+          .then((info) => ({ ...info, channel: "hubaiclass-org" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for duckmail");
+        return duckmail.getEmails(token, email);
     },
   });

@@ -105,7 +105,12 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     }
 
     let mut rng = rand::thread_rng();
-    let domain = &domains[rng.gen_range(0..domains.len())];
+    let domain = domains[rng.gen_range(0..domains.len())].clone();
+    generate_email_with_domain(&domain)
+}
+
+/// 为 mail.tm 指定域名的镜像渠道创建账号（跳过随机选域）
+pub fn generate_email_with_domain(domain: &str) -> Result<EmailInfo, String> {
     let username = random_string(12);
     let address = format!("{username}@{domain}");
     let password = random_string(16);

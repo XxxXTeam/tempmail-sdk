@@ -57,7 +57,10 @@ fn get_domains() -> Result<Vec<String>, String> {
 
         Ok(members
             .iter()
-            .filter(|d| d.get("isActive").and_then(|v| v.as_bool()) == Some(true))
+            .filter(|d| {
+                d.get("isActive").and_then(|v| v.as_bool()) == Some(true)
+                    || d.get("isVerified").and_then(|v| v.as_bool()) == Some(true)
+            })
             .filter_map(|d| d.get("domain").and_then(|v| v.as_str()))
             .map(|s| s.to_string())
             .collect())
@@ -201,7 +204,12 @@ pub fn generate_email() -> Result<EmailInfo, String> {
     }
 
     let mut rng = rand::thread_rng();
-    let domain = &domains[rng.gen_range(0..domains.len())];
+    let domain = domains[rng.gen_range(0..domains.len())].clone();
+    generate_email_with_domain(&domain)
+}
+
+/// 为 duckmail 指定域名的镜像渠道创建账号（跳过随机选域）
+pub fn generate_email_with_domain(domain: &str) -> Result<EmailInfo, String> {
     let username = random_string(12);
     let address = format!("{username}@{domain}");
     let password = random_string(16);

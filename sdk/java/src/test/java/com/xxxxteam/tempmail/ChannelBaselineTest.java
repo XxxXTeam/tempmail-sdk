@@ -60,7 +60,7 @@ class ChannelBaselineTest {
             actual.add(info.getChannel());
         }
 
-        assertEquals(301, expected.size(), "baseline 行数应为 301");
+        assertEquals(304, expected.size(), "baseline 行数应为 304");
         assertEquals(expected.size(), actual.size(), "渠道数量应与 baseline 一致");
         for (int i = 0; i < expected.size(); i++) {
             assertEquals(expected.get(i), actual.get(i),
@@ -74,7 +74,7 @@ class ChannelBaselineTest {
     @Test
     void channelsAreUniqueAndNonEmpty() {
         List<ChannelInfo> channels = TempMail.listChannels();
-        assertEquals(301, channels.size());
+        assertEquals(304, channels.size());
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (ChannelInfo c : channels) {
             assertTrue(c.getChannel() != null && !c.getChannel().isEmpty(), "渠道标识不应为空");

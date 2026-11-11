@@ -57,6 +57,21 @@ export async function generateEmail(): Promise<InternalEmailInfo> {
 }
 
 /**
+ * 使用指定固定域名创建邮箱：本地随机 local part + 固定域名，Token 即邮箱本身。
+ * 供同一 provider 派生的固定域名渠道使用。
+ */
+export async function generateEmailWithDomain(
+  domain: string,
+): Promise<InternalEmailInfo> {
+  const email = `${randomLocal(10)}@${domain}`;
+  return {
+    channel: CHANNEL,
+    email,
+    token: email,
+  };
+}
+
+/**
  * 获取 mailmomy.com 邮件列表
  * GET /api/mail/messages?to=<email>&page=1&limit=20
  * 返回 {emails:[{id,recipient,from,subject,message,bodyText,receivedAt}], total, page, limit, pages}

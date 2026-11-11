@@ -36,7 +36,7 @@ public static class Registry
     private static readonly Dictionary<string, ChannelSpec> _map = new(StringComparer.Ordinal);
     private static readonly object _lock = new();
     // 只读快照缓存：注册仅在模块初始化期发生一次，之后 All 被高频读取（每次 GenerateEmail 走 fallback），
-    // 缓存避免每次复制 279 元素数组；Register 时置空触发下次惰性重建。
+    // 缓存避免每次复制 290 元素数组；Register 时置空触发下次惰性重建。
     private static volatile ChannelSpec[]? _snapshot;
 
     /// <summary>有序渠道注册表（只读视图，快照缓存）</summary>

@@ -12,11 +12,11 @@
 
 ## 📖 概述
 
-十端 SDK（**Go、npm、Rust、Python、C、Java、C#、Ruby、PHP、Kotlin**）共同公开 **279** 个 `channel` 标识，按独立服务商合并为约 **110** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有 SDK 共享相同的渠道标识字符串、数量与顺序（与 `.baseline_channels.txt` 对齐，且与 Go `allChannels` 一致）。C 语言中 `tm_list_channels()` 返回顺序亦与基线一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
+十端 SDK（**Go、npm、Rust、Python、C、Java、C#、Ruby、PHP、Kotlin**）共同公开 **304** 个 `channel` 标识，按独立服务商合并为约 **110** 个 provider。固定域名、裸域、镜像域名和同一 API 的多域名只算同一个独立服务商。所有 SDK 共享相同的渠道标识字符串、数量与顺序（与 `.baseline_channels.txt` 对齐，且与 Go `allChannels` 一致）。C 语言中 `tm_list_channels()` 返回顺序亦与基线一致；`tm_channel_t` 的**枚举数值顺序**仍为历史兼容布局，与列表顺序不同，见 `sdk/c/README.md`。所有渠道返回**统一标准化格式**，无需关心各服务商的接口差异。
 
 ## ✨ 特性
 
-- 🌐 **十端共同公开 279 个 `channel` 标识，合并为约 110 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
+- 🌐 **十端共同公开 304 个 `channel` 标识，合并为约 110 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C、Java、C#、Ruby、PHP、Kotlin 十种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -220,7 +220,7 @@ interface Email {
 
 ## 📋 支持的渠道
 
-十端共同公开 **279** 个渠道，标识字符串、数量、顺序完全一致（以 `.baseline_channels.txt` 为准）。随机生成邮箱时，各 SDK 会在本端独立打乱尝试顺序，不承诺跨 SDK 随机顺序一致。渠道统计以独立服务商为准，同一 provider 的固定域名、裸域、镜像域名和同 API 多域名不重复计入服务商数量。
+十端共同公开 **304** 个渠道，标识字符串、数量、顺序完全一致（以 `.baseline_channels.txt` 为准）。随机生成邮箱时，各 SDK 会在本端独立打乱尝试顺序，不承诺跨 SDK 随机顺序一致。渠道统计以独立服务商为准，同一 provider 的固定域名、裸域、镜像域名和同 API 多域名不重复计入服务商数量。
 
 <details>
 <summary>点击展开渠道示例（前 30 个，完整列表见 <code>.baseline_channels.txt</code>）</summary>
@@ -310,7 +310,7 @@ tempmail-sdk/
 │   ├── php/                    # PHP SDK
 │   └── kotlin/                 # Kotlin SDK
 ├── telemetry-server/           # 可选：遥测收集服务（Gin + SQLite 等）
-├── .baseline_channels.txt      # 279 个渠道标识基线（十端顺序对齐）
+├── .baseline_channels.txt      # 304 个渠道标识基线（十端顺序对齐）
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # CI 工作流

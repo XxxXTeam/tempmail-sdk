@@ -108,6 +108,61 @@ tm_email_info_t *tm_provider_mail_tm_generate(void) {
   return info;
 }
 
+/* 指定域名变体：跳过随机选域，复用建账号/取 token 流程；
+ * 渠道标识由 registry thunk 通过 tm_with_channel 回填 */
+tm_email_info_t *tm_provider_mail_tm_generate_domain(const char *domain) {
+  if (!domain || !domain[0])
+    return NULL;
+  srand((unsigned)time(NULL));
+
+  /* 生成随机邮箱和密码 */
+  char username[13], password[17];
+  random_string(username, 12);
+  random_string(password, 16);
+  char address[256];
+  snprintf(address, sizeof(address), "%s@%s", username, domain);
+
+  /* 创建账号 */
+  char body[512];
+  snprintf(body, sizeof(body), "{\"address\":\"%s\",\"password\":\"%s\"}",
+           address, password);
+  const char *create_headers[] = {"Content-Type: application/ld+json",
+                                  "Accept: application/json", NULL};
+  tm_http_response_t *resp = tm_http_request(
+      TM_HTTP_POST, MTM_BASE "/accounts", create_headers, body, 15);
+  if (!resp || resp->status < 200 || resp->status >= 300) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+  tm_http_response_free(resp);
+
+  /* 获取 Token */
+  resp = tm_http_request(TM_HTTP_POST, MTM_BASE "/token", mtm_headers, body, 15);
+  if (!resp || resp->status != 200) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+
+  cJSON *json = cJSON_Parse(resp->body);
+  tm_http_response_free(resp);
+  if (!json)
+    return NULL;
+
+  const char *token =
+      cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(json, "token"));
+  if (!token) {
+    cJSON_Delete(json);
+    return NULL;
+  }
+
+  tm_email_info_t *info = tm_email_info_new();
+  info->channel = CHANNEL_MAIL_TM;
+  info->email = tm_strdup(address);
+  info->token = tm_strdup(token);
+  cJSON_Delete(json);
+  return info;
+}
+
 tm_email_t *tm_provider_mail_tm_get_emails(const char *token, const char *email,
                                            int *count) {
   *count = -1;

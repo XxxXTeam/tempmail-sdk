@@ -19,14 +19,14 @@ module TempmailSdk
       Zhujump: "zhujump", Anonymmail: "anonymmail", Byom: "byom", Cleantempmail: "cleantempmail",
       DevmailUk: "devmail_uk", DropmailClick: "dropmail_click", FakeEmailSite: "fake_email_site",
       Fmail: "fmail", Freecustom: "freecustom",
-      Harakirimail: "harakirimail", Inboxes: "inboxes", M2u: "m2u", Mail10s: "mail10s",
-      Mail123: "mail123", Mffac: "mffac", Tempmailc: "tempmailc", NeighboursSh: "neighbours_sh",
+      Harakirimail: "harakirimail", Inboxes: "inboxes", Mail10s: "mail10s",
+      Mail123: "mail123", Tempmailc: "tempmailc", NeighboursSh: "neighbours_sh",
       Temporam: "temporam", Neighbours: "neighbours", TempyEmail: "tempy_email", Ockito: "ockito",
       Tempmail365: "tempmail365", Tempinbox: "tempinbox", MailSunls: "mail_sunls",
       Smailpro: "smailpro", MailholeDe: "mailhole_de", Nimail: "nimail", Rootsh: "rootsh",
       ShittyEmail: "shitty_email", TaEasy: "ta_easy",
       TempMailOrg: "temp_mail_org", TempemailCo: "tempemail_co", TempemailInfo: "tempemail_info",
-      TempemailsNet: "tempemails_net", Tempfastmail: "tempfastmail", Tempgmailer: "tempgmailer",
+      Tempfastmail: "tempfastmail", Tempgmailer: "tempgmailer",
       TempgoEmail: "tempgo_email", TempmailFish: "tempmail_fish", TempmailFyi: "tempmail_fyi",
       TempmailLolV2: "tempmail_lol_v2", Tempmailpro: "tempmailpro", Tempmailten: "tempmailten",
       TempMails: "tempp_mails", TenMinuteMailNet: "ten_minute_mail_net",
@@ -51,7 +51,7 @@ module TempmailSdk
       Firetempmail: "firetempmail", Nullmail: "nullmail", TenminApp: "tenmin_app",
       Mtempmail: "mtempmail", TempmailEe: "tempmail_ee", Mailticking: "mailticking",
       TemporarymailCom: "temporarymail_com", ThirtyMinEmail: "thirty_min_email",
-      LinshiXyz: "linshi_xyz", Crazymailing: "crazymailing", NoxenDe5Net: "noxen_de5_net",
+      LinshiXyz: "linshi_xyz", Crazymailing: "crazymailing",
       Nukemail: "nukemail", Shadowmail: "shadowmail", Flybymail: "flybymail",
       Nowtempmail: "nowtempmail", Clawdemail: "clawdemail", Tempmail100: "tempmail100",
       Tempmailto: "tempmailto", TempMailGg: "temp_mail_gg",
@@ -368,56 +368,12 @@ module TempmailSdk
           generate: ->(_o) { p::Getnada.generate_email("jawatimur.net", "jawatimur-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
-        "kalimantanbarat-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("kalimantanbarat.net", "kalimantanbarat-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "kalimantanselatan-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("kalimantanselatan.net", "kalimantanselatan-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "kalimantantengah-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("kalimantantengah.net", "kalimantantengah-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
         "kalimantantimur-net" => {
           generate: ->(_o) { p::Getnada.generate_email("kalimantantimur.net", "kalimantantimur-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
-        "kalimantanutara-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("kalimantanutara.net", "kalimantanutara-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "kepulauanriau-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("kepulauanriau.net", "kepulauanriau-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
         "luxury345-com" => {
           generate: ->(_o) { p::Getnada.generate_email("luxury345.com", "luxury345-com") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "malukuutara-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("malukuutara.net", "malukuutara-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "nusatenggarabarat-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("nusatenggarabarat.net", "nusatenggarabarat-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "nusatenggaratimur-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("nusatenggaratimur.net", "nusatenggaratimur-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "papuabarat-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("papuabarat.net", "papuabarat-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "papuabaratdaya-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("papuabaratdaya.net", "papuabaratdaya-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "papuaselatan-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("papuaselatan.net", "papuaselatan-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
         "pehol-com" => {
@@ -428,10 +384,6 @@ module TempmailSdk
           generate: ->(_o) { p::Getnada.generate_email("ptruyen.com", "ptruyen-com") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
-        "pulaubali-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("pulaubali.net", "pulaubali-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
         "riau-net" => {
           generate: ->(_o) { p::Getnada.generate_email("riau.net", "riau-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
@@ -440,28 +392,12 @@ module TempmailSdk
           generate: ->(_o) { p::Getnada.generate_email("seokey.org", "seokey-org") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
-        "sulawesibarat-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("sulawesibarat.net", "sulawesibarat-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
         "sulawesiselatan-net" => {
           generate: ->(_o) { p::Getnada.generate_email("sulawesiselatan.net", "sulawesiselatan-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
-        "sulawesitengah-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("sulawesitengah.net", "sulawesitengah-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "sulawesitenggara-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("sulawesitenggara.net", "sulawesitenggara-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
         "sumaterabarat-net" => {
           generate: ->(_o) { p::Getnada.generate_email("sumaterabarat.net", "sumaterabarat-net") },
-          get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
-        },
-        "sumateraselatan-net" => {
-          generate: ->(_o) { p::Getnada.generate_email("sumateraselatan.net", "sumateraselatan-net") },
           get_emails: ->(e, t) { p::Getnada.get_emails(require_token(t, "getnada"), e) }
         },
         "sumaterautara-net" => {
@@ -924,9 +860,101 @@ module TempmailSdk
           generate: ->(o) { p::Inboxes.generate_email(o.domain) },
           get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
         },
-        "m2u" => {
-          generate: ->(_o) { p::M2u.generate_email },
-          get_emails: ->(e, t) { p::M2u.get_emails(t.to_s, e) }
+        "blondmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("blondmail.com"), "blondmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "chapsmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("chapsmail.com"), "chapsmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "clowmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("clowmail.com"), "clowmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "dropjar-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("dropjar.com"), "dropjar-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "fivermail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("fivermail.com"), "fivermail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "getairmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("getairmail.com"), "getairmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "getmule-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("getmule.com"), "getmule-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "inboxbear-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("inboxbear.com"), "inboxbear-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "replyloop-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("replyloop.com"), "replyloop-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "temptami-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("temptami.com"), "temptami-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "gimpmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("gimpmail.com"), "gimpmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "givmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("givmail.com"), "givmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "guysmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("guysmail.com"), "guysmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "robot-mail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("robot-mail.com"), "robot-mail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "tupmail-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("tupmail.com"), "tupmail-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "vomoto-com" => {
+          generate: ->(_o) { with_channel(p::Inboxes.generate_email("vomoto.com"), "vomoto-com") },
+          get_emails: ->(e, _t) { p::Inboxes.get_emails(e) }
+        },
+        "uqu-me" => {
+          generate: ->(_o) { with_channel(p::MailCx.generate_email("uqu.me"), "uqu-me") },
+          get_emails: ->(e, t) { p::MailCx.get_emails(e, t) }
+        },
+        "9k3r-com" => {
+          generate: ->(_o) { with_channel(p::MailCx.generate_email("9k3r.com"), "9k3r-com") },
+          get_emails: ->(e, t) { p::MailCx.get_emails(e, t) }
+        },
+        "2famail-com" => {
+          generate: ->(_o) { with_channel(p::Mailmomy.generate_email("2famail.com"), "2famail-com") },
+          get_emails: ->(e, _t) { p::Mailmomy.get_emails(e) }
+        },
+        "xikemail-com" => {
+          generate: ->(_o) { with_channel(p::Mailmomy.generate_email("xikemail.com"), "xikemail-com") },
+          get_emails: ->(e, _t) { p::Mailmomy.get_emails(e) }
+        },
+        "fldubai-com" => {
+          generate: ->(_o) { with_channel(p::MailTm.generate_email_at_domain("fldubai.com"), "fldubai-com") },
+          get_emails: ->(e, t) { p::MailTm.get_emails(e, require_token(t, "mail-tm")) }
+        },
+        "niceground-shop" => {
+          generate: ->(_o) { with_channel(p::Duckmail.generate_email_at_domain("niceground.shop"), "niceground-shop") },
+          get_emails: ->(e, t) { p::Duckmail.get_emails(e, require_token(t, "duckmail")) }
+        },
+        "glasswhitehub-com" => {
+          generate: ->(_o) { with_channel(p::Duckmail.generate_email_at_domain("glasswhitehub.com"), "glasswhitehub-com") },
+          get_emails: ->(e, t) { p::Duckmail.get_emails(e, require_token(t, "duckmail")) }
+        },
+        "hubaiclass-org" => {
+          generate: ->(_o) { with_channel(p::Duckmail.generate_email_at_domain("hubaiclass.org"), "hubaiclass-org") },
+          get_emails: ->(e, t) { p::Duckmail.get_emails(e, require_token(t, "duckmail")) }
         },
         "mail10s" => {
           generate: ->(_o) { p::Mail10s.generate_email },
@@ -937,10 +965,6 @@ module TempmailSdk
           get_emails: ->(e, _t) { p::Mail123.get_emails(e) }
         },
         # shard-11-independent-simple-b 渠道绑定
-        "mffac" => {
-          generate: ->(_o) { p::Mffac.generate_email },
-          get_emails: ->(e, t) { p::Mffac.get_emails(e, t || "") }
-        },
         "tempmailc" => {
           generate: ->(_o) { p::Tempmailc.generate_email },
           get_emails: ->(e, _t) { p::Tempmailc.get_emails(e) }
@@ -1013,10 +1037,6 @@ module TempmailSdk
         "tempemail-info" => {
           generate: ->(_o) { p::TempemailInfo.generate_email },
           get_emails: ->(e, t) { p::TempemailInfo.get_emails(e, require_token(t, "tempemail-info")) }
-        },
-        "tempemails-net" => {
-          generate: ->(_o) { p::TempemailsNet.generate_email },
-          get_emails: ->(e, t) { p::TempemailsNet.get_emails(e, require_token(t, "tempemails-net")) }
         },
         "tempfastmail" => {
           generate: ->(_o) { p::Tempfastmail.generate_email },
@@ -1283,10 +1303,6 @@ module TempmailSdk
         "crazymailing" => {
           generate: ->(_o) { p::Crazymailing.generate_email },
           get_emails: ->(e, t) { p::Crazymailing.get_emails(e, require_token(t, "crazymailing")) }
-        },
-        "noxen-de5-net" => {
-          generate: ->(o) { p::NoxenDe5Net.generate_email(o.domain) },
-          get_emails: ->(e, t) { p::NoxenDe5Net.get_emails(e, require_token(t, "noxen-de5-net")) }
         },
         "nukemail" => {
           generate: ->(_o) { p::Nukemail.generate_email },

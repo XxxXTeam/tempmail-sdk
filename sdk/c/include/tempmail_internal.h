@@ -506,6 +506,7 @@ tm_email_t *tm_provider_veryrealemail_com_get_emails(const char *email,
 
 /* mailmomy（https://mailmomy.com，免注册纯 GET JSON，token 即邮箱地址） */
 tm_email_info_t *tm_provider_mailmomy_generate(void);
+tm_email_info_t *tm_provider_mailmomy_generate_domain(const char *domain);
 tm_email_t *tm_provider_mailmomy_get_emails(const char *token,
                                             const char *email, int *count);
 
@@ -910,5 +911,9 @@ tm_email_info_t *tm_provider_generator_email_generate(void);
 tm_email_t *tm_provider_generator_email_get_emails(const char *email,
                                                    const char *token,
                                                    int *count);
+
+/* ========== 指定域名变体（跳过随机选域，复用各 provider 建账号/取 token） ========== */
+tm_email_info_t *tm_provider_mail_tm_generate_domain(const char *domain);
+tm_email_info_t *tm_provider_duckmail_generate_domain(const char *domain);
 
 #endif /* TEMPMAIL_INTERNAL_H */

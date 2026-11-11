@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-PHP 语言临时邮箱 SDK，聚合 **279** 个第三方临时邮箱渠道标识，与 Go / npm / Rust / Python / C / Kotlin 等其余各端保持一致；所有渠道返回**统一标准化邮件格式**。
+PHP 语言临时邮箱 SDK，聚合 **290** 个第三方临时邮箱渠道标识，与 Go / npm / Rust / Python / C / Kotlin 等其余各端保持一致；所有渠道返回**统一标准化邮件格式**。
 
 ## 安装
 

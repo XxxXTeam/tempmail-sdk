@@ -134,7 +134,7 @@ import com.xxxxteam.tempmail.providers.Internxt;
 import com.xxxxteam.tempmail.providers.GeneratorEmail;
 
 /**
- * 全部 301 个渠道的注册入口（严格按 baseline 顺序）。
+ * 全部 304 个渠道的注册入口（严格按 baseline 顺序）。
  *
  * <p>Java 无 C# 的 ModuleInitializer，由 {@link Registry} 的静态初始化块调用 {@link #init()}
  * 完成注册，{@code TempMail.listChannels()} 输出顺序与 .baseline_channels.txt 逐行一致。
@@ -221,12 +221,6 @@ final class RegistryChannels {
                 "linshiyou.com",
                 o -> Linshiyou.generate(),
                 (e, t) -> Linshiyou.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "mffac",
-                "MFFAC",
-                "mffac.com",
-                o -> Mffac.generate(),
-                (e, t) -> Mffac.getEmails(e, t)));
         Registry.register(new ChannelSpec(
                 "tempmail-lol",
                 "TempMail LOL",
@@ -438,82 +432,16 @@ final class RegistryChannels {
                 o -> Getnada.generate("jawatimur.net", "jawatimur-net"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "kalimantanbarat-net",
-                "kalimantanbarat.net",
-                "getnada.net",
-                o -> Getnada.generate("kalimantanbarat.net", "kalimantanbarat-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "kalimantanselatan-net",
-                "kalimantanselatan.net",
-                "getnada.net",
-                o -> Getnada.generate("kalimantanselatan.net", "kalimantanselatan-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "kalimantantengah-net",
-                "kalimantantengah.net",
-                "getnada.net",
-                o -> Getnada.generate("kalimantantengah.net", "kalimantantengah-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "kalimantantimur-net",
                 "kalimantantimur.net",
                 "getnada.net",
                 o -> Getnada.generate("kalimantantimur.net", "kalimantantimur-net"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "kalimantanutara-net",
-                "kalimantanutara.net",
-                "getnada.net",
-                o -> Getnada.generate("kalimantanutara.net", "kalimantanutara-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "kepulauanriau-net",
-                "kepulauanriau.net",
-                "getnada.net",
-                o -> Getnada.generate("kepulauanriau.net", "kepulauanriau-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "luxury345-com",
                 "luxury345.com",
                 "getnada.net",
                 o -> Getnada.generate("luxury345.com", "luxury345-com"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "malukuutara-net",
-                "malukuutara.net",
-                "getnada.net",
-                o -> Getnada.generate("malukuutara.net", "malukuutara-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "nusatenggarabarat-net",
-                "nusatenggarabarat.net",
-                "getnada.net",
-                o -> Getnada.generate("nusatenggarabarat.net", "nusatenggarabarat-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "nusatenggaratimur-net",
-                "nusatenggaratimur.net",
-                "getnada.net",
-                o -> Getnada.generate("nusatenggaratimur.net", "nusatenggaratimur-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "papuabarat-net",
-                "papuabarat.net",
-                "getnada.net",
-                o -> Getnada.generate("papuabarat.net", "papuabarat-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "papuabaratdaya-net",
-                "papuabaratdaya.net",
-                "getnada.net",
-                o -> Getnada.generate("papuabaratdaya.net", "papuabaratdaya-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "papuaselatan-net",
-                "papuaselatan.net",
-                "getnada.net",
-                o -> Getnada.generate("papuaselatan.net", "papuaselatan-net"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
                 "pehol-com",
@@ -528,12 +456,6 @@ final class RegistryChannels {
                 o -> Getnada.generate("ptruyen.com", "ptruyen-com"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "pulaubali-net",
-                "pulaubali.net",
-                "getnada.net",
-                o -> Getnada.generate("pulaubali.net", "pulaubali-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "riau-net",
                 "riau.net",
                 "getnada.net",
@@ -546,40 +468,16 @@ final class RegistryChannels {
                 o -> Getnada.generate("seokey.org", "seokey-org"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "sulawesibarat-net",
-                "sulawesibarat.net",
-                "getnada.net",
-                o -> Getnada.generate("sulawesibarat.net", "sulawesibarat-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "sulawesiselatan-net",
                 "sulawesiselatan.net",
                 "getnada.net",
                 o -> Getnada.generate("sulawesiselatan.net", "sulawesiselatan-net"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "sulawesitengah-net",
-                "sulawesitengah.net",
-                "getnada.net",
-                o -> Getnada.generate("sulawesitengah.net", "sulawesitengah-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "sulawesitenggara-net",
-                "sulawesitenggara.net",
-                "getnada.net",
-                o -> Getnada.generate("sulawesitenggara.net", "sulawesitenggara-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "sumaterabarat-net",
                 "sumaterabarat.net",
                 "getnada.net",
                 o -> Getnada.generate("sumaterabarat.net", "sumaterabarat-net"),
-                (e, t) -> Getnada.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "sumateraselatan-net",
-                "sumateraselatan.net",
-                "getnada.net",
-                o -> Getnada.generate("sumateraselatan.net", "sumateraselatan-net"),
                 (e, t) -> Getnada.getEmails(t, e)));
         Registry.register(new ChannelSpec(
                 "sumaterautara-net",
@@ -810,12 +708,6 @@ final class RegistryChannels {
                 o -> Email10min.generate(),
                 (e, t) -> Email10min.getEmails(e, t)));
         Registry.register(new ChannelSpec(
-                "mjj-cm",
-                "MJJ Mail",
-                "mjj.cm",
-                o -> MjjCm.generate(),
-                (e, t) -> MjjCm.getEmails(e, t)));
-        Registry.register(new ChannelSpec(
                 "linshi-co",
                 "临时Co",
                 "linshi.co",
@@ -984,12 +876,6 @@ final class RegistryChannels {
                 o -> GuerrillaMail.generate("https://www.guerrillamail.com/ajax.php", "guerrillamail-com-www"),
                 (e, t) -> GuerrillaMail.getEmails("https://www.guerrillamail.com/ajax.php", t, e)));
         Registry.register(new ChannelSpec(
-                "m2u",
-                "MailToYou",
-                "m2u.io",
-                o -> M2u.generate(),
-                (e, t) -> M2u.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "tempy-email",
                 "Tempy Email",
                 "tempy.email",
@@ -1133,12 +1019,6 @@ final class RegistryChannels {
                 "tempemail.co",
                 o -> TempEmailCo.generate(),
                 (e, t) -> TempEmailCo.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
-                "tempemails-net",
-                "TempEmails.net",
-                "tempemails.net",
-                o -> TempEmailsNet.generate(),
-                (e, t) -> TempEmailsNet.getEmails(t, e)));
         Registry.register(new ChannelSpec(
                 "altmails",
                 "AltMails",
@@ -1890,12 +1770,6 @@ final class RegistryChannels {
                 o -> Crazymailing.generate(),
                 (e, t) -> Crazymailing.getEmails(t, e)));
         Registry.register(new ChannelSpec(
-                "noxen-de5-net",
-                "UniMail Bot",
-                "tempmail.noxen.de5.net",
-                o -> NoxenDe5Net.generate(),
-                (e, t) -> NoxenDe5Net.getEmails(t, e)));
-        Registry.register(new ChannelSpec(
                 "nukemail",
                 "NukeMail",
                 "nukemail.app",
@@ -1961,5 +1835,149 @@ final class RegistryChannels {
                 "generator.email",
                 o -> GeneratorEmail.generate(),
                 (e, t) -> GeneratorEmail.getEmails(t, e)));
+        Registry.register(new ChannelSpec(
+                "blondmail-com",
+                "blondmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("blondmail.com").withChannel("blondmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "chapsmail-com",
+                "chapsmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("chapsmail.com").withChannel("chapsmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "clowmail-com",
+                "clowmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("clowmail.com").withChannel("clowmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "dropjar-com",
+                "dropjar.com",
+                "inboxes.com",
+                o -> Inboxes.generate("dropjar.com").withChannel("dropjar-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "fivermail-com",
+                "fivermail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("fivermail.com").withChannel("fivermail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "getairmail-com",
+                "getairmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("getairmail.com").withChannel("getairmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "getmule-com",
+                "getmule.com",
+                "inboxes.com",
+                o -> Inboxes.generate("getmule.com").withChannel("getmule-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "inboxbear-com",
+                "inboxbear.com",
+                "inboxes.com",
+                o -> Inboxes.generate("inboxbear.com").withChannel("inboxbear-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "replyloop-com",
+                "replyloop.com",
+                "inboxes.com",
+                o -> Inboxes.generate("replyloop.com").withChannel("replyloop-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "temptami-com",
+                "temptami.com",
+                "inboxes.com",
+                o -> Inboxes.generate("temptami.com").withChannel("temptami-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "gimpmail-com",
+                "gimpmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("gimpmail.com").withChannel("gimpmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "givmail-com",
+                "givmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("givmail.com").withChannel("givmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "guysmail-com",
+                "guysmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("guysmail.com").withChannel("guysmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "robot-mail-com",
+                "robot-mail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("robot-mail.com").withChannel("robot-mail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "tupmail-com",
+                "tupmail.com",
+                "inboxes.com",
+                o -> Inboxes.generate("tupmail.com").withChannel("tupmail-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "vomoto-com",
+                "vomoto.com",
+                "inboxes.com",
+                o -> Inboxes.generate("vomoto.com").withChannel("vomoto-com"),
+                (e, t) -> Inboxes.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "uqu-me",
+                "uqu.me",
+                "mail.cx",
+                o -> MailCx.generate("uqu-me", "uqu.me"),
+                (e, t) -> MailCx.getEmails(t, e)));
+        Registry.register(new ChannelSpec(
+                "9k3r-com",
+                "9k3r.com",
+                "mail.cx",
+                o -> MailCx.generate("9k3r-com", "9k3r.com"),
+                (e, t) -> MailCx.getEmails(t, e)));
+        Registry.register(new ChannelSpec(
+                "2famail-com",
+                "Mailmomy (2famail.com)",
+                "mailmomy.com",
+                o -> Mailmomy.generate("2famail-com", "2famail.com"),
+                (e, t) -> Mailmomy.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "xikemail-com",
+                "Mailmomy (xikemail.com)",
+                "mailmomy.com",
+                o -> Mailmomy.generate("xikemail-com", "xikemail.com"),
+                (e, t) -> Mailmomy.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "fldubai-com",
+                "fldubai.com",
+                "mail.tm",
+                o -> MailTm.generate("fldubai-com", "https://api.mail.tm", "fldubai.com"),
+                (e, t) -> MailTm.getEmails("https://api.mail.tm", t, e)));
+        Registry.register(new ChannelSpec(
+                "niceground-shop",
+                "niceground.shop",
+                "duckmail.sbs",
+                o -> MailTm.generate("niceground-shop", "https://api.duckmail.sbs", "niceground.shop"),
+                (e, t) -> MailTm.getEmails("https://api.duckmail.sbs", t, e)));
+        Registry.register(new ChannelSpec(
+                "glasswhitehub-com",
+                "glasswhitehub.com",
+                "duckmail.sbs",
+                o -> MailTm.generate("glasswhitehub-com", "https://api.duckmail.sbs", "glasswhitehub.com"),
+                (e, t) -> MailTm.getEmails("https://api.duckmail.sbs", t, e)));
+        Registry.register(new ChannelSpec(
+                "hubaiclass-org",
+                "hubaiclass.org",
+                "duckmail.sbs",
+                o -> MailTm.generate("hubaiclass-org", "https://api.duckmail.sbs", "hubaiclass.org"),
+                (e, t) -> MailTm.getEmails("https://api.duckmail.sbs", t, e)));
     }
 }

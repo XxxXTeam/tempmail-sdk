@@ -45,7 +45,10 @@ tm_email_info_t *tm_provider_duckmail_generate(void) {
   int sz = cJSON_GetArraySize(members);
   for (int i = 0; i < sz; i++) {
     cJSON *d = cJSON_GetArrayItem(members, i);
-    if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(d, "isActive"))) {
+    /* /domains 实返 isVerified；兼容历史 isActive 字段 */
+    cJSON *verified = cJSON_GetObjectItemCaseSensitive(d, "isVerified");
+    cJSON *active = cJSON_GetObjectItemCaseSensitive(d, "isActive");
+    if (cJSON_IsTrue(verified) || cJSON_IsTrue(active)) {
       domain = tm_strdup(
           cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(d, "domain")));
       break;
@@ -83,6 +86,59 @@ tm_email_info_t *tm_provider_duckmail_generate(void) {
   }
 
   json = cJSON_Parse(resp->body);
+  tm_http_response_free(resp);
+  if (!json)
+    return NULL;
+
+  const char *token =
+      cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(json, "token"));
+  if (!token) {
+    cJSON_Delete(json);
+    return NULL;
+  }
+
+  tm_email_info_t *info = tm_email_info_new();
+  info->channel = CHANNEL_DUCKMAIL;
+  info->email = tm_strdup(address);
+  info->token = tm_strdup(token);
+  cJSON_Delete(json);
+  return info;
+}
+
+/* 指定域名变体：跳过随机选域，复用建账号/取 token 流程；
+ * 渠道标识由 registry thunk 通过 tm_with_channel 回填 */
+tm_email_info_t *tm_provider_duckmail_generate_domain(const char *domain) {
+  if (!domain || !domain[0])
+    return NULL;
+  srand((unsigned)time(NULL));
+
+  char username[13], password[17];
+  duckmail_random_string(username, 12);
+  duckmail_random_string(password, 16);
+  char address[256];
+  snprintf(address, sizeof(address), "%s@%s", username, domain);
+
+  char body[512];
+  snprintf(body, sizeof(body), "{\"address\":\"%s\",\"password\":\"%s\"}",
+           address, password);
+  const char *create_headers[] = {"Content-Type: application/ld+json",
+                                  "Accept: application/json", NULL};
+  tm_http_response_t *resp = tm_http_request(
+      TM_HTTP_POST, DUCKMAIL_BASE "/accounts", create_headers, body, 15);
+  if (!resp || resp->status < 200 || resp->status >= 300) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+  tm_http_response_free(resp);
+
+  resp = tm_http_request(TM_HTTP_POST, DUCKMAIL_BASE "/token", duckmail_headers,
+                         body, 15);
+  if (!resp || resp->status != 200) {
+    tm_http_response_free(resp);
+    return NULL;
+  }
+
+  cJSON *json = cJSON_Parse(resp->body);
   tm_http_response_free(resp);
   if (!json)
     return NULL;

@@ -4,7 +4,7 @@ using XxxXTeam.TempMail.Providers;
 namespace XxxXTeam.TempMail;
 
 /// <summary>
-/// 全部 284 个渠道的注册入口（严格按 baseline 顺序）。
+/// 全部 290 个渠道的注册入口（严格按 baseline 顺序）。
 /// 使用 ModuleInitializer 在程序集加载时自动填充注册表，
 /// ListChannels() 输出顺序与 .baseline_channels.txt 逐行一致。
 /// generate/getEmails 委托绑定到对应 Provider（纯 JSON API 渠道为真实现，复杂渠道为占位桩）。
@@ -105,14 +105,6 @@ internal static class RegistryChannels
             Website = "linshiyou.com",
             Generate = o => Linshiyou.Generate(),
             GetEmails = (e, t) => Linshiyou.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "mffac",
-            Name = "MFFAC",
-            Website = "mffac.com",
-            Generate = o => Mffac.Generate(),
-            GetEmails = (e, t) => Mffac.GetEmails(e, t),
         });
         Registry.Register(new ChannelSpec
         {
@@ -396,30 +388,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "kalimantanbarat-net",
-            Name = "kalimantanbarat.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("kalimantanbarat.net", "kalimantanbarat-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "kalimantanselatan-net",
-            Name = "kalimantanselatan.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("kalimantanselatan.net", "kalimantanselatan-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "kalimantantengah-net",
-            Name = "kalimantantengah.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("kalimantantengah.net", "kalimantantengah-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "kalimantantimur-net",
             Name = "kalimantantimur.net",
             Website = "getnada.net",
@@ -428,74 +396,10 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "kalimantanutara-net",
-            Name = "kalimantanutara.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("kalimantanutara.net", "kalimantanutara-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "kepulauanriau-net",
-            Name = "kepulauanriau.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("kepulauanriau.net", "kepulauanriau-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "luxury345-com",
             Name = "luxury345.com",
             Website = "getnada.net",
             Generate = o => Getnada.Generate("luxury345.com", "luxury345-com"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "malukuutara-net",
-            Name = "malukuutara.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("malukuutara.net", "malukuutara-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "nusatenggarabarat-net",
-            Name = "nusatenggarabarat.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("nusatenggarabarat.net", "nusatenggarabarat-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "nusatenggaratimur-net",
-            Name = "nusatenggaratimur.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("nusatenggaratimur.net", "nusatenggaratimur-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "papuabarat-net",
-            Name = "papuabarat.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("papuabarat.net", "papuabarat-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "papuabaratdaya-net",
-            Name = "papuabaratdaya.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("papuabaratdaya.net", "papuabaratdaya-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "papuaselatan-net",
-            Name = "papuaselatan.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("papuaselatan.net", "papuaselatan-net"),
             GetEmails = (e, t) => Getnada.GetEmails(t, e),
         });
         Registry.Register(new ChannelSpec
@@ -516,14 +420,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "pulaubali-net",
-            Name = "pulaubali.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("pulaubali.net", "pulaubali-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "riau-net",
             Name = "riau.net",
             Website = "getnada.net",
@@ -540,14 +436,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "sulawesibarat-net",
-            Name = "sulawesibarat.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("sulawesibarat.net", "sulawesibarat-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "sulawesiselatan-net",
             Name = "sulawesiselatan.net",
             Website = "getnada.net",
@@ -556,34 +444,10 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "sulawesitengah-net",
-            Name = "sulawesitengah.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("sulawesitengah.net", "sulawesitengah-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "sulawesitenggara-net",
-            Name = "sulawesitenggara.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("sulawesitenggara.net", "sulawesitenggara-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "sumaterabarat-net",
             Name = "sumaterabarat.net",
             Website = "getnada.net",
             Generate = o => Getnada.Generate("sumaterabarat.net", "sumaterabarat-net"),
-            GetEmails = (e, t) => Getnada.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "sumateraselatan-net",
-            Name = "sumateraselatan.net",
-            Website = "getnada.net",
-            Generate = o => Getnada.Generate("sumateraselatan.net", "sumateraselatan-net"),
             GetEmails = (e, t) => Getnada.GetEmails(t, e),
         });
         Registry.Register(new ChannelSpec
@@ -892,14 +756,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "mjj-cm",
-            Name = "MJJ Mail",
-            Website = "mjj.cm",
-            Generate = o => SocketIoMail.GenerateMjjCm(),
-            GetEmails = (e, t) => SocketIoMail.GetEmailsMjjCm(e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "linshi-co",
             Name = "临时Co",
             Website = "linshi.co",
@@ -1124,14 +980,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "m2u",
-            Name = "MailToYou",
-            Website = "m2u.io",
-            Generate = o => M2u.Generate(),
-            GetEmails = (e, t) => M2u.GetEmails(t, e),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "tempy-email",
             Name = "Tempy Email",
             Website = "tempy.email",
@@ -1321,14 +1169,6 @@ internal static class RegistryChannels
             Website = "tempemail.co",
             Generate = o => TempEmailCo.Generate(),
             GetEmails = (e, t) => TempEmailCo.GetEmails(e, t),
-        });
-        Registry.Register(new ChannelSpec
-        {
-            Channel = "tempemails-net",
-            Name = "TempEmails.net",
-            Website = "tempemails.net",
-            Generate = o => TempEmailsNet.Generate(),
-            GetEmails = (e, t) => TempEmailsNet.GetEmails(e, t),
         });
         Registry.Register(new ChannelSpec
         {
@@ -2332,14 +2172,6 @@ internal static class RegistryChannels
         });
         Registry.Register(new ChannelSpec
         {
-            Channel = "noxen-de5-net",
-            Name = "UniMail Bot",
-            Website = "tempmail.noxen.de5.net",
-            Generate = o => NoxenDe5Net.Generate(),
-            GetEmails = (e, t) => NoxenDe5Net.GetEmails(e, t),
-        });
-        Registry.Register(new ChannelSpec
-        {
             Channel = "nukemail",
             Name = "NukeMail",
             Website = "nukemail.app",
@@ -2425,6 +2257,198 @@ internal static class RegistryChannels
             Website = "generator.email",
             Generate = o => GeneratorEmail.Generate(),
             GetEmails = (e, t) => GeneratorEmail.GetEmails(e, t),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "blondmail-com",
+            Name = "blondmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("blondmail.com", "blondmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "chapsmail-com",
+            Name = "chapsmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("chapsmail.com", "chapsmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "clowmail-com",
+            Name = "clowmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("clowmail.com", "clowmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "dropjar-com",
+            Name = "dropjar.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("dropjar.com", "dropjar-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "fivermail-com",
+            Name = "fivermail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("fivermail.com", "fivermail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "getairmail-com",
+            Name = "getairmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("getairmail.com", "getairmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "getmule-com",
+            Name = "getmule.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("getmule.com", "getmule-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "inboxbear-com",
+            Name = "inboxbear.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("inboxbear.com", "inboxbear-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "replyloop-com",
+            Name = "replyloop.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("replyloop.com", "replyloop-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "temptami-com",
+            Name = "temptami.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("temptami.com", "temptami-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "gimpmail-com",
+            Name = "gimpmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("gimpmail.com", "gimpmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "givmail-com",
+            Name = "givmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("givmail.com", "givmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "guysmail-com",
+            Name = "guysmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("guysmail.com", "guysmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "robot-mail-com",
+            Name = "robot-mail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("robot-mail.com", "robot-mail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "tupmail-com",
+            Name = "tupmail.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("tupmail.com", "tupmail-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "vomoto-com",
+            Name = "vomoto.com",
+            Website = "inboxes.com",
+            Generate = o => Inboxes.Generate("vomoto.com", "vomoto-com"),
+            GetEmails = (e, t) => Inboxes.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "uqu-me",
+            Name = "uqu.me",
+            Website = "mail.cx",
+            Generate = o => MailCx.Generate("uqu-me", "uqu.me"),
+            GetEmails = (e, t) => MailCx.GetEmails(t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "9k3r-com",
+            Name = "9k3r.com",
+            Website = "mail.cx",
+            Generate = o => MailCx.Generate("9k3r-com", "9k3r.com"),
+            GetEmails = (e, t) => MailCx.GetEmails(t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "2famail-com",
+            Name = "2famail.com",
+            Website = "mailmomy.com",
+            Generate = o => Mailmomy.Generate("2famail-com", "2famail.com"),
+            GetEmails = (e, t) => Mailmomy.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "xikemail-com",
+            Name = "xikemail.com",
+            Website = "mailmomy.com",
+            Generate = o => Mailmomy.Generate("xikemail-com", "xikemail.com"),
+            GetEmails = (e, t) => Mailmomy.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "fldubai-com",
+            Name = "fldubai.com",
+            Website = "mail.tm",
+            Generate = o => MailTm.Generate("fldubai-com", "https://api.mail.tm", "fldubai.com"),
+            GetEmails = (e, t) => MailTm.GetEmails("https://api.mail.tm", t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "niceground-shop",
+            Name = "niceground.shop",
+            Website = "duckmail.sbs",
+            Generate = o => MailTm.Generate("niceground-shop", "https://api.duckmail.sbs", "niceground.shop"),
+            GetEmails = (e, t) => MailTm.GetEmails("https://api.duckmail.sbs", t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "glasswhitehub-com",
+            Name = "glasswhitehub.com",
+            Website = "duckmail.sbs",
+            Generate = o => MailTm.Generate("glasswhitehub-com", "https://api.duckmail.sbs", "glasswhitehub.com"),
+            GetEmails = (e, t) => MailTm.GetEmails("https://api.duckmail.sbs", t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "hubaiclass-org",
+            Name = "hubaiclass.org",
+            Website = "duckmail.sbs",
+            Generate = o => MailTm.Generate("hubaiclass-org", "https://api.duckmail.sbs", "hubaiclass.org"),
+            GetEmails = (e, t) => MailTm.GetEmails("https://api.duckmail.sbs", t, e),
         });
     }
 }

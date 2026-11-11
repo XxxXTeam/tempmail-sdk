@@ -697,6 +697,78 @@ pub enum Channel {
     /// generator.email（SSR 网页型，SITE_DATA 快照建箱）临时邮箱
     #[serde(rename = "generator-email")]
     GeneratorEmail,
+    /// inboxes.com 服务方镜像域名 blondmail.com
+    #[serde(rename = "blondmail-com")]
+    BlondmailCom,
+    /// inboxes.com 服务方镜像域名 chapsmail.com
+    #[serde(rename = "chapsmail-com")]
+    ChapsmailCom,
+    /// inboxes.com 服务方镜像域名 clowmail.com
+    #[serde(rename = "clowmail-com")]
+    ClowmailCom,
+    /// inboxes.com 服务方镜像域名 dropjar.com
+    #[serde(rename = "dropjar-com")]
+    DropjarCom,
+    /// inboxes.com 服务方镜像域名 fivermail.com
+    #[serde(rename = "fivermail-com")]
+    FivermailCom,
+    /// inboxes.com 服务方镜像域名 getairmail.com
+    #[serde(rename = "getairmail-com")]
+    GetairmailCom,
+    /// inboxes.com 服务方镜像域名 getmule.com
+    #[serde(rename = "getmule-com")]
+    GetmuleCom,
+    /// inboxes.com 服务方镜像域名 inboxbear.com
+    #[serde(rename = "inboxbear-com")]
+    InboxbearCom,
+    /// inboxes.com 服务方镜像域名 replyloop.com
+    #[serde(rename = "replyloop-com")]
+    ReplyloopCom,
+    /// inboxes.com 服务方镜像域名 temptami.com
+    #[serde(rename = "temptami-com")]
+    TemptamiCom,
+    /// inboxes.com 服务方镜像域名 gimpmail.com
+    #[serde(rename = "gimpmail-com")]
+    GimpmailCom,
+    /// inboxes.com 服务方镜像域名 givmail.com
+    #[serde(rename = "givmail-com")]
+    GivmailCom,
+    /// inboxes.com 服务方镜像域名 guysmail.com
+    #[serde(rename = "guysmail-com")]
+    GuysmailCom,
+    /// inboxes.com 服务方镜像域名 robot-mail.com
+    #[serde(rename = "robot-mail-com")]
+    RobotMailCom,
+    /// inboxes.com 服务方镜像域名 tupmail.com
+    #[serde(rename = "tupmail-com")]
+    TupmailCom,
+    /// inboxes.com 服务方镜像域名 vomoto.com
+    #[serde(rename = "vomoto-com")]
+    VomotoCom,
+    /// mail.cx 服务方镜像域名 uqu.me
+    #[serde(rename = "uqu-me")]
+    UquMe,
+    /// mail.cx 服务方镜像域名 9k3r.com
+    #[serde(rename = "9k3r-com")]
+    N9k3rCom,
+    /// mailmomy 服务方镜像域名 2famail.com
+    #[serde(rename = "2famail-com")]
+    N2famailCom,
+    /// mailmomy 服务方镜像域名 xikemail.com
+    #[serde(rename = "xikemail-com")]
+    XikemailCom,
+    /// mail.tm 服务方镜像域名 fldubai.com
+    #[serde(rename = "fldubai-com")]
+    FldubaiCom,
+    /// duckmail 服务方镜像域名 niceground.shop
+    #[serde(rename = "niceground-shop")]
+    NicegroundShop,
+    /// duckmail 服务方镜像域名 glasswhitehub.com
+    #[serde(rename = "glasswhitehub-com")]
+    GlasswhitehubCom,
+    /// duckmail 服务方镜像域名 hubaiclass.org
+    #[serde(rename = "hubaiclass-org")]
+    HubaiclassOrg,
 }
 
 impl std::fmt::Display for Channel {
@@ -1003,6 +1075,30 @@ impl std::fmt::Display for Channel {
             Channel::Tmpkit => write!(f, "tmpkit"),
             Channel::Internxt => write!(f, "internxt"),
             Channel::GeneratorEmail => write!(f, "generator-email"),
+            Channel::BlondmailCom => write!(f, "blondmail-com"),
+            Channel::ChapsmailCom => write!(f, "chapsmail-com"),
+            Channel::ClowmailCom => write!(f, "clowmail-com"),
+            Channel::DropjarCom => write!(f, "dropjar-com"),
+            Channel::FivermailCom => write!(f, "fivermail-com"),
+            Channel::GetairmailCom => write!(f, "getairmail-com"),
+            Channel::GetmuleCom => write!(f, "getmule-com"),
+            Channel::InboxbearCom => write!(f, "inboxbear-com"),
+            Channel::ReplyloopCom => write!(f, "replyloop-com"),
+            Channel::TemptamiCom => write!(f, "temptami-com"),
+            Channel::GimpmailCom => write!(f, "gimpmail-com"),
+            Channel::GivmailCom => write!(f, "givmail-com"),
+            Channel::GuysmailCom => write!(f, "guysmail-com"),
+            Channel::RobotMailCom => write!(f, "robot-mail-com"),
+            Channel::TupmailCom => write!(f, "tupmail-com"),
+            Channel::VomotoCom => write!(f, "vomoto-com"),
+            Channel::UquMe => write!(f, "uqu-me"),
+            Channel::N9k3rCom => write!(f, "9k3r-com"),
+            Channel::N2famailCom => write!(f, "2famail-com"),
+            Channel::XikemailCom => write!(f, "xikemail-com"),
+            Channel::FldubaiCom => write!(f, "fldubai-com"),
+            Channel::NicegroundShop => write!(f, "niceground-shop"),
+            Channel::GlasswhitehubCom => write!(f, "glasswhitehub-com"),
+            Channel::HubaiclassOrg => write!(f, "hubaiclass-org"),
         }
     }
 }

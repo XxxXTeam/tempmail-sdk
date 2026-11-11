@@ -6,7 +6,7 @@ declare(strict_types=1);
  * 验证脚本：导出 listChannels() 的有序 slug，与 baseline 逐行比对。
  *
  * 用法: php bin/list_channels.php
- * 退出码 0 表示 279 且顺序完全一致。
+ * 退出码 0 表示 304 且顺序完全一致。
  */
 
 require __DIR__ . '/../vendor/autoload.php';

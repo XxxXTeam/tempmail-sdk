@@ -30,8 +30,6 @@ public final class Channels {
     public static final String ImxweCom = "imxwe-com";
     /** 临时邮 */
     public static final String Linshiyou = "linshiyou";
-    /** MFFAC */
-    public static final String Mffac = "mffac";
     /** TempMail LOL */
     public static final String TempmailLol = "tempmail-lol";
     /** ChatGPT Mail */
@@ -102,54 +100,22 @@ public final class Channels {
     public static final String JawatengahNet = "jawatengah-net";
     /** jawatimur.net */
     public static final String JawatimurNet = "jawatimur-net";
-    /** kalimantanbarat.net */
-    public static final String KalimantanbaratNet = "kalimantanbarat-net";
-    /** kalimantanselatan.net */
-    public static final String KalimantanselatanNet = "kalimantanselatan-net";
-    /** kalimantantengah.net */
-    public static final String KalimantantengahNet = "kalimantantengah-net";
     /** kalimantantimur.net */
     public static final String KalimantantimurNet = "kalimantantimur-net";
-    /** kalimantanutara.net */
-    public static final String KalimantanutaraNet = "kalimantanutara-net";
-    /** kepulauanriau.net */
-    public static final String KepulauanriauNet = "kepulauanriau-net";
     /** luxury345.com */
     public static final String Luxury345Com = "luxury345-com";
-    /** malukuutara.net */
-    public static final String MalukuutaraNet = "malukuutara-net";
-    /** nusatenggarabarat.net */
-    public static final String NusatenggarabaratNet = "nusatenggarabarat-net";
-    /** nusatenggaratimur.net */
-    public static final String NusatenggaratimurNet = "nusatenggaratimur-net";
-    /** papuabarat.net */
-    public static final String PapuabaratNet = "papuabarat-net";
-    /** papuabaratdaya.net */
-    public static final String PapuabaratdayaNet = "papuabaratdaya-net";
-    /** papuaselatan.net */
-    public static final String PapuaselatanNet = "papuaselatan-net";
     /** pehol.com */
     public static final String PeholCom = "pehol-com";
     /** ptruyen.com */
     public static final String PtruyenCom = "ptruyen-com";
-    /** pulaubali.net */
-    public static final String PulaubaliNet = "pulaubali-net";
     /** riau.net */
     public static final String RiauNet = "riau-net";
     /** seokey.org */
     public static final String SeokeyOrg = "seokey-org";
-    /** sulawesibarat.net */
-    public static final String SulawesibaratNet = "sulawesibarat-net";
     /** sulawesiselatan.net */
     public static final String SulawesiselatanNet = "sulawesiselatan-net";
-    /** sulawesitengah.net */
-    public static final String SulawesitengahNet = "sulawesitengah-net";
-    /** sulawesitenggara.net */
-    public static final String SulawesitenggaraNet = "sulawesitenggara-net";
     /** sumaterabarat.net */
     public static final String SumaterabaratNet = "sumaterabarat-net";
-    /** sumateraselatan.net */
-    public static final String SumateraselatanNet = "sumateraselatan-net";
     /** sumaterautara.net */
     public static final String SumaterautaraNet = "sumaterautara-net";
     /** villatogel.com */
@@ -226,8 +192,6 @@ public final class Channels {
     public static final String BareedWs = "bareed-ws";
     /** Email10Min */
     public static final String Email10min = "email10min";
-    /** MJJ Mail */
-    public static final String MjjCm = "mjj-cm";
     /** 临时Co */
     public static final String LinshiCo = "linshi-co";
     /** HarakiriMail */
@@ -284,8 +248,6 @@ public final class Channels {
     public static final String Guerrillamailblock = "guerrillamailblock";
     /** GuerrillaMail WWW */
     public static final String GuerrillamailComWww = "guerrillamail-com-www";
-    /** MailToYou */
-    public static final String M2u = "m2u";
     /** Tempy Email */
     public static final String TempyEmail = "tempy-email";
     /** FMail */
@@ -334,8 +296,6 @@ public final class Channels {
     public static final String Mailcatch = "mailcatch";
     /** TempEmail.co */
     public static final String TempemailCo = "tempemail-co";
-    /** TempEmails.net */
-    public static final String TempemailsNet = "tempemails-net";
     /** AltMails */
     public static final String Altmails = "altmails";
     /** TempEmailInfo */
@@ -586,8 +546,6 @@ public final class Channels {
     public static final String LinshiXyz = "linshi-xyz";
     /** CrazyMailing */
     public static final String Crazymailing = "crazymailing";
-    /** UniMail Bot */
-    public static final String NoxenDe5Net = "noxen-de5-net";
     /** NukeMail */
     public static final String Nukemail = "nukemail";
     /** ShadowMail */
@@ -610,4 +568,24 @@ public final class Channels {
     public static final String Internxt = "internxt";
     /** GeneratorEmail */
     public static final String GeneratorEmail = "generator-email";
+    /** blondmail.com */
+    public static final String BlondmailCom = "blondmail-com";
+    /** chapsmail.com */
+    public static final String ChapsmailCom = "chapsmail-com";
+    /** clowmail.com */
+    public static final String ClowmailCom = "clowmail-com";
+    /** dropjar.com */
+    public static final String DropjarCom = "dropjar-com";
+    /** fivermail.com */
+    public static final String FivermailCom = "fivermail-com";
+    /** getairmail.com */
+    public static final String GetairmailCom = "getairmail-com";
+    /** getmule.com */
+    public static final String GetmuleCom = "getmule-com";
+    /** inboxbear.com */
+    public static final String InboxbearCom = "inboxbear-com";
+    /** replyloop.com */
+    public static final String ReplyloopCom = "replyloop-com";
+    /** temptami.com */
+    public static final String TemptamiCom = "temptami-com";
 }

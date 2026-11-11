@@ -20,7 +20,6 @@ const (
 	ChannelYgwprCom                Channel = "ygwpr-com"                // 10minutemail.one 固定域 ygwpr.com
 	ChannelImxweCom                Channel = "imxwe-com"                // 10minutemail.one 固定域 imxwe.com
 	ChannelLinshiyou               Channel = "linshiyou"                // linshiyou.com
-	ChannelMffac                   Channel = "mffac"                    // mffac.com
 	ChannelTempmailLol             Channel = "tempmail-lol"             // tempmail.lol
 	ChannelChatgptOrgUk            Channel = "chatgpt-org-uk"           // mail.chatgpt.org.uk
 	ChannelTempMailIo              Channel = "temp-mail-io"             // temp-mail.io
@@ -56,30 +55,14 @@ const (
 	ChannelGetnadaNet              Channel = "getnada-net"              // getnada 固定域 getnada.net
 	ChannelJawatengahNet           Channel = "jawatengah-net"           // getnada 固定域 jawatengah.net
 	ChannelJawatimurNet            Channel = "jawatimur-net"            // getnada 固定域 jawatimur.net
-	ChannelKalimantanbaratNet      Channel = "kalimantanbarat-net"      // getnada 固定域 kalimantanbarat.net
-	ChannelKalimantanselatanNet    Channel = "kalimantanselatan-net"    // getnada 固定域 kalimantanselatan.net
-	ChannelKalimantantengahNet     Channel = "kalimantantengah-net"     // getnada 固定域 kalimantantengah.net
 	ChannelKalimantantimurNet      Channel = "kalimantantimur-net"      // getnada 固定域 kalimantantimur.net
-	ChannelKalimantanutaraNet      Channel = "kalimantanutara-net"      // getnada 固定域 kalimantanutara.net
-	ChannelKepulauanriauNet        Channel = "kepulauanriau-net"        // getnada 固定域 kepulauanriau.net
 	ChannelLuxury345Com            Channel = "luxury345-com"            // getnada 固定域 luxury345.com
-	ChannelMalukuutaraNet          Channel = "malukuutara-net"          // getnada 固定域 malukuutara.net
-	ChannelNusatenggarabaratNet    Channel = "nusatenggarabarat-net"    // getnada 固定域 nusatenggarabarat.net
-	ChannelNusatenggaratimurNet    Channel = "nusatenggaratimur-net"    // getnada 固定域 nusatenggaratimur.net
-	ChannelPapuabaratNet           Channel = "papuabarat-net"           // getnada 固定域 papuabarat.net
-	ChannelPapuabaratdayaNet       Channel = "papuabaratdaya-net"       // getnada 固定域 papuabaratdaya.net
-	ChannelPapuaselatanNet         Channel = "papuaselatan-net"         // getnada 固定域 papuaselatan.net
 	ChannelPeholCom                Channel = "pehol-com"                // getnada 固定域 pehol.com
 	ChannelPtruyenCom              Channel = "ptruyen-com"              // getnada 固定域 ptruyen.com
-	ChannelPulaubaliNet            Channel = "pulaubali-net"            // getnada 固定域 pulaubali.net
 	ChannelRiauNet                 Channel = "riau-net"                 // getnada 固定域 riau.net
 	ChannelSeokeyOrg               Channel = "seokey-org"               // getnada 固定域 seokey.org
-	ChannelSulawesibaratNet        Channel = "sulawesibarat-net"        // getnada 固定域 sulawesibarat.net
 	ChannelSulawesiselatanNet      Channel = "sulawesiselatan-net"      // getnada 固定域 sulawesiselatan.net
-	ChannelSulawesitengahNet       Channel = "sulawesitengah-net"       // getnada 固定域 sulawesitengah.net
-	ChannelSulawesitenggaraNet     Channel = "sulawesitenggara-net"     // getnada 固定域 sulawesitenggara.net
 	ChannelSumaterabaratNet        Channel = "sumaterabarat-net"        // getnada 固定域 sumaterabarat.net
-	ChannelSumateraselatanNet      Channel = "sumateraselatan-net"      // getnada 固定域 sumateraselatan.net
 	ChannelSumaterautaraNet        Channel = "sumaterautara-net"        // getnada 固定域 sumaterautara.net
 	ChannelVillatogelCom           Channel = "villatogel-com"           // getnada 固定域 villatogel.com
 	ChannelMail123                 Channel = "mail123"                  // mail123.fr
@@ -118,7 +101,6 @@ const (
 	ChannelTmailWs                 Channel = "tmail-ws"                 // moakt 固定域 tmail.ws
 	ChannelBareedWs                Channel = "bareed-ws"                // moakt 固定域 bareed.ws
 	ChannelEmail10min              Channel = "email10min"               // email10min.com（CSRF + Cookie）
-	ChannelMjjCm                   Channel = "mjj-cm"                   // mjj.cm（Socket.IO）
 	ChannelLinshiCo                Channel = "linshi-co"                // linshi.co（Socket.IO）
 	ChannelHarakirimail            Channel = "harakirimail"             // harakirimail.com
 	ChannelJqkjqkXyz               Channel = "jqkjqk-xyz"               // mail.zhujump.com 固定域 jqkjqk.xyz
@@ -147,7 +129,6 @@ const (
 	ChannelGuerrillamailOrg        Channel = "guerrillamail-org"        // guerrillamail.org（Guerrillamail 镜像）
 	ChannelGuerrillamailBlock      Channel = "guerrillamailblock"       // guerrillamailblock.com（Guerrillamail 镜像）
 	ChannelGuerrillamailComWww     Channel = "guerrillamail-com-www"    // guerrillamail.com（Guerrillamail 镜像）
-	ChannelM2u                     Channel = "m2u"                      // m2u.io（MailToYou）
 	ChannelTempyEmail              Channel = "tempy-email"              // tempy.email
 	ChannelFmail                   Channel = "fmail"                    // fmail.men
 	ChannelOckito                  Channel = "ockito"                   // ockito.com
@@ -172,7 +153,6 @@ const (
 	ChannelMinuteinbox             Channel = "minuteinbox"              // minuteinbox.com
 	ChannelMailcatch               Channel = "mailcatch"                // mailcatch.com
 	ChannelTempemailCo             Channel = "tempemail-co"             // tempemail.co
-	ChannelTempemailsNet           Channel = "tempemails-net"           // tempemails.net
 	ChannelAltmails                Channel = "altmails"                 // tempmail.altmails.com（CSRF + Cookie Session）
 	ChannelTempemailInfo           Channel = "tempemail-info"           // tempemail.info
 	ChannelSmailpro                Channel = "smailpro"                 // smailpro.com
@@ -302,7 +282,6 @@ const (
 	ChannelEmail30Min              Channel = "30minemail"               // 30minemail.com（服务端建箱 + messages.php 读信）
 	ChannelLinshiXYZ               Channel = "linshi-xyz"               // linshi.xyz（本地生成前缀，无建箱请求）
 	ChannelCrazymailing            Channel = "crazymailing"             // crazymailing.com（POST /api/mailbox 建箱 + REST 读信）
-	ChannelNoxenDe5Net             Channel = "noxen-de5-net"            // UniMail-Bot 公共实例 tempmail.noxen.de5.net（JWT Cookie 会话 + 随机建箱）
 	ChannelNukemail                Channel = "nukemail"                 // nukemail.app（SHA-256 PoW 建箱 + token Cookie 会话）
 	ChannelShadowmail              Channel = "shadowmail"               // shadowmail.win（账号注册 + sessionId Cookie + 每账号 12 个自选前缀地址）
 	ChannelTempmailto              Channel = "tempmailto"               // tempmailto.com（Laravel Cookie 会话，POST /get_messages 读信）
@@ -310,6 +289,30 @@ const (
 	ChannelTmpkit                  Channel = "tmpkit"                   // tmpkit.com（Next.js tRPC 会话，initSession 建箱 + getEmails/getEmailDetail 读信）
 	ChannelInternxt                Channel = "internxt"                 // internxt.com（临时邮箱页 Cookie 会话，csrf-token 头 + create-email/get-inbox）
 	ChannelGeneratorEmail          Channel = "generator-email"          // generator.email（SSR 网页型，SITE_DATA 快照建箱 + 收信渲染）
+	ChannelBlondmailCom            Channel = "blondmail-com"            // inboxes.com 服务方域名 blondmail.com
+	ChannelChapsmailCom            Channel = "chapsmail-com"            // inboxes.com 服务方域名 chapsmail.com
+	ChannelClowmailCom             Channel = "clowmail-com"             // inboxes.com 服务方域名 clowmail.com
+	ChannelDropjarCom              Channel = "dropjar-com"              // inboxes.com 服务方域名 dropjar.com
+	ChannelFivermailCom            Channel = "fivermail-com"            // inboxes.com 服务方域名 fivermail.com
+	ChannelGetairmailCom           Channel = "getairmail-com"           // inboxes.com 服务方域名 getairmail.com
+	ChannelGetmuleCom              Channel = "getmule-com"              // inboxes.com 服务方域名 getmule.com
+	ChannelInboxbearCom            Channel = "inboxbear-com"            // inboxes.com 服务方域名 inboxbear.com
+	ChannelReplyloopCom            Channel = "replyloop-com"            // inboxes.com 服务方域名 replyloop.com
+	ChannelTemptamiCom             Channel = "temptami-com"             // inboxes.com 服务方域名 temptami.com
+	ChannelGimpmailCom             Channel = "gimpmail-com"             // inboxes.com 服务方域名 gimpmail.com
+	ChannelGivmailCom              Channel = "givmail-com"              // inboxes.com 服务方域名 givmail.com
+	ChannelGuysmailCom             Channel = "guysmail-com"             // inboxes.com 服务方域名 guysmail.com
+	ChannelRobotMailCom            Channel = "robot-mail-com"           // inboxes.com 服务方域名 robot-mail.com
+	ChannelTupmailCom              Channel = "tupmail-com"              // inboxes.com 服务方域名 tupmail.com
+	ChannelVomotoCom               Channel = "vomoto-com"               // inboxes.com 服务方域名 vomoto.com
+	ChannelUquMe                   Channel = "uqu-me"                   // mail.cx 服务方域名 uqu.me
+	ChannelN9k3rCom                Channel = "9k3r-com"                 // mail.cx 服务方域名 9k3r.com
+	ChannelN2famailCom             Channel = "2famail-com"              // mailmomy 服务方域名 2famail.com
+	ChannelXikemailCom             Channel = "xikemail-com"             // mailmomy 服务方域名 xikemail.com
+	ChannelFldubaiCom              Channel = "fldubai-com"              // mail.tm 服务方域名 fldubai.com
+	ChannelNicegroundShop          Channel = "niceground-shop"          // duckmail 服务方域名 niceground.shop
+	ChannelGlasswhitehubCom        Channel = "glasswhitehub-com"        // duckmail 服务方域名 glasswhitehub.com
+	ChannelHubaiclassOrg           Channel = "hubaiclass-org"           // duckmail 服务方域名 hubaiclass.org
 )
 
 /*

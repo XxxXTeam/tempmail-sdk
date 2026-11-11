@@ -1,7 +1,7 @@
 {
   "name": "tempmail-sdk",
   "version": "1.1.5",
-  "description": "临时邮箱 SDK - 公开 268 个 channel 标识，合并为 100 个独立服务商",
+  "description": "临时邮箱 SDK - 公开 304 个 channel 标识，合并为 100 个独立服务商",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
