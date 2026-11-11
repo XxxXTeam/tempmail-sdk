@@ -33,7 +33,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 获取版本号
         id: version
@@ -52,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
-          go-version: '1.24.1'
+          go-version: '1.27'
           cache: false
       - name: Go 构建验证
         working-directory: sdk/go
@@ -73,8 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
       - name: npm 构建验证
@@ -89,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: Rust 构建验证
         working-directory: sdk/rust
@@ -100,8 +100,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Python 构建验证
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: C 构建验证
         working-directory: sdk/c
         run: |
@@ -130,10 +130,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           tools: composer:v2
       - name: PHP 构建验证
         working-directory: sdk/php
@@ -147,8 +147,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0'
       - name: C# 构建验证
@@ -162,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
@@ -177,8 +177,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -191,13 +191,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-go-module-tag]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
       - name: 缓存 Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -218,10 +218,10 @@ jobs:
         working-directory: sdk/npm
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       
       - name: 设置 Node.js 环境
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
@@ -261,10 +261,10 @@ jobs:
         working-directory: sdk/npm
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       
       - name: 设置 Node.js 环境
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
@@ -309,7 +309,7 @@ jobs:
         working-directory: sdk/rust
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Rust 环境
         uses: dtolnay/rust-toolchain@stable
@@ -335,10 +335,10 @@ jobs:
         working-directory: sdk/python
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Python 环境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -363,7 +363,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
       - name: 上传 Python wheel 到构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-wheel
           path: sdk/python/dist/*.whl
@@ -377,10 +377,10 @@ jobs:
         working-directory: sdk/csharp/src
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 .NET 环境
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0'
 
@@ -402,7 +402,7 @@ jobs:
         continue-on-error: true
 
       - name: 上传 NuGet 包
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-package
           path: sdk/csharp/src/nupkg/*.nupkg
@@ -415,7 +415,7 @@ jobs:
         working-directory: sdk/ruby
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Ruby 环境
         uses: ruby/setup-ruby@v1
@@ -443,7 +443,7 @@ jobs:
         continue-on-error: true
 
       - name: 上传 gem 包
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ruby-gem
           path: sdk/ruby/*.gem
@@ -456,12 +456,12 @@ jobs:
         working-directory: sdk/php
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 PHP 环境
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           tools: composer:v2
 
       - name: 安装依赖
@@ -477,7 +477,7 @@ jobs:
           mv *.zip dist/
 
       - name: 上传 PHP 包
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: php-package
           path: sdk/php/dist/*.zip
@@ -490,10 +490,10 @@ jobs:
         working-directory: sdk/java
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Java 环境
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -521,7 +521,7 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: 上传 JAR 包
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: java-jar
           path: sdk/java/target/*.jar
@@ -534,16 +534,16 @@ jobs:
         working-directory: sdk/kotlin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Java 环境
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: 缓存 Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -570,7 +570,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: 上传 Kotlin JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kotlin-jar
           path: sdk/kotlin/build/libs/*.jar
@@ -596,12 +596,12 @@ jobs:
             goarch: arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Go 环境
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
-          go-version: '1.24.1'
+          go-version: '1.27'
           cache: false
 
       - name: 交叉编译
@@ -632,7 +632,7 @@ jobs:
           zip "dist/${name}.zip" "$bin" ../README.md
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: go-binary-${{ matrix.goos }}-${{ matrix.goarch }}
           path: sdk/go/example/dist/*.zip
@@ -657,7 +657,7 @@ jobs:
             artifact: tempmail-example-windows-amd64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Rust 环境
         uses: dtolnay/rust-toolchain@stable
@@ -672,7 +672,7 @@ jobs:
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
 
       - name: 缓存 Cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -704,7 +704,7 @@ jobs:
           cd dist && 7z a ${{ matrix.artifact }}.zip tempmail-example.exe ../README.md
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rust-${{ matrix.artifact }}
           path: sdk/rust/dist/${{ matrix.artifact }}.zip
@@ -726,7 +726,7 @@ jobs:
         working-directory: sdk/c
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 安装依赖 (Linux)
         if: runner.os == 'Linux'
@@ -818,7 +818,7 @@ jobs:
           cd pkg && 7z a ../${{ matrix.artifact }}.zip .
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: sdk/c/${{ matrix.artifact }}.zip
@@ -830,12 +830,12 @@ jobs:
       contents: write
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: 下载所有构建产物
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-assets
           merge-multiple: true
@@ -864,7 +864,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       
       - name: 创建 Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}

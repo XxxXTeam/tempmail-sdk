@@ -39,7 +39,7 @@ mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
 
-    coordinates(group.toString(), "tempmail-sdk", version.toString())
+    coordinates(group.toString(), "tempmail-sdk-kotlin", version.toString())
 
     pom {
         name.set("TempMail SDK")

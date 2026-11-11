@@ -21,16 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.24.1']
+        go-version: ['1.27']
     defaults:
       run:
         working-directory: sdk/go
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       
       - name: 设置 Go 环境
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go-version }}
           cache: false
@@ -63,10 +63,10 @@ jobs:
         working-directory: sdk/npm
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       
       - name: 设置 Node.js 环境
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
       
@@ -103,7 +103,7 @@ jobs:
         working-directory: sdk/rust
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Rust 环境
         uses: dtolnay/rust-toolchain@master
@@ -112,7 +112,7 @@ jobs:
           components: clippy
 
       - name: 缓存 Cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -142,10 +142,10 @@ jobs:
         working-directory: sdk/python
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Python 环境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -174,7 +174,7 @@ jobs:
         working-directory: sdk/c
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 安装依赖 (Linux)
         if: runner.os == 'Linux'
@@ -219,13 +219,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
+        php-version: ['8.4', '8.5']
     defaults:
       run:
         working-directory: sdk/php
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 PHP 环境
         uses: shivammathur/setup-php@v2
@@ -258,10 +258,10 @@ jobs:
         working-directory: sdk/csharp/src
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 .NET 环境
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
@@ -284,7 +284,7 @@ jobs:
         working-directory: sdk/ruby
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Ruby 环境
         uses: ruby/setup-ruby@v1
@@ -313,10 +313,10 @@ jobs:
         working-directory: sdk/java
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Java 环境
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
@@ -342,16 +342,16 @@ jobs:
         working-directory: sdk/kotlin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Java 环境
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
 
       - name: 缓存 Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -370,7 +370,7 @@ jobs:
     name: 十端渠道对齐校验
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 校验各端渠道数量与顺序
         run: |
@@ -445,22 +445,22 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
 
       - name: 设置 Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
       - name: 设置 PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           tools: composer:v2
 
       - name: 设置 Ruby
@@ -469,12 +469,12 @@ jobs:
           ruby-version: '3.2'
 
       - name: 设置 .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0'
 
       - name: 设置 Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -537,43 +537,43 @@ jobs:
           cp build/libs/*.jar ../_artifact_kotlin/
 
       - name: 上传 npm 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-npm-${{ github.run_number }}
           path: sdk/_artifact_npm/*
 
       - name: 上传 Python 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-python-${{ github.run_number }}
           path: sdk/_artifact_python/*
 
       - name: 上传 PHP 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-php-${{ github.run_number }}
           path: sdk/_artifact_php/*
 
       - name: 上传 Ruby 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-ruby-${{ github.run_number }}
           path: sdk/_artifact_ruby/*
 
       - name: 上传 C# 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-csharp-${{ github.run_number }}
           path: sdk/csharp/_artifact_csharp/*
 
       - name: 上传 Java 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-java-${{ github.run_number }}
           path: sdk/_artifact_java/*
 
       - name: 上传 Kotlin 测试版产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prerelease-kotlin-${{ github.run_number }}
           path: sdk/_artifact_kotlin/*
