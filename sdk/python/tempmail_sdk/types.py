@@ -311,6 +311,18 @@ Channel = Literal[
     "niceground-shop",
     "glasswhitehub-com",
     "hubaiclass-org",
+    "dummyinbox",
+    "plainlykit",
+    "mailboxtemp",
+    "nextmail",
+    "tsukaisutemail",
+    "tempmailify",
+    "grabmail",
+    "tempmails-cc",
+    "geniusgsm",
+    "temp-tf",
+    "anotherkevin-com",
+    "alviongroup-cloud",
 ]
 
 

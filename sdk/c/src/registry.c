@@ -3597,6 +3597,80 @@ static tm_email_info_t *tm_reg_gen_331(const tm_gen_ctx_t *ctx) {
       CHANNEL_HUBAICLASS_ORG);
 }
 
+static tm_email_info_t *tm_reg_gen_332(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_DUMMYINBOX */
+  (void)ctx;
+  return tm_provider_dummyinbox_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_333(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_PLAINLYKIT */
+  (void)ctx;
+  return tm_provider_plainlykit_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_334(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_MAILBOXTEMP */
+  (void)ctx;
+  return tm_provider_mailboxtemp_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_335(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_NEXTMAIL */
+  (void)ctx;
+  return tm_provider_nextmail_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_336(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TSUKAISUTEMAIL */
+  (void)ctx;
+  return tm_provider_tsukaisutemail_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_337(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TEMPMAILIFY */
+  (void)ctx;
+  return tm_provider_tempmailify_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_338(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GRABMAIL */
+  (void)ctx;
+  return tm_provider_grabmail_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_339(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TEMPMAILS_CC */
+  (void)ctx;
+  return tm_provider_tempmails_cc_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_340(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_GENIUSGSM */
+  (void)ctx;
+  return tm_provider_geniusgsm_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_341(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_TEMP_TF */
+  (void)ctx;
+  return tm_provider_temp_tf_generate();
+}
+
+static tm_email_info_t *tm_reg_gen_342(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_ANOTHERKEVIN_COM */
+  (void)ctx;
+  return tm_with_channel(tm_provider_tempmails_cc_generate_domain("anotherkevin.com"),
+                         CHANNEL_ANOTHERKEVIN_COM);
+}
+
+static tm_email_info_t *tm_reg_gen_343(const tm_gen_ctx_t *ctx) {
+  /* CHANNEL_ALVIONGROUP_CLOUD */
+  (void)ctx;
+  return tm_with_channel(tm_provider_tempmails_cc_generate_domain("alviongroup.cloud"),
+                         CHANNEL_ALVIONGROUP_CLOUD);
+}
+
 static tm_email_t *tm_reg_get_237(const char *email, const char *token, int *count) {
   /* CHANNEL_BLONDMAIL_COM */
   (void)token;
@@ -3731,6 +3805,66 @@ static tm_email_t *tm_reg_get_259(const char *email, const char *token, int *cou
 static tm_email_t *tm_reg_get_260(const char *email, const char *token, int *count) {
   /* CHANNEL_HUBAICLASS_ORG */
   return tm_provider_duckmail_get_emails(token, email, count);
+}
+
+static tm_email_t *tm_reg_get_261(const char *email, const char *token, int *count) {
+  /* CHANNEL_DUMMYINBOX */
+  return tm_provider_dummyinbox_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_262(const char *email, const char *token, int *count) {
+  /* CHANNEL_PLAINLYKIT */
+  return tm_provider_plainlykit_get_emails(email, token, count);
+}
+
+static tm_email_t *tm_reg_get_263(const char *email, const char *token, int *count) {
+  /* CHANNEL_MAILBOXTEMP */
+  return tm_provider_mailboxtemp_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_264(const char *email, const char *token, int *count) {
+  /* CHANNEL_NEXTMAIL */
+  return tm_provider_nextmail_get_emails(email, token, count);
+}
+
+static tm_email_t *tm_reg_get_265(const char *email, const char *token, int *count) {
+  /* CHANNEL_TSUKAISUTEMAIL */
+  return tm_provider_tsukaisutemail_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_266(const char *email, const char *token, int *count) {
+  /* CHANNEL_TEMPMAILIFY */
+  return tm_provider_tempmailify_get_emails(email, token, count);
+}
+
+static tm_email_t *tm_reg_get_267(const char *email, const char *token, int *count) {
+  /* CHANNEL_GRABMAIL */
+  return tm_provider_grabmail_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_268(const char *email, const char *token, int *count) {
+  /* CHANNEL_TEMPMAILS_CC */
+  return tm_provider_tempmails_cc_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_269(const char *email, const char *token, int *count) {
+  /* CHANNEL_GENIUSGSM */
+  return tm_provider_geniusgsm_get_emails(email, token, count);
+}
+
+static tm_email_t *tm_reg_get_270(const char *email, const char *token, int *count) {
+  /* CHANNEL_TEMP_TF */
+  return tm_provider_temp_tf_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_271(const char *email, const char *token, int *count) {
+  /* CHANNEL_ANOTHERKEVIN_COM */
+  return tm_provider_tempmails_cc_get_emails(email, count);
+}
+
+static tm_email_t *tm_reg_get_272(const char *email, const char *token, int *count) {
+  /* CHANNEL_ALVIONGROUP_CLOUD */
+  return tm_provider_tempmails_cc_get_emails(email, count);
 }
 
 /* ========== 有序渠道注册表（顺序即 baseline / listChannels 顺序） ========== */
@@ -4040,6 +4174,18 @@ static const tm_channel_spec_t g_channel_registry[] = {
     {CHANNEL_NICEGROUND_SHOP, "niceground.shop", "duckmail.sbs", tm_reg_gen_329, tm_reg_get_258},
     {CHANNEL_GLASSWHITEHUB_COM, "glasswhitehub.com", "duckmail.sbs", tm_reg_gen_330, tm_reg_get_259},
     {CHANNEL_HUBAICLASS_ORG, "hubaiclass.org", "duckmail.sbs", tm_reg_gen_331, tm_reg_get_260},
+    {CHANNEL_DUMMYINBOX, "DummyInbox", "dummyinbox.com", tm_reg_gen_332, tm_reg_get_261},
+    {CHANNEL_PLAINLYKIT, "PlainlyKit", "plainlykit.com", tm_reg_gen_333, tm_reg_get_262},
+    {CHANNEL_MAILBOXTEMP, "MailboxTemp", "mailboxtemp.com", tm_reg_gen_334, tm_reg_get_263},
+    {CHANNEL_NEXTMAIL, "Nextmail", "nextmail.sh", tm_reg_gen_335, tm_reg_get_264},
+    {CHANNEL_TSUKAISUTEMAIL, "Tsukaisute Mail", "tsukaisutemail.com", tm_reg_gen_336, tm_reg_get_265},
+    {CHANNEL_TEMPMAILIFY, "Tempmailify", "tempmailify.com", tm_reg_gen_337, tm_reg_get_266},
+    {CHANNEL_GRABMAIL, "GrabMail", "grabmail.io", tm_reg_gen_338, tm_reg_get_267},
+    {CHANNEL_TEMPMAILS_CC, "tempmails.cc", "tempmails.cc", tm_reg_gen_339, tm_reg_get_268},
+    {CHANNEL_GENIUSGSM, "GeniusGSM", "tempmail.geniusgsm.com", tm_reg_gen_340, tm_reg_get_269},
+    {CHANNEL_TEMP_TF, "temp.tf", "temp.tf", tm_reg_gen_341, tm_reg_get_270},
+    {CHANNEL_ANOTHERKEVIN_COM, "anotherkevin.com", "tempmails.cc", tm_reg_gen_342, tm_reg_get_271},
+    {CHANNEL_ALVIONGROUP_CLOUD, "alviongroup.cloud", "tempmails.cc", tm_reg_gen_343, tm_reg_get_272},
 };
 
 #define TM_REGISTRY_N ((int)(sizeof(g_channel_registry) / sizeof(g_channel_registry[0])))

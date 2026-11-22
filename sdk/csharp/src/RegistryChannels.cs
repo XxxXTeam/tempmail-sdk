@@ -4,7 +4,7 @@ using XxxXTeam.TempMail.Providers;
 namespace XxxXTeam.TempMail;
 
 /// <summary>
-/// 全部 290 个渠道的注册入口（严格按 baseline 顺序）。
+/// 全部 316 个渠道的注册入口（严格按 baseline 顺序）。
 /// 使用 ModuleInitializer 在程序集加载时自动填充注册表，
 /// ListChannels() 输出顺序与 .baseline_channels.txt 逐行一致。
 /// generate/getEmails 委托绑定到对应 Provider（纯 JSON API 渠道为真实现，复杂渠道为占位桩）。
@@ -2449,6 +2449,102 @@ internal static class RegistryChannels
             Website = "duckmail.sbs",
             Generate = o => MailTm.Generate("hubaiclass-org", "https://api.duckmail.sbs", "hubaiclass.org"),
             GetEmails = (e, t) => MailTm.GetEmails("https://api.duckmail.sbs", t, e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "dummyinbox",
+            Name = "DummyInbox",
+            Website = "dummyinbox.com",
+            Generate = o => DummyInbox.Generate("dummyinbox"),
+            GetEmails = (e, t) => DummyInbox.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "plainlykit",
+            Name = "PlainlyKit",
+            Website = "plainlykit.com",
+            Generate = o => PlainlyKit.Generate("plainlykit"),
+            GetEmails = (e, t) => PlainlyKit.GetEmails(e, t),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "mailboxtemp",
+            Name = "MailboxTemp",
+            Website = "mailboxtemp.com",
+            Generate = o => MailboxTemp.Generate("mailboxtemp"),
+            GetEmails = (e, t) => MailboxTemp.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "nextmail",
+            Name = "Nextmail",
+            Website = "nextmail.sh",
+            Generate = o => Nextmail.Generate("nextmail"),
+            GetEmails = (e, t) => Nextmail.GetEmails(e, t),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "tsukaisutemail",
+            Name = "Tsukaisute Mail",
+            Website = "tsukaisutemail.com",
+            Generate = o => TsukaisuteMail.Generate("tsukaisutemail"),
+            GetEmails = (e, t) => TsukaisuteMail.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "tempmailify",
+            Name = "Tempmailify",
+            Website = "tempmailify.com",
+            Generate = o => Tempmailify.Generate("tempmailify"),
+            GetEmails = (e, t) => Tempmailify.GetEmails(e, t),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "grabmail",
+            Name = "GrabMail",
+            Website = "grabmail.io",
+            Generate = o => Grabmail.Generate("grabmail"),
+            GetEmails = (e, t) => Grabmail.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "tempmails-cc",
+            Name = "tempmails.cc",
+            Website = "tempmails.cc",
+            Generate = o => TempmailsCc.Generate("tempmails-cc"),
+            GetEmails = (e, t) => TempmailsCc.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "geniusgsm",
+            Name = "GeniusGSM",
+            Website = "tempmail.geniusgsm.com",
+            Generate = o => GeniusGSM.Generate("geniusgsm"),
+            GetEmails = (e, t) => GeniusGSM.GetEmails(e, t),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "temp-tf",
+            Name = "temp.tf",
+            Website = "temp.tf",
+            Generate = o => TempTF.Generate("temp-tf"),
+            GetEmails = (e, t) => TempTF.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "anotherkevin-com",
+            Name = "anotherkevin.com",
+            Website = "tempmails.cc",
+            Generate = o => TempmailsCc.GenerateAtDomain("anotherkevin-com", "anotherkevin.com"),
+            GetEmails = (e, t) => TempmailsCc.GetEmails(e),
+        });
+        Registry.Register(new ChannelSpec
+        {
+            Channel = "alviongroup-cloud",
+            Name = "alviongroup.cloud",
+            Website = "tempmails.cc",
+            Generate = o => TempmailsCc.GenerateAtDomain("alviongroup-cloud", "alviongroup.cloud"),
+            GetEmails = (e, t) => TempmailsCc.GetEmails(e),
         });
     }
 }

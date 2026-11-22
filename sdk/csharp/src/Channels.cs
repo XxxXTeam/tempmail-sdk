@@ -1,7 +1,7 @@
 namespace XxxXTeam.TempMail;
 
 /// <summary>
-/// 全部 290 个渠道标识常量（与 baseline 逐行一致，供强类型引用）。
+/// 渠道标识常量（与 baseline 顺序一致，供强类型引用）。
 /// </summary>
 public static class Channels
 {
@@ -655,4 +655,28 @@ public static class Channels
     public const string GlasswhitehubCom = "glasswhitehub-com";
     /// <summary>hubaiclass.org</summary>
     public const string HubaiclassOrg = "hubaiclass-org";
+    /// <summary>DummyInbox</summary>
+    public const string DummyInbox = "dummyinbox";
+    /// <summary>PlainlyKit</summary>
+    public const string PlainlyKit = "plainlykit";
+    /// <summary>MailboxTemp</summary>
+    public const string MailboxTemp = "mailboxtemp";
+    /// <summary>Nextmail</summary>
+    public const string Nextmail = "nextmail";
+    /// <summary>Tsukaisute Mail</summary>
+    public const string TsukaisuteMail = "tsukaisutemail";
+    /// <summary>Tempmailify</summary>
+    public const string Tempmailify = "tempmailify";
+    /// <summary>GrabMail</summary>
+    public const string Grabmail = "grabmail";
+    /// <summary>tempmails.cc</summary>
+    public const string TempmailsCc = "tempmails-cc";
+    /// <summary>GeniusGSM</summary>
+    public const string GeniusGsm = "geniusgsm";
+    /// <summary>temp.tf</summary>
+    public const string TempTf = "temp-tf";
+    /// <summary>anotherkevin.com</summary>
+    public const string AnotherkevinCom = "anotherkevin-com";
+    /// <summary>alviongroup.cloud</summary>
+    public const string AlviongroupCloud = "alviongroup-cloud";
 }

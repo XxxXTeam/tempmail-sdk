@@ -1,6 +1,16 @@
 package com.xxxxteam.tempmail;
 
 import com.xxxxteam.tempmail.providers.Anonbox;
+import com.xxxxteam.tempmail.providers.DummyInbox;
+import com.xxxxteam.tempmail.providers.PlainlyKit;
+import com.xxxxteam.tempmail.providers.MailboxTemp;
+import com.xxxxteam.tempmail.providers.Nextmail;
+import com.xxxxteam.tempmail.providers.TsukaisuteMail;
+import com.xxxxteam.tempmail.providers.Tempmailify;
+import com.xxxxteam.tempmail.providers.Grabmail;
+import com.xxxxteam.tempmail.providers.TempmailsCc;
+import com.xxxxteam.tempmail.providers.GeniusGSM;
+import com.xxxxteam.tempmail.providers.TempTF;
 import com.xxxxteam.tempmail.providers.Dropmail;
 import com.xxxxteam.tempmail.providers.DropmailMe;
 import com.xxxxteam.tempmail.providers.Eyepaste;
@@ -134,7 +144,7 @@ import com.xxxxteam.tempmail.providers.Internxt;
 import com.xxxxteam.tempmail.providers.GeneratorEmail;
 
 /**
- * 全部 304 个渠道的注册入口（严格按 baseline 顺序）。
+ * 全部 316 个渠道的注册入口（严格按 baseline 顺序）。
  *
  * <p>Java 无 C# 的 ModuleInitializer，由 {@link Registry} 的静态初始化块调用 {@link #init()}
  * 完成注册，{@code TempMail.listChannels()} 输出顺序与 .baseline_channels.txt 逐行一致。
@@ -1979,5 +1989,77 @@ final class RegistryChannels {
                 "duckmail.sbs",
                 o -> MailTm.generate("hubaiclass-org", "https://api.duckmail.sbs", "hubaiclass.org"),
                 (e, t) -> MailTm.getEmails("https://api.duckmail.sbs", t, e)));
+        Registry.register(new ChannelSpec(
+                "dummyinbox",
+                "DummyInbox",
+                "dummyinbox.com",
+                o -> DummyInbox.generate("dummyinbox"),
+                (e, t) -> DummyInbox.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "plainlykit",
+                "PlainlyKit",
+                "plainlykit.com",
+                o -> PlainlyKit.generate("plainlykit"),
+                (e, t) -> PlainlyKit.getEmails(e, t)));
+        Registry.register(new ChannelSpec(
+                "mailboxtemp",
+                "MailboxTemp",
+                "mailboxtemp.com",
+                o -> MailboxTemp.generate("mailboxtemp"),
+                (e, t) -> MailboxTemp.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "nextmail",
+                "Nextmail",
+                "nextmail.sh",
+                o -> Nextmail.generate("nextmail"),
+                (e, t) -> Nextmail.getEmails(e, t)));
+        Registry.register(new ChannelSpec(
+                "tsukaisutemail",
+                "Tsukaisute Mail",
+                "tsukaisutemail.com",
+                o -> TsukaisuteMail.generate("tsukaisutemail"),
+                (e, t) -> TsukaisuteMail.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "tempmailify",
+                "Tempmailify",
+                "tempmailify.com",
+                o -> Tempmailify.generate("tempmailify"),
+                (e, t) -> Tempmailify.getEmails(e, t)));
+        Registry.register(new ChannelSpec(
+                "grabmail",
+                "GrabMail",
+                "grabmail.io",
+                o -> Grabmail.generate("grabmail"),
+                (e, t) -> Grabmail.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "tempmails-cc",
+                "tempmails.cc",
+                "tempmails.cc",
+                o -> TempmailsCc.generate("tempmails-cc"),
+                (e, t) -> TempmailsCc.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "geniusgsm",
+                "GeniusGSM",
+                "tempmail.geniusgsm.com",
+                o -> GeniusGSM.generate("geniusgsm"),
+                (e, t) -> GeniusGSM.getEmails(e, t)));
+        Registry.register(new ChannelSpec(
+                "temp-tf",
+                "temp.tf",
+                "temp.tf",
+                o -> TempTF.generate("temp-tf"),
+                (e, t) -> TempTF.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "anotherkevin-com",
+                "anotherkevin.com",
+                "tempmails.cc",
+                o -> TempmailsCc.generateAtDomain("anotherkevin-com", "anotherkevin.com"),
+                (e, t) -> TempmailsCc.getEmails(e)));
+        Registry.register(new ChannelSpec(
+                "alviongroup-cloud",
+                "alviongroup.cloud",
+                "tempmails.cc",
+                o -> TempmailsCc.generateAtDomain("alviongroup-cloud", "alviongroup.cloud"),
+                (e, t) -> TempmailsCc.getEmails(e)));
     }
 }

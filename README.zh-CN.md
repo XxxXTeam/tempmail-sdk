@@ -16,7 +16,7 @@
 
 ## ✨ 特性
 
-- 🌐 **十端共同公开 304 个 `channel` 标识，合并为约 110 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
+- 🌐 **十端共同公开 316 个 `channel` 标识，合并为约 120 个独立服务商**；C 的 `tm_channel_t` 枚举下标与 `tm_list_channels` 顺序不同（见 `sdk/c/README.md`）
 - 📐 **统一标准化返回格式** — 所有渠道的邮件数据结构完全一致
 - 📦 提供 Go、npm、Rust、Python、C、Java、C#、Ruby、PHP、Kotlin 十种 SDK
 - 🔄 支持邮箱生成和邮件轮询
@@ -310,7 +310,7 @@ tempmail-sdk/
 │   ├── php/                    # PHP SDK
 │   └── kotlin/                 # Kotlin SDK
 ├── telemetry-server/           # 可选：遥测收集服务（Gin + SQLite 等）
-├── .baseline_channels.txt      # 304 个渠道标识基线（十端顺序对齐）
+├── .baseline_channels.txt      # 316 个渠道标识基线（十端顺序对齐）
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # CI 工作流

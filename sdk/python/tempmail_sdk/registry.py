@@ -228,6 +228,16 @@ from .providers import (
     tmpkit,
     internxt,
     generator_email,
+    dummyinbox,
+    plainlykit,
+    mailboxtemp,
+    nextmail,
+    tsukaisutemail,
+    tempmailify,
+    grabmail,
+    tempmails_cc,
+    geniusgsm,
+    temp_tf,
 )
 
 
@@ -3270,5 +3280,123 @@ register_channel(
             duckmail.generate_email_with_domain("hubaiclass.org"), "hubaiclass-org"
         ),
         get_emails=lambda e, t: duckmail.get_emails(_require_token(t, "duckmail"), e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="dummyinbox",
+        name="DummyInbox",
+        website="dummyinbox.com",
+        generate=lambda o: dummyinbox.generate_email(),
+        get_emails=lambda e, t: dummyinbox.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="plainlykit",
+        name="PlainlyKit",
+        website="plainlykit.com",
+        generate=lambda o: plainlykit.generate_email(),
+        get_emails=lambda e, t: plainlykit.get_emails(
+            e, _require_token(t, "plainlykit")
+        ),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="mailboxtemp",
+        name="MailboxTemp",
+        website="mailboxtemp.com",
+        generate=lambda o: mailboxtemp.generate_email(),
+        get_emails=lambda e, t: mailboxtemp.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="nextmail",
+        name="Nextmail",
+        website="nextmail.sh",
+        generate=lambda o: nextmail.generate_email(),
+        get_emails=lambda e, t: nextmail.get_emails(e, _require_token(t, "nextmail")),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="tsukaisutemail",
+        name="Tsukaisute Mail",
+        website="tsukaisutemail.com",
+        generate=lambda o: tsukaisutemail.generate_email(),
+        get_emails=lambda e, t: tsukaisutemail.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="tempmailify",
+        name="Tempmailify",
+        website="tempmailify.com",
+        generate=lambda o: tempmailify.generate_email(),
+        get_emails=lambda e, t: tempmailify.get_emails(
+            e, _require_token(t, "tempmailify")
+        ),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="grabmail",
+        name="GrabMail",
+        website="grabmail.io",
+        generate=lambda o: grabmail.generate_email(),
+        get_emails=lambda e, t: grabmail.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="tempmails-cc",
+        name="tempmails.cc",
+        website="tempmails.cc",
+        generate=lambda o: tempmails_cc.generate_email(),
+        get_emails=lambda e, t: tempmails_cc.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="geniusgsm",
+        name="GeniusGSM",
+        website="tempmail.geniusgsm.com",
+        generate=lambda o: geniusgsm.generate_email(),
+        get_emails=lambda e, t: geniusgsm.get_emails(
+            e, _require_token(t, "geniusgsm")
+        ),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="temp-tf",
+        name="temp.tf",
+        website="temp.tf",
+        generate=lambda o: temp_tf.generate_email(),
+        get_emails=lambda e, t: temp_tf.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="anotherkevin-com",
+        name="anotherkevin.com",
+        website="tempmails.cc",
+        generate=lambda o: tempmails_cc.generate_email_at_domain(
+            "anotherkevin.com", "anotherkevin-com"
+        ),
+        get_emails=lambda e, t: tempmails_cc.get_emails(e),
+    )
+)
+register_channel(
+    ChannelSpec(
+        channel="alviongroup-cloud",
+        name="alviongroup.cloud",
+        website="tempmails.cc",
+        generate=lambda o: tempmails_cc.generate_email_at_domain(
+            "alviongroup.cloud", "alviongroup-cloud"
+        ),
+        get_emails=lambda e, t: tempmails_cc.get_emails(e),
     )
 )

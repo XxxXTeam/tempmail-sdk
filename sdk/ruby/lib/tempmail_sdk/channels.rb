@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 #
-# 渠道标识常量模块（290 个），常量值即渠道 slug。
+# 渠道标识常量模块（316 个），常量值即渠道 slug。
 # 由 .channel_meta.json 生成，供用户以常量方式引用渠道，避免手写字符串出错。
 #
 module TempmailSdk
@@ -310,5 +310,17 @@ module TempmailSdk
     NICEGROUND_SHOP = "niceground-shop"
     GLASSWHITEHUB_COM = "glasswhitehub-com"
     HUBAICLASS_ORG = "hubaiclass-org"
+    DUMMYINBOX = "dummyinbox"
+    PLAINLYKIT = "plainlykit"
+    MAILBOXTEMP = "mailboxtemp"
+    NEXTMAIL = "nextmail"
+    TSUKAISUTEMAIL = "tsukaisutemail"
+    TEMPMAILIFY = "tempmailify"
+    GRABMAIL = "grabmail"
+    TEMPMAILS_CC = "tempmails-cc"
+    GENIUSGSM = "geniusgsm"
+    TEMP_TF = "temp-tf"
+    ANOTHERKEVIN_COM = "anotherkevin-com"
+    ALVIONGROUP_CLOUD = "alviongroup-cloud"
   end
 end

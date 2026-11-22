@@ -313,6 +313,18 @@ const (
 	ChannelNicegroundShop          Channel = "niceground-shop"          // duckmail 服务方域名 niceground.shop
 	ChannelGlasswhitehubCom        Channel = "glasswhitehub-com"        // duckmail 服务方域名 glasswhitehub.com
 	ChannelHubaiclassOrg           Channel = "hubaiclass-org"           // duckmail 服务方域名 hubaiclass.org
+	ChannelDummyInbox              Channel = "dummyinbox"               // DummyInbox 独立服务
+	ChannelPlainlyKit              Channel = "plainlykit"               // PlainlyKit 独立服务
+	ChannelMailboxTemp             Channel = "mailboxtemp"              // MailboxTemp 独立服务
+	ChannelNextmail                Channel = "nextmail"                 // Nextmail 独立服务
+	ChannelTsukaisuteMail          Channel = "tsukaisutemail"           // Tsukaisute Mail 独立服务
+	ChannelTempmailify             Channel = "tempmailify"              // Tempmailify 独立服务
+	ChannelGrabmail                Channel = "grabmail"                 // GrabMail 独立服务
+	ChannelTempmailsCc             Channel = "tempmails-cc"             // tempmails.cc 独立服务
+	ChannelGeniusGSM               Channel = "geniusgsm"                // tempmail.geniusgsm.com 独立服务
+	ChannelTempTF                  Channel = "temp-tf"                  // temp.tf 独立服务
+	ChannelAnotherkevinCom         Channel = "anotherkevin-com"         // tempmails.cc 服务方域名 anotherkevin.com
+	ChannelAlviongroupCloud        Channel = "alviongroup-cloud"        // tempmails.cc 服务方域名 alviongroup.cloud
 )
 
 /*

@@ -7,7 +7,7 @@ namespace ChanhanzhanX\TempMail;
 /**
  * 渠道标识常量类
  *
- * 暴露全部 304 个渠道 slug 常量，便于调用方以类型友好的方式引用渠道。
+ * 暴露全部 316 个渠道 slug 常量，便于调用方以类型友好的方式引用渠道。
  * 常量值即渠道标识字符串。由 .channel_meta.json 生成。
  */
 final class Channel
@@ -620,4 +620,28 @@ final class Channel
     public const GLASSWHITEHUB_COM = "glasswhitehub-com";
     /** DuckMail (hubaiclass.org)（duckmail.sbs） */
     public const HUBAICLASS_ORG = "hubaiclass-org";
+    /** DummyInbox */
+    public const DUMMYINBOX = "dummyinbox";
+    /** PlainlyKit */
+    public const PLAINLYKIT = "plainlykit";
+    /** MailboxTemp */
+    public const MAILBOXTEMP = "mailboxtemp";
+    /** Nextmail */
+    public const NEXTMAIL = "nextmail";
+    /** Tsukaisute Mail */
+    public const TSUKAISUTEMAIL = "tsukaisutemail";
+    /** Tempmailify */
+    public const TEMPMAILIFY = "tempmailify";
+    /** GrabMail */
+    public const GRABMAIL = "grabmail";
+    /** tempmails.cc */
+    public const TEMPMAILS_CC = "tempmails-cc";
+    /** GeniusGSM */
+    public const GENIUSGSM = "geniusgsm";
+    /** temp.tf */
+    public const TEMP_TF = "temp-tf";
+    /** anotherkevin.com */
+    public const ANOTHERKEVIN_COM = "anotherkevin-com";
+    /** alviongroup.cloud */
+    public const ALVIONGROUP_CLOUD = "alviongroup-cloud";
 }

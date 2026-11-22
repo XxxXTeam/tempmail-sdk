@@ -38,6 +38,16 @@ import * as uncorreotemporal from "./providers/uncorreotemporal";
 import * as awamail from "./providers/awamail";
 import * as mailTm from "./providers/mail-tm";
 import * as dropmail from "./providers/dropmail";
+import * as dummyInbox from "./providers/dummyinbox";
+import * as plainlyKit from "./providers/plainlykit";
+import * as mailboxTemp from "./providers/mailboxtemp";
+import * as nextmail from "./providers/nextmail";
+import * as tsukaisuteMail from "./providers/tsukaisutemail";
+import * as tempmailify from "./providers/tempmailify";
+import * as grabmail from "./providers/grabmail";
+import * as tempmailsCc from "./providers/tempmails-cc";
+import * as geniusgsm from "./providers/geniusgsm";
+import * as tempTf from "./providers/temp-tf";
 import * as guerrillamail from "./providers/guerrillamail";
 import * as maildropProvider from "./providers/maildrop";
 import * as smailPw from "./providers/smail-pw";
@@ -4239,5 +4249,153 @@ import { registerChannel } from "./registry";
     getEmails: (email: string, token?: string): Promise<Email[]> => {
         if (!token) throw new Error("internal error: token missing for duckmail");
         return duckmail.getEmails(token, email);
+    },
+  });
+
+  registerChannel({
+    channel: "dummyinbox",
+    name: "DummyInbox",
+    website: "dummyinbox.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return dummyInbox.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return dummyInbox.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "plainlykit",
+    name: "PlainlyKit",
+    website: "plainlykit.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return plainlyKit.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for plainlykit");
+        return plainlyKit.getEmails(email, token);
+    },
+  });
+
+  registerChannel({
+    channel: "mailboxtemp",
+    name: "MailboxTemp",
+    website: "mailboxtemp.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return mailboxTemp.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return mailboxTemp.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "nextmail",
+    name: "Nextmail",
+    website: "nextmail.sh",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return nextmail.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for nextmail");
+        return nextmail.getEmails(email, token);
+    },
+  });
+
+  registerChannel({
+    channel: "tsukaisutemail",
+    name: "Tsukaisute Mail",
+    website: "tsukaisutemail.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tsukaisuteMail.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return tsukaisuteMail.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "tempmailify",
+    name: "Tempmailify",
+    website: "tempmailify.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tempmailify.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for tempmailify");
+        return tempmailify.getEmails(email, token);
+    },
+  });
+
+  registerChannel({
+    channel: "grabmail",
+    name: "GrabMail",
+    website: "grabmail.io",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return grabmail.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return grabmail.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "tempmails-cc",
+    name: "tempmails.cc",
+    website: "tempmails.cc",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tempmailsCc.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return tempmailsCc.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "geniusgsm",
+    name: "GeniusGSM",
+    website: "tempmail.geniusgsm.com",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return geniusgsm.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        if (!token) throw new Error("internal error: token missing for geniusgsm");
+        return geniusgsm.getEmails(email, token);
+    },
+  });
+
+  registerChannel({
+    channel: "temp-tf",
+    name: "temp.tf",
+    website: "temp.tf",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tempTf.generateEmail();
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return tempTf.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "anotherkevin-com",
+    name: "anotherkevin.com",
+    website: "tempmails.cc",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tempmailsCc.generateEmailAtDomain("anotherkevin.com").then((info) => ({ ...info, channel: "anotherkevin-com" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return tempmailsCc.getEmails(email);
+    },
+  });
+
+  registerChannel({
+    channel: "alviongroup-cloud",
+    name: "alviongroup.cloud",
+    website: "tempmails.cc",
+    generate: (options: GenerateEmailOptions): Promise<InternalEmailInfo> => {
+        return tempmailsCc.generateEmailAtDomain("alviongroup.cloud").then((info) => ({ ...info, channel: "alviongroup-cloud" }));
+    },
+    getEmails: (email: string, token?: string): Promise<Email[]> => {
+        return tempmailsCc.getEmails(email);
     },
   });

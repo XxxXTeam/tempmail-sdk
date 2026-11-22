@@ -306,7 +306,19 @@ export type Channel =
   | "fldubai-com"
   | "niceground-shop"
   | "glasswhitehub-com"
-  | "hubaiclass-org";
+  | "hubaiclass-org"
+  | "dummyinbox"
+  | "plainlykit"
+  | "mailboxtemp"
+  | "nextmail"
+  | "tsukaisutemail"
+  | "tempmailify"
+  | "grabmail"
+  | "tempmails-cc"
+  | "geniusgsm"
+  | "temp-tf"
+  | "anotherkevin-com"
+  | "alviongroup-cloud";
 
 /**
  * 创建临时邮箱后返回的邮箱信息

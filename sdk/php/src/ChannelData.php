@@ -8,7 +8,7 @@ namespace ChanhanzhanX\TempMail;
  * 渠道元数据（有序，硬约束）
  *
  * 由 .channel_meta.json 生成，顺序与 .baseline_channels.txt 逐行一致。
- * 每项为 [渠道标识, 显示名称, 网站]。Registry 依此顺序注册全部 304 个渠道。
+ * 每项为 [渠道标识, 显示名称, 网站]。Registry 依此顺序注册全部 316 个渠道。
  */
 final class ChannelData
 {
@@ -318,5 +318,17 @@ final class ChannelData
         ["niceground-shop", "DuckMail (niceground.shop)", "duckmail.sbs"],
         ["glasswhitehub-com", "DuckMail (glasswhitehub.com)", "duckmail.sbs"],
         ["hubaiclass-org", "DuckMail (hubaiclass.org)", "duckmail.sbs"],
+        ["dummyinbox", "DummyInbox", "dummyinbox.com"],
+        ["plainlykit", "PlainlyKit", "plainlykit.com"],
+        ["mailboxtemp", "MailboxTemp", "mailboxtemp.com"],
+        ["nextmail", "Nextmail", "nextmail.sh"],
+        ["tsukaisutemail", "Tsukaisute Mail", "tsukaisutemail.com"],
+        ["tempmailify", "Tempmailify", "tempmailify.com"],
+        ["grabmail", "GrabMail", "grabmail.io"],
+        ["tempmails-cc", "tempmails.cc", "tempmails.cc"],
+        ["geniusgsm", "GeniusGSM", "tempmail.geniusgsm.com"],
+        ["temp-tf", "temp.tf", "temp.tf"],
+        ["anotherkevin-com", "anotherkevin.com", "tempmails.cc"],
+        ["alviongroup-cloud", "alviongroup.cloud", "tempmails.cc"],
     ];
 }

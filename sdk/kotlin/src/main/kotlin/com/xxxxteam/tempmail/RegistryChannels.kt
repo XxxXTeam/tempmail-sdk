@@ -3,7 +3,7 @@ package com.xxxxteam.tempmail
 import com.xxxxteam.tempmail.providers.*
 
 /**
- * 全部 301 个渠道的注册入口（严格按 .baseline_channels.txt 顺序）。
+ * 全部 316 个渠道的注册入口（严格按 .baseline_channels.txt 顺序）。
  *
  * 由 [Registry] 首次访问时调用 [init] 完成注册，`TempMail.listChannels()`
  * 输出顺序与基线逐行一致。参数化渠道使用 (channel, domain) 或 (channel, baseUrl) 构造。
@@ -323,5 +323,23 @@ object RegistryChannels {
         Registry.register(ChannelSpec("niceground-shop", "niceground.shop", "duckmail.sbs"), MailTm("niceground-shop", "https://api.duckmail.sbs", "niceground.shop"))
         Registry.register(ChannelSpec("glasswhitehub-com", "glasswhitehub.com", "duckmail.sbs"), MailTm("glasswhitehub-com", "https://api.duckmail.sbs", "glasswhitehub.com"))
         Registry.register(ChannelSpec("hubaiclass-org", "hubaiclass.org", "duckmail.sbs"), MailTm("hubaiclass-org", "https://api.duckmail.sbs", "hubaiclass.org"))
+        Registry.register(ChannelSpec("dummyinbox", "DummyInbox", "dummyinbox.com"), DummyInbox("dummyinbox"))
+        Registry.register(ChannelSpec("plainlykit", "PlainlyKit", "plainlykit.com"), PlainlyKit("plainlykit"))
+        Registry.register(ChannelSpec("mailboxtemp", "MailboxTemp", "mailboxtemp.com"), MailboxTemp("mailboxtemp"))
+        Registry.register(ChannelSpec("nextmail", "Nextmail", "nextmail.sh"), Nextmail("nextmail"))
+        Registry.register(ChannelSpec("tsukaisutemail", "Tsukaisute Mail", "tsukaisutemail.com"), TsukaisuteMail("tsukaisutemail"))
+        Registry.register(ChannelSpec("tempmailify", "Tempmailify", "tempmailify.com"), Tempmailify("tempmailify"))
+        Registry.register(ChannelSpec("grabmail", "GrabMail", "grabmail.io"), Grabmail("grabmail"))
+        Registry.register(ChannelSpec("tempmails-cc", "tempmails.cc", "tempmails.cc"), TempmailsCc("tempmails-cc"))
+        Registry.register(ChannelSpec("geniusgsm", "GeniusGSM", "tempmail.geniusgsm.com"), GeniusGSM("geniusgsm"))
+        Registry.register(ChannelSpec("temp-tf", "temp.tf", "temp.tf"), TempTF("temp-tf"))
+        Registry.register(ChannelSpec("anotherkevin-com", "anotherkevin.com", "tempmails.cc"), object : Provider {
+            override suspend fun generate(): EmailInfo = TempmailsCc("anotherkevin-com").generateAtDomain("anotherkevin.com")
+            override suspend fun getEmails(info: EmailInfo): List<Email> = TempmailsCc("anotherkevin-com").getEmails(info)
+        })
+        Registry.register(ChannelSpec("alviongroup-cloud", "alviongroup.cloud", "tempmails.cc"), object : Provider {
+            override suspend fun generate(): EmailInfo = TempmailsCc("alviongroup-cloud").generateAtDomain("alviongroup.cloud")
+            override suspend fun getEmails(info: EmailInfo): List<Email> = TempmailsCc("alviongroup-cloud").getEmails(info)
+        })
     }
 }

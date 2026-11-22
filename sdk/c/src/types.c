@@ -310,10 +310,52 @@ static const char *channel_names[] = {
     "niceground-shop",
     "glasswhitehub-com",
     "hubaiclass-org",
+    "dummyinbox",
+    "plainlykit",
+    "mailboxtemp",
+    "nextmail",
+    "tsukaisutemail",
+    "tempmailify",
+    "grabmail",
+    "tempmails-cc",
+    "geniusgsm",
+    "temp-tf",
+    "anotherkevin-com",
+    "alviongroup-cloud",
 };
 
 const char *tm_channel_name(tm_channel_t channel) {
-  if (channel >= 0 && channel < CHANNEL_COUNT) {
+  /* 新增渠道按枚举值显式映射，避免历史 channel_names 下标错位影响新渠道 */
+  switch (channel) {
+  case CHANNEL_DUMMYINBOX:
+    return "dummyinbox";
+  case CHANNEL_PLAINLYKIT:
+    return "plainlykit";
+  case CHANNEL_MAILBOXTEMP:
+    return "mailboxtemp";
+  case CHANNEL_NEXTMAIL:
+    return "nextmail";
+  case CHANNEL_TSUKAISUTEMAIL:
+    return "tsukaisutemail";
+  case CHANNEL_TEMPMAILIFY:
+    return "tempmailify";
+  case CHANNEL_GRABMAIL:
+    return "grabmail";
+  case CHANNEL_TEMPMAILS_CC:
+    return "tempmails-cc";
+  case CHANNEL_GENIUSGSM:
+    return "geniusgsm";
+  case CHANNEL_TEMP_TF:
+    return "temp-tf";
+  case CHANNEL_ANOTHERKEVIN_COM:
+    return "anotherkevin-com";
+  case CHANNEL_ALVIONGROUP_CLOUD:
+    return "alviongroup-cloud";
+  default:
+    break;
+  }
+  if (channel >= 0 &&
+      (size_t)channel < sizeof(channel_names) / sizeof(channel_names[0])) {
     return channel_names[channel];
   }
   return "unknown";

@@ -5,6 +5,16 @@ declare(strict_types=1);
 namespace ChanhanzhanX\TempMail;
 
 use ChanhanzhanX\TempMail\Providers\Catchmail;
+use ChanhanzhanX\TempMail\Providers\DummyInbox;
+use ChanhanzhanX\TempMail\Providers\PlainlyKit;
+use ChanhanzhanX\TempMail\Providers\MailboxTemp;
+use ChanhanzhanX\TempMail\Providers\Nextmail;
+use ChanhanzhanX\TempMail\Providers\TsukaisuteMail;
+use ChanhanzhanX\TempMail\Providers\Tempmailify;
+use ChanhanzhanX\TempMail\Providers\Grabmail;
+use ChanhanzhanX\TempMail\Providers\TempmailsCc;
+use ChanhanzhanX\TempMail\Providers\GeniusGSM;
+use ChanhanzhanX\TempMail\Providers\TempTF;
 use ChanhanzhanX\TempMail\Providers\Anonymmail;
 use ChanhanzhanX\TempMail\Providers\Byom;
 use ChanhanzhanX\TempMail\Providers\ChatgptOrgUk;
@@ -141,7 +151,7 @@ use ChanhanzhanX\TempMail\Providers\GeneratorEmail;
 /**
  * 渠道注册表：单一事实来源
  *
- * 按 ChannelData 定义的顺序（与 baseline 逐行一致）注册全部 290 个渠道。
+ * 按 ChannelData 定义的顺序（与 baseline 逐行一致）注册全部 316 个渠道。
  * 有真实现的渠道绑定对应 provider 闭包，其余绑定桩实现。
  * listChannels / getChannelInfo / 两个 dispatch 全部由注册表派生。
  */
@@ -1341,6 +1351,54 @@ final class Registry
         $ov['hubaiclass-org'] = [
             static fn (GenerateEmailOptions $o): EmailInfo => DuckMail::generate('hubaiclass-org', 'hubaiclass.org'),
             static fn (string $e, ?string $t): array => DuckMail::getEmails($e, $t),
+        ];
+        $ov['dummyinbox'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => DummyInbox::generate('dummyinbox'),
+            static fn (string $e, ?string $t): array => DummyInbox::getEmails($e),
+        ];
+        $ov['plainlykit'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => PlainlyKit::generate('plainlykit'),
+            static fn (string $e, ?string $t): array => PlainlyKit::getEmails($e, $t),
+        ];
+        $ov['mailboxtemp'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => MailboxTemp::generate('mailboxtemp'),
+            static fn (string $e, ?string $t): array => MailboxTemp::getEmails($e),
+        ];
+        $ov['nextmail'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Nextmail::generate('nextmail'),
+            static fn (string $e, ?string $t): array => Nextmail::getEmails($e, $t),
+        ];
+        $ov['tsukaisutemail'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => TsukaisuteMail::generate('tsukaisutemail'),
+            static fn (string $e, ?string $t): array => TsukaisuteMail::getEmails($e),
+        ];
+        $ov['tempmailify'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Tempmailify::generate('tempmailify'),
+            static fn (string $e, ?string $t): array => Tempmailify::getEmails($e, $t),
+        ];
+        $ov['grabmail'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => Grabmail::generate('grabmail'),
+            static fn (string $e, ?string $t): array => Grabmail::getEmails($e),
+        ];
+        $ov['tempmails-cc'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => TempmailsCc::generate('tempmails-cc'),
+            static fn (string $e, ?string $t): array => TempmailsCc::getEmails($e),
+        ];
+        $ov['geniusgsm'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => GeniusGSM::generate('geniusgsm'),
+            static fn (string $e, ?string $t): array => GeniusGSM::getEmails($e, $t),
+        ];
+        $ov['temp-tf'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => TempTF::generate('temp-tf'),
+            static fn (string $e, ?string $t): array => TempTF::getEmails($e),
+        ];
+        $ov['anotherkevin-com'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => TempmailsCc::generateAtDomain('anotherkevin-com', 'anotherkevin.com'),
+            static fn (string $e, ?string $t): array => TempmailsCc::getEmails($e),
+        ];
+        $ov['alviongroup-cloud'] = [
+            static fn (GenerateEmailOptions $o): EmailInfo => TempmailsCc::generateAtDomain('alviongroup-cloud', 'alviongroup.cloud'),
+            static fn (string $e, ?string $t): array => TempmailsCc::getEmails($e),
         ];
 
         return $ov;

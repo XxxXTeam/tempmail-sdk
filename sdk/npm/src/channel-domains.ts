@@ -95,6 +95,14 @@ export const CHANNEL_DOMAINS_PLUS: Partial<Record<Channel, string[]>> = {
   "fextemp-com": ["fextemp.com"],
   "any-pink": ["any.pink"],
   "merepost-com": ["merepost.com"],
+  "dummyinbox": ["dummyinbox.com", "987654320.xyz", "dotmail.dev", "223190.xyz"],
+  "tsukaisutemail": ["postmarkbox.uk"],
+  "tempmailify": ["tempmailify.com"],
+  "grabmail": ["grabmail.io"],
+  "geniusgsm": ["tempmail.geniusgsm.com", "geniusgsm.com", "mail.geniusgsm.com"],
+  "temp-tf": [],
+  "anotherkevin-com": ["anotherkevin.com"],
+  "alviongroup-cloud": ["alviongroup.cloud"],
 };
 
 /* 合并所有已知域名映射 */
@@ -110,6 +118,7 @@ export const DYNAMIC_DOMAIN_CHANNELS: Channel[] = [
   "getnada", "neighbours", "neighbours-sh", "inboxes", "mailmomy",
   "freecustom", "mail-sunls", "anonymmail", "fake-legal", "maildrop",
   "mail-cx", "moakt", "tempmail-lol", "temp-mail-org",
+  "plainlykit", "mailboxtemp", "nextmail", "tempmails-cc",
 ];
 
 /**

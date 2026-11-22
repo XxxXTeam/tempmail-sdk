@@ -104,6 +104,14 @@ CHANNEL_DOMAINS: Dict[str, List[str]] = {
     "niceground-shop": ["niceground.shop"],
     "glasswhitehub-com": ["glasswhitehub.com"],
     "hubaiclass-org": ["hubaiclass.org"],
+    "dummyinbox": ["dummyinbox.com", "987654320.xyz", "dotmail.dev", "223190.xyz"],
+    "tsukaisutemail": ["postmarkbox.uk"],
+    "tempmailify": ["tempmailify.com"],
+    "grabmail": ["grabmail.io"],
+    "geniusgsm": ["tempmail.geniusgsm.com", "geniusgsm.com", "mail.geniusgsm.com"],
+    "temp-tf": [],
+    "anotherkevin-com": ["anotherkevin.com"],
+    "alviongroup-cloud": ["alviongroup.cloud"],
 }
 
 # 域名通过 API 动态获取的渠道（筛选时默认保留）
@@ -114,6 +122,7 @@ DYNAMIC_DOMAIN_CHANNELS = {
     "mail-cx", "moakt", "tempmail-lol", "smailpro", "tempmail",
     "1sec-mail", "guerrillamail", "dropmail", "fmail", "ockito",
     "temp-mail-org",
+    "plainlykit", "mailboxtemp", "nextmail", "tempmails-cc",
 }
 
 

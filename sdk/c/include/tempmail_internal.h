@@ -912,6 +912,54 @@ tm_email_t *tm_provider_generator_email_get_emails(const char *email,
                                                    const char *token,
                                                    int *count);
 
+/* dummyinbox（https://dummyinbox.com，无密钥，地址即凭据） */
+tm_email_info_t *tm_provider_dummyinbox_generate(void);
+tm_email_t *tm_provider_dummyinbox_get_emails(const char *email, int *count);
+
+/* plainlykit（https://plainlykit.com，内部令牌 “邮箱ID|读取令牌”） */
+tm_email_info_t *tm_provider_plainlykit_generate(void);
+tm_email_t *tm_provider_plainlykit_get_emails(const char *email,
+                                              const char *token, int *count);
+
+/* mailboxtemp（https://mailboxtemp.com，无密钥，地址即凭据） */
+tm_email_info_t *tm_provider_mailboxtemp_generate(void);
+tm_email_t *tm_provider_mailboxtemp_get_emails(const char *email, int *count);
+
+/* nextmail（https://nextmail.sh，内部令牌 “收件箱ID|读取令牌”） */
+tm_email_info_t *tm_provider_nextmail_generate(void);
+tm_email_t *tm_provider_nextmail_get_emails(const char *email,
+                                            const char *token, int *count);
+
+/* tsukaisutemail（https://tsukaisutemail.com，无密钥，地址即凭据） */
+tm_email_info_t *tm_provider_tsukaisutemail_generate(void);
+tm_email_t *tm_provider_tsukaisutemail_get_emails(const char *email,
+                                                  int *count);
+
+/* tempmailify（https://tempmailify.com，收件箱专属 Bearer 令牌） */
+tm_email_info_t *tm_provider_tempmailify_generate(void);
+tm_email_t *tm_provider_tempmailify_get_emails(const char *email,
+                                               const char *token, int *count);
+
+/* grabmail（https://grabmail.io，地址即邮箱，无需创建） */
+tm_email_info_t *tm_provider_grabmail_generate(void);
+tm_email_t *tm_provider_grabmail_get_emails(const char *email, int *count);
+
+/* tempmails-cc（https://tempmails.cc，公开免费域名，地址即邮箱） */
+tm_email_info_t *tm_provider_tempmails_cc_generate(void);
+tm_email_t *tm_provider_tempmails_cc_get_emails(const char *email, int *count);
+
+/* geniusgsm（https://tempmail.geniusgsm.com，内部令牌即收件箱 ID） */
+tm_email_info_t *tm_provider_geniusgsm_generate(void);
+tm_email_t *tm_provider_geniusgsm_get_emails(const char *email,
+                                             const char *token, int *count);
+
+/* tempmails-cc 固定域名变体 */
+tm_email_info_t *tm_provider_tempmails_cc_generate_domain(const char *domain);
+
+/* temp-tf（https://temp.tf，无需密钥，地址即邮箱） */
+tm_email_info_t *tm_provider_temp_tf_generate(void);
+tm_email_t *tm_provider_temp_tf_get_emails(const char *email, int *count);
+
 /* ========== 指定域名变体（跳过随机选域，复用各 provider 建账号/取 token） ========== */
 tm_email_info_t *tm_provider_mail_tm_generate_domain(const char *domain);
 tm_email_info_t *tm_provider_duckmail_generate_domain(const char *domain);

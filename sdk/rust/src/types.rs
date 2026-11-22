@@ -769,6 +769,42 @@ pub enum Channel {
     /// duckmail 服务方镜像域名 hubaiclass.org
     #[serde(rename = "hubaiclass-org")]
     HubaiclassOrg,
+    /// DummyInbox 独立服务
+    #[serde(rename = "dummyinbox")]
+    DummyInbox,
+    /// PlainlyKit 独立服务
+    #[serde(rename = "plainlykit")]
+    PlainlyKit,
+    /// MailboxTemp 独立服务
+    #[serde(rename = "mailboxtemp")]
+    MailboxTemp,
+    /// Nextmail 独立服务
+    #[serde(rename = "nextmail")]
+    Nextmail,
+    /// Tsukaisute Mail 独立服务
+    #[serde(rename = "tsukaisutemail")]
+    TsukaisuteMail,
+    /// Tempmailify 独立服务
+    #[serde(rename = "tempmailify")]
+    Tempmailify,
+    /// GrabMail 独立服务
+    #[serde(rename = "grabmail")]
+    Grabmail,
+    /// tempmails.cc 独立服务
+    #[serde(rename = "tempmails-cc")]
+    TempmailsCc,
+    /// GeniusGSM 独立服务
+    #[serde(rename = "geniusgsm")]
+    GeniusGSM,
+    /// temp.tf 独立服务
+    #[serde(rename = "temp-tf")]
+    TempTF,
+    /// tempmails.cc 服务方域名 anotherkevin.com
+    #[serde(rename = "anotherkevin-com")]
+    AnotherkevinCom,
+    /// tempmails.cc 服务方域名 alviongroup.cloud
+    #[serde(rename = "alviongroup-cloud")]
+    AlviongroupCloud,
 }
 
 impl std::fmt::Display for Channel {
@@ -1099,6 +1135,18 @@ impl std::fmt::Display for Channel {
             Channel::NicegroundShop => write!(f, "niceground-shop"),
             Channel::GlasswhitehubCom => write!(f, "glasswhitehub-com"),
             Channel::HubaiclassOrg => write!(f, "hubaiclass-org"),
+            Channel::DummyInbox => write!(f, "dummyinbox"),
+            Channel::PlainlyKit => write!(f, "plainlykit"),
+            Channel::MailboxTemp => write!(f, "mailboxtemp"),
+            Channel::Nextmail => write!(f, "nextmail"),
+            Channel::TsukaisuteMail => write!(f, "tsukaisutemail"),
+            Channel::Tempmailify => write!(f, "tempmailify"),
+            Channel::Grabmail => write!(f, "grabmail"),
+            Channel::TempmailsCc => write!(f, "tempmails-cc"),
+            Channel::GeniusGSM => write!(f, "geniusgsm"),
+            Channel::TempTF => write!(f, "temp-tf"),
+            Channel::AnotherkevinCom => write!(f, "anotherkevin-com"),
+            Channel::AlviongroupCloud => write!(f, "alviongroup-cloud"),
         }
     }
 }

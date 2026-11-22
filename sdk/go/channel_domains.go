@@ -102,6 +102,14 @@ var channelDomains = map[Channel][]string{
 	ChannelNicegroundShop:   {"niceground.shop"},
 	ChannelGlasswhitehubCom: {"glasswhitehub.com"},
 	ChannelHubaiclassOrg:    {"hubaiclass.org"},
+	ChannelDummyInbox:       {"dummyinbox.com", "987654320.xyz", "dotmail.dev", "223190.xyz"},
+	ChannelTsukaisuteMail:   {"postmarkbox.uk"},
+	ChannelTempmailify:      {"tempmailify.com"},
+	ChannelGrabmail:         {"grabmail.io"},
+	ChannelGeniusGSM:        {"tempmail.geniusgsm.com", "geniusgsm.com", "mail.geniusgsm.com"},
+	ChannelTempTF:           {},
+	ChannelAnotherkevinCom:  {"anotherkevin.com"},
+	ChannelAlviongroupCloud: {"alviongroup.cloud"},
 }
 
 // dynamicDomainChannels 是域名通过 API 动态获取的渠道
@@ -133,6 +141,10 @@ var dynamicDomainChannels = map[Channel]bool{
 	ChannelFmail:         true,
 	ChannelOckito:        true,
 	ChannelTempMailOrg:   true,
+	ChannelPlainlyKit:    true,
+	ChannelMailboxTemp:   true,
+	ChannelNextmail:      true,
+	ChannelTempmailsCc:   true,
 }
 
 // filterChannelsByDomain 根据目标域名过滤渠道列表

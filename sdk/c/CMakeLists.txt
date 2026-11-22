@@ -227,6 +227,16 @@ add_library(tempmail_sdk STATIC
     src/providers/tmpkit.c
     src/providers/internxt.c
     src/providers/generator_email.c
+    src/providers/dummyinbox.c
+    src/providers/plainlykit.c
+    src/providers/mailboxtemp.c
+    src/providers/nextmail.c
+    src/providers/tsukaisutemail.c
+    src/providers/tempmailify.c
+    src/providers/grabmail.c
+    src/providers/tempmails_cc.c
+    src/providers/geniusgsm.c
+    src/providers/temp_tf.c
     vendor/cJSON.c
 )
 

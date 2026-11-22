@@ -4,7 +4,7 @@
 # 每项为 [slug, name, website]，注册表按此顺序枚举，顺序为硬约束。
 #
 module TempmailSdk
-  # 290 个渠道的有序元数据
+  # 316 个渠道的有序元数据
   CHANNEL_DATA = [
     ["tempmail", "TempMail", "tempmail.ing"],
     ["tempmail-cn", "TempMail CN", "tempmail.cn"],
@@ -310,5 +310,17 @@ module TempmailSdk
     ["niceground-shop", "niceground.shop", "duckmail.sbs"],
     ["glasswhitehub-com", "glasswhitehub.com", "duckmail.sbs"],
     ["hubaiclass-org", "hubaiclass.org", "duckmail.sbs"],
+    ["dummyinbox", "DummyInbox", "dummyinbox.com"],
+    ["plainlykit", "PlainlyKit", "plainlykit.com"],
+    ["mailboxtemp", "MailboxTemp", "mailboxtemp.com"],
+    ["nextmail", "Nextmail", "nextmail.sh"],
+    ["tsukaisutemail", "Tsukaisute Mail", "tsukaisutemail.com"],
+    ["tempmailify", "Tempmailify", "tempmailify.com"],
+    ["grabmail", "GrabMail", "grabmail.io"],
+    ["tempmails-cc", "tempmails.cc", "tempmails.cc"],
+    ["geniusgsm", "GeniusGSM", "tempmail.geniusgsm.com"],
+    ["temp-tf", "temp.tf", "temp.tf"],
+    ["anotherkevin-com", "anotherkevin.com", "tempmails.cc"],
+    ["alviongroup-cloud", "alviongroup.cloud", "tempmails.cc"],
   ].freeze
 end

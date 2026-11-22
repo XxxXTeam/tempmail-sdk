@@ -123,6 +123,24 @@ static CHANNEL_DOMAINS: LazyLock<HashMap<Channel, Vec<&'static str>>> = LazyLock
     m.insert(Channel::NicegroundShop, vec!["niceground.shop"]);
     m.insert(Channel::GlasswhitehubCom, vec!["glasswhitehub.com"]);
     m.insert(Channel::HubaiclassOrg, vec!["hubaiclass.org"]);
+    m.insert(
+        Channel::DummyInbox,
+        vec!["dummyinbox.com", "987654320.xyz", "dotmail.dev", "223190.xyz"],
+    );
+    m.insert(Channel::TsukaisuteMail, vec!["postmarkbox.uk"]);
+    m.insert(Channel::Tempmailify, vec!["tempmailify.com"]);
+    m.insert(Channel::Grabmail, vec!["grabmail.io"]);
+    m.insert(
+        Channel::GeniusGSM,
+        vec![
+            "tempmail.geniusgsm.com",
+            "geniusgsm.com",
+            "mail.geniusgsm.com",
+        ],
+    );
+    m.insert(Channel::TempTF, vec![]);
+    m.insert(Channel::AnotherkevinCom, vec!["anotherkevin.com"]);
+    m.insert(Channel::AlviongroupCloud, vec!["alviongroup.cloud"]);
     m
 });
 
@@ -155,6 +173,10 @@ static DYNAMIC_DOMAIN_CHANNELS: LazyLock<HashSet<Channel>> = LazyLock::new(|| {
     s.insert(Channel::Fmail);
     s.insert(Channel::Ockito);
     s.insert(Channel::TempMailOrg);
+    s.insert(Channel::PlainlyKit);
+    s.insert(Channel::MailboxTemp);
+    s.insert(Channel::Nextmail);
+    s.insert(Channel::TempmailsCc);
     s
 });
 

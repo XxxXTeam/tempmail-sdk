@@ -55,7 +55,11 @@ module TempmailSdk
       Nukemail: "nukemail", Shadowmail: "shadowmail", Flybymail: "flybymail",
       Nowtempmail: "nowtempmail", Clawdemail: "clawdemail", Tempmail100: "tempmail100",
       Tempmailto: "tempmailto", TempMailGg: "temp_mail_gg",
-      Tmpkit: "tmpkit", Internxt: "internxt", GeneratorEmail: "generator_email"
+      Tmpkit: "tmpkit", Internxt: "internxt", GeneratorEmail: "generator_email",
+      DummyInbox: "dummyinbox", PlainlyKit: "plainlykit", MailboxTemp: "mailboxtemp",
+      Nextmail: "nextmail", TsukaisuteMail: "tsukaisutemail", Tempmailify: "tempmailify",
+      Grabmail: "grabmail", TempmailsCc: "tempmails_cc", GeniusGSM: "geniusgsm",
+      TempTf: "temp_tf"
     }.freeze
 
     PROVIDER_AUTOLOADS.each do |mod_name, file|
@@ -955,6 +959,58 @@ module TempmailSdk
         "hubaiclass-org" => {
           generate: ->(_o) { with_channel(p::Duckmail.generate_email_at_domain("hubaiclass.org"), "hubaiclass-org") },
           get_emails: ->(e, t) { p::Duckmail.get_emails(e, require_token(t, "duckmail")) }
+        },
+        "dummyinbox" => {
+          generate: ->(_o) { p::DummyInbox.generate_email },
+          get_emails: ->(e, _t) { p::DummyInbox.get_emails(e) }
+        },
+        "plainlykit" => {
+          generate: ->(_o) { p::PlainlyKit.generate_email },
+          get_emails: ->(e, t) { p::PlainlyKit.get_emails(e, require_token(t, "plainlykit")) }
+        },
+        "mailboxtemp" => {
+          generate: ->(_o) { p::MailboxTemp.generate_email },
+          get_emails: ->(e, _t) { p::MailboxTemp.get_emails(e) }
+        },
+        "nextmail" => {
+          generate: ->(_o) { p::Nextmail.generate_email },
+          get_emails: ->(e, t) { p::Nextmail.get_emails(e, require_token(t, "nextmail")) }
+        },
+        "tsukaisutemail" => {
+          generate: ->(_o) { p::TsukaisuteMail.generate_email },
+          get_emails: ->(e, _t) { p::TsukaisuteMail.get_emails(e) }
+        },
+        "tempmailify" => {
+          generate: ->(_o) { p::Tempmailify.generate_email },
+          get_emails: ->(e, t) { p::Tempmailify.get_emails(e, require_token(t, "tempmailify")) }
+        },
+        "grabmail" => {
+          generate: ->(_o) { p::Grabmail.generate_email },
+          get_emails: ->(e, _t) { p::Grabmail.get_emails(e) }
+        },
+        "tempmails-cc" => {
+          generate: ->(_o) { p::TempmailsCc.generate_email },
+          get_emails: ->(e, _t) { p::TempmailsCc.get_emails(e) }
+        },
+        "geniusgsm" => {
+          generate: ->(_o) { p::GeniusGSM.generate_email },
+          get_emails: ->(e, t) { p::GeniusGSM.get_emails(e, require_token(t, "geniusgsm")) }
+        },
+        "temp-tf" => {
+          generate: ->(_o) { p::TempTf.generate_email },
+          get_emails: ->(e, _t) { p::TempTf.get_emails(e) }
+        },
+        "anotherkevin-com" => {
+          generate: lambda { |_o|
+            p::TempmailsCc.generate_email_at_domain("anotherkevin.com", "anotherkevin-com")
+          },
+          get_emails: ->(e, _t) { p::TempmailsCc.get_emails(e) }
+        },
+        "alviongroup-cloud" => {
+          generate: lambda { |_o|
+            p::TempmailsCc.generate_email_at_domain("alviongroup.cloud", "alviongroup-cloud")
+          },
+          get_emails: ->(e, _t) { p::TempmailsCc.get_emails(e) }
         },
         "mail10s" => {
           generate: ->(_o) { p::Mail10s.generate_email },

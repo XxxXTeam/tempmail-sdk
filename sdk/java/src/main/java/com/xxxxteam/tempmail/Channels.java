@@ -1,7 +1,7 @@
 package com.xxxxteam.tempmail;
 
 /**
- * 全部 301 个渠道标识常量（与 baseline 逐行一致，供强类型引用）。
+ * 渠道标识常量（与 baseline 顺序一致，供强类型引用）。
  */
 public final class Channels {
 
@@ -588,4 +588,28 @@ public final class Channels {
     public static final String ReplyloopCom = "replyloop-com";
     /** temptami.com */
     public static final String TemptamiCom = "temptami-com";
+    /** DummyInbox */
+    public static final String DummyInbox = "dummyinbox";
+    /** PlainlyKit */
+    public static final String PlainlyKit = "plainlykit";
+    /** MailboxTemp */
+    public static final String MailboxTemp = "mailboxtemp";
+    /** Nextmail */
+    public static final String Nextmail = "nextmail";
+    /** Tsukaisute Mail */
+    public static final String TsukaisuteMail = "tsukaisutemail";
+    /** Tempmailify */
+    public static final String Tempmailify = "tempmailify";
+    /** GrabMail */
+    public static final String Grabmail = "grabmail";
+    /** tempmails.cc */
+    public static final String TempmailsCc = "tempmails-cc";
+    /** GeniusGSM */
+    public static final String GeniusGsm = "geniusgsm";
+    /** temp.tf */
+    public static final String TempTf = "temp-tf";
+    /** anotherkevin.com */
+    public static final String AnotherkevinCom = "anotherkevin-com";
+    /** alviongroup.cloud */
+    public static final String AlviongroupCloud = "alviongroup-cloud";
 }
